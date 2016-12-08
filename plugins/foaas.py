@@ -64,11 +64,11 @@ headers = {'Accept' : 'text/plain'}
 
 @hook.command('fos','fuckoff','foaas')
 def foaas(text, nick, message):
-    """.fos [name] to tell some one to fuck off or just .fos for a generic fuckoff"""
+    '''fos [name] to tell some one to fuck off or just .fos for a generic fuckoff'''
 	Fuckee = text.strip()
 	Fucker = nick
-    if fuckee == '':
-		r = requests.get('http://www.foaas.com?' + str(random.choice(SingleFuckList)) + Fucker,headers=headers)
+    if Fuckee == '':
+		r = requests.get('http://www.foaas.com/' + str(random.choice(SingleFuckList)) + Fucker,headers=headers)
 		out = r.text
 		message(out)
 	else:
