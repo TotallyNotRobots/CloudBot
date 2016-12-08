@@ -39,11 +39,10 @@ def	serving(text, message):
 	diner = text.strip()
 
 	if diner =='':
-		out = 'Has {} {} {}'.format('quantity', 'quality', 'dish')
-		message(out)
+		message('Has {} {} {}'.format(random.choice(quantity), random.choice(quality), random.choice(dish)))
+
 	else:
-		out = 'Serves {} {} {} {}'.format('diner', 'quantity', 'quality', 'dish')
-		message(out)
+		message('Serves {} {} {} {}'.format(diner, random.choice(quantity), random.choice(quality), random.choice(dish)))
 
 
 #written by ilgnome
