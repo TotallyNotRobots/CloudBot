@@ -33,16 +33,16 @@ dish = 	[	'Rice and Goat Meat',
 			'Szechwan'
 			]
 
-@hook.command('halaal', 'halal')
-def	serving(text, message):
+@hook.command('halaal', 'halal', autohelp = False)
+def	serving(text, action):
 	'''Serves halaal dishes to some one in the channel'''
 	diner = text.strip()
 
 	if diner =='':
-		message('Has {} {} {}'.format(random.choice(quantity), random.choice(quality), random.choice(dish)))
+		action('Has {} {} {}'.format(random.choice(quantity), random.choice(quality), random.choice(dish)))
 
 	else:
-		message('Serves {} {} {} {}'.format(diner, random.choice(quantity), random.choice(quality), random.choice(dish)))
+		action('Serves {} {} {} {}'.format(diner, random.choice(quantity), random.choice(quality), random.choice(dish)))
 
 
 #written by ilgnome
