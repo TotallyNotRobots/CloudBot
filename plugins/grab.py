@@ -8,6 +8,7 @@ from cloudbot import hook
 from cloudbot.util import database
 
 search_pages = defaultdict(list)
+search_page_indexes = {}
 
 table = Table(
     'grab',
@@ -42,7 +43,7 @@ def two_lines(bigstring, chan):
     temp = bigstring.split('\n')
     for i in range(0, len(temp), 2):
         search_pages[chan].append('\n'.join(temp[i:i+2]))
-    search_pages[chan+"index"] = 0
+    search_page_indexes[chan] = 0
     return search_pages[chan][0]
 
 
@@ -69,9 +70,9 @@ def moregrab(text, chan):
         else:
             return "{}(page {}/{})".format(search_pages[chan][index-1], index, len(search_pages[chan]))
     else:
-        search_pages[chan+"index"] += 1
-        if search_pages[chan+"index"] < len(search_pages[chan]):
-            return "{}(page {}/{})".format(search_pages[chan][search_pages[chan+"index"]], search_pages[chan+"index"] + 1, len(search_pages[chan]))
+        search_page_indexes[chan] += 1
+        if search_page_indexes[chan] < len(search_pages[chan]):
+            return "{}(page {}/{})".format(search_pages[chan][search_page_indexes[chan]], search_page_indexes[chan] + 1, len(search_pages[chan]))
         else:
             return "All pages have been shown you can specify a page number or do a new search."
 
@@ -97,7 +98,7 @@ def grab(text, nick, chan, db, conn):
     specified nick and adds it to the quote database"""
     if text.lower() == nick.lower():
         return "Didn't your mother teach you not to grab yourself?"
-    
+
     for item in conn.history[chan].__reversed__():
         name, timestamp, msg = item
         if text.lower() == name.lower():
@@ -106,7 +107,7 @@ def grab(text, nick, chan, db, conn):
                 return "I already have that quote from {} in the database".format(text)
                 break
             else:
-                # the quote is new so add it to the db. 
+                # the quote is new so add it to the db.
                 grab_add(name.lower(),timestamp, msg, chan, db, conn)
                 if check_grabs(name.lower(), msg, chan):
                     return "the operation succeeded."
@@ -169,7 +170,7 @@ def grabsearch(text, chan):
     out = ""
     result = []
     search_pages[chan] = []
-    search_pages[chan+"index"] = 0
+    search_page_indexes[chan] = 0
     try:
         quotes = grab_cache[chan][text.lower()]
         for grab in quotes:
@@ -192,7 +193,7 @@ def grabsearch(text, chan):
         out = out[:-2]
         out = two_lines(out, chan)
         if len(search_pages[chan]) > 1:
-            return "{}(page {}/{}) .moregrab".format(out, search_pages[chan+"index"] + 1 , len(search_pages[chan]))
+            return "{}(page {}/{}) .moregrab".format(out, search_page_indexes[chan] + 1, len(search_pages[chan]))
         return out
     else:
         return "I couldn't find any matches for {}.".format(text)
