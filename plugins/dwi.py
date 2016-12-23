@@ -14,12 +14,14 @@ DWImacros =['https://i.imgur.com/WhgY2sX.gif',
 			      'https://j.gifs.com/L9mmYr.gif',
 			      'https://i.imgur.com/nxMBqb4.gif']
 
-#This part currently broken
-DWIphrases = [	'Looks like {} needs',
-				        'Ever think that {} just needs to',
-			        	'Jesus fuck, {}, just',
+DWIphrases = [	
+				'Stop complaining, \x02{}\x02, and',
+				'Jesus fuck \x02{}\x02, just',
+				'Looks like \x02{}\x02 needs to',
+				'Ever think that \x02{}\x02 just needs to'
+				
 
-			      	]
+				]
 
 
 
@@ -30,4 +32,4 @@ def DWI(text, message):
 	'''Tell some one in the channel to deal with it'''
 	PersonNeedsToDeal = text.strip()
 
-	message('\x02 {}\x02 {}'.format(PersonNeedsToDeal, random.choice(DWImacros)))
+	message('{} {}'.format(random.choice(DWIphrases).format(PersonNeedsToDeal), random.choice(DWImacros)))
