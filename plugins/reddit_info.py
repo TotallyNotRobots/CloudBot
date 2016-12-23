@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 
 search_pages = defaultdict(list)
+search_page_indexes = {}
 
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
@@ -20,7 +21,7 @@ def two_lines(bigstring, chan):
     temp = bigstring.split('\n')
     for i in range(0, len(temp), 2):
         search_pages[chan].append('\n'.join(temp[i:i+2]))
-    search_pages[chan+"index"] = 0
+    search_page_indexes[chan] = 0
     return search_pages[chan][0]
 
 
@@ -61,9 +62,9 @@ def moremod(text, chan):
         else:
             return "{}(page {}/{})".format(search_pages[chan][index-1], index, len(search_pages[chan]))
     else:
-        search_pages[chan+"index"] += 1
-        if search_pages[chan+"index"] < len(search_pages[chan]):
-            return "{}(page {}/{})".format(search_pages[chan][search_pages[chan+"index"]], search_pages[chan+"index"] + 1, len(search_pages[chan]))
+        search_page_indexes[chan] += 1
+        if search_page_indexes[chan] < len(search_pages[chan]):
+            return "{}(page {}/{})".format(search_pages[chan][search_page_indexes[chan]], search_page_indexes[chan] + 1, len(search_pages[chan]))
         else:
             return "All pages have been shown."
 
@@ -74,7 +75,7 @@ def moderates(text, chan):
     #This command was written using concepts from FurCode http://github.com/FurCode.
     global search_pages
     search_pages[chan] = []
-    search_pages[chan+"index"] = 0
+    search_page_indexes[chan] = 0
     user = text
     r = requests.get(user_url.format(user), headers=agent)
     if r.status_code != 200:
@@ -93,7 +94,7 @@ def moderates(text, chan):
     out = smart_truncate(out)
     if len(out.split('\n')) > 2:
         out = two_lines(out, chan)
-        return "{}(page {}/{}) .moremod".format(out, search_pages[chan+"index"] + 1 , len(search_pages[chan]))
+        return "{}(page {}/{}) .moremod".format(out, search_page_indexes[chan] + 1, len(search_pages[chan]))
     return out
 
 
@@ -122,7 +123,7 @@ def karma(text):
         if age == 1:
             out += "redditor for {} year.".format(age)
         else:
-            out += "redditor for {} years.".format(age) 
+            out += "redditor for {} years.".format(age)
     else:
         out += "redditor for {} days.".format(account_age.days)
     return out
@@ -164,7 +165,7 @@ def submods(text, chan):
     """submods <subreddit> prints the moderators of the specified subreddit. Do not include /r/ when specifying a subreddit."""
     global search_pages
     search_pages[chan] = []
-    search_pages[chan+"index"] = 0
+    search_page_indexes[chan] = 0
     sub = text
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
@@ -183,7 +184,7 @@ def submods(text, chan):
     out = out[:-3]
     if len(out.split('\n')) > 2:
         out = two_lines(out, chan)
-        return "{}(page {}/{}) .moremod".format(out, search_pages[chan+"index"] + 1 , len(search_pages[chan]))
+        return "{}(page {}/{}) .moremod".format(out, search_page_indexes[chan] + 1, len(search_pages[chan]))
     return out
 
 @hook.command("subinfo","subreddit", "sub", "rinfo", singlethreaded=True)
