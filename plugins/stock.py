@@ -19,7 +19,7 @@ def get_data(symbol):
 @hook.command()
 def stock(text):
     """<symbol> -- gets stock information"""
-    sym = text.strip().lower()
+    sym = text.strip()
 
     try:
         data = get_data(text)
