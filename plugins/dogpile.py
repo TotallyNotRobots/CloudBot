@@ -1,6 +1,6 @@
 import requests
 import random
-
+import re
 from urllib import parse
 from bs4 import BeautifulSoup
 from cloudbot import hook
@@ -20,8 +20,11 @@ def dogpileimage(text, chan):
     params = { 'q': " ".join(text.split())}
     r = requests.get(image_url, params=params, headers=HEADERS)
     soup = BeautifulSoup(r.content)
-    linklist = soup.find('div', id="webResults").find_all('a', {'class':'resultThumbnailLink'})
-    image = parse.unquote(parse.unquote(random.choice(linklist)['href']).split('ru=')[1].split('&')[0])
+    data = soup.find_all("script")[7].string
+    link_re = re.compile('"url":"(.*?)",')
+    linklist = link_re.findall(data)
+    #linklist = soup.find('div', id="webResults").find_all('a', {'class':'resultThumbnailLink'})
+    image = parse.unquote(parse.unquote(random.choice(linklist)).split('ru=')[1].split('&')[0])
     return image
 
 @hook.command("dp", "g", "dogpile")
