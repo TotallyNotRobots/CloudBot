@@ -78,7 +78,15 @@ def crypto_command(text, currency):
     else:
         change_str = "{}%".format(change)
 
-    return "{} // \x0307${:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'].upper(),
+    if currency == 'gbp':
+        currency_sign = '£'
+    elif currency == 'eur':
+        currency_sign = '€'
+    else:
+        currency_sign = '$'
+
+    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'].upper(),
+                                                                            currency_sign,
                                                                             float(data['price'][currency]),
                                                                             currency.upper(),
                                                                             float(data['price']['btc']),
