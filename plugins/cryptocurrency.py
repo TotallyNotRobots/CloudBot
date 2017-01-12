@@ -24,31 +24,35 @@ API_URL = "https://coinmarketcap-nexuist.rhcloud.com/api/{}"
 
 # aliases
 @hook.command("bitcoin", "btc", autohelp=False)
-def bitcoin():
+def bitcoin(text):
     """ -- Returns current bitcoin value """
     # alias
-    return crypto_command("btc")
+    return crypto_command("btc", text)
 
 
 @hook.command("litecoin", "ltc", autohelp=False)
-def litecoin():
+def litecoin(text):
     """ -- Returns current litecoin value """
     # alias
-    return crypto_command("ltc")
+    return crypto_command("ltc", text)
 
 
 @hook.command("dogecoin", "doge", autohelp=False)
 def dogecoin():
     """ -- Returns current dogecoin value """
     # alias
-    return crypto_command("doge")
+    return crypto_command("doge", text)
 
 
 # main command
 @hook.command("crypto", "cryptocurrency")
-def crypto_command(text):
+def crypto_command(text, currency):
     """ <ticker> -- Returns current value of a cryptocurrency """
     try:
+        if currency == '':
+            currency = 'usd'
+        else:
+            currency = currency.lower()
         encoded = quote_plus(text)
         request = requests.get(API_URL.format(encoded))
         request.raise_for_status()
@@ -74,7 +78,8 @@ def crypto_command(text):
     else:
         change_str = "{}%".format(change)
 
-    return "{} // \x0307${:,.2f}\x0f USD - {:,.7f} BTC // {} change".format(data['symbol'].upper(),
-                                                                            float(data['price']['usd']),
+    return "{} // \x0307${:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'].upper(),
+                                                                            float(data['price'][currency]),
+                                                                            currency.upper(),
                                                                             float(data['price']['btc']),
                                                                             change_str)
