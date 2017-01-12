@@ -1,6 +1,6 @@
 {
     "templates": [
-        "serves {user} a {size} {cut}, cooked {temp} topped with {topping} and a {side}!"
+        "serves {user} a {size} {cut}, {temp}, topped with {topping} and a {side}!"
     ],
     "parts": {
         "size": [
@@ -37,11 +37,11 @@
         "temp": [
 	    "still-twitching",
 	    "raw",
-	    "rare",
-	    "medium-rare",
-	    "medium",
-	    "medium-well",
-	    "well-done",
+	    "cooked rare",
+	    "cooked medium-rare",
+	    "cooked medium",
+	    "cooked medium-well",
+	    "cooked well-done",
 	    "burnt-to-a-crisp",
 	    "vaporized"
         ],
