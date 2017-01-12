@@ -1,0 +1,77 @@
+{
+    "templates": [
+        "serves {user} a {size} {cut}, cooked {temp} topped with {topping} and a {side}!"
+    ],
+    "parts": {
+        "size": [
+	    "pea-sized",
+	    "morsel",
+	    "6 oz",
+	    "8 oz",
+	    "12 oz",
+	    "16 oz",
+	    "22oz",
+	    "gargantuan",
+	    "titanic"
+        ],
+        "cut": [
+	    "ribeye",
+	    "sirloin",
+	    "filet mignon",
+	    "T-bone",
+	    "porterhouse",
+	    "London broil",
+	    "skirt steak",
+	    "brisket",
+	    "New York strip",
+	    "tri-tip",
+	    "round steak",
+	    "prime rib",
+	    "chopped steak patty",
+	    "cow tongue",
+	    "rump roast",
+	    "chuck steak",
+	    "horse steak",
+	    "T-Rex tenderloin"
+        ],
+        "temp": [
+	    "still-twitching",
+	    "raw",
+	    "rare",
+	    "medium-rare",
+	    "medium",
+	    "medium-well",
+	    "well-done",
+	    "burnt-to-a-crisp",
+	    "vaporized"
+        ],
+	"topping": [
+	    "grilled onions",
+	    "sauteed mushrooms",
+	    "sauce bearnaise",
+	    "a nice bourbon glaze",
+	    "A-1 steak sauce",
+	    "Worcestershire sauce",
+	    "ketchup",
+	    "mustard shallot sauce",
+	    "barbecue sauce",
+	    "chimichurri",
+	    "herbed compound butter",
+	    "red wine reduction",
+	    "horseradish"
+	],
+	"side": [
+	    "basket of freshly-baked rolls",
+	    "side of mashed potatoes and gravy",
+	    "side of roasted red potatoes",
+	    "baked potato with all of the fixin's",
+	    "side of haricot verts",
+	    "side of roasted parsnips",
+	    "side salad with blue cheese dressing",
+	    "side salad with ranch dressing",
+	    "side salad with French dressing",
+	    "side salad with Balsamic vinaigrette",
+	    "side salad with raspberry vinaigrette"
+	]	
+    }
+}
