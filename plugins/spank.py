@@ -31,7 +31,7 @@ def load_spanks(bot):
 @asyncio.coroutine
 @hook.command
 def spank(text, action):
-    """<user> - give tea to <user>"""
+    """<user> - Spanks a  <user>"""
     user = text.strip()
 
     generator = textgen.TextGenerator(spank_data["templates"], spank_data["parts"],
