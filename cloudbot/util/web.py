@@ -15,6 +15,7 @@ License:
 
 import json
 
+import asyncio
 import requests
 
 # Constants
@@ -27,13 +28,18 @@ HASTEBIN_SERVER = 'http://hastebin.com'
 # Python eval
 
 
+@asyncio.coroutine
 def pyeval(code, pastebin=True):
     p = {'input': code}
     r = requests.post('http://pyeval.appspot.com/exec', data=p)
 
     p = {'id': r.text}
-    r = requests.get('http://pyeval.appspot.com/exec', params=p)
-    j = r.json()
+    r = None
+    j = {}
+    while not r or j.get("status", "not ready").lower() == "not ready":
+        r = requests.get('http://pyeval.appspot.com/exec', params=p)
+        j = r.json()
+        yield from asyncio.sleep(0.5)
 
     output = j['output'].rstrip('\n')
     if '\n' in output and pastebin:
