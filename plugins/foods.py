@@ -68,7 +68,7 @@ def load_foods(bot):
     global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, \
         tea_data, keto_data, beer_data, cheese_data, pancake_data, chicken_data, \
         icecream_data, brekkie_data, doobie_data, pizza_data, chocolate_data, pasta_data, \
-        nugget_data, cereal_data, pie_data, sushi_data
+        nugget_data, cereal_data, pie_data, sushi_data, steak_data
 
     with codecs.open(os.path.join(bot.data_dir, "sandwich.json"), encoding="utf-8") as f:
         sandwich_data = json.load(f)
@@ -132,6 +132,9 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "sushi.json"), encoding="utf-8") as f:
         sushi_data = json.load(f)
+      
+    with codecs.open(os.path.join(bot.data_dir, "steak.json"), encoding="utf-8") as f:
+        steak_data = json.load(f)
 
 @asyncio.coroutine
 @hook.command
@@ -484,5 +487,19 @@ def sushi(text, action):
 
     generator = textgen.TextGenerator(sushi_data["templates"], sushi_data["parts"],
                                       variables={"user": user})
+    # act out the message
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
+def steak(text, action):
+    """<user> - give a steak dinner to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't treat that user to a nice steak dinner."
+
+    generator = textgen.TextGenerator(steak_data["templates"], steak_data["parts"], variables={"user": user})
+
     # act out the message
     action(generator.generate_string())

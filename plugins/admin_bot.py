@@ -21,10 +21,10 @@ def get_group_permissions(text, conn, notice):
     :type text: str
     :type conn: cloudbot.client.Client
     """
-    group = text.strip().lower()
+    group = text.strip()
     permission_manager = conn.permissions
-    group_users = permission_manager.get_group_users(group)
-    group_permissions = permission_manager.get_group_permissions(group)
+    group_users = permission_manager.get_group_users(group.lower())
+    group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_permissions:
         return "Group {} has permissions {}".format(group, group_permissions)
     elif group_users:
@@ -40,10 +40,10 @@ def get_group_users(text, conn, notice):
     :type text: str
     :type conn: cloudbot.client.Client
     """
-    group = text.strip().lower()
+    group = text.strip()
     permission_manager = conn.permissions
-    group_users = permission_manager.get_group_users(group)
-    group_permissions = permission_manager.get_group_permissions(group)
+    group_users = permission_manager.get_group_users(group.lower())
+    group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_users:
         return "Group {} has members: {}".format(group, group_users)
     elif group_permissions:
@@ -64,13 +64,13 @@ def get_user_permissions(text, conn, mask, has_permission, notice):
         if not has_permission("permissions_users"):
             notice("Sorry, you are not allowed to use this command on another user")
             return
-        user = text.strip().lower()
+        user = text.strip()
     else:
-        user = mask.lower()
+        user = mask
 
     permission_manager = conn.permissions
 
-    user_permissions = permission_manager.get_user_permissions(user)
+    user_permissions = permission_manager.get_user_permissions(user.lower())
     if user_permissions:
         return "User {} has permissions: {}".format(user, user_permissions)
     else:
@@ -89,13 +89,13 @@ def get_user_groups(text, conn, mask, has_permission, notice):
         if not has_permission("permissions_users"):
             notice("Sorry, you are not allowed to use this command on another user")
             return
-        user = text.strip().lower()
+        user = text.strip()
     else:
-        user = mask.lower()
+        user = mask
 
     permission_manager = conn.permissions
 
-    user_groups = permission_manager.get_user_groups(user)
+    user_groups = permission_manager.get_user_groups(user.lower())
     if user_groups:
         return "User {} is in groups: {}".format(user, user_groups)
     else:
@@ -119,19 +119,19 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply):
         return
 
     if len(split) > 1:
-        user = split[0].lower()
-        group = split[1].lower()
+        user = split[0]
+        group = split[1]
     else:
-        user = split[0].lower()
+        user = split[0]
         group = None
 
     permission_manager = conn.permissions
     changed = False
     if group is not None:
-        if not permission_manager.group_exists(group):
+        if not permission_manager.group_exists(group.lower()):
             notice("Unknown group '{}'".format(group))
             return
-        changed_masks = permission_manager.remove_group_user(group, user)
+        changed_masks = permission_manager.remove_group_user(group.lower(), user.lower())
         if changed_masks:
             changed = True
         if len(changed_masks) > 1:
@@ -145,9 +145,9 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply):
         else:
             reply("No masks in {} matched {}".format(group, user))
     else:
-        groups = permission_manager.get_user_groups(user)
+        groups = permission_manager.get_user_groups(user.lower())
         for group in groups:
-            changed_masks = permission_manager.remove_group_user(group, user)
+            changed_masks = permission_manager.remove_group_user(group.lower(), user.lower())
             if changed_masks:
                 changed = True
             if len(changed_masks) > 1:
@@ -182,8 +182,8 @@ def add_permissions_user(text, nick, message, conn, bot, notice, reply):
         notice("Not enough arguments")
         return
 
-    user = split[0].lower()
-    group = split[1].lower()
+    user = split[0]
+    group = split[1]
 
     if not re.search('.+!.+@.+', user):
         # TODO: When we have presence tracking, check if there are any users in the channel with the nick given
@@ -194,7 +194,7 @@ def add_permissions_user(text, nick, message, conn, bot, notice, reply):
 
     group_exists = permission_manager.group_exists(group)
 
-    changed = permission_manager.add_user_to_group(user, group)
+    changed = permission_manager.add_user_to_group(user.lower(), group.lower())
 
     if not changed:
         reply("User {} is already matched in group {}".format(user, group))
