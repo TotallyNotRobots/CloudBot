@@ -21,12 +21,14 @@ import requests
 # Constants
 
 DEFAULT_SHORTENER = 'is.gd'
-DEFAULT_PASTEBIN = 'hastebin'
+DEFAULT_PASTEBIN = 'snoonet'
 
 HASTEBIN_SERVER = 'https://hastebin.com'
 
-# Python eval
+SNOONET_PASTE = 'https://paste.snoonet.org'
 
+
+# Python eval
 
 @asyncio.coroutine
 def pyeval(code, pastebin=True):
@@ -216,3 +218,18 @@ class Hastebin(Pastebin):
             return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
         else:
             raise ServiceError(j['message'], r)
+
+@_pastebin('snoonet')
+class SnoonetPaste(Pastebin):
+    def paste(self, data, ext):
+        
+        params={
+            'text':data,
+            'expire':'1d'
+        }
+        r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
+        return '{}'.format(r.url)
+        if r.status_code is requests.codes.ok:
+            return '{}'.format(r.url)
+        else:
+            return ServiceError(r.status_code, r)
