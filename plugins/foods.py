@@ -13,7 +13,7 @@ nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}\*]*$", re.I)
 cakes = ['Chocolate', 'Ice Cream', 'Angel', 'Boston Cream', 'Birthday', 'Bundt', 'Carrot', 'Coffee', 'Devils', 'Fruit',
          'Gingerbread', 'Pound', 'Red Velvet', 'Stack', 'Welsh', 'Yokan']
 
-cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Medican Wedding',
+cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Mexican Wedding',
            'Biscotti', 'Oatmeal Cranberry', 'Chocolate Fudge', 'Peanut Butter', 'Pumpkin', 'Lemon Bar',
            'Chocolate Oatmeal Fudge', 'Toffee Peanut', 'Danish Sugar', 'Triple Chocolate', 'Oreo']
 
@@ -132,7 +132,7 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "sushi.json"), encoding="utf-8") as f:
         sushi_data = json.load(f)
-      
+
     with codecs.open(os.path.join(bot.data_dir, "steak.json"), encoding="utf-8") as f:
         steak_data = json.load(f)
 
