@@ -68,8 +68,7 @@ def load_foods(bot):
     global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, \
         tea_data, keto_data, beer_data, cheese_data, pancake_data, chicken_data, \
         icecream_data, brekkie_data, doobie_data, pizza_data, chocolate_data, pasta_data, \
-        nugget_data, cereal_data, pie_data, sushi_data, steak_data
-
+        nugget_data, cereal_data, pie_data, sushi_data, steak data, milkshake_data
     with codecs.open(os.path.join(bot.data_dir, "sandwich.json"), encoding="utf-8") as f:
         sandwich_data = json.load(f)
 
