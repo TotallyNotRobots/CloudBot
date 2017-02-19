@@ -1,12 +1,15 @@
+import asyncio
+
 from cloudbot import hook
 from cloudbot.util import web
 
 
+@asyncio.coroutine
 @hook.command("python", "py")
 def python(text):
     """<python code> - executes <python code> using eval.appspot.com"""
 
-    output = web.pyeval(text, pastebin=False)
+    output = yield from web.pyeval(text, pastebin=False)
 
     if '\n' in output:
         if 'Traceback (most recent call last):' in output:

@@ -103,7 +103,7 @@ def tellinput(event, conn, db, nick, notice):
     if 'showtells' in event.content.lower():
         return
 
-    if tell_check(conn.name, nick): 
+    if tell_check(conn.name, nick):
         tells = get_unread(db, conn.name, nick)
     else:
         return
@@ -154,11 +154,11 @@ def tell_cmd(text, nick, db, notice, conn):
         notice(prefix[0] + tell_cmd.__doc__)
         return
 
-    target = query[0].lower()
+    target = query[0]
     message = query[1].strip()
     sender = nick
 
-    if target == sender.lower():
+    if target.lower() == sender.lower():
         notice("Have you looked in a mirror lately?")
         return
 
@@ -171,9 +171,9 @@ def tell_cmd(text, nick, db, notice, conn):
         notice("Invalid nick '{}'.".format(target))
         return
 
-    if count_unread(db, conn.name, target) >= 10:
+    if count_unread(db, conn.name, target.lower()) >= 10:
         notice("Sorry, {} has too many messages queued already.".format(target))
         return
 
-    add_tell(db, conn.name, sender, target, message)
+    add_tell(db, conn.name, sender, target.lower(), message)
     notice("Your message has been saved, and {} will be notified once they are active.".format(target))

@@ -13,7 +13,7 @@ nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}\*]*$", re.I)
 cakes = ['Chocolate', 'Ice Cream', 'Angel', 'Boston Cream', 'Birthday', 'Bundt', 'Carrot', 'Coffee', 'Devils', 'Fruit',
          'Gingerbread', 'Pound', 'Red Velvet', 'Stack', 'Welsh', 'Yokan']
 
-cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Medican Wedding',
+cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Mexican Wedding',
            'Biscotti', 'Oatmeal Cranberry', 'Chocolate Fudge', 'Peanut Butter', 'Pumpkin', 'Lemon Bar',
            'Chocolate Oatmeal Fudge', 'Toffee Peanut', 'Danish Sugar', 'Triple Chocolate', 'Oreo']
 
@@ -68,14 +68,14 @@ def load_foods(bot):
     global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, scone_data, \
         tea_data, keto_data, beer_data, cheese_data, pancake_data, chicken_data, \
         icecream_data, brekkie_data, doobie_data, pizza_data, chocolate_data, pasta_data, \
-        nugget_data, cereal_data, pie_data
+        nugget_data, cereal_data, pie_data, sushi_data, steak_data
 
     with codecs.open(os.path.join(bot.data_dir, "sandwich.json"), encoding="utf-8") as f:
         sandwich_data = json.load(f)
 
     with codecs.open(os.path.join(bot.data_dir, "taco.json"), encoding="utf-8") as f:
         taco_data = json.load(f)
-   
+
     with codecs.open(os.path.join(bot.data_dir, "coffee.json"), encoding="utf-8") as f:
         coffee_data = json.load(f)
 
@@ -93,7 +93,7 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "keto.json"), encoding="utf-8") as f:
         keto_data = json.load(f)
-    
+
     with codecs.open(os.path.join(bot.data_dir, "beer.json"), encoding="utf-8") as f:
         beer_data = json.load(f)
 
@@ -105,13 +105,13 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "chicken.json"), encoding="utf-8") as f:
         chicken_data = json.load(f)
-        
+
     with codecs.open(os.path.join(bot.data_dir, "nugget.json"), encoding="utf-8") as f:
         nugget_data = json.load(f)
-        
+
     with codecs.open(os.path.join(bot.data_dir, "pie.json"), encoding="utf-8") as f:
         pie_data = json.load(f)
-		
+
     with codecs.open(os.path.join(bot.data_dir, "brekkie.json"), encoding="utf-8") as f:
         brekkie_data = json.load(f)
 
@@ -123,16 +123,25 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "pizza.json"), encoding="utf-8") as f:
         pizza_data = json.load(f)
-    
+
     with codecs.open(os.path.join(bot.data_dir, "chocolate.json"), encoding="utf-8") as f:
         chocolate_data = json.load(f)
 
     with codecs.open(os.path.join(bot.data_dir, "pasta.json"), encoding="utf-8") as f:
         pasta_data = json.load(f)
-    
+
     with codecs.open(os.path.join(bot.data_dir, "cereal.json"), encoding="utf-8") as f:
         cereal_data = json.load(f)
-		
+
+    with codecs.open(os.path.join(bot.data_dir, "sushi.json"), encoding="utf-8") as f:
+        sushi_data = json.load(f)
+
+    with codecs.open(os.path.join(bot.data_dir, "steak.json"), encoding="utf-8") as f:
+        steak_data = json.load(f)
+    
+    with codecs.open(os.path.join(bot.data_dir, "milkshake.json"), encoding="utf-8") as f:
+        milkshake_data = json.load(f)
+
 @asyncio.coroutine
 @hook.command
 def potato(text, action):
@@ -234,6 +243,7 @@ def coffee(text, action):
                                       variables={"user": user})
     # act out the message
     action(generator.generate_string())
+
     
 @asyncio.coroutine
 @hook.command
@@ -248,6 +258,7 @@ def noodles(text, action):
                                       variables={"user": user})
     # act out the message
     action(generator.generate_string())
+
     
 @asyncio.coroutine
 @hook.command
@@ -262,7 +273,7 @@ def muffin(text, action):
                                       variables={"user": user})
     # act out the message
     action(generator.generate_string())
-    
+
 @asyncio.coroutine
 @hook.command
 def scone(text, action):
@@ -361,7 +372,7 @@ def chicken(text, action):
 
     # act out the message
     action(generator.generate_string())
-    
+
 @asyncio.coroutine
 @hook.command
 def nugget(text, action):
@@ -375,7 +386,7 @@ def nugget(text, action):
 
     # act out the message
     action(generator.generate_string())
-    
+
 @asyncio.coroutine
 @hook.command
 def pie(text, action):
@@ -403,7 +414,7 @@ def icecream(text, action):
 
     # act out the message
     action(generator.generate_string())
-	
+
 @asyncio.coroutine
 @hook.command("brekky", "brekkie")
 def brekkie(text, action):
@@ -445,16 +456,16 @@ def pizza(text, action):
 
     # act out the message
     action(generator.generate_string())
-   
+
 @asyncio.coroutine
 @hook.command("chocolate")
 def chocolate(text, action):
     """<user> - give chocolate to <user>"""
     user = text.strip()
-    
+
     if not is_valid(user):
         return "I can't give chocolate to that user."
-        
+
     generator = textgen.TextGenerator(chocolate_data["templates"], chocolate_data["parts"], variables={"user": user})
     # act out the message
     action(generator.generate_string())
@@ -485,4 +496,46 @@ def cereal(text, action):
     generator = textgen.TextGenerator(cereal_data["templates"], cereal_data["parts"], variables={"user": user})
 
     # act out the message
-    action(generator.generate_string())    
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
+def sushi(text, action):
+    """<user> - give sushi to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't give sushi to that user."
+
+    generator = textgen.TextGenerator(sushi_data["templates"], sushi_data["parts"],
+                                      variables={"user": user})
+    # act out the message
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
+def steak(text, action):
+    """<user> - give a steak dinner to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't treat that user to a nice steak dinner."
+
+    generator = textgen.TextGenerator(steak_data["templates"], steak_data["parts"], variables={"user": user})
+
+    # act out the message
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
+def milkshake(text, action):
+    """<user> - give a milkshake to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't treat that user to a milkshake."
+
+    generator = textgen.TextGenerator(milkshake_data["templates"], milkshake_data["parts"], variables={"user": user})
+
+    # act out the message
+    action(generator.generate_string())
