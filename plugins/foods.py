@@ -65,7 +65,7 @@ def load_foods(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, \
+    global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, scone_data, \
         tea_data, keto_data, beer_data, cheese_data, pancake_data, chicken_data, \
         icecream_data, brekkie_data, doobie_data, pizza_data, chocolate_data, pasta_data, \
         nugget_data, cereal_data, pie_data, sushi_data, steak_data
@@ -84,6 +84,9 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "muffin.json"), encoding="utf-8") as f:
         muffin_data = json.load(f)
+
+    with codecs.open(os.path.join(bot.data_dir, "scone.json"), encoding="utf-8") as f:
+        scone_data = json.load(f)
 
     with codecs.open(os.path.join(bot.data_dir, "tea.json"), encoding="utf-8") as f:
         tea_data = json.load(f)
@@ -241,7 +244,8 @@ def coffee(text, action):
     # act out the message
     action(generator.generate_string())
 
-asyncio.coroutine
+    
+@asyncio.coroutine
 @hook.command
 def noodles(text, action):
     """<user> - give noodles to <user>"""
@@ -255,7 +259,8 @@ def noodles(text, action):
     # act out the message
     action(generator.generate_string())
 
-asyncio.coroutine
+    
+@asyncio.coroutine
 @hook.command
 def muffin(text, action):
     """<user> - give muffin to <user>"""
@@ -265,6 +270,20 @@ def muffin(text, action):
         return "I can't give muffin to that user."
 
     generator = textgen.TextGenerator(muffin_data["templates"], muffin_data["parts"],
+                                      variables={"user": user})
+    # act out the message
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
+def scone(text, action):
+    """<user> - give scone to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't give scone to that user."
+
+    generator = textgen.TextGenerator(scone_data["templates"], scone_data["parts"],
                                       variables={"user": user})
     # act out the message
     action(generator.generate_string())
