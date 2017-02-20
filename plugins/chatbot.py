@@ -5,7 +5,7 @@ from cloudbot import hook
 def get_key(bot):
     global api_key, cb
     api_key = bot.config.get("api_keys", {}).get("cleverbot", None)
-    cb = Cleverbot(api_key)
+    cb = CleverWrap(api_key)
 
 @hook.command("ask", "gonzo", "gonzobot", "cleverbot", "cb")
 def chitchat(text):
