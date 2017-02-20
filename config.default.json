@@ -83,7 +83,8 @@
         "octopart": "",
         "wordnik": "",
         "yandex_translate": "",
-        "lyricsnmusic": ""
+        "lyricsnmusic": "",
+	"cleverbot":""
     },
     "database": "sqlite:///cloudbot.db",
     "plugin_loading": {
