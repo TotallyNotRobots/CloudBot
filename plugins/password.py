@@ -35,14 +35,14 @@ def password(text, notice):
 
     # add alpha characters
     if "alpha" in text or "letter" in text:
-        okay += list(string.ascii_lowercase)
+        okay += string.ascii_lowercase
         # adds capital characters if not told not to
         if "no caps" not in text:
-            okay += list(string.ascii_uppercase)
+            okay += string.ascii_uppercase
 
     # add numbers
     if "numeric" in text or "number" in text:
-        okay += list(string.digits)
+        okay += string.digits
 
     # add symbols
     if "symbol" in text or "special" in text:
@@ -52,14 +52,14 @@ def password(text, notice):
 
     # defaults to lowercase alpha + numbers password if the okay list is empty
     if not okay:
-        okay = list(string.ascii_lowercase) + list(string.digits)
+        okay = string.ascii_lowercase + string.digits
 
     # extra random lel
-    random.shuffle(okay)
+    gen.shuffle(okay)
     chars = []
 
     for i in range(length):
-        chars.append(random.choice(okay))
+        chars.append(gen.choice(okay))
 
     notice("".join(chars))
 
