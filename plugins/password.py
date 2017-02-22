@@ -45,9 +45,7 @@ def password(text, notice):
 
     # add symbols
     if "symbol" in text or "special" in text:
-        sym = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '_', '+', '[', ']', '{', '}', '\\', '|', ';',
-               ':', "'", '.', '>', ',', '<', '/', '?', '`', '~', '"']
-        okay += "".join(sym)
+        okay += string.punctuation
 
     # defaults to lowercase alpha + numbers password if the okay string is empty
     if not okay:
