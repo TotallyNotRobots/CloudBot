@@ -18,7 +18,7 @@ with open("data/password_words.txt") as f:
 @hook.command(autohelp=False)
 def password(text, notice):
     """[length [types]] - generates a password of <length> (default 12). [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols' (default: alpha numeric no caps)"""
-    okay = []
+    okay = ""
 
     # find the length needed for the password
     numb = text.split(" ")
@@ -47,11 +47,13 @@ def password(text, notice):
     if "symbol" in text or "special" in text:
         sym = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '_', '+', '[', ']', '{', '}', '\\', '|', ';',
                ':', "'", '.', '>', ',', '<', '/', '?', '`', '~', '"']
-        okay += sym
+        okay += "".join(sym)
 
-    # defaults to lowercase alpha + numbers password if the okay list is empty
+    # defaults to lowercase alpha + numbers password if the okay string is empty
     if not okay:
         okay = string.ascii_lowercase + string.digits
+
+    okay = list(okay)
 
     # extra random lel
     gen.shuffle(okay)
