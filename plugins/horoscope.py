@@ -27,7 +27,7 @@ def horoscope(text, db, bot, notice, nick):
             'virgo': '6',
             'libra': '7',
             'scorpio': '8',
-            'sagittarious': '9',
+            'sagittarius': '9',
             'capricorn': '10',
             'aquarius': '11',
             'pisces': '12'
