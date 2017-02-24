@@ -20,7 +20,7 @@ def dogpileimage(text, chan):
     params = { 'q': " ".join(text.split())}
     r = requests.get(image_url, params=params, headers=HEADERS)
     soup = BeautifulSoup(r.content)
-    data = soup.find_all("script")[7].string
+    data = soup.find_all("script")[6].string
     link_re = re.compile('"url":"(.*?)",')
     linklist = link_re.findall(data)
     #linklist = soup.find('div', id="webResults").find_all('a', {'class':'resultThumbnailLink'})
