@@ -149,7 +149,7 @@ def getartisttags(artist, bot):
     # Don't show tags from this list
     blacklist = [
     "seen live",
-    artist,
+    artist.lower(),
     ]
 
     # if artist doesn't exist return no tags
@@ -159,7 +159,7 @@ def getartisttags(artist, bot):
     if 'tag' in tags['toptags']:
         for item in tags['toptags']['tag']:
             try:
-                if not item['name'] in blacklist:
+                if not item['name'].lower() in blacklist:
                     tag_list.append(item['name'])
                 else:
                     pass
