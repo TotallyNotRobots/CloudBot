@@ -85,7 +85,7 @@ def moderates(text, chan):
         modlist = soup.find('ul', id="side-mod-list").text
     except:
         return "{} does not moderate any public subreddits.".format(user)
-    modlist = modlist.split('/r/')
+    modlist = modlist.split('r/')
     del modlist[0]
     out = "\x02{}\x02 moderates these public subreddits: ".format(user)
     for sub in modlist:
