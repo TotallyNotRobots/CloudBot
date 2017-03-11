@@ -383,7 +383,9 @@ def me(text, conn, chan, message, nick):
 def listchans(conn, chan, message, notice):
     """-- Lists the current channels the bot is in"""
     chans = ', '.join(sorted(conn.channels, key=lambda x: x.strip('#').lower()))
-    if chan[:1] == "#":
-        notice("I am currently in: {}".format(chans))     
-    else:
-        message("I am currently in: {}".format(chans))
+    lines = formatting.chunk_str("I am currently in: {}".format(chans))
+    for line in lines:
+        if chan[:1] == "#":
+            notice(line)
+        else:
+            message(line)
