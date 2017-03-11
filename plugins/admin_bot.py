@@ -380,7 +380,7 @@ def me(text, conn, chan, message, nick):
 
 @asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def listchans(text, conn, chan, message, notice):
+def listchans(conn, chan, message, notice):
     """-- Lists the current channels the bot is in"""
     chans = ', '.join(sorted(conn.channels, key=lambda x: x.strip('#').lower()))
     if chan[:1] == "#":
