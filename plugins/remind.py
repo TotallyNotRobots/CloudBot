@@ -163,7 +163,7 @@ def remind(text, nick, chan, db, conn, notice, async):
         return "Invalid input."
 
     if seconds > 2764800 or seconds < 60:
-        return "Sorry, remind input must be more then a minute, and less then one month."
+        return "Sorry, remind input must be more than a minute, and less than one month."
 
     # work out the time to remind the user, and check if that time is in the past
     remind_time = datetime.fromtimestamp(current_epoch + seconds)
