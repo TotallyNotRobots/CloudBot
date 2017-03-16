@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+import string
 
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 
@@ -16,6 +17,41 @@ table = Table(
     Column('acc', String(25)),
     PrimaryKeyConstraint('nick')
 )
+
+
+def filter_tags(tags, artist, limit=4):
+    """
+    Takes a list of tags (strings) and an artist name.
+    returns a new list of N tags with the following changes:
+     * All lowercase
+     * Artist name removed
+     * Blacklist of words removed
+    """
+    
+    # We never want to see these specific tags
+    blacklist = [
+        "seen live",
+    ]
+
+    # Force all tags to lowercase first
+    # This allows easy comparisons with artist and blacklist
+    tags = [tag.lower() for tag in tags]
+
+    # Remove punctuation marks from artist name and force to lowercase
+    # This accounts for inconsistencies in naming, e.g. "Panic! at the disco"
+    translator = str.maketrans('', '', string.punctuation)
+    artist =  artist.translate(translator).lower()
+
+    # Perform the actual filtering, stop when we reach the desired number of tags
+    count = 0
+    filtered_tags = []
+    for tag in tags:
+        if not tag == artist:
+            if not tag in blacklist:
+                filtered_tags.append(tag)
+        count+=1
+        if count == limit:
+            return filtered_tags
 
 
 @hook.on_start()
@@ -146,27 +182,15 @@ def getartisttags(artist, bot):
     request = requests.get(api_url, params = params)
     tags = request.json()
 
-    # Don't show tags from this list
-    blacklist = [
-    "seen live",
-    artist.lower(),
-    ]
-
     # if artist doesn't exist return no tags
     if tags.get("error") == 6:
         return "no tags"
 
     if 'tag' in tags['toptags']:
         for item in tags['toptags']['tag']:
-            try:
-                if not item['name'].lower() in blacklist:
-                    tag_list.append(item['name'])
-                else:
-                    pass
-            except KeyError:
-                pass
+            tag_list.append(item['name'])
 
-    tag_list = tag_list[0:4]
+    tag_list = filter_tags(tag_list, artist, limit=4)
 
     return ', '.join(tag_list) if tag_list else 'no tags'
 
@@ -185,15 +209,9 @@ def gettracktags(artist, title, bot):
 
     if 'tag' in tags['toptags']:
         for item in tags['toptags']['tag']:
-            try:
-                if not item['name'] == "seen live":
-                    tag_list.append(item['name'])
-                else:
-                    pass
-            except KeyError:
-                pass
+            tag_list.append(item['name'])
 
-    tag_list = tag_list[0:4]
+    tag_list = filter_tags(tag_list, artist, limit=4)
 
     return ', '.join(tag_list) if tag_list else 'no tags'
 
