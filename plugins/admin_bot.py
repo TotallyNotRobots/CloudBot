@@ -2,6 +2,7 @@ import asyncio
 import re
 
 from cloudbot import hook
+from cloudbot.util import formatting
 
 logchannel = ""
 
