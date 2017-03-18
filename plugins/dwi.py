@@ -24,12 +24,28 @@ DWIphrases = [
 				]
 
 
+Facepalmacros = ['https://i.imgur.com/iWKad22r.jpg',
+                 'https://i.imgur.com/3Jauxrw.jpg',
+                 'https://i.imgur.com/kFyKOgj.gif',
+                 'https://i.imgur.com/5JaFlhU.jpg?1',
+                 'https://i.imgur.com/qbnNXWy.gif',
+                 'https://i.imgur.com/h46ycmx.png',
+                 'https://i.imgur.com/gPNQzaf.jpg',
+                 'https://i.imgur.com/9I8A9C5.jpg']
 
 
 @hook.command('dwi','dealwithit')
 
 def DWI(text, message):
-	'''Tell some one in the channel to deal with it'''
+	'''Tell some one in the channel to deal with it. File located in dwi.py'''
 	PersonNeedsToDeal = text.strip()
 
 	message('{} {}'.format(random.choice(DWIphrases).format(PersonNeedsToDeal), random.choice(DWImacros)))
+
+@hook.command('fp','facepalm')
+
+def FP(text,message):
+	''' Expresses your frustration with another user. File located in dwi.py'''
+	FacePalmer = text.strip()
+
+	message('Dammit {} {}'.format(FacePalmer, random.choice(Facepalmacros)))    
