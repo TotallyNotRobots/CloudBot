@@ -91,7 +91,7 @@ def boobies(text, conn):
 def awesome(text, message):
     """Prints a webpage to show <nick> how awesome they are."""
     nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[]*$", re.I)
-    link = 'http://{}.is-awesome.cool/:D'
+    link = 'http://is-awesome.cool/{}'
     nick = text.split(' ')[0]
     if nick_re.match(nick):
         message("{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(nick, link.format(nick)))
