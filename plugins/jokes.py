@@ -29,7 +29,7 @@ def load_jokes(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "wisdom.txt"), encoding="utf-8") as f:
         wisdom = [line.strip() for line in f.readlines() if not line.startswith("//")]
-    
+
     with codecs.open(os.path.join(bot.data_dir, "book_puns.txt"), encoding="utf-8") as f:
         book_puns = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
@@ -91,10 +91,10 @@ def boobies(text, conn):
 def awesome(text, message):
     """Prints a webpage to show <nick> how awesome they are."""
     nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[]*$", re.I)
-    link = 'http://{}.is-awesome.cool/{}'
+    link = 'http://is-awesome.cool/{}'
     nick = text.split(' ')[0]
     if nick_re.match(nick):
-        message("{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(nick, link.format(nick, nick)))
+        message("{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(nick, link.format(nick)))
     else:
         return "Sorry I can't tell {} how awesome they are.".format(nick)
 
