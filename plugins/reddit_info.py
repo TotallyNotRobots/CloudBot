@@ -195,6 +195,10 @@ def submods(text, chan):
 def subinfo(text):
     """subinfo <subreddit> fetches information about the specified subreddit. Do not include /r/ when specifying a subreddit."""
     sub = text
+    if sub.startswith('/r/'):
+        sub = sub[3:]
+    elif sub.startswith('r/'):
+        sub = sub[2:]
     url = subreddit_url + "about.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
