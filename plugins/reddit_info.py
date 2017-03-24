@@ -167,12 +167,16 @@ def submods(text, chan):
     search_pages[chan] = []
     search_page_indexes[chan] = 0
     sub = text
+    if sub.startswith('/r/'):
+        sub = sub[3:]
+    elif sub.startswith('r/'):
+        sub = sub[2:]
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
         return statuscheck(r.status_code, 'r/'+sub)
     data = r.json()
-    out = "r/\x02{}\x02 mods: ".format(sub)
+    out = "/r/\x02{}\x02 mods: ".format(sub)
     for mod in data['data']['children']:
         username = mod['name']
         # Showing the modtime makes the message too long for larger subs
