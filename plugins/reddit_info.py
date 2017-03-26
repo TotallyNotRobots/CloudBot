@@ -162,17 +162,21 @@ def time_format(numdays):
 
 @hook.command("submods", "mods", "rmods", singlethreaded=True)
 def submods(text, chan):
-    """submods <subreddit> prints the moderators of the specified subreddit. Do not include /r/ when specifying a subreddit."""
+    """submods <subreddit> prints the moderators of the specified subreddit."""
     global search_pages
     search_pages[chan] = []
     search_page_indexes[chan] = 0
     sub = text
+    if sub.startswith('/r/'):
+        sub = sub[3:]
+    elif sub.startswith('r/'):
+        sub = sub[2:]
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
         return statuscheck(r.status_code, 'r/'+sub)
     data = r.json()
-    out = "r/\x02{}\x02 mods: ".format(sub)
+    out = "/r/\x02{}\x02 mods: ".format(sub)
     for mod in data['data']['children']:
         username = mod['name']
         # Showing the modtime makes the message too long for larger subs
@@ -189,8 +193,12 @@ def submods(text, chan):
 
 @hook.command("subinfo","subreddit", "sub", "rinfo", singlethreaded=True)
 def subinfo(text):
-    """subinfo <subreddit> fetches information about the specified subreddit. Do not include /r/ when specifying a subreddit."""
+    """subinfo <subreddit> fetches information about the specified subreddit."""
     sub = text
+    if sub.startswith('/r/'):
+        sub = sub[3:]
+    elif sub.startswith('r/'):
+        sub = sub[2:]
     url = subreddit_url + "about.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
@@ -209,7 +217,7 @@ def subinfo(text):
         age = (int(sub_age.days / 365), "y")
     else:
         age = (sub_age.days, "d")
-    out = "r/\x03{}\x02 - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(name, title, age[0], age[1], subscribers, active)
+    out = "/r/\x03{}\x02 - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(name, title, age[0], age[1], subscribers, active)
     if nsfw:
         out += " \x0304NSFW\x0304"
     return out
