@@ -51,7 +51,7 @@ def system(reply, message):
         process = psutil.Process(os.getpid())
 
         # get the data we need using the Process we got
-        cpu_usage = process.cpu_percent()
+        cpu_usage = process.cpu_percent(1)
         thread_count = process.num_threads()
         memory_usage = format_bytes(process.memory_info()[0])
         uptime = timedelta(seconds=round(time.time() - process.create_time()))
