@@ -167,7 +167,7 @@ def tell_cmd(text, nick, db, notice, conn):
         notice("Invalid nick '{}'.".format(target))
         return
 
-    if not re.match("^[a-z0-9_|.\-\]\[]*$", target.lower()):
+    if not re.match("^[a-z0-9_|.\-\`\]\[]*$", target.lower()):
         notice("Invalid nick '{}'.".format(target))
         return
 

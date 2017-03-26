@@ -29,7 +29,7 @@ def load_jokes(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "wisdom.txt"), encoding="utf-8") as f:
         wisdom = [line.strip() for line in f.readlines() if not line.startswith("//")]
-    
+
     with codecs.open(os.path.join(bot.data_dir, "book_puns.txt"), encoding="utf-8") as f:
         book_puns = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
