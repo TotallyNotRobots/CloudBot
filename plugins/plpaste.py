@@ -4,7 +4,7 @@ from cloudbot import hook
 from cloudbot.util import web
 
 
-@hook.command(permissions=["plpaste"])
+@hook.command(permissions=["botcontrol"])
 def plpaste(text, bot):
     """<command> - pastes the plugin file that contains <command>
     :type text: str
