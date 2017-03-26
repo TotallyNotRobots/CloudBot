@@ -67,7 +67,7 @@ def get_data(url):
     raise ParseError("No recipe data found")
 
 
-@hook.command(autohelp=False)
+#@hook.command(autohelp=False)
 def recipe(text):
     """[term] - gets a recipe for [term], or gets a random recipe if no term is specified"""
     if text:
@@ -115,7 +115,7 @@ def recipe(text):
 
 
 # inspired by http://whatthefuckshouldimakefordinner.com/ <3
-@hook.command("dinner", "wtfsimfd", autohelp=False)
+#@hook.command("dinner", "wtfsimfd", autohelp=False)
 def dinner():
     """- TELLS YOU WHAT THE F**K YOU SHOULD MAKE FOR DINNER"""
     try:
