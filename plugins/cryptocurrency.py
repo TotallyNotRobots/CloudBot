@@ -12,8 +12,8 @@ Special Thanks:
 License:
     GPL v3
 """
-from urllib.parse import quote_plus
 from datetime import datetime
+from urllib.parse import quote_plus
 
 import requests
 
@@ -27,33 +27,37 @@ API_URL = "https://coinmarketcap-nexuist.rhcloud.com/api/{}"
 def bitcoin(text):
     """ -- Returns current bitcoin value """
     # alias
-    return crypto_command("btc", text)
+    return crypto_command(" ".join(["btc", text]))
 
 
 @hook.command("litecoin", "ltc", autohelp=False)
 def litecoin(text):
     """ -- Returns current litecoin value """
     # alias
-    return crypto_command("ltc", text)
+    return crypto_command(" ".join(["ltc", text]))
 
 
 @hook.command("dogecoin", "doge", autohelp=False)
-def dogecoin():
+def dogecoin(text):
     """ -- Returns current dogecoin value """
     # alias
-    return crypto_command("doge", text)
+    return crypto_command(" ".join(["doge", text]))
 
 
 # main command
 @hook.command("crypto", "cryptocurrency")
-def crypto_command(text, currency):
-    """ <ticker> -- Returns current value of a cryptocurrency """
+def crypto_command(text):
+    """ <ticker> [currency] -- Returns current value of a cryptocurrency """
+    args = text.split()
+    ticker = args.pop(0)
+
     try:
-        if currency == '':
+        if not args:
             currency = 'usd'
         else:
-            currency = currency.lower()
-        encoded = quote_plus(text)
+            currency = args.pop(0).lower()
+
+        encoded = quote_plus(ticker)
         request = requests.get(API_URL.format(encoded))
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
