@@ -27,7 +27,7 @@ def brew(text, bot):
         return "Failed to fetch info ({})".format(request.status_code)
 
     response = request.json()
-    print(response)
+    #print(response)
 
     output = "No results found."
 
