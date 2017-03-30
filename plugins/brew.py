@@ -31,18 +31,21 @@ def brew(text, bot):
 
     output = "No results found."
 
-    if 'totalResults' in response:
-        beer = response['data'][0]
-        brewery = beer['breweries'][0]
+    try:
+        if response['totalResults']:
+            beer = response['data'][0]
+            brewery = beer['breweries'][0]
 
-        content = {
-            name: beer['nameDisplay'],
-            style: beer['style']['shortName'],
-            abv: beer['abv'],
-            brewer: brewery['name']
-            url: brewery['website']
-        }
+            content = {
+                name: beer['nameDisplay'],
+                style: beer['style']['shortName'],
+                abv: beer['abv'],
+                brewer: brewery['name'],
+                url: brewery['website']
+            }
 
-        output = "{} by {} ({}, {}% ABV) - {}".format(*content)
+            output = "{} by {} ({}, {}% ABV) - {}".format(*content)
+    except Exception as e:
+        output = "Error parsing results."
 
     return output
