@@ -4,11 +4,13 @@ from cloudbot import hook
 
 api_url = "http://api.brewerydb.com/v2/search?format=json"
 
+
 def api_get(query):
     """Use the RESTful Google Search API"""
     url = 'http://api.brewerydb.com/v2/search?q=%s' \
           '&type=beer'
     return http.get_json(url % query)
+
 
 @hook.command('brew')
 def brew(text, bot):
@@ -30,28 +32,17 @@ def brew(text, bot):
     output = "No results found."
 
     if response['totalResults'] > 0:
-    	beer = response['data'][0]
-    	brewery = beer['breweries'][0]
-    	
-    	name = beer['nameDisplay']
-    	style = beer['style']['shortName']
-    	abv = beer['abv']
-    	
-    	brewer = brewery['name']
-    	brewer_url = brewery['website']
+        beer = response['data'][0]
+        brewery = beer['breweries'][0]
 
-    	output = "{} by {} ({}, {}% ABV) - {}".format(name, brewer, style, abv, brewer_url)
+        content = {
+            name: beer['nameDisplay'],
+            style: beer['style']['shortName'],
+            abv: beer['abv'],
+            brewer: brewery['name']
+            url: brewery['website']
+        }
+
+        output = "{} by {} ({}, {}% ABV) - {}".format(*content)
 
     return output
-#    pass
-#
-#    if not 200 <= parsed['responseStatus'] < 300:
-#        raise IOError('error searching for pages: {}: {}'.format(parsed['responseStatus'], ''))
-#
-#    if not parsed['responseData']['results']:
-#        return 'No results found.'
-#
-#
-#    url = web.try_shorten('http://please.dont.fart')
-#    
-#    return url
