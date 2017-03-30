@@ -6,7 +6,7 @@ api_url = "http://api.brewerydb.com/v2/search?format=json"
 
 
 def api_get(query):
-    """Use the RESTful Google Search API"""
+    """Use the RESTful breweryDB API"""
     url = 'http://api.brewerydb.com/v2/search?q=%s' \
           '&type=beer'
     return http.get_json(url % query)
