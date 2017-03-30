@@ -27,22 +27,39 @@ def brew(text, bot):
         return "Failed to fetch info ({})".format(request.status_code)
 
     response = request.json()
-    print(response)
 
     output = "No results found."
 
-    if response['totalResults'] > 0:
-        beer = response['data'][0]
-        brewery = beer['breweries'][0]
+    try:
+        if 'totalResults' in response:
+            beer = response['data'][0]
+            brewery = beer['breweries'][0]
 
-        content = {
-            name: beer['nameDisplay'],
-            style: beer['style']['shortName'],
-            abv: beer['abv'],
-            brewer: brewery['name']
-            url: brewery['website']
-        }
+            style = 'unknown style'
+            if 'style' in beer:
+                style = beer['style']['shortName']
 
-        output = "{} by {} ({}, {}% ABV) - {}".format(*content)
+            abv = '?.?'
+            if 'abv' in beer:
+                abv = beer['abv']
+
+            url = '[no website found]'
+            if 'website' in brewery:
+                url = brewery['website']
+
+            content = {
+                'name': beer['nameDisplay'],
+                'style': style,
+                'abv': abv,
+                'brewer': brewery['name'],
+                'url': url
+            }
+
+            output = "{name} by {brewer} ({style}, {abv}% ABV) - {url}" \
+                .format(**content)
+
+    except Exception as e:
+        print(e)
+        output = "Error parsing results."
 
     return output
