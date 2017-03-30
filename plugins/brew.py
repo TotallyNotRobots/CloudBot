@@ -31,7 +31,7 @@ def brew(text, bot):
 
     output = "No results found."
 
-    if response['totalResults'] > 0:
+    if 'totalResults' in response:
         beer = response['data'][0]
         brewery = beer['breweries'][0]
 
