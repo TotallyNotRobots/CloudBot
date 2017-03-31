@@ -84,7 +84,8 @@
         "wordnik": "",
         "yandex_translate": "",
         "lyricsnmusic": "",
-	"cleverbot":""
+        "cleverbot":"",
+        "brewerydb": ""
     },
     "database": "sqlite:///cloudbot.db",
     "plugin_loading": {
