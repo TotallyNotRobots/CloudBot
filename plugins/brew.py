@@ -5,13 +5,6 @@ from cloudbot import hook
 api_url = "http://api.brewerydb.com/v2/search?format=json"
 
 
-def api_get(query):
-    """Use the RESTful breweryDB API"""
-    url = 'http://api.brewerydb.com/v2/search?q=%s' \
-          '&type=beer'
-    return http.get_json(url % query)
-
-
 @hook.command('brew')
 def brew(text, bot):
     """<query> - returns the first brewerydb search result for <query>"""
