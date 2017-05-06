@@ -69,23 +69,23 @@ def on_nick(irc_paramlist, conn, irc_raw):
 # mostly when using a BNC which saves channels
 @asyncio.coroutine
 @hook.irc_raw("JOIN")
-def on_join(conn, chan, target):
+def on_join(conn, chan, nick):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
     :type nick: str
     """
-    if target == conn.nick:
+    if nick == conn.nick:
         bot_joined_channel(conn, chan)
 
 
 @asyncio.coroutine
 @hook.irc_raw("PART")
-def on_join(conn, chan, target):
+def on_part(conn, chan, nick):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
     :type nick: str
     """
-    if target == conn.nick:
-        bot_joined_channel(conn, chan)
+    if nick == conn.nick:
+        bot_left_channel(conn, chan)
