@@ -393,6 +393,8 @@ class _IrcProtocol(asyncio.Protocol):
 
             if channel:
                 channel = channel.lower()
+                if channel[0] == ':':
+                    channel = channel[1:].split()[0]  # Just in case there is more data
                 if channel == self.conn.nick.lower():
                     channel = nick.lower()
 
