@@ -3,7 +3,6 @@ import operator
 
 from collections import defaultdict
 from cloudbot import hook
-from cloudbot.event import EventType
 
 karmaplus_re = re.compile('^.*\+\+$')
 karmaminus_re = re.compile('^.*\-\-$')

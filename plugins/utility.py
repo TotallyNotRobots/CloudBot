@@ -23,7 +23,6 @@ import codecs
 import urllib.parse
 import random
 import binascii
-import string
 
 from cloudbot import hook
 from cloudbot.util import formatting, web, colors

@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-import lxml
 from cloudbot import hook
 
 
@@ -11,9 +10,9 @@ def RUADICK(text, message):
     dickstatus = requests.get('http://www.ruadick.com/user/{}'.format(DickCheck))
     DickSoup = BeautifulSoup(dickstatus.content, 'lxml')
     Dickstr = str(DickSoup.h2)
-    
+
     dickstrip = Dickstr.lstrip('<h2>').rstrip('</h2>')
-    
+
     if dickstrip == 'None':
         message('I can\'t find that user')
     else:

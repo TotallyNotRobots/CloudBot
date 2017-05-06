@@ -1,6 +1,5 @@
 # Plugin by GhettoWizard and Scaevolus
 
-import re
 from lxml import html
 
 import requests

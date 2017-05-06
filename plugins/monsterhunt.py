@@ -1,5 +1,4 @@
 import random
-import re
 import operator
 import json
 
@@ -247,7 +246,7 @@ def bang(nick, chan, message, db, conn, notice):
             conn.send(out)
             return
         return "There is no monster. What are you shooting at?"
-    else: 
+    else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
         shoot = game_status[network][chan]['shoot_time']
@@ -258,7 +257,7 @@ def bang(nick, chan, message, db, conn, notice):
         chance = hit_or_miss(deploy, shoot)
         if not random.random() <= chance and chance > .05:
             out = random.choice(miss) + " You can try again in 7 seconds."
-            scripters[nick.lower()] = shoot + 7 
+            scripters[nick.lower()] = shoot + 7
             return out
         if chance == .05:
             out += "You pulled the trigger in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(str(shoot - deploy))
@@ -360,7 +359,7 @@ def friends(text, chan, conn, db):
         scores = db.execute(select([table.c.name, table.c.befriend]) \
             .where(table.c.network == conn.name) \
             .order_by(desc(table.c.befriend)))
-        if scores:    
+        if scores:
             for row in scores:
                 if row[1] == 0:
                     continue

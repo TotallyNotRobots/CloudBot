@@ -1,7 +1,6 @@
 import re
 import time
 from cloudbot import hook
-from cloudbot.event import EventType
 from plugins import grab
 
 import random

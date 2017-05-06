@@ -1,7 +1,7 @@
 import random
 
 from cloudbot import hook
-from cloudbot.util import http, web
+from cloudbot.util import http
 
 types=['trivia', 'math', 'date', 'year']
 
@@ -20,4 +20,4 @@ def fact():
                 attempts += 1
                 continue
         response = json['text']
-        return response 
+        return response

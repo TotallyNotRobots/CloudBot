@@ -1,7 +1,6 @@
 import codecs
 import json
 import os
-import random
 import asyncio
 
 from cloudbot import hook

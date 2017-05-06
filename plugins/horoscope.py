@@ -4,9 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from cloudbot import hook
-from cloudbot.util import formatting
-
-
 
 
 @hook.on_start()

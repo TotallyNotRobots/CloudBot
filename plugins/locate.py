@@ -1,7 +1,6 @@
 import requests
 
 from cloudbot import hook
-from cloudbot.util import web
 
 # Define some constants
 base_url = 'https://maps.googleapis.com/maps/api/'

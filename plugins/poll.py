@@ -2,7 +2,7 @@ from re import findall
 
 from cloudbot import hook
 
-from cloudbot.util.formatting import pluralize, get_text_list
+from cloudbot.util.formatting import get_text_list
 
 
 polls = {}

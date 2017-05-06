@@ -1,7 +1,6 @@
 import requests
 
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
-from sqlalchemy.sql import select
 from cloudbot import hook
 from cloudbot.util import web, database
 
