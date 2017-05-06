@@ -382,16 +382,19 @@ class _IrcProtocol(asyncio.Protocol):
                 ctcp_text = None
 
             # Channel
-            # TODO: Migrate plugins using chan for storage to use chan.lower() instead so we can pass the original case
-            if command_params and (len(command_params) > 2 or not command_params[0].startswith(":")):
+            channel = None
+            if command_params:
+                if command in ["NOTICE", "PRIVMSG", "KICK", "JOIN", "PART", "MODE"]:
+                    channel = command_params[0]
+                elif command == "INVITE":
+                    channel = command_params[1]
+                elif len(command_params) > 2 or command_params[0][0] != ':':
+                    channel = command_params[0]
 
-                if command_params[0].lower() == self.conn.nick.lower():
-                    # this is a private message - set the channel to the sender's nick
+            if channel:
+                channel = channel.lower()
+                if channel == self.conn.nick.lower():
                     channel = nick.lower()
-                else:
-                    channel = command_params[0].lower()
-            else:
-                channel = None
 
             # Set up parsed message
             # TODO: Do we really want to send the raw `prefix` and `command_params` here?
@@ -401,3 +404,12 @@ class _IrcProtocol(asyncio.Protocol):
 
             # handle the message, async
             asyncio.async(self.bot.process(event), loop=self.loop)
+
+# Channel Commands
+# NOTICE #chan :Text
+# PRIVMSG #chan :Text
+# KICK #chan nick :reason
+# JOIN #chan
+# PART #chan :reason
+# MODE #chan +<modes>
+# INVITE nick :#chan
