@@ -1,7 +1,6 @@
 import codecs
 import json
 import os
-import random
 import asyncio
 
 from cloudbot import hook
@@ -24,7 +23,7 @@ def load_spanks(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "spank.json"), encoding="utf-8") as f:
         spank_data = json.load(f)
- 
+
     with codecs.open(os.path.join(bot.data_dir, "bdsm.json"), encoding="utf-8") as f:
         bdsm_data = json.load(f)
 

@@ -16,9 +16,7 @@
 
 from cloudbot import hook
 from bs4 import BeautifulSoup
-from optparse import OptionParser
 import urllib.parse
-import urllib3
 
 DEGREE_SYMBOL = "F"
 
@@ -151,7 +149,7 @@ def get_weather(text):
                                        "high": highs[i],
                                        "low": lows[i],
                                        "weather": forecasts[i]})
-    
+
     tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + ("{0}{1}?! {2}".format(return_val["current"]["temperature"],
                                     DEGREE_SYMBOL,
                                     return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])

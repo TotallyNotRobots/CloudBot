@@ -1,5 +1,4 @@
 import requests
-import re
 
 from cloudbot import hook
 

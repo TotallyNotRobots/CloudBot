@@ -4,7 +4,7 @@ import re
 import os
 
 from cloudbot import hook
-from cloudbot.util import formatting, web
+from cloudbot.util import formatting
 
 
 @asyncio.coroutine

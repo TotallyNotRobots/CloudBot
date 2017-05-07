@@ -3,7 +3,6 @@ import re
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 from collections import defaultdict
-import requests
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web

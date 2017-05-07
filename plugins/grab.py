@@ -1,9 +1,7 @@
-import re
 import random
 
 from collections import defaultdict
-from sqlalchemy import Table, Column, String, Boolean, DateTime
-from sqlalchemy.sql import select
+from sqlalchemy import Table, Column, String
 from cloudbot import hook
 from cloudbot.util import database
 

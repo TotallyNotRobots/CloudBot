@@ -4,7 +4,6 @@ import requests
 from lxml import html
 
 from cloudbot import hook
-from cloudbot.util import web
 
 
 @hook.command("metacritic", "mc")

@@ -1,7 +1,6 @@
 import codecs
 import os
 import random
-import re
 
 from cloudbot import hook
 
