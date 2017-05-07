@@ -36,7 +36,7 @@ def correction(match, conn, nick, chan, message):
                 message("Correction, <{}> {}".format(name, mod_msg))
 
             msg = ireplace(msg, find, replace)
-            if nick.lower() in name.lower():
+            if nick.lower() == name.lower():
                 conn.history[chan].append((name, timestamp, msg))
             return
         else:
