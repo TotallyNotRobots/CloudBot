@@ -67,3 +67,11 @@ def system(reply, message):
                 cpu_usage,
                 memory_usage)
         )
+
+
+@hook.command("sauce", "source", autohelp=False)
+def sauce():
+    """Returns a link to the source"""
+    return "Check out my source code! I am a fork of cloudbot: " \
+           "https://github.com/CloudBotIRC/CloudBot/ and my source is here: " \
+           "https://github.com/edwardslabs/CloudBot"
