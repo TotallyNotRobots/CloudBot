@@ -26,7 +26,7 @@ irc_formats = {
     "MODE": "[{server}:{channel}] -!- mode/{channel} [{param_tail}] by {nick}",
     "TOPIC": "[{server}:{channel}] -!- {nick} has changed the topic to: {content}",
     "QUIT": "[{server}] -!- {nick} has quit ({content})",
-    "INVITE": "[{server}] -!- {nick} has invited {target} to {chan}",
+    "INVITE": "[{server}] -!- {nick} has invited {target} to {channel}",
     "NICK": "[{server}] {nick} is now known as {content}",
 }
 
