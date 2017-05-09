@@ -240,19 +240,20 @@ class CloudBot:
 
         if event.type is EventType.message:
             # Commands
-            if event.chan.lower() == event.nick.lower():  # private message, no command prefix
-                command_re = r'(?i)^(?:[{}]?|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'.format(command_prefix, event.conn.nick)
-            else:
-                command_re = r'(?i)^(?:[{}]|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'.format(command_prefix, event.conn.nick)
+            text = event.content
+            raw_text = event.content_raw
+            command = None
+            if raw_text[0] in command_prefix:
+                command = raw_text[1:].split(maxsplit=1)[0]
+            elif event.chan.lower() == event.nick.lower():
+                command = raw_text.split(maxsplit=1)[0]
 
-            cmd_match = re.match(command_re, event.content)
-
-            if cmd_match:
-                command = cmd_match.group(1).lower()
+            if command:
+                _, _, text = text.partition(' ')
                 if command in self.plugin_manager.commands:
                     command_hook = self.plugin_manager.commands[command]
-                    command_event = CommandEvent(hook=command_hook, text=cmd_match.group(2).strip(),
-                                             triggered_command=command, base_event=event)
+                    command_event = CommandEvent(hook=command_hook, text=text,
+                                                 triggered_command=command, base_event=event)
                     tasks.append(self.plugin_manager.launch(command_hook, command_event))
                 else:
                     potential_matches = []
@@ -262,8 +263,8 @@ class CloudBot:
                     if potential_matches:
                         if len(potential_matches) == 1:
                             command_hook = potential_matches[0][1]
-                            command_event = CommandEvent(hook=command_hook, text=cmd_match.group(2).strip(),
-                                                     triggered_command=command, base_event=event)
+                            command_event = CommandEvent(hook=command_hook, text=text,
+                                                         triggered_command=command, base_event=event)
                             tasks.append(self.plugin_manager.launch(command_hook, command_event))
                         else:
                             event.notice("Possible matches: {}".format(
@@ -271,7 +272,7 @@ class CloudBot:
 
             # Regex hooks
             for regex, regex_hook in self.plugin_manager.regex_hooks:
-                if not regex_hook.run_on_cmd and cmd_match:
+                if not regex_hook.run_on_cmd and command:
                     pass
                 else:
                     regex_match = regex.search(event.content)
