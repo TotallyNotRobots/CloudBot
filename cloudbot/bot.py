@@ -18,7 +18,7 @@ from cloudbot.reloader import PluginReloader
 from cloudbot.plugin import PluginManager
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.util import database, formatting
-from cloudbot.clients.irc import IrcClient
+from cloudbot.clients.irc import IrcClient, irc_clean
 
 try:
     from cloudbot.web.main import WebInterface
@@ -240,16 +240,19 @@ class CloudBot:
 
         if event.type is EventType.message:
             # Commands
-            text = event.content
-            raw_text = event.content_raw
-            command = None
-            if raw_text[0] in command_prefix:
-                command = raw_text[1:].split(maxsplit=1)[0]
-            elif event.chan.lower() == event.nick.lower():
-                command = raw_text.split(maxsplit=1)[0]
+            if event.chan.lower() == event.nick.lower():  # private message, no command prefix
+                command_re = r'(?i)^(?:[{}]?|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
+            else:
+                command_re = r'(?i)^(?:[{}]|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
 
-            if command:
-                _, _, text = text.partition(' ')
+            cmd_match = re.match(
+                command_re.format(command_prefix, event.conn.nick),
+                event.content_raw
+            )
+
+            if cmd_match:
+                command = cmd_match.group(1).lower()
+                text = irc_clean(cmd_match.group(2).strip())
                 if command in self.plugin_manager.commands:
                     command_hook = self.plugin_manager.commands[command]
                     command_event = CommandEvent(hook=command_hook, text=text,
@@ -272,7 +275,7 @@ class CloudBot:
 
             # Regex hooks
             for regex, regex_hook in self.plugin_manager.regex_hooks:
-                if not regex_hook.run_on_cmd and command:
+                if not regex_hook.run_on_cmd and cmd_match:
                     pass
                 else:
                     regex_match = regex.search(event.content)
