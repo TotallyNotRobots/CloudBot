@@ -12,7 +12,7 @@ def highfive(nick, text):
         "gives {nick} an elbow-shattering high-five",
         "smashes {nick} up high",
         "slaps skin with {nick}",
-        "winds up for a killer five but misses and falls flat on his face",
+        "{nick} winds up for a killer five but misses and falls flat on his face",
         "halfheartedly high-fives {nick}",
         "gives {nick} a smooth five down low",
         "gives {nick} a friendly high five",
