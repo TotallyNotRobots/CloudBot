@@ -68,7 +68,7 @@ def moremod(text, chan):
             return "All pages have been shown."
 
 
-@hook.command("subs", "moderates", singlethreaded=True)
+@hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan):
     """This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
     #This command was written using concepts from FurCode http://github.com/FurCode.
@@ -97,7 +97,7 @@ def moderates(text, chan):
     return out
 
 
-@hook.command("karma", "ruser", singlethreaded=True)
+@hook.command("karma", "ruser", singlethread=True)
 def karma(text):
     """karma <reddituser> will return the information about the specified reddit username"""
     user = text
@@ -128,7 +128,7 @@ def karma(text):
     return out
 
 
-@hook.command("cakeday", singlethreaded=True)
+@hook.command("cakeday", singlethread=True)
 def cake_day(text):
     """cakeday <reddituser> will return the cakeday for the given reddit username."""
     user = text
@@ -161,7 +161,7 @@ def time_format(numdays):
     return age
 
 
-@hook.command("submods", "mods", "rmods", singlethreaded=True)
+@hook.command("submods", "mods", "rmods", singlethread=True)
 def submods(text, chan):
     """submods <subreddit> prints the moderators of the specified subreddit."""
     global search_pages
@@ -193,7 +193,7 @@ def submods(text, chan):
     return out
 
 
-@hook.command("subinfo","subreddit", "sub", "rinfo", singlethreaded=True)
+@hook.command("subinfo","subreddit", "sub", "rinfo", singlethread=True)
 def subinfo(text):
     """subinfo <subreddit> fetches information about the specified subreddit."""
     sub = text
