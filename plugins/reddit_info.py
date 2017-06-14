@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from bs4 import BeautifulSoup
 from cloudbot import hook
+from cloudbot.util import colors
 from cloudbot.util.formatting import pluralize
 
 search_pages = defaultdict(list)
@@ -87,7 +88,7 @@ def moderates(text, chan):
 
     mod_list = mod_list.text.split('r/')
     del mod_list[0]
-    out = "\x02{}\x02 moderates these public subreddits: ".format(user)
+    out = colors.parse("$(b){}$(b) moderates these public subreddits: ".format(user))
     for sub in mod_list:
         out += "{} \u2022 ".format(sub)
     out = out[:-2]
@@ -107,16 +108,16 @@ def karma(text):
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
     data = r.json()
-    out = "\x02{}\x02 ".format(user)
-    out += "\x02{:,}\x02 link karma and ".format(data['data']['link_karma'])
-    out += "\x02{:,}\x02 comment karma | ".format(data['data']['comment_karma'])
+    out = "$(b){}$(b) ".format(user)
+    out += "$(b){:,}$(b) link karma and ".format(data['data']['link_karma'])
+    out += "$(b){:,}$(b) comment karma | ".format(data['data']['comment_karma'])
     if data['data']['is_gold']:
         out += "has reddit gold | "
     if data['data']['is_mod']:
         out += "is a moderator | "
     if data['data']['has_verified_email']:
         out += "email has been verified | "
-    out += "cake day is {} | ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d') )
+    out += "cake day is {} | ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d'))
     account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
     age = account_age.days
     age_unit = "day"
@@ -124,7 +125,7 @@ def karma(text):
         age //= 365
         age_unit = "year"
     out += "redditor for {}.".format(pluralize(age, age_unit))
-    return out
+    return colors.parse(out)
 
 
 @hook.command("cakeday", singlethread=True)
@@ -136,8 +137,8 @@ def cake_day(text):
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
     data = r.json()
-    out = "\x02{}'s\x02 ".format(user)
-    out += "cake day is {}, ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d') )
+    out = colors.parse("$(b){}'s$(b) ".format(user))
+    out += "cake day is {}, ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d'))
     account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
     age = account_age.days
     age_unit = "day"
@@ -174,7 +175,7 @@ def submods(text, chan):
     if r.status_code != 200:
         return statuscheck(r.status_code, 'r/'+sub)
     data = r.json()
-    out = "/r/\x02{}\x02 mods: ".format(sub)
+    out = colors.parse("/r/$(b){}$(b) mods: ".format(sub))
     for mod in data['data']['children']:
         username = mod['name']
         # Showing the modtime makes the message too long for larger subs
@@ -212,9 +213,9 @@ def subinfo(text):
     active = data['data']['accounts_active']
     sub_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
     age, age_unit = time_format(sub_age.days)
-    out = "/r/\x02{}\x02 - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(
+    out = "/r/$(b){}$(clear) - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(
         name, title, age, age_unit, subscribers, active
     )
     if nsfw:
-        out += " \x0304NSFW\x0304"
-    return out
+        out += " $(red)NSFW$(clear)"
+    return colors.parse(out)
