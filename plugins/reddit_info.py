@@ -54,9 +54,9 @@ def moremod(text, chan):
     if text:
         try:
             index = int(text)
-        except:
+        except ValueError:
             return "Please specify an integer value."
-        if abs(int(index)) > len(search_pages[chan]) or index == 0:
+        if abs(index) > len(search_pages[chan]) or index == 0:
             return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
         else:
             return "{}(page {}/{})".format(search_pages[chan][index-1], index, len(search_pages[chan]))
@@ -80,14 +80,14 @@ def moderates(text, chan):
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
     soup = BeautifulSoup(r.text)
-    try:
-        modlist = soup.find('ul', id="side-mod-list").text
-    except:
+    mod_list = soup.find('ul', id="side-mod-list")
+    if mod_list is None:
         return "{} does not moderate any public subreddits.".format(user)
-    modlist = modlist.split('r/')
-    del modlist[0]
+
+    mod_list = mod_list.text.split('r/')
+    del mod_list[0]
     out = "\x02{}\x02 moderates these public subreddits: ".format(user)
-    for sub in modlist:
+    for sub in mod_list:
         out += "{} \u2022 ".format(sub)
     out = out[:-2]
     out = smart_truncate(out)
