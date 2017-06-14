@@ -11,7 +11,7 @@ search_page_indexes = {}
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
 # This agent should be unique for your cloudbot instance
-agent = {"User-Agent":"gonzobot a cloudbot (IRCbot) implementation for snoonet.org by /u/bloodygonzo"}
+agent = {"User-Agent": "gonzobot a cloudbot (IRCbot) implementation for snoonet.org by /u/bloodygonzo"}
 
 
 def two_lines(bigstring, chan):
@@ -30,9 +30,9 @@ def smart_truncate(content, length=355, suffix='...\n'):
     else:
         return content[:length].rsplit(' \u2022 ', 1)[0]+ suffix + content[:length].rsplit(' \u2022 ', 1)[1] + smart_truncate(content[length:])
 
+
 def statuscheck(status, item):
     """since we are doing this a lot might as well return something more meaningful"""
-    out = ""
     if status == 404:
         out = "It appears {} does not exist.".format(item)
     elif status == 403:
@@ -45,13 +45,13 @@ def statuscheck(status, item):
         out = "Reddit returned an error, response: {}".format(status)
     return out
 
+
 @hook.command("moremod", autohelp=False)
 def moremod(text, chan):
     """if a sub or mod list has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
     if not search_pages[chan]:
         return "There are modlist pages to show."
     if text:
-        index = ""
         try:
             index = int(text)
         except:
@@ -127,6 +127,7 @@ def karma(text):
         out += "redditor for {} days.".format(account_age.days)
     return out
 
+
 @hook.command("cakeday", singlethreaded=True)
 def cake_day(text):
     """cakeday <reddituser> will return the cakeday for the given reddit username."""
@@ -149,8 +150,8 @@ def cake_day(text):
         out += "they have been a redditor for {} days.".format(account_age.days)
     return out
 
+
 def time_format(numdays):
-    age = ()
     if numdays >= 365:
         age = (int(numdays / 365), "y")
         if age[0] > 1:
@@ -158,6 +159,7 @@ def time_format(numdays):
     else:
         age = (numdays, "d")
     return age
+
 
 @hook.command("submods", "mods", "rmods", singlethreaded=True)
 def submods(text, chan):
@@ -190,6 +192,7 @@ def submods(text, chan):
         return "{}(page {}/{}) .moremod".format(out, search_page_indexes[chan] + 1, len(search_pages[chan]))
     return out
 
+
 @hook.command("subinfo","subreddit", "sub", "rinfo", singlethreaded=True)
 def subinfo(text):
     """subinfo <subreddit> fetches information about the specified subreddit."""
@@ -211,7 +214,6 @@ def subinfo(text):
     subscribers = data['data']['subscribers']
     active = data['data']['accounts_active']
     sub_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
-    age = ()
     if sub_age.days >= 365:
         age = (int(sub_age.days / 365), "y")
     else:
