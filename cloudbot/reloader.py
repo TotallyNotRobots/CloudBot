@@ -50,7 +50,6 @@ class PluginReloader(object):
             path = path.decode()
         self.bot.loop.call_soon_threadsafe(lambda: asyncio.async(self._unload(path), loop=self.bot.loop))
 
-
     @asyncio.coroutine
     def _reload(self, path):
         if path in self.reloading:
@@ -62,7 +61,6 @@ class PluginReloader(object):
         yield from asyncio.sleep(0.2)
         self.reloading.remove(path)
         yield from self.bot.plugin_manager.load_plugin(path)
-
 
     @asyncio.coroutine
     def _unload(self, path):
@@ -87,6 +85,7 @@ class PluginEventHandler(PatternMatchingEventHandler):
         self.loader.reload(event.src_path)
 
     def on_moved(self, event):
+        self.loader.unload(event.src_path)
         # only load if it's moved to a .py file
         if event.dest_path.endswith(".py" if isinstance(event.dest_path, str) else b".py"):
             self.loader.reload(event.dest_path)
