@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from bs4 import BeautifulSoup
 from cloudbot import hook
+from cloudbot.util.formatting import pluralize
 
 search_pages = defaultdict(list)
 search_page_indexes = {}
@@ -117,14 +118,12 @@ def karma(text):
         out += "email has been verified | "
     out += "cake day is {} | ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d') )
     account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
-    if account_age.days > 365:
-        age = int(account_age.days / 365)
-        if age == 1:
-            out += "redditor for {} year.".format(age)
-        else:
-            out += "redditor for {} years.".format(age)
-    else:
-        out += "redditor for {} days.".format(account_age.days)
+    age = account_age.days
+    age_unit = "day"
+    if age > 365:
+        age //= 365
+        age_unit = "year"
+    out += "redditor for {}.".format(pluralize(age, age_unit))
     return out
 
 
@@ -140,14 +139,12 @@ def cake_day(text):
     out = "\x02{}'s\x02 ".format(user)
     out += "cake day is {}, ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d') )
     account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
-    if account_age.days > 365:
-        age = int(account_age.days / 365)
-        if age == 1:
-            out += "they have been a redditor for {} year.".format(age)
-        else:
-            out += "they have been a redditor for {} years.".format(age)
-    else:
-        out += "they have been a redditor for {} days.".format(account_age.days)
+    age = account_age.days
+    age_unit = "day"
+    if age > 365:
+        age //= 365
+        age_unit = "year"
+    out += "they have been a redditor for {}.".format(pluralize(age, age_unit))
     return out
 
 
@@ -214,11 +211,10 @@ def subinfo(text):
     subscribers = data['data']['subscribers']
     active = data['data']['accounts_active']
     sub_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
-    if sub_age.days >= 365:
-        age = (int(sub_age.days / 365), "y")
-    else:
-        age = (sub_age.days, "d")
-    out = "/r/\x03{}\x02 - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(name, title, age[0], age[1], subscribers, active)
+    age, age_unit = time_format(sub_age.days)
+    out = "/r/\x02{}\x02 - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(
+        name, title, age, age_unit, subscribers, active
+    )
     if nsfw:
         out += " \x0304NSFW\x0304"
     return out
