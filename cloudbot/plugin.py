@@ -113,6 +113,12 @@ class PluginManager:
         yield from asyncio.gather(*[self.load_plugin(path) for path in path_list], loop=self.bot.loop)
 
     @asyncio.coroutine
+    def unload_all(self):
+        yield from asyncio.gather(
+            *[self.unload_plugin(path) for path in self.plugins.keys()], loop=self.bot.loop
+        )
+
+    @asyncio.coroutine
     def load_plugin(self, path):
         """
         Loads a plugin from the given path and plugin object, then registers all hooks from that plugin.
