@@ -41,8 +41,8 @@ class Event:
     """
 
     def __init__(self, *, bot=None, hook=None, conn=None, base_event=None, event_type=EventType.other, content=None,
-                 target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
-                 irc_command=None, irc_paramlist=None, irc_ctcp_text=None):
+                 content_raw=None, target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None,
+                 irc_prefix=None, irc_command=None, irc_paramlist=None, irc_ctcp_text=None):
         """
         All of these parameters except for `bot` and `hook` are optional.
         The irc_* parameters should only be specified for IRC events.
@@ -102,6 +102,7 @@ class Event:
             # If base_event is provided, don't check these parameters, just inherit
             self.type = base_event.type
             self.content = base_event.content
+            self.content_raw = base_event.content_raw
             self.target = base_event.target
             self.chan = base_event.chan
             self.nick = base_event.nick
@@ -118,6 +119,7 @@ class Event:
             # Since base_event wasn't provided, we can take these parameters
             self.type = event_type
             self.content = content
+            self.content_raw = content_raw
             self.target = target
             self.chan = channel
             self.nick = nick
@@ -328,8 +330,8 @@ class CommandEvent(Event):
     """
 
     def __init__(self, *, bot=None, hook, text, triggered_command, conn=None, base_event=None, event_type=None,
-                 content=None, target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None,
-                 irc_prefix=None, irc_command=None, irc_paramlist=None):
+                 content=None, content_raw=None, target=None, channel=None, nick=None, user=None, host=None, mask=None,
+                 irc_raw=None, irc_prefix=None, irc_command=None, irc_paramlist=None):
         """
         :param text: The arguments for the command
         :param triggered_command: The command that was triggered
@@ -337,8 +339,8 @@ class CommandEvent(Event):
         :type triggered_command: str
         """
         super().__init__(bot=bot, hook=hook, conn=conn, base_event=base_event, event_type=event_type, content=content,
-                         target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=irc_raw,
-                         irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
+                         irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
         self.hook = hook
         self.text = text
         self.doc = self.hook.doc
@@ -370,14 +372,14 @@ class RegexEvent(Event):
     :type match: re.__Match
     """
 
-    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None, target=None,
-                 channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
+    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None, content_raw=None,
+                 target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
                  irc_command=None, irc_paramlist=None):
         """
         :param: match: The match objected returned by the regex search method
         :type match: re.__Match
         """
         super().__init__(bot=bot, conn=conn, hook=hook, base_event=base_event, event_type=event_type, content=content,
-                         target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=irc_raw,
-                         irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
+                         irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
         self.match = match

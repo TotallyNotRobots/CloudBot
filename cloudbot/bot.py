@@ -18,7 +18,7 @@ from cloudbot.reloader import PluginReloader
 from cloudbot.plugin import PluginManager
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.util import database, formatting
-from cloudbot.clients.irc import IrcClient
+from cloudbot.clients.irc import IrcClient, irc_clean
 
 try:
     from cloudbot.web.main import WebInterface
@@ -242,18 +242,22 @@ class CloudBot:
         if event.type is EventType.message:
             # Commands
             if event.chan.lower() == event.nick.lower():  # private message, no command prefix
-                command_re = r'(?i)^(?:[{}]?|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'.format(command_prefix, event.conn.nick)
+                command_re = r'(?i)^(?:[{}]?|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
             else:
-                command_re = r'(?i)^(?:[{}]|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'.format(command_prefix, event.conn.nick)
+                command_re = r'(?i)^(?:[{}]|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
 
-            cmd_match = re.match(command_re, event.content)
+            cmd_match = re.match(
+                command_re.format(command_prefix, event.conn.nick),
+                event.content_raw
+            )
 
             if cmd_match:
                 command = cmd_match.group(1).lower()
+                text = irc_clean(cmd_match.group(2).strip())
                 if command in self.plugin_manager.commands:
                     command_hook = self.plugin_manager.commands[command]
-                    command_event = CommandEvent(hook=command_hook, text=cmd_match.group(2).strip(),
-                                             triggered_command=command, base_event=event)
+                    command_event = CommandEvent(hook=command_hook, text=text,
+                                                 triggered_command=command, base_event=event)
                     tasks.append(self.plugin_manager.launch(command_hook, command_event))
                 else:
                     potential_matches = []
@@ -263,8 +267,8 @@ class CloudBot:
                     if potential_matches:
                         if len(potential_matches) == 1:
                             command_hook = potential_matches[0][1]
-                            command_event = CommandEvent(hook=command_hook, text=cmd_match.group(2).strip(),
-                                                     triggered_command=command, base_event=event)
+                            command_event = CommandEvent(hook=command_hook, text=text,
+                                                         triggered_command=command, base_event=event)
                             tasks.append(self.plugin_manager.launch(command_hook, command_event))
                         else:
                             event.notice("Possible matches: {}".format(

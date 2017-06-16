@@ -400,9 +400,9 @@ class _IrcProtocol(asyncio.Protocol):
 
             # Set up parsed message
             # TODO: Do we really want to send the raw `prefix` and `command_params` here?
-            event = Event(bot=self.bot, conn=self.conn, event_type=event_type, content=content, target=target,
-                          channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=line, irc_prefix=prefix,
-                          irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text)
+            event = Event(bot=self.bot, conn=self.conn, event_type=event_type, content_raw=content_raw, content=content,
+                          target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=line,
+                          irc_prefix=prefix, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text)
 
             # handle the message, async
             asyncio.async(self.bot.process(event), loop=self.loop)
