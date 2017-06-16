@@ -113,6 +113,12 @@ class PluginManager:
         yield from asyncio.gather(*[self.load_plugin(path) for path in path_list], loop=self.bot.loop)
 
     @asyncio.coroutine
+    def unload_all(self):
+        yield from asyncio.gather(
+            *[self.unload_plugin(path) for path in self.plugins.keys()], loop=self.bot.loop
+        )
+
+    @asyncio.coroutine
     def load_plugin(self, path):
         """
         Loads a plugin from the given path and plugin object, then registers all hooks from that plugin.
@@ -173,9 +179,9 @@ class PluginManager:
         self.plugins[plugin.file_name] = plugin
 
         for periodic_hook in plugin.periodic:
-            asyncio.async(self._start_periodic(periodic_hook))
+            task = asyncio.async(self._start_periodic(periodic_hook))
+            plugin.tasks.append(task)
             self._log_hook(periodic_hook)
-
 
         # register commands
         for command_hook in plugin.commands:
@@ -248,6 +254,9 @@ class PluginManager:
 
         # get the loaded plugin
         plugin = self.plugins[file_name]
+
+        for task in plugin.tasks:
+            task.cancel()
 
         # unregister commands
         for command_hook in plugin.commands:
@@ -502,6 +511,7 @@ class Plugin:
         :type filename: str
         :type code: object
         """
+        self.tasks = []
         self.file_path = filepath
         self.file_name = filename
         self.title = title

@@ -130,6 +130,7 @@ class CloudBot:
         self.loop.run_until_complete(self._init_routine())
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
         restart = self.loop.run_until_complete(self.stopped_future)
+        self.loop.run_until_complete(self.plugin_manager.unload_all())
         self.loop.close()
         return restart
 
