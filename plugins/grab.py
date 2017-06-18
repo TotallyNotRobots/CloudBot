@@ -17,23 +17,20 @@ table = Table(
     Column('chan', String)
 )
 
+grab_cache = {}
+
+
 @hook.on_start()
 def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global grab_cache
-    grab_cache = {}
+    grab_cache.clear()
     for row in db.execute(table.select().order_by(table.c.time)):
         name = row["name"].lower()
         quote = row["quote"]
         chan = row["chan"]
-        if chan not in grab_cache:
-            grab_cache.update({chan:{name:[chan]}})
-        elif name not in grab_cache[chan]:
-            grab_cache[chan].update({name:[quote]})
-        else:
-            grab_cache[chan][name].append(quote)
+        grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
 
 def two_lines(bigstring, chan):
     """Receives a string with new lines. Groups the string into a list of strings with up to 3 new lines per string element. Returns first string element then stores the remaining list in search_pages."""
