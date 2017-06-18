@@ -100,13 +100,13 @@ def grab(text, nick, chan, db, conn):
             # check to see if the quote has been added
             if check_grabs(name.lower(), msg, chan):
                 return "I already have that quote from {} in the database".format(text)
-                break
             else:
                 # the quote is new so add it to the db.
                 grab_add(name.lower(),timestamp, msg, chan, db, conn)
                 if check_grabs(name.lower(), msg, chan):
                     return "the operation succeeded."
-                break
+                else:
+                    return "the operation failed"
     return "I couldn't find anything from {} in recent history.".format(text)
 
 def format_grab(name, quote):
