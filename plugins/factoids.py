@@ -76,7 +76,7 @@ def del_factoid(db, chan, word):
 
 @hook.command("r","remember", permissions=["op"])
 def remember(text, nick, db, chan, notice):
-    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append"""
+    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
     try:
         word, data = text.split(None, 1)
@@ -138,9 +138,11 @@ factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)
-def factoid(match, chan, event, message, action):
+def factoid( content, match, chan, event, message, action):
     """<word> - shows what data is associated with <word>"""
-
+    arg1 = ""
+    if len(content.split()) >= 2:
+        arg1 = content.split()[1]
     # split up the input
     split = match.group(1).strip().split(" ")
     factoid_id = split[0].lower()
@@ -156,7 +158,8 @@ def factoid(match, chan, event, message, action):
 
         # factoid post-processors
         result = colors.parse(result)
-
+        if arg1:
+            result = result.replace("<user>", arg1)
         if result.startswith("<act>"):
             result = result[5:].strip()
             action(result)
