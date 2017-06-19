@@ -270,9 +270,13 @@ def lastfm(api_key, event, db, text, nick):
     out += ending
 
     if text and not dontsave:
-        db.execute("insert or replace into lastfm(nick, acc) values (:nick, :account)",
-                   {'nick': nick.lower(), 'account': user})
-        db.commit()
+        if get_account(nick):
+            db.execute(table.update().values(account=user).where(table.c.nick == nick.lower()))
+            db.commit()
+        else:
+            db.execute(table.insert().values(nick=nick.lower(), account=user))
+            db.commit()
+
         load_cache(db)
     return out
 
