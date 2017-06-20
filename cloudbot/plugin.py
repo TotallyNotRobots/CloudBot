@@ -18,7 +18,7 @@ def find_hooks(parent, module):
     """
     :type parent: Plugin
     :type module: object
-    :rtype: (list[CommandHook], list[RegexHook], list[RawHook], list[SieveHook], List[EventHook], list[OnStartHook])
+    :rtype: (list[CommandHook], list[RegexHook], list[RawHook], list[SieveHook], List[EventHook], List[PeriodicHook], list[OnStartHook], List[OnStopHook])
     """
     # set the loaded flag
     module._cloudbot_loaded = True
@@ -29,8 +29,9 @@ def find_hooks(parent, module):
     event = []
     periodic = []
     on_start = []
+    on_stop = []
     type_lists = {"command": command, "regex": regex, "irc_raw": raw, "sieve": sieve, "event": event,
-                  "periodic": periodic, "on_start": on_start}
+                  "periodic": periodic, "on_start": on_start, "on_stop": on_stop}
     for name, func in module.__dict__.items():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
@@ -42,7 +43,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             del func._cloudbot_hook
 
-    return command, regex, raw, sieve, event, periodic, on_start
+    return command, regex, raw, sieve, event, periodic, on_start, on_stop
 
 
 def find_tables(code):
@@ -293,6 +294,11 @@ class PluginManager:
         for sieve_hook in plugin.sieves:
             self.sieves.remove(sieve_hook)
 
+        # Run on_stop hooks
+        for on_stop_hook in plugin.run_on_stop:
+            event = Event(bot=self.bot, hook=on_stop_hook)
+            yield from self.launch(on_stop_hook, event)
+
         # unregister databases
         plugin.unregister_tables(self.bot)
 
@@ -515,7 +521,7 @@ class Plugin:
         self.file_path = filepath
         self.file_name = filename
         self.title = title
-        self.commands, self.regexes, self.raw_hooks, self.sieves, self.events, self.periodic, self.run_on_start = find_hooks(self, code)
+        self.commands, self.regexes, self.raw_hooks, self.sieves, self.events, self.periodic, self.run_on_start, self.run_on_stop = find_hooks(self, code)
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
@@ -759,6 +765,17 @@ class OnStartHook(Hook):
         return "on_start {} from {}".format(self.function_name, self.plugin.file_name)
 
 
+class OnStopHook(Hook):
+    def __init__(self, plugin, on_stop_hook):
+        super().__init__("on_stop", plugin, on_stop_hook)
+
+    def __repr__(self):
+        return "On_stop[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "on_stop {} from {}".format(self.function_name, self.plugin.file_name)
+
+
 _hook_name_to_plugin = {
     "command": CommandHook,
     "regex": RegexHook,
@@ -766,5 +783,6 @@ _hook_name_to_plugin = {
     "sieve": SieveHook,
     "event": EventHook,
     "periodic": PeriodicHook,
-    "on_start": OnStartHook
+    "on_start": OnStartHook,
+    "on_stop": OnStopHook,
 }
