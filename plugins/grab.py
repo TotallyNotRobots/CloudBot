@@ -59,7 +59,7 @@ def moregrab(text, chan):
         index = ""
         try:
             index = int(text)
-        except:
+        except ValueError:
             return "Please specify an integer value."
         if abs(int(index)) > len(search_pages[chan]) or index == 0:
             return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
@@ -79,7 +79,7 @@ def check_grabs(name, quote, chan):
             return True
         else:
             return False
-    except:
+    except KeyError:
         return False
 
 
@@ -131,7 +131,7 @@ def lastgrab(text, chan, message):
     lgrab = ""
     try:
         lgrab = grab_cache[chan][text.lower()][-1]
-    except:
+    except (KeyError, IndexError):
         return "<{}> has never been grabbed.".format(text)
     if lgrab:
         quote = lgrab
@@ -152,11 +152,11 @@ def grabrandom(text, chan, message):
     else:
         try:
             name = random.choice(list(grab_cache[chan].keys()))
-        except:
+        except KeyError:
             return "I couldn't find any grabs in {}.".format(chan)
     try:
         grab = random.choice(grab_cache[chan][name.lower()])
-    except:
+    except KeyError:
         return "it appears {} has never been grabbed in {}".format(name, chan)
     if grab:
         message(format_grab(name, grab), chan)
@@ -175,8 +175,8 @@ def grabsearch(text, chan):
         quotes = grab_cache[chan][text.lower()]
         for grab in quotes:
             result.append((text, grab))
-    except:
-       pass
+    except KeyError:
+        pass
     for name in grab_cache[chan]:
         for grab in grab_cache[chan][name]:
             if name != text.lower():
