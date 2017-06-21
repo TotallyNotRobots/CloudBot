@@ -32,6 +32,7 @@ def load_cache(db):
         chan = row["chan"]
         grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
 
+
 def two_lines(bigstring, chan):
     """Receives a string with new lines. Groups the string into a list of strings with up to 3 new lines per string element. Returns first string element then stores the remaining list in search_pages."""
     global search_pages
@@ -71,6 +72,7 @@ def moregrab(text, chan):
         else:
             return "All pages have been shown you can specify a page number or do a new search."
 
+
 def check_grabs(name, quote, chan):
     try:
         if quote in grab_cache[chan][name]:
@@ -79,6 +81,7 @@ def check_grabs(name, quote, chan):
             return False
     except:
         return False
+
 
 def grab_add(nick, time, msg, chan, db, conn):
     # Adds a quote to the grab table
@@ -109,6 +112,7 @@ def grab(text, nick, chan, db, conn):
                     return "the operation failed"
     return "I couldn't find anything from {} in recent history.".format(text)
 
+
 def format_grab(name, quote):
     # add nonbreaking space to nicks to avoid highlighting people with printed grabs
     name = "{}{}{}".format(name[0], u"\u200B", name[1:])
@@ -119,6 +123,7 @@ def format_grab(name, quote):
     else:
         out = "<{}> {}".format(name, quote)
         return out
+
 
 @hook.command("lastgrab", "lgrab")
 def lastgrab(text, chan, message):
