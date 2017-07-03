@@ -271,10 +271,10 @@ def lastfm(api_key, event, db, text, nick):
 
     if text and not dontsave:
         if get_account(nick):
-            db.execute(table.update().values(acct=user).where(table.c.nick == nick.lower()))
+            db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
             db.commit()
         else:
-            db.execute(table.insert().values(nick=nick.lower(), acct=user))
+            db.execute(table.insert().values(nick=nick.lower(), acc=user))
             db.commit()
 
         load_cache(db)
