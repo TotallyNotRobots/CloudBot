@@ -316,7 +316,6 @@ def periodic(interval, **kwargs):
         return lambda func: _periodic_hook(func)
 
 
-
 def on_start(param=None, **kwargs):
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator
     :type param: function | None
@@ -339,3 +338,22 @@ def on_start(param=None, **kwargs):
 
 # this is temporary, to ease transition
 onload = on_start
+
+
+def on_stop(param=None, **kwargs):
+    """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator
+    :type param: function | None
+    """
+    def _on_stop_hook(func):
+        hook = _get_hook(func, "on_stop")
+        if hook is None:
+            hook = _Hook(func, "on_stop")
+            _add_hook(func, hook)
+        hook._add_hook(kwargs)
+        return func
+    if callable(param):
+        return _on_stop_hook(param)
+    else:
+        return lambda func: _on_stop_hook(func)
+
+on_unload = on_stop

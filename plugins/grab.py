@@ -17,23 +17,21 @@ table = Table(
     Column('chan', String)
 )
 
+grab_cache = {}
+
+
 @hook.on_start()
 def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global grab_cache
-    grab_cache = {}
+    grab_cache.clear()
     for row in db.execute(table.select().order_by(table.c.time)):
         name = row["name"].lower()
         quote = row["quote"]
         chan = row["chan"]
-        if chan not in grab_cache:
-            grab_cache.update({chan:{name:[chan]}})
-        elif name not in grab_cache[chan]:
-            grab_cache[chan].update({name:[quote]})
-        else:
-            grab_cache[chan][name].append(quote)
+        grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
+
 
 def two_lines(bigstring, chan):
     """Receives a string with new lines. Groups the string into a list of strings with up to 3 new lines per string element. Returns first string element then stores the remaining list in search_pages."""
@@ -61,7 +59,7 @@ def moregrab(text, chan):
         index = ""
         try:
             index = int(text)
-        except:
+        except ValueError:
             return "Please specify an integer value."
         if abs(int(index)) > len(search_pages[chan]) or index == 0:
             return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
@@ -74,14 +72,16 @@ def moregrab(text, chan):
         else:
             return "All pages have been shown you can specify a page number or do a new search."
 
+
 def check_grabs(name, quote, chan):
     try:
         if quote in grab_cache[chan][name]:
             return True
         else:
             return False
-    except:
+    except KeyError:
         return False
+
 
 def grab_add(nick, time, msg, chan, db, conn):
     # Adds a quote to the grab table
@@ -103,14 +103,15 @@ def grab(text, nick, chan, db, conn):
             # check to see if the quote has been added
             if check_grabs(name.lower(), msg, chan):
                 return "I already have that quote from {} in the database".format(text)
-                break
             else:
                 # the quote is new so add it to the db.
                 grab_add(name.lower(),timestamp, msg, chan, db, conn)
                 if check_grabs(name.lower(), msg, chan):
                     return "the operation succeeded."
-                break
+                else:
+                    return "the operation failed"
     return "I couldn't find anything from {} in recent history.".format(text)
+
 
 def format_grab(name, quote):
     # add nonbreaking space to nicks to avoid highlighting people with printed grabs
@@ -123,13 +124,14 @@ def format_grab(name, quote):
         out = "<{}> {}".format(name, quote)
         return out
 
+
 @hook.command("lastgrab", "lgrab")
 def lastgrab(text, chan, message):
     """prints the last grabbed quote from <nick>."""
     lgrab = ""
     try:
         lgrab = grab_cache[chan][text.lower()][-1]
-    except:
+    except (KeyError, IndexError):
         return "<{}> has never been grabbed.".format(text)
     if lgrab:
         quote = lgrab
@@ -150,11 +152,11 @@ def grabrandom(text, chan, message):
     else:
         try:
             name = random.choice(list(grab_cache[chan].keys()))
-        except:
+        except KeyError:
             return "I couldn't find any grabs in {}.".format(chan)
     try:
         grab = random.choice(grab_cache[chan][name.lower()])
-    except:
+    except KeyError:
         return "it appears {} has never been grabbed in {}".format(name, chan)
     if grab:
         message(format_grab(name, grab), chan)
@@ -173,8 +175,8 @@ def grabsearch(text, chan):
         quotes = grab_cache[chan][text.lower()]
         for grab in quotes:
             result.append((text, grab))
-    except:
-       pass
+    except KeyError:
+        pass
     for name in grab_cache[chan]:
         for grab in grab_cache[chan][name]:
             if name != text.lower():
