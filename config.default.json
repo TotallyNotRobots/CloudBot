@@ -75,6 +75,8 @@
         "twitter_access_secret": "",
         "imgur_client_id": "",
         "imgur_client_secret": "",
+        "spotify_client_id": "",
+        "spotify_client_secret": "",
         "wunderground": "",
         "rdio_key": "",
         "rdio_secret": "",
