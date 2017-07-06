@@ -164,7 +164,7 @@ def getartistinfo(api_key, artist, user=''):
     return artist
 
 
-def _topartists(api_key, text, nick, period, limit=10):
+def _topartists(api_key, text, nick, period=None, limit=10):
     if text:
         username = get_account(text)
         if not username:
@@ -413,7 +413,7 @@ def toptrack(api_key, event, db, text, nick):
 @require_api_key
 def topartists(api_key, event, db, text, nick):
     """Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
-    return _topartists(api_key, text, nick, None, 5)
+    return _topartists(api_key, text, nick)
 
 
 @hook.command("ltw", "topweek", autohelp=False)
