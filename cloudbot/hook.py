@@ -102,7 +102,7 @@ class _RegexHook(_Hook):
                     re_to_match = re.compile(re_to_match)
                 else:
                     # make sure that the param is either a compiled regex, or has a search attribute.
-                    assert hasattr(regex_param, "search")
+                    assert hasattr(re_to_match, "search")
                 self.regexes.append(re_to_match)
 
 
