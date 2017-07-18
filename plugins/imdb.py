@@ -27,7 +27,7 @@ def imdb(text, bot):
         headers=headers)
     content = request.json()
 
-    if content['success'] == False:
+    if content['success'] is False:
         return 'Unknown error'
     elif len(content['result']) == 0:
         return 'No movie found'
@@ -54,7 +54,7 @@ def imdb_url(match, bot):
         headers=headers)
     content = request.json()
 
-    if content['success'] == True:
+    if content['success'] is True:
         return movie_str(content['result'])
 
 
