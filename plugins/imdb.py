@@ -1,9 +1,7 @@
 import re
-
 import requests
 
 from cloudbot import hook
-
 
 id_re = re.compile("tt\d+")
 imdb_re = re.compile(r'(.*:)//(imdb.com|www.imdb.com)(:[0-9]+)?(.*)', re.I)
@@ -17,28 +15,28 @@ def imdb(text, bot):
     strip = text.strip()
 
     if id_re.match(strip):
-        params = {'i': strip}
+        endpoint = 'title'
+        params = {'id': strip}
     else:
-        params = {'t': strip}
+        endpoint = 'search'
+        params = {'q': strip, 'limit': 1}
 
-    request = requests.get("http://www.omdbapi.com/", params=params, headers=headers)
+    request = requests.get(
+        "https://imdb-scraper.herokuapp.com/" + endpoint,
+        params=params,
+        headers=headers)
     content = request.json()
 
-    if content.get('Error', None) == 'Movie not found!':
-        return 'Movie not found!'
-    elif content['Response'] == 'True':
-        content['URL'] = 'http://www.imdb.com/title/{}'.format(content['imdbID'])
-
-        out = '\x02%(Title)s\x02 (%(Year)s) (%(Genre)s): %(Plot)s'
-        if content['Runtime'] != 'N/A':
-            out += ' \x02%(Runtime)s\x02.'
-        if content['imdbRating'] != 'N/A' and content['imdbVotes'] != 'N/A':
-            out += ' \x02%(imdbRating)s/10\x02 with \x02%(imdbVotes)s\x02' \
-                   ' votes.'
-        out += ' %(URL)s'
-        return out % content
+    if content['success'] is False:
+        return 'Unknown error'
+    elif len(content['result']) == 0:
+        return 'No movie found'
     else:
-        return 'Unknown error.'
+        result = content['result']
+        if endpoint == 'search':
+            result = result[0]  # part of the search results, not 1 record
+        url = 'http://www.imdb.com/title/{}'.format(result['id'])
+        return movie_str(result) + ' ' + url
 
 
 @hook.regex(imdb_re)
@@ -49,15 +47,23 @@ def imdb_url(match, bot):
     if imdb_id == "":
         imdb_id = match.group(4).split('/')[-2]
 
-    params = {'i': imdb_id}
-    request = requests.get("http://www.omdbapi.com/", params=params, headers=headers)
+    params = {'id': imdb_id}
+    request = requests.get(
+        "https://imdb-scraper.herokuapp.com/title",
+        params=params,
+        headers=headers)
     content = request.json()
 
-    if content['Response'] == 'True':
-        out = '\x02%(Title)s\x02 (%(Year)s) (%(Genre)s): %(Plot)s'
-        if content['Runtime'] != 'N/A':
-            out += ' \x02%(Runtime)s\x02.'
-        if content['imdbRating'] != 'N/A' and content['imdbVotes'] != 'N/A':
-            out += ' \x02%(imdbRating)s/10\x02 with \x02%(imdbVotes)s\x02' \
-                   ' votes.'
-        return out % content
+    if content['success'] is True:
+        return movie_str(content['result'])
+
+
+def movie_str(movie):
+    movie['genre'] = ', '.join(movie['genres'])
+    out = '\x02%(title)s\x02 (%(year)s) (%(genre)s): %(plot)s'
+    if movie['runtime'] != 'N/A':
+        out += ' \x02%(runtime)s\x02.'
+    if movie['rating'] != 'N/A' and movie['votes'] != 'N/A':
+        out += ' \x02%(rating)s/10\x02 with \x02%(votes)s\x02' \
+                ' votes.'
+    return out % movie
