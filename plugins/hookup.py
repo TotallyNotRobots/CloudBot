@@ -1,18 +1,14 @@
 import codecs
 import json
+import os
 import random
 import time
-
-import os
 
 from cloudbot import hook
 from cloudbot.util.textgen import TextGenerator
 
 hookups = {}
-
-bitesyns = ["bites", "nips", "nibbles", "chomps", "licks", "teases", "chews", "gums", "tastes"]
-bodyparts = ["cheeks", "ear lobes", "nipples", "nose", "neck", "toes", "fingers", "butt", "taint", "thigh", "grundle", "tongue", "calf", "nurses", "nape"]
-
+bites = {}
 glomps = []
 
 
@@ -20,6 +16,7 @@ glomps = []
 def load_data(bot):
     hookups.clear()
     glomps.clear()
+    bites.clear()
 
     with codecs.open(os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8") as f:
         hookups.update(json.load(f))
@@ -27,6 +24,9 @@ def load_data(bot):
     with codecs.open(os.path.join(bot.data_dir, "glomp.txt"), encoding="utf-8") as f:
         lines = (line.strip() for line in f if not line.startswith("//"))
         glomps.extend(filter(None, lines))
+
+    with codecs.open(os.path.join(bot.data_dir, "bite.json"), encoding="utf-8") as f:
+        bites.update(json.load(f))
 
 
 @hook.command(autohelp=False)
@@ -54,10 +54,8 @@ def bite(text, chan, action):
     if not text:
         return "please tell me who to bite."
     name = text.split(' ')[0]
-    bite = random.choice(bitesyns)
-    body = random.choice(bodyparts)
-    out = "{} {}'s {}.".format(bite, name, body)
-    action(out, chan)
+    generator = TextGenerator(bites['templates'], bites['parts'], variables={'user': name})
+    action(generator.generate_string(), chan)
 
 
 @hook.command(autohelp=False)

@@ -1,0 +1,35 @@
+{
+    "templates": [
+        "{action} {user}'s {bodypart}"
+    ],
+    "parts": {
+        "action": [
+            "bites",
+            "nips",
+            "nibbles",
+            "chomps",
+            "licks",
+            "teases",
+            "chews",
+            "gums",
+            "tastes"
+        ],
+        "bodypart": [
+            "cheeks",
+            "ear lobes",
+            "nipples",
+            "nose",
+            "neck",
+            "toes",
+            "fingers",
+            "butt",
+            "taint",
+            "thigh",
+            "grundle",
+            "tongue",
+            "calf",
+            "nurses",
+            "nape"
+        ]
+    }
+}
