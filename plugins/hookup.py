@@ -12,24 +12,21 @@ bodyparts = ["cheeks", "ear lobes", "nipples", "nose", "neck", "toes", "fingers"
 glomps = ["glomps", "tackles", "tackle hugs", "sexually glomps", "takes a flying leap and glomps", "bear hugs"]
 
 usrcache = []
-#glob_chan = chan
 
-#@hook.command(autohelp=False)
+@hook.command(autohelp=False)
 def hookup(db, conn, chan):
     """matches two users from the channel in a sultry scene."""
     times = time.time() - 86400
-    people = db.execute("select name from seen_user where chan = :chan and time > :time", {"chan": chan, "time": times}).fetchall()
-    if not people:
+    results = db.execute("select name from seen_user where chan = :chan and time > :time", {"chan": chan, "time": times}).fetchall()
+    if not results or len(results) < 2:
         return "something went wrong"
-    person1 = people[random.randint(0,len(people) - 1)]
-    person2 = people[random.randint(0,len(people) - 1)]
-    loop = 0
-    while person1 == person2 or loop < 5:
-        person2 = people[random.randint(0, len(people) -1 )]
-        loop = loop + 2
+    # Make sure the list of people is unique
+    people = list(set(row[0] for row in results))
+    random.shuffle(people)
+    person1, person2 = people[:2]
     room = random.choice(rooms)
     weapon = random.choice(weapons)
-    out = "{} used {} and did it with {} in the {}.".format(person1[0], weapon, person2[0], room)
+    out = "{} used {} and did it with {} in the {}.".format(person1, weapon, person2, room)
     return out
 
 @hook.command(autohelp=False)
