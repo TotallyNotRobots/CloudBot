@@ -31,5 +31,5 @@ def CAHblackcard(text, message):
     def blankfiller(matchobj):
         return random.choice(gnomecards['white'])
 
-    out = re.sub(r'_', blankfiller, CardText)
+    out = re.sub(r'\b_\b', blankfiller, CardText)
     return out
