@@ -1,10 +1,14 @@
+import codecs
+import json
 import random
 import time
 
-from cloudbot import hook
+import os
 
-rooms = ["courtyard", "guest house", "observatory", "theatre", "drawing room", "garage", "spa", "master bedroom", "studio", "pool", "arcade", "beach house", "surf shop", "kitchen", "ballroom", "conservatory", "billiard room", "library", "study", "hallway", "lounge", "dining room", "cellar"]
-weapons = ["a candlestick","an axe", "a pistol", "rope", "gloves", "a horseshoe", "a knife", "a baseball bat", "a chalice", "a dumbbell", "a wrench", "a trophy", "a pipe", "garden shears"]
+from cloudbot import hook
+from cloudbot.util.textgen import TextGenerator
+
+hookups = {}
 
 bitesyns = ["bites", "nips", "nibbles", "chomps", "licks", "teases", "chews", "gums", "tastes"]
 bodyparts = ["cheeks", "ear lobes", "nipples", "nose", "neck", "toes", "fingers", "butt", "taint", "thigh", "grundle", "tongue", "calf", "nurses", "nape"]
@@ -13,8 +17,16 @@ glomps = ["glomps", "tackles", "tackle hugs", "sexually glomps", "takes a flying
 
 usrcache = []
 
+
+@hook.on_start
+def load_hookups(bot):
+    hookups.clear()
+    with codecs.open(os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8") as f:
+        hookups.update(json.load(f))
+
+
 @hook.command(autohelp=False)
-def hookup(db, conn, chan):
+def hookup(db, chan):
     """matches two users from the channel in a sultry scene."""
     times = time.time() - 86400
     results = db.execute("select name from seen_user where chan = :chan and time > :time", {"chan": chan, "time": times}).fetchall()
@@ -24,10 +36,13 @@ def hookup(db, conn, chan):
     people = list(set(row[0] for row in results))
     random.shuffle(people)
     person1, person2 = people[:2]
-    room = random.choice(rooms)
-    weapon = random.choice(weapons)
-    out = "{} used {} and did it with {} in the {}.".format(person1, weapon, person2, room)
-    return out
+    variables = {
+        'user1': person1,
+        'user2': person2,
+    }
+    generator = TextGenerator(hookups['templates'], hookups['parts'], variables=variables)
+    return generator.generate_string()
+
 
 @hook.command(autohelp=False)
 def bite(text, chan, action):
@@ -39,6 +54,7 @@ def bite(text, chan, action):
     body = random.choice(bodyparts)
     out = "{} {}'s {}.".format(bite, name, body)
     action(out, chan)
+
 
 @hook.command(autohelp=False)
 def glomp(text, chan, action):
