@@ -13,16 +13,20 @@ hookups = {}
 bitesyns = ["bites", "nips", "nibbles", "chomps", "licks", "teases", "chews", "gums", "tastes"]
 bodyparts = ["cheeks", "ear lobes", "nipples", "nose", "neck", "toes", "fingers", "butt", "taint", "thigh", "grundle", "tongue", "calf", "nurses", "nape"]
 
-glomps = ["glomps", "tackles", "tackle hugs", "sexually glomps", "takes a flying leap and glomps", "bear hugs"]
-
-usrcache = []
+glomps = []
 
 
 @hook.on_start
-def load_hookups(bot):
+def load_data(bot):
     hookups.clear()
+    glomps.clear()
+
     with codecs.open(os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8") as f:
         hookups.update(json.load(f))
+
+    with codecs.open(os.path.join(bot.data_dir, "glomp.txt"), encoding="utf-8") as f:
+        lines = (line.strip() for line in f if not line.startswith("//"))
+        glomps.extend(filter(None, lines))
 
 
 @hook.command(autohelp=False)
