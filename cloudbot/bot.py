@@ -304,12 +304,17 @@ class CloudBot:
             def regex_priority(t):
                 return t[1].priority
 
+            regex_matched = False
             for regex, regex_hook in sorted(self.plugin_manager.regex_hooks, key=regex_priority, reverse=True):
                 if not regex_hook.run_on_cmd and cmd_match:
                     continue
 
+                if regex_hook.only_no_match and regex_matched:
+                    continue
+
                 regex_match = regex.search(event.content)
                 if regex_match:
+                    regex_matched = True
                     regex_event = RegexEvent(hook=regex_hook, match=regex_match, base_event=event)
                     if not add_hook(regex_hook, regex_event):
                         # The hook has an action of Action.HALT* so stop adding new tasks

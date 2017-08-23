@@ -4,17 +4,18 @@ from bs4 import BeautifulSoup
 from contextlib import closing
 from cloudbot import hook
 
-# This will match any URL except the patterns defined in blacklist.
-blacklist = '.*(reddit\.com|redd\.it|youtube\.com|youtu\.be|imdb\.com|spotify\.com|twitter\.com|twitch\.tv|amazon\.co|xkcd\.com|amzn\.co|steamcommunity\.com|steampowered\.com|newegg\.com|soundcloud\.com|vimeo\.com).*'
-url_re = re.compile('(?!{})http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'.format(blacklist), re.I)
+from cloudbot.hook import Priority, Action
+
+# This will match any URL, blacklist removed and abstracted to a priority/halting system
+url_re = re.compile(r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', re.I)
 
 opt_out = []
 
 traditional = [
     (1024 ** 5, 'PB'),
-    (1024 ** 4, 'TB'), 
-    (1024 ** 3, 'GB'), 
-    (1024 ** 2, 'MB'), 
+    (1024 ** 4, 'TB'),
+    (1024 ** 3, 'GB'),
+    (1024 ** 2, 'MB'),
     (1024 ** 1, 'KB'),
     (1024 ** 0, 'B'),
     ]
@@ -29,7 +30,8 @@ def bytesto(bytes, system = traditional):
     amount = int(bytes/factor)
     return str(amount) + suffix
 
-@hook.regex(url_re)
+
+@hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
 def print_url_title(message, match, chan):
     if chan in opt_out:
         return

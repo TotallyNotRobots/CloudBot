@@ -653,6 +653,7 @@ class RegexHook(Hook):
         """
         self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
         self.priority = regex_hook.kwargs.pop("priority", Priority.NORMAL)
+        self.only_no_match = regex_hook.kwargs.pop("only_no_match", False)
 
         self.regexes = regex_hook.regexes
 
