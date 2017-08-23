@@ -1,7 +1,7 @@
 import inspect
 import re
 import collections
-from enum import Enum, unique
+from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType
 
@@ -9,7 +9,7 @@ valid_command_re = re.compile(r"^\w+$")
 
 
 @unique
-class Priority(Enum):
+class Priority(IntEnum):
     LOWEST = -128
     LOW = -64
     NORMAL = 0
