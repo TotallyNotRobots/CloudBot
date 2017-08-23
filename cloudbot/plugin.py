@@ -9,6 +9,7 @@ import re
 import sqlalchemy
 
 from cloudbot.event import Event
+from cloudbot.hook import Priority, Action
 from cloudbot.util import database
 
 logger = logging.getLogger("cloudbot")
@@ -594,6 +595,7 @@ class Hook:
 
         self.permissions = func_hook.kwargs.pop("permissions", [])
         self.single_thread = func_hook.kwargs.pop("singlethread", False)
+        self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
 
         if func_hook.kwargs:
             # we should have popped all the args, so warn if there are any left
@@ -650,6 +652,7 @@ class RegexHook(Hook):
         :type regex_hook: cloudbot.util.hook._RegexHook
         """
         self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
+        self.priority = regex_hook.kwargs.pop("priority", Priority.NORMAL)
 
         self.regexes = regex_hook.regexes
 
