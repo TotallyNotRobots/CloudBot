@@ -5,7 +5,6 @@ import collections
 import re
 import os
 import gc
-from operator import not_, attrgetter, itemgetter
 
 from sqlalchemy import create_engine
 
@@ -13,7 +12,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
-import cloudbot
 from cloudbot.client import Client
 from cloudbot.config import Config
 from cloudbot.hook import Action
