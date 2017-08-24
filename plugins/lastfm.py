@@ -20,6 +20,10 @@ table = Table(
 )
 
 
+def format_user(user):
+    return '\u200B'.join((user[:1], user[1:]))
+
+
 def require_api_key(func):
     """Marks a hook that requires an api key"""
 
@@ -183,7 +187,7 @@ def _topartists(api_key, text, nick, period=None, limit=10):
 
     artists = data["topartists"]["artist"][:limit]
 
-    out = "{}'s favorite artists: ".format(username)
+    out = "{}'s favorite artists: ".format(format_user(username))
     for artist in artists:
         artist_name = artist["name"]
         play_count = artist["playcount"]
@@ -213,7 +217,7 @@ def lastfm(api_key, event, db, text, nick):
         return err
 
     if "track" not in response["recenttracks"] or len(response["recenttracks"]["track"]) == 0:
-        return 'No recent tracks for user "{}" found.'.format(user)
+        return 'No recent tracks for user "{}" found.'.format(format_user(user))
 
     tracks = response["recenttracks"]["track"]
 
@@ -252,7 +256,7 @@ def lastfm(api_key, event, db, text, nick):
 
     playcount = getusertrackplaycount(api_key, artist, title, user)
 
-    out = '{} {} "{}"'.format(user, status, title)
+    out = '{} {} "{}"'.format(format_user(user), status, title)
     if artist:
         out += " by \x02{}\x0f".format(artist)
     if album:
@@ -296,11 +300,11 @@ def getuserartistplaycount(api_key, event, db, text, nick):
         return 'No such artist.'
 
     if 'userplaycount' not in artist_info['artist']['stats']:
-        return '"{}" has never listened to {}.'.format(user, text)
+        return '"{}" has never listened to {}.'.format(format_user(user), text)
 
     playcount = artist_info['artist']['stats']['userplaycount']
 
-    out = '"{}" has {:,} {} plays.'.format(user, int(playcount), text)
+    out = '"{}" has {:,} {} plays.'.format(format_user(user), int(playcount), text)
 
     return out
 
@@ -352,7 +356,7 @@ def lastfmcompare(api_key, event, db, text, nick):
     score = float(data["comparison"]["result"]["score"])
     score = float("{:.3f}".format(score * 100))
     if score == 0:
-        return "{} and {} have no common listening history.".format(user2, user1)
+        return "{} and {} have no common listening history.".format(format_user(user2), format_user(user1))
     levels = (
         ("Super", 95),
         ("Very High", 80),
@@ -378,7 +382,7 @@ def lastfmcompare(api_key, event, db, text, nick):
     artist_string = "\x02In Common:\x02 " + ", ".join(artists) if artists else ""
 
     return "Musical compatibility between \x02{}\x02 and \x02{}\x02: {} (\x02{}%\x02) {}".format(
-        user1, user2, level, score, artist_string
+        format_user(user1), format_user(user2), level, score, artist_string
     )
 
 
@@ -400,7 +404,7 @@ def toptrack(api_key, event, db, text, nick):
         return err
 
     songs = data["toptracks"]["track"][:5]
-    out = "{}'s favorite songs: ".format(username)
+    out = "{}'s favorite songs: ".format(format_user(username))
     for song in songs:
         track_name = song["name"]
         artist_name = song["artist"]["name"]
