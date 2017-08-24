@@ -21,8 +21,8 @@ def refresh_fml_cache(loop):
         request = yield from loop.run_in_executor(None, _func)
         soup = BeautifulSoup(request.text)
 
-        for e in soup.find_all('div', {'class': re.compile('article')}):
-            fml_id = int(e['id'])
+        for e in soup.find_all('article', {'class': 'art-panel'}):
+            fml_id = int(e.find('div', {'id': re.compile('card')})['id'].split('-')[-1])
             text = ''.join(e.find('p').find_all(text=True))
             fml_cache.append((fml_id, text))
     except:
