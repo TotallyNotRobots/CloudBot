@@ -15,12 +15,12 @@ def shuffle_deck(bot):
         gnomecards = json.load(f)
 
 
-        
+
 @hook.command('cah')
 def CAHwhitecard(text, message):
     '''Submit text to be used as a CAH whitecard'''
     CardText = text.strip()
-    message(random.choice(gnomecards['black']).format(text))
+    return random.choice(gnomecards['black']).format(text)
 
 
 @hook.command('cahb')
@@ -31,5 +31,5 @@ def CAHblackcard(text, message):
     def blankfiller(matchobj):
         return random.choice(gnomecards['white'])
 
-    out = re.sub(r'_', blankfiller, CardText)
-    message(out)
+    out = re.sub(r'\b_\b', blankfiller, CardText)
+    return out
