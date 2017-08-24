@@ -5,6 +5,7 @@ import collections
 import re
 import os
 import gc
+from operator import attrgetter
 
 from sqlalchemy import create_engine
 
@@ -299,11 +300,8 @@ class CloudBot:
                                 formatting.get_text_list([command for command, plugin in potential_matches])))
 
             # Regex hooks
-            def regex_priority(t):
-                return t[1].priority
-
             regex_matched = False
-            for regex, regex_hook in sorted(self.plugin_manager.regex_hooks, key=regex_priority, reverse=True):
+            for regex, regex_hook in self.plugin_manager.regex_hooks:
                 if not regex_hook.run_on_cmd and cmd_match:
                     continue
 
