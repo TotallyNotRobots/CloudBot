@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 import re
+from itertools import chain
 
 import sqlalchemy
 
@@ -232,7 +233,7 @@ class PluginManager:
         self.regex_hooks.sort(key=lambda x: x[1].priority)
         dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers)
         lists_of_hooks = [self.catch_all_triggers, self.sieves]
-        lists_of_hooks.extend(d.values() for d in dicts_of_lists_of_hooks)
+        lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
 
         for lst in lists_of_hooks:
             lst.sort(key=lambda x: x.priority)
