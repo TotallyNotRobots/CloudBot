@@ -10,11 +10,12 @@ valid_command_re = re.compile(r"^\w+$")
 
 @unique
 class Priority(IntEnum):
-    LOWEST = -128
-    LOW = -64
+    # Reversed to maintain compatibility with sieve hooks numeric priority
+    LOWEST = 127
+    LOW = 63
     NORMAL = 0
-    HIGH = 63
-    HIGHEST = 127
+    HIGH = -64
+    HIGHEST = -128
 
 
 @unique
