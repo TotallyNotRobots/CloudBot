@@ -58,7 +58,8 @@ def is_valid(target):
 
 def load_template_data(bot, filename, data_dict):
     data_dict.clear()
-    with codecs.open(os.path.join(bot.data_dir, filename), encoding="utf-8") as f:
+    food_dir = os.path.join(bot.data_dir, "food")
+    with codecs.open(os.path.join(food_dir, filename), encoding="utf-8") as f:
         data_dict.update(json.load(f))
 
 
