@@ -41,6 +41,10 @@ BASIC_FOOD = (
     BasicFood("milkshake", "milkshake", "milkshake.json", "a milkshake"),
     BasicFood("kebab", "kebab", "kebab.json", "a kebab"),
     BasicFood("cake", "cake", "cake.json", "a cake"),
+    # Kept for posterity
+    # <Luke> Hey guys, any good ideas for plugins?
+    # <User> I don't know, something that lists every potato known to man?
+    # <Luke> BRILLIANT
     BasicFood("potato", "potato", "potato.json", "a potato"),
     BasicFood("cookie", "cookie", "cookies.json", "a cookie"),
 )
