@@ -92,6 +92,20 @@ def load_foods(bot):
     load_template_data(bot, "cookies.json", cookie_data)
 
 
+def basic_format(text, data, food_type, **kwargs):
+    user = text
+    kwargs['user'] = user
+
+    if not is_valid(user):
+        return "I can't give {} to that user.".format(food_type)
+
+    generator = textgen.TextGenerator(
+        data["templates"], data["parts"], variables=kwargs
+    )
+
+    return generator.generate_string()
+
+
 @asyncio.coroutine
 @hook.command
 def potato(text, action):
@@ -100,417 +114,177 @@ def potato(text, action):
     # <Luke> Hey guys, any good ideas for plugins?
     # <User> I don't know, something that lists every potato known to man?
     # <Luke> BRILLIANT
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give a potato to that user."
-
-    generator = textgen.TextGenerator(
-        potato_data["templates"], potato_data["parts"], variables={"user": user}
-    )
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, potato_data, "a potato"))
 
 
 @asyncio.coroutine
 @hook.command
 def cake(text, action):
     """<user> - gives <user> an awesome cake"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give a cake to that user."
-
-    generator = textgen.TextGenerator(
-        cake_data["templates"], cake_data["parts"], variables={"user": user}
-    )
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, cake_data, "a cake"))
 
 
 @asyncio.coroutine
 @hook.command
 def cookie(text, action):
     """<user> - gives <user> a cookie"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give a cookie to that user."
-
-    generator = textgen.TextGenerator(
-        cookie_data["templates"], cookie_data["parts"], variables={"user": user}
-    )
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, cookie_data, "a cookie"))
 
 
 @asyncio.coroutine
 @hook.command
 def sandwich(text, action):
     """<user> - give a tasty sandwich to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give a sandwich to that user."
-
-    generator = textgen.TextGenerator(sandwich_data["templates"], sandwich_data["parts"],
-                                      variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, sandwich_data, "a sandwich"))
 
 @asyncio.coroutine
 @hook.command
 def taco(text, action):
     """<user> - give a taco to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give a taco to that user."
-
-    generator = textgen.TextGenerator(taco_data["templates"], taco_data["parts"],
-                                      variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, taco_data, "a taco"))
 
 @asyncio.coroutine
 @hook.command
 def coffee(text, action):
     """<user> - give coffee to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give coffee to that user."
-
-    generator = textgen.TextGenerator(coffee_data["templates"], coffee_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, coffee_data, "coffee"))
 
 
 @asyncio.coroutine
 @hook.command
 def noodles(text, action):
     """<user> - give noodles to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give noodles to that user."
-
-    generator = textgen.TextGenerator(noodles_data["templates"], noodles_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, noodles_data, "noodles"))
 
 
 @asyncio.coroutine
 @hook.command
 def muffin(text, action):
     """<user> - give muffin to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give muffin to that user."
-
-    generator = textgen.TextGenerator(muffin_data["templates"], muffin_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, muffin_data, "a muffin"))
 
 @asyncio.coroutine
 @hook.command
 def scone(text, action):
     """<user> - give scone to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give scone to that user."
-
-    generator = textgen.TextGenerator(scone_data["templates"], scone_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, scone_data, "a scone"))
 
 @asyncio.coroutine
 @hook.command
 def rice(text, action):
     """<user> - give rice to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give rice to that user."
-
-    generator = textgen.TextGenerator(rice_data["templates"], rice_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, rice_data, "rice"))
 
 @asyncio.coroutine
 @hook.command
 def tea(text, action):
     """<user> - give tea to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give tea to that user."
-
-    generator = textgen.TextGenerator(tea_data["templates"], tea_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, tea_data, "tea"))
 
 @asyncio.coroutine
 @hook.command
 def keto(text, action):
     """<user> - give keto food to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give food to that user."
-
-    generator = textgen.TextGenerator(keto_data["templates"], keto_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, keto_data, "food"))
 
 @asyncio.coroutine
 @hook.command
 def beer(text, action):
     """<user> - give beer to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give beer to that user."
-
-    generator = textgen.TextGenerator(beer_data["templates"], beer_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, beer_data, "beer"))
 
 @asyncio.coroutine
 @hook.command
 def cheese(text, action):
     """<user> - give cheese to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give cheese to that user."
-
-    generator = textgen.TextGenerator(cheese_data["templates"], cheese_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, cheese_data, "cheese"))
 
 @asyncio.coroutine
 @hook.command
 def pancake(text, action):
     """<user> - give pancakes to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give pancakes to that user."
-
-    generator = textgen.TextGenerator(pancake_data["templates"], pancake_data["parts"],
-                                      variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, pancake_data, "pancakes"))
 
 @asyncio.coroutine
 @hook.command
 def chicken(text, action):
     """<user> - give chicken to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give chicken to that user."
-
-    generator = textgen.TextGenerator(chicken_data["templates"], chicken_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, chicken_data, "chicken"))
 
 @asyncio.coroutine
 @hook.command
 def nugget(text, action):
     """<user> - give nuggets to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give nuggets to that user."
-
-    generator = textgen.TextGenerator(nugget_data["templates"], nugget_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, nugget_data, "nuggets"))
 
 @asyncio.coroutine
 @hook.command
 def pie(text, action):
     """<user> - give pie to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give pie to that user."
-
-    generator = textgen.TextGenerator(pie_data["templates"], pie_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, pie_data, "pie"))
 
 @asyncio.coroutine
 @hook.command
 def icecream(text, action):
     """<user> - give icecream to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give icecream to that user."
-
-    generator = textgen.TextGenerator(icecream_data["templates"], icecream_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, icecream_data, "icecream"))
 
 @asyncio.coroutine
 @hook.command("brekky", "brekkie")
 def brekkie(text, action):
     """<user> - give brekkie to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give brekkie to that user."
-
-    generator = textgen.TextGenerator(brekkie_data["templates"], brekkie_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, brekkie_data, "brekkie"))
 
 @asyncio.coroutine
 @hook.command("doobie")
 def doobie(text, action):
     """<user> - pass the doobie to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't pass the doobie to that user."
-
-    generator = textgen.TextGenerator(doobie_data["templates"], doobie_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, doobie_data, "a doobie"))
 
 @asyncio.coroutine
 @hook.command("pizza")
 def pizza(text, action):
     """<user> - give pizza to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give pizza to that user."
-
-    generator = textgen.TextGenerator(pizza_data["templates"], pizza_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, pizza_data, "pizza"))
 
 @asyncio.coroutine
 @hook.command("chocolate")
 def chocolate(text, action):
     """<user> - give chocolate to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give chocolate to that user."
-
-    generator = textgen.TextGenerator(chocolate_data["templates"], chocolate_data["parts"], variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, chocolate_data, "chocolate"))
 
 @asyncio.coroutine
 @hook.command
 def pasta(text, action):
     """<user> - give pasta to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give pasta to that user."
-
-    generator = textgen.TextGenerator(pasta_data["templates"], pasta_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, pasta_data, "pasta"))
 
 @asyncio.coroutine
 @hook.command
 def cereal(text, action):
     """<user> - give cereal to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give cereal to that user."
-
-    generator = textgen.TextGenerator(cereal_data["templates"], cereal_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, cereal_data, "cereal"))
 
 @asyncio.coroutine
 @hook.command
 def sushi(text, action):
     """<user> - give sushi to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't give sushi to that user."
-
-    generator = textgen.TextGenerator(sushi_data["templates"], sushi_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, sushi_data, "sushi"))
 
 @asyncio.coroutine
 @hook.command
 def steak(text, action):
     """<user> - give a steak dinner to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't treat that user to a nice steak dinner."
-
-    generator = textgen.TextGenerator(steak_data["templates"], steak_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, steak_data, "a nice steak dinner"))
 
 @asyncio.coroutine
 @hook.command
 def milkshake(text, action):
     """<user> - give a milkshake to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't treat that user to a milkshake."
-
-    generator = textgen.TextGenerator(milkshake_data["templates"], milkshake_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, milkshake_data, "a milkshake"))
 
 @asyncio.coroutine
 @hook.command
 def kebab(text, action):
     """<user> - give a kebab to <user>"""
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't treat that user to a delicious kebab."
-
-    generator = textgen.TextGenerator(kebab_data["templates"], kebab_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
+    action(basic_format(text, kebab_data, "a delicious kebab"))
