@@ -88,93 +88,46 @@ def is_valid(target):
     else:
         return False
 
+
+def load_template_data(bot, filename, data_dict):
+    data_dict.clear()
+    with codecs.open(os.path.join(bot.data_dir, filename), encoding="utf-8") as f:
+        data_dict.update(json.load(f))
+
+
 @hook.on_start()
 def load_foods(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global sandwich_data, taco_data, coffee_data, noodles_data, muffin_data, scone_data, rice_data, \
-        tea_data, keto_data, beer_data, cheese_data, pancake_data, chicken_data, \
-        icecream_data, brekkie_data, doobie_data, pizza_data, chocolate_data, pasta_data, \
-        nugget_data, cereal_data, pie_data, sushi_data, steak_data, milkshake_data, kebab_data
 
-    with codecs.open(os.path.join(bot.data_dir, "sandwich.json"), encoding="utf-8") as f:
-        sandwich_data = json.load(f)
+    load_template_data(bot, "sandwich.json", sandwich_data)
+    load_template_data(bot, "taco.json", taco_data)
+    load_template_data(bot, "coffee.json", coffee_data)
+    load_template_data(bot, "noodles.json", noodles_data)
+    load_template_data(bot, "muffin.json", muffin_data)
+    load_template_data(bot, "scone.json", scone_data)
+    load_template_data(bot, "rice.json", rice_data)
+    load_template_data(bot, "tea.json", tea_data)
+    load_template_data(bot, "keto.json", keto_data)
+    load_template_data(bot, "beer.json", beer_data)
+    load_template_data(bot, "cheese.json", cheese_data)
+    load_template_data(bot, "pancake.json", pancake_data)
+    load_template_data(bot, "chicken.json", chicken_data)
+    load_template_data(bot, "nugget.json", nugget_data)
+    load_template_data(bot, "pie.json", pie_data)
+    load_template_data(bot, "brekkie.json", brekkie_data)
+    load_template_data(bot, "icecream.json", icecream_data)
+    load_template_data(bot, "doobie.json", doobie_data)
+    load_template_data(bot, "pizza.json", pizza_data)
+    load_template_data(bot, "chocolate.json", chocolate_data)
+    load_template_data(bot, "pasta.json", pasta_data)
+    load_template_data(bot, "cereal.json", cereal_data)
+    load_template_data(bot, "sushi.json", sushi_data)
+    load_template_data(bot, "steak.json", steak_data)
+    load_template_data(bot, "milkshake.json", milkshake_data)
+    load_template_data(bot, "kebab.json", kebab_data)
 
-    with codecs.open(os.path.join(bot.data_dir, "taco.json"), encoding="utf-8") as f:
-        taco_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "coffee.json"), encoding="utf-8") as f:
-        coffee_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "noodles.json"), encoding="utf-8") as f:
-        noodles_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "muffin.json"), encoding="utf-8") as f:
-        muffin_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "scone.json"), encoding="utf-8") as f:
-        scone_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "rice.json"), encoding="utf-8") as f:
-        rice_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "tea.json"), encoding="utf-8") as f:
-        tea_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "keto.json"), encoding="utf-8") as f:
-        keto_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "beer.json"), encoding="utf-8") as f:
-        beer_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "cheese.json"), encoding="utf-8") as f:
-        cheese_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "pancake.json"), encoding="utf-8") as f:
-        pancake_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "chicken.json"), encoding="utf-8") as f:
-        chicken_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "nugget.json"), encoding="utf-8") as f:
-        nugget_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "pie.json"), encoding="utf-8") as f:
-        pie_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "brekkie.json"), encoding="utf-8") as f:
-        brekkie_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "icecream.json"), encoding="utf-8") as f:
-        icecream_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "doobie.json"), encoding="utf-8") as f:
-        doobie_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "pizza.json"), encoding="utf-8") as f:
-        pizza_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "chocolate.json"), encoding="utf-8") as f:
-        chocolate_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "pasta.json"), encoding="utf-8") as f:
-        pasta_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "cereal.json"), encoding="utf-8") as f:
-        cereal_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "sushi.json"), encoding="utf-8") as f:
-        sushi_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "steak.json"), encoding="utf-8") as f:
-        steak_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "milkshake.json"), encoding="utf-8") as f:
-        milkshake_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "kebab.json"), encoding="utf-8") as f:
-        kebab_data = json.load(f)
 
 @asyncio.coroutine
 @hook.command
