@@ -1,7 +1,7 @@
+import asyncio
 import codecs
 import json
 import os
-import asyncio
 import re
 
 from cloudbot import hook
@@ -136,11 +136,13 @@ def sandwich(text, action):
     """<user> - give a tasty sandwich to <user>"""
     action(basic_format(text, sandwich_data, "a sandwich"))
 
+
 @asyncio.coroutine
 @hook.command
 def taco(text, action):
     """<user> - give a taco to <user>"""
     action(basic_format(text, taco_data, "a taco"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -162,11 +164,13 @@ def muffin(text, action):
     """<user> - give muffin to <user>"""
     action(basic_format(text, muffin_data, "a muffin"))
 
+
 @asyncio.coroutine
 @hook.command
 def scone(text, action):
     """<user> - give scone to <user>"""
     action(basic_format(text, scone_data, "a scone"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -174,11 +178,13 @@ def rice(text, action):
     """<user> - give rice to <user>"""
     action(basic_format(text, rice_data, "rice"))
 
+
 @asyncio.coroutine
 @hook.command
 def tea(text, action):
     """<user> - give tea to <user>"""
     action(basic_format(text, tea_data, "tea"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -186,11 +192,13 @@ def keto(text, action):
     """<user> - give keto food to <user>"""
     action(basic_format(text, keto_data, "food"))
 
+
 @asyncio.coroutine
 @hook.command
 def beer(text, action):
     """<user> - give beer to <user>"""
     action(basic_format(text, beer_data, "beer"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -198,11 +206,13 @@ def cheese(text, action):
     """<user> - give cheese to <user>"""
     action(basic_format(text, cheese_data, "cheese"))
 
+
 @asyncio.coroutine
 @hook.command
 def pancake(text, action):
     """<user> - give pancakes to <user>"""
     action(basic_format(text, pancake_data, "pancakes"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -210,11 +220,13 @@ def chicken(text, action):
     """<user> - give chicken to <user>"""
     action(basic_format(text, chicken_data, "chicken"))
 
+
 @asyncio.coroutine
 @hook.command
 def nugget(text, action):
     """<user> - give nuggets to <user>"""
     action(basic_format(text, nugget_data, "nuggets"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -222,11 +234,13 @@ def pie(text, action):
     """<user> - give pie to <user>"""
     action(basic_format(text, pie_data, "pie"))
 
+
 @asyncio.coroutine
 @hook.command
 def icecream(text, action):
     """<user> - give icecream to <user>"""
     action(basic_format(text, icecream_data, "icecream"))
+
 
 @asyncio.coroutine
 @hook.command("brekky", "brekkie")
@@ -234,11 +248,13 @@ def brekkie(text, action):
     """<user> - give brekkie to <user>"""
     action(basic_format(text, brekkie_data, "brekkie"))
 
+
 @asyncio.coroutine
 @hook.command("doobie")
 def doobie(text, action):
     """<user> - pass the doobie to <user>"""
     action(basic_format(text, doobie_data, "a doobie"))
+
 
 @asyncio.coroutine
 @hook.command("pizza")
@@ -246,11 +262,13 @@ def pizza(text, action):
     """<user> - give pizza to <user>"""
     action(basic_format(text, pizza_data, "pizza"))
 
+
 @asyncio.coroutine
 @hook.command("chocolate")
 def chocolate(text, action):
     """<user> - give chocolate to <user>"""
     action(basic_format(text, chocolate_data, "chocolate"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -258,11 +276,13 @@ def pasta(text, action):
     """<user> - give pasta to <user>"""
     action(basic_format(text, pasta_data, "pasta"))
 
+
 @asyncio.coroutine
 @hook.command
 def cereal(text, action):
     """<user> - give cereal to <user>"""
     action(basic_format(text, cereal_data, "cereal"))
+
 
 @asyncio.coroutine
 @hook.command
@@ -270,17 +290,20 @@ def sushi(text, action):
     """<user> - give sushi to <user>"""
     action(basic_format(text, sushi_data, "sushi"))
 
+
 @asyncio.coroutine
 @hook.command
 def steak(text, action):
     """<user> - give a steak dinner to <user>"""
     action(basic_format(text, steak_data, "a nice steak dinner"))
 
+
 @asyncio.coroutine
 @hook.command
 def milkshake(text, action):
     """<user> - give a milkshake to <user>"""
     action(basic_format(text, milkshake_data, "a milkshake"))
+
 
 @asyncio.coroutine
 @hook.command
