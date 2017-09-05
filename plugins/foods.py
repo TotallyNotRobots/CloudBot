@@ -10,11 +10,6 @@ from cloudbot.util import textgen
 
 nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}\*\`]*$", re.I)
 
-cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Mexican Wedding',
-           'Biscotti', 'Oatmeal Cranberry', 'Chocolate Fudge', 'Peanut Butter', 'Pumpkin', 'Lemon Bar',
-           'Chocolate Oatmeal Fudge', 'Toffee Peanut', 'Danish Sugar', 'Triple Chocolate', 'Oreo']
-
-
 sandwich_data = {}
 taco_data = {}
 coffee_data = {}
@@ -43,6 +38,7 @@ milkshake_data = {}
 kebab_data = {}
 cake_data = {}
 potato_data = {}
+cookie_data = {}
 
 
 def is_valid(target):
@@ -93,6 +89,7 @@ def load_foods(bot):
     load_template_data(bot, "kebab.json", kebab_data)
     load_template_data(bot, "cake.json", cake_data)
     load_template_data(bot, "potato.json", potato_data)
+    load_template_data(bot, "cookies.json", cookie_data)
 
 
 @asyncio.coroutine
@@ -142,14 +139,12 @@ def cookie(text, action):
     if not is_valid(user):
         return "I can't give a cookie to that user."
 
-    cookie_type = random.choice(cookies)
-    size = random.choice(['small', 'little', 'medium-sized', 'large', 'gigantic'])
-    flavor = random.choice(['tasty', 'delectable', 'delicious', 'yummy', 'toothsome', 'scrumptious', 'luscious'])
-    method = random.choice(['makes', 'gives', 'gets', 'buys'])
-    side_dish = random.choice(['glass of milk', 'bowl of ice cream', 'bowl of chocolate sauce'])
+    generator = textgen.TextGenerator(
+        cookie_data["templates"], cookie_data["parts"], variables={"user": user}
+    )
 
-    action("{} {} a {} {} {} cookie and serves it with a {}!".format(method, user, flavor, size, cookie_type,
-                                                                     side_dish))
+    # act out the message
+    action(generator.generate_string())
 
 
 @asyncio.coroutine
