@@ -10,9 +10,6 @@ from cloudbot.util import textgen
 
 nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}\*\`]*$", re.I)
 
-cakes = ['Chocolate', 'Ice Cream', 'Angel', 'Boston Cream', 'Birthday', 'Bundt', 'Carrot', 'Coffee', 'Devils', 'Fruit',
-         'Gingerbread', 'Pound', 'Red Velvet', 'Stack', 'Welsh', 'Yokan']
-
 cookies = ['Chocolate Chip', 'Oatmeal', 'Sugar', 'Oatmeal Raisin', 'Macadamia Nut', 'Jam Thumbprint', 'Mexican Wedding',
            'Biscotti', 'Oatmeal Cranberry', 'Chocolate Fudge', 'Peanut Butter', 'Pumpkin', 'Lemon Bar',
            'Chocolate Oatmeal Fudge', 'Toffee Peanut', 'Danish Sugar', 'Triple Chocolate', 'Oreo']
@@ -79,6 +76,7 @@ sushi_data = {}
 steak_data = {}
 milkshake_data = {}
 kebab_data = {}
+cake_data = {}
 
 
 def is_valid(target):
@@ -127,6 +125,7 @@ def load_foods(bot):
     load_template_data(bot, "steak.json", steak_data)
     load_template_data(bot, "milkshake.json", milkshake_data)
     load_template_data(bot, "kebab.json", kebab_data)
+    load_template_data(bot, "cake.json", cake_data)
 
 
 @asyncio.coroutine
@@ -157,15 +156,12 @@ def cake(text, action):
     if not is_valid(user):
         return "I can't give a cake to that user."
 
-    cake_type = random.choice(cakes)
-    size = random.choice(['small', 'little', 'mid-sized', 'medium-sized', 'large', 'gigantic'])
-    flavor = random.choice(['tasty', 'delectable', 'delicious', 'yummy', 'toothsome', 'scrumptious', 'luscious'])
-    method = random.choice(['makes', 'gives', 'gets', 'buys'])
-    side_dish = random.choice(['glass of chocolate milk', 'bowl of ice cream', 'jar of cookies',
-                               'side of chocolate sauce'])
+    generator = textgen.TextGenerator(
+        cake_data["templates"], cake_data["parts"], variables={"user": user}
+    )
 
-    action("{} {} a {} {} {} cake and serves it with a small {}!".format(method, user, flavor, size, cake_type,
-                                                                         side_dish))
+    # act out the message
+    action(generator.generate_string())
 
 
 @asyncio.coroutine
