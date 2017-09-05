@@ -53,6 +53,34 @@ potatoes = ['AC Belmont', 'AC Blue Pride', 'AC Brador', 'AC Chaleur', 'AC Domino
             'Yukon Gold']
 
 
+sandwich_data = {}
+taco_data = {}
+coffee_data = {}
+noodles_data = {}
+muffin_data = {}
+scone_data = {}
+rice_data = {}
+tea_data = {}
+keto_data = {}
+beer_data = {}
+cheese_data = {}
+pancake_data = {}
+chicken_data = {}
+icecream_data = {}
+brekkie_data = {}
+doobie_data = {}
+pizza_data = {}
+chocolate_data = {}
+pasta_data = {}
+nugget_data = {}
+cereal_data = {}
+pie_data = {}
+sushi_data = {}
+steak_data = {}
+milkshake_data = {}
+kebab_data = {}
+
+
 def is_valid(target):
     """ Checks if a string is a valid IRC nick. """
     if nick_re.match(target):
@@ -141,10 +169,10 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "steak.json"), encoding="utf-8") as f:
         steak_data = json.load(f)
-    
+
     with codecs.open(os.path.join(bot.data_dir, "milkshake.json"), encoding="utf-8") as f:
         milkshake_data = json.load(f)
-        
+
     with codecs.open(os.path.join(bot.data_dir, "kebab.json"), encoding="utf-8") as f:
         kebab_data = json.load(f)
 
@@ -250,7 +278,7 @@ def coffee(text, action):
     # act out the message
     action(generator.generate_string())
 
-    
+
 @asyncio.coroutine
 @hook.command
 def noodles(text, action):
@@ -265,7 +293,7 @@ def noodles(text, action):
     # act out the message
     action(generator.generate_string())
 
-    
+
 @asyncio.coroutine
 @hook.command
 def muffin(text, action):
