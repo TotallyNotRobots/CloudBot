@@ -1,6 +1,6 @@
+import collections
 import inspect
 import re
-import collections
 
 from cloudbot.event import EventType
 
@@ -175,6 +175,16 @@ class _EventHook(_Hook):
         else:
             # it's a list
             self.types.update(trigger_param)
+
+
+class _CapHook(_Hook):
+    def __init__(self, func, _type):
+        super().__init__(func, "on_cap_{}".format(_type))
+        self.caps = set()
+
+    def add_hook(self, caps, kwargs):
+        self._add_hook(kwargs)
+        self.caps.update(caps)
 
 
 def _add_hook(func, hook):
@@ -357,3 +367,37 @@ def on_stop(param=None, **kwargs):
         return lambda func: _on_stop_hook(func)
 
 on_unload = on_stop
+
+
+def on_cap_available(*caps, **kwargs):
+    """External on_cap_available decorator. Must be used as a function that returns a decorator
+
+    This hook will fire for each capability in a `CAP LS` response from the server
+    """
+
+    def _on_cap_available_hook(func):
+        hook = _get_hook(func, "on_cap_available")
+        if hook is None:
+            hook = _CapHook(func, "available")
+            _add_hook(func, hook)
+        hook.add_hook(caps, kwargs)
+        return func
+
+    return _on_cap_available_hook
+
+
+def on_cap_ack(*caps, **kwargs):
+    """External on_cap_ack decorator. Must be used as a function that returns a decorator
+
+    This hook will fire for each capability that is acknowledged from the server with `CAP ACK`
+    """
+
+    def _on_cap_ack_hook(func):
+        hook = _get_hook(func, "on_cap_ack")
+        if hook is None:
+            hook = _CapHook(func, "ack")
+            _add_hook(func, hook)
+        hook.add_hook(caps, kwargs)
+        return func
+
+    return _on_cap_ack_hook

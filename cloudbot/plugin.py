@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 import re
+from collections import defaultdict
 
 import sqlalchemy
 
@@ -18,7 +19,7 @@ def find_hooks(parent, module):
     """
     :type parent: Plugin
     :type module: object
-    :rtype: (list[CommandHook], list[RegexHook], list[RawHook], list[SieveHook], List[EventHook], List[PeriodicHook], list[OnStartHook], List[OnStopHook])
+    :rtype: (list[CommandHook], list[RegexHook], list[RawHook], list[SieveHook], List[EventHook], List[PeriodicHook], list[OnStartHook], List[OnStopHook], list[OnCapAckHook], list[OnCapAvailableHook])
     """
     # set the loaded flag
     module._cloudbot_loaded = True
@@ -30,8 +31,11 @@ def find_hooks(parent, module):
     periodic = []
     on_start = []
     on_stop = []
+    on_cap_ack = []
+    on_cap_available = []
     type_lists = {"command": command, "regex": regex, "irc_raw": raw, "sieve": sieve, "event": event,
-                  "periodic": periodic, "on_start": on_start, "on_stop": on_stop}
+                  "periodic": periodic, "on_start": on_start, "on_stop": on_stop, "on_cap_ack": on_cap_ack,
+                  "on_cap_available": on_cap_available}
     for name, func in module.__dict__.items():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
@@ -43,7 +47,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             del func._cloudbot_hook
 
-    return command, regex, raw, sieve, event, periodic, on_start, on_stop
+    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available
 
 
 def find_tables(code):
@@ -98,6 +102,7 @@ class PluginManager:
         self.event_type_hooks = {}
         self.regex_hooks = []
         self.sieves = []
+        self.cap_hooks = {"on_available": defaultdict(list), "on_ack": defaultdict(list)}
         self._hook_waiting_queues = {}
 
     @asyncio.coroutine
@@ -179,6 +184,16 @@ class PluginManager:
 
         self.plugins[plugin.file_name] = plugin
 
+        for on_cap_available_hook in plugin.on_cap_available:
+            for cap in on_cap_available_hook.caps:
+                self.cap_hooks["on_available"][cap.casefold()].append(on_cap_available_hook)
+            self._log_hook(on_cap_available_hook)
+
+        for on_cap_ack_hook in plugin.on_cap_ack:
+            for cap in on_cap_ack_hook.caps:
+                self.cap_hooks["on_ack"][cap.casefold()].append(on_cap_ack_hook)
+            self._log_hook(on_cap_ack_hook)
+
         for periodic_hook in plugin.periodic:
             task = asyncio.async(self._start_periodic(periodic_hook))
             plugin.tasks.append(task)
@@ -258,6 +273,22 @@ class PluginManager:
 
         for task in plugin.tasks:
             task.cancel()
+
+        for on_cap_available_hook in plugin.on_cap_available:
+            available_hooks = self.cap_hooks["on_available"]
+            for cap in on_cap_available_hook.caps:
+                cap_cf = cap.casefold()
+                available_hooks[cap_cf].remove(on_cap_available_hook)
+                if not available_hooks[cap_cf]:
+                    del available_hooks[cap_cf]
+
+        for on_cap_ack in plugin.on_cap_ack:
+            ack_hooks = self.cap_hooks["on_ack"]
+            for cap in on_cap_ack.caps:
+                cap_cf = cap.casefold()
+                ack_hooks[cap_cf].remove(on_cap_ack)
+                if not ack_hooks[cap_cf]:
+                    del ack_hooks[cap_cf]
 
         # unregister commands
         for command_hook in plugin.commands:
@@ -521,7 +552,8 @@ class Plugin:
         self.file_path = filepath
         self.file_name = filename
         self.title = title
-        self.commands, self.regexes, self.raw_hooks, self.sieves, self.events, self.periodic, self.run_on_start, self.run_on_stop = find_hooks(self, code)
+        self.commands, self.regexes, self.raw_hooks, self.sieves, self.events, self.periodic, self.run_on_start, self.run_on_stop, self.on_cap_ack, self.on_cap_available = find_hooks(
+            self, code)
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
@@ -776,6 +808,28 @@ class OnStopHook(Hook):
         return "on_stop {} from {}".format(self.function_name, self.plugin.file_name)
 
 
+class CapHook(Hook):
+    def __init__(self, _type, plugin, base_hook):
+        self.caps = base_hook.caps
+        super().__init__("on_cap_{}".format(_type), plugin, base_hook)
+
+    def __repr__(self):
+        return "{name}[{caps} {base!r}]".format(name=self.type, caps=self.caps, base=super())
+
+    def __str__(self):
+        return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
+
+
+class OnCapAvaliableHook(CapHook):
+    def __init__(self, plugin, base_hook):
+        super().__init__("available", plugin, base_hook)
+
+
+class OnCapAckHook(CapHook):
+    def __init__(self, plugin, base_hook):
+        super().__init__("ack", plugin, base_hook)
+
+
 _hook_name_to_plugin = {
     "command": CommandHook,
     "regex": RegexHook,
@@ -785,4 +839,6 @@ _hook_name_to_plugin = {
     "periodic": PeriodicHook,
     "on_start": OnStartHook,
     "on_stop": OnStopHook,
+    "on_cap_available": OnCapAvaliableHook,
+    "on_cap_ack": OnCapAckHook,
 }

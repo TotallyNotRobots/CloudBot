@@ -122,7 +122,8 @@ class IrcClient(Client):
         self._transport, self._protocol = yield from self.loop.create_connection(
             lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
 
-        # send the password, nick, and user
+        # send the cap ls, password, nick, and user
+        self.send("CAP LS 302")
         self.set_pass(self.config["connection"].get("password"))
         self.set_nick(self.nick)
         self.cmd("USER", self.config.get('user', 'cloudbot'), "3", "*",
