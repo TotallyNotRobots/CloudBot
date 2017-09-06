@@ -1,8 +1,8 @@
-from _ssl import PROTOCOL_SSLv23
 import asyncio
+import logging
 import re
 import ssl
-import logging
+from _ssl import PROTOCOL_SSLv23
 from ssl import SSLContext
 
 from cloudbot.client import Client
@@ -122,12 +122,11 @@ class IrcClient(Client):
         self._transport, self._protocol = yield from self.loop.create_connection(
             lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
 
-        # send the cap ls, password, nick, and user
-        self.send("CAP LS 302")
-        self.set_pass(self.config["connection"].get("password"))
-        self.set_nick(self.nick)
-        self.cmd("USER", self.config.get('user', 'cloudbot'), "3", "*",
-                 self.config.get('realname', 'CloudBot - https://git.io/CloudBot'))
+        tasks = [
+            self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
+            for hook in self.bot.plugin_manager.connect_hooks
+        ]
+        yield from asyncio.gather(*tasks)
 
     def quit(self, reason=None):
         if self._quit:

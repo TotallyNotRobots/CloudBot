@@ -9,6 +9,12 @@ logger = logging.getLogger("cloudbot")
 
 
 @asyncio.coroutine
+@hook.connect(priority=-10)
+def send_cap_ls(conn):
+    conn.cmd("CAP", "LS", "302")
+
+
+@asyncio.coroutine
 def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
     available_caps = conn.memory.setdefault("available_caps", set())
     caps = [tuple(cap.split('=', 1)) for cap in caplist]

@@ -401,3 +401,21 @@ def on_cap_ack(*caps, **kwargs):
         return func
 
     return _on_cap_ack_hook
+
+
+def on_connect(param=None, **kwargs):
+    def _on_connect_hook(func):
+        hook = _get_hook(func, "on_connect")
+        if hook is None:
+            hook = _Hook(func, "on_connect")
+            _add_hook(func, hook)
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _on_connect_hook(param)
+    else:
+        return lambda func: _on_connect_hook(func)
+
+
+connect = on_connect
