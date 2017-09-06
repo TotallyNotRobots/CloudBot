@@ -20,7 +20,7 @@ def smart_truncate(content, length=425, suffix='...\n'):
         return content[:length].rsplit(' ', 1)[0]+ suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(content[length:])
 
 
-@hook.command("quran", "verse", singlethreaded=True)
+@hook.command("quran", "verse", singlethread=True)
 def quran(text, message):
     """Prints the specified Qur'anic verse(s) and its/their translation(s)"""
     api_url = "http://quranapi.azurewebsites.net/api/verse/"

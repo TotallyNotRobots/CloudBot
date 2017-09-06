@@ -2,7 +2,7 @@ import requests
 
 from cloudbot import hook
 
-@hook.command("bible", "passage", singlethreaded=True)
+@hook.command("bible", "passage", singlethread=True)
 def bible(text):
     """Prints the specified passage from the Bible"""
     passage = text.strip()
