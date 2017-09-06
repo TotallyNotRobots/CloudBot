@@ -1,3 +1,5 @@
+import asyncio
+
 from sqlalchemy import PrimaryKeyConstraint, Column, String, Table, and_
 from sqlalchemy.exc import IntegrityError
 
@@ -13,11 +15,17 @@ table = Table(
 )
 
 
+def get_channels(db, conn):
+    return db.execute(table.select().where(table.c.conn == conn.name.casefold())).fetchall()
+
+
+@asyncio.coroutine
 @hook.irc_raw('004')
-def do_joins(db, conn):
-    chans = db.execute(table.select().where(table.c.conn == conn.name.casefold())).fetchall()
+def do_joins(db, conn, async):
+    chans = async(get_channels, db, conn)
     for chan in chans:
         conn.join(chan[1])
+        yield from asyncio.sleep(0.4)
 
 
 @hook.irc_raw('JOIN', singlethread=True)
