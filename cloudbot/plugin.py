@@ -565,6 +565,7 @@ class Plugin:
         self.file_path = filepath
         self.file_name = filename
         self.title = title
+        # TODO clean up hook lists
         hooks = find_hooks(self, code)
         self.commands, self.regexes, self.raw_hooks, *hooks = hooks
         self.sieves, self.events, self.periodic, *hooks = hooks

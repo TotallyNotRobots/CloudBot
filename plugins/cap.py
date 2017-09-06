@@ -75,6 +75,7 @@ def on_cap(irc_paramlist, conn, bot, event):
         logger.info("New capabilities advertised: %s", irc_paramlist[-1])
         yield from handle_available_caps(conn, caplist, event, irc_paramlist, bot)
     elif subcmd == 'DEL':
+        # TODO add hooks for CAP removal
         logger.info("Capabilities removed by server: %s", irc_paramlist[-1])
         server_caps = conn.memory.setdefault('server_caps', {})
         for cap in caplist:

@@ -126,6 +126,7 @@ class IrcClient(Client):
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
             for hook in self.bot.plugin_manager.connect_hooks
         ]
+        # TODO stop connecting if a connect hook fails?
         yield from asyncio.gather(*tasks)
 
     def quit(self, reason=None):
