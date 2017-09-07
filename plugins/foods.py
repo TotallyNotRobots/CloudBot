@@ -1,10 +1,8 @@
-import asyncio
 import codecs
 import json
 import os
 import re
 from collections import namedtuple, defaultdict
-from itertools import chain
 
 from cloudbot import hook
 from cloudbot.util import textgen
@@ -98,16 +96,15 @@ def make_cmd_list(value):
     return value
 
 
-@asyncio.coroutine
-@hook.command(*chain.from_iterable(make_cmd_list(food.commands) for food in BASIC_FOOD))
-def basic_food(text, triggered_command, action):
-    # Find the first food in BASIC_FOOD that matches the triggered command
-    for food in BASIC_FOOD:
-        cmd_list = make_cmd_list(food.commands)
-        if triggered_command in cmd_list or any(cmd.startswith(triggered_command) for cmd in cmd_list):
-            break
-    else:
-        # The triggered command didn't match any loaded foods, WTF!?!?
-        return "{} matched an unknown food in foods.py. Congrats! You found a bug! " \
-               "Please report this right away.".format(triggered_command)
-    action(basic_format(text, basic_food_data[food.name], food.unitname))
+def basic_food(food):
+    def func(text, action):
+        action(basic_format(text, basic_food_data[food.name], food.unitname))
+
+    func.__name__ = food.name
+    func.__doc__ = "<user> - gives {} to [user]".format(food.unitname)
+    return func
+
+
+for food in BASIC_FOOD:
+    globals()[food.name] = hook.command(*make_cmd_list(food.commands))(basic_food(food))
+
