@@ -18,6 +18,7 @@ BASIC_FOOD = (
     BasicFood("noodles", "noodles", "noodles.json", "noodles"),
     BasicFood("muffin", "muffin", "muffin.json", "a muffin"),
     BasicFood("scone", "scone", "scone.json", "a scone"),
+    BasicFood("donut", "donut", "donut.json", "a donut"),
     BasicFood("rice", "rice", "rice.json", "rice"),
     BasicFood("tea", "tea", "tea.json", "tea"),
     BasicFood("keto", "keto", "keto.json", "food"),
