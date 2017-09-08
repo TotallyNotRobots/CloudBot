@@ -5,15 +5,17 @@ import collections
 import re
 import os
 import gc
+from operator import attrgetter
+
 from sqlalchemy import create_engine
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
-import cloudbot
 from cloudbot.client import Client
 from cloudbot.config import Config
+from cloudbot.hook import Action
 from cloudbot.reloader import PluginReloader
 from cloudbot.plugin import PluginManager
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
@@ -221,23 +223,46 @@ class CloudBot:
         run_before_tasks = []
         tasks = []
         command_prefix = event.conn.config.get('command_prefix', '.')
+        halted = False
+
+        def add_hook(hook, _event, _run_before=False):
+            nonlocal halted
+            if halted:
+                return False
+
+            coro = self.plugin_manager.launch(hook, _event)
+            if _run_before:
+                run_before_tasks.append(coro)
+            else:
+                tasks.append(coro)
+
+            if hook.action is Action.HALTALL:
+                halted = True
+                return False
+            elif hook.action is Action.HALTTYPE:
+                return False
+            return True
 
         # Raw IRC hook
         for raw_hook in self.plugin_manager.catch_all_triggers:
             # run catch-all coroutine hooks before all others - TODO: Make this a plugin argument
-            if not raw_hook.threaded:
-                run_before_tasks.append(
-                    self.plugin_manager.launch(raw_hook, Event(hook=raw_hook, base_event=event)))
-            else:
-                tasks.append(self.plugin_manager.launch(raw_hook, Event(hook=raw_hook, base_event=event)))
+            run_before = not raw_hook.threaded
+            if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before):
+                # The hook has an action of Action.HALT* so stop adding new tasks
+                break
+
         if event.irc_command in self.plugin_manager.raw_triggers:
             for raw_hook in self.plugin_manager.raw_triggers[event.irc_command]:
-                tasks.append(self.plugin_manager.launch(raw_hook, Event(hook=raw_hook, base_event=event)))
+                if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event)):
+                    # The hook has an action of Action.HALT* so stop adding new tasks
+                    break
 
         # Event hooks
         if event.type in self.plugin_manager.event_type_hooks:
             for event_hook in self.plugin_manager.event_type_hooks[event.type]:
-                tasks.append(self.plugin_manager.launch(event_hook, Event(hook=event_hook, base_event=event)))
+                if not add_hook(event_hook, Event(hook=event_hook, base_event=event)):
+                    # The hook has an action of Action.HALT* so stop adding new tasks
+                    break
 
         if event.type is EventType.message:
             # Commands
@@ -258,7 +283,7 @@ class CloudBot:
                     command_hook = self.plugin_manager.commands[command]
                     command_event = CommandEvent(hook=command_hook, text=text,
                                                  triggered_command=command, base_event=event)
-                    tasks.append(self.plugin_manager.launch(command_hook, command_event))
+                    add_hook(command_hook, command_event)
                 else:
                     potential_matches = []
                     for potential_match, plugin in self.plugin_manager.commands.items():
@@ -269,20 +294,27 @@ class CloudBot:
                             command_hook = potential_matches[0][1]
                             command_event = CommandEvent(hook=command_hook, text=text,
                                                          triggered_command=command, base_event=event)
-                            tasks.append(self.plugin_manager.launch(command_hook, command_event))
+                            add_hook(command_hook, command_event)
                         else:
                             event.notice("Possible matches: {}".format(
                                 formatting.get_text_list([command for command, plugin in potential_matches])))
 
             # Regex hooks
+            regex_matched = False
             for regex, regex_hook in self.plugin_manager.regex_hooks:
                 if not regex_hook.run_on_cmd and cmd_match:
-                    pass
-                else:
-                    regex_match = regex.search(event.content)
-                    if regex_match:
-                        regex_event = RegexEvent(hook=regex_hook, match=regex_match, base_event=event)
-                        tasks.append(self.plugin_manager.launch(regex_hook, regex_event))
+                    continue
+
+                if regex_hook.only_no_match and regex_matched:
+                    continue
+
+                regex_match = regex.search(event.content)
+                if regex_match:
+                    regex_matched = True
+                    regex_event = RegexEvent(hook=regex_hook, match=regex_match, base_event=event)
+                    if not add_hook(regex_hook, regex_event):
+                        # The hook has an action of Action.HALT* so stop adding new tasks
+                        break
 
         # Run the tasks
         yield from asyncio.gather(*run_before_tasks, loop=self.loop)
