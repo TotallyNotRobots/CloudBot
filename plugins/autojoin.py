@@ -22,7 +22,7 @@ def get_channels(db, conn):
 @asyncio.coroutine
 @hook.irc_raw('004')
 def do_joins(db, conn, async):
-    chans = async(get_channels, db, conn)
+    chans = yield from async(get_channels, db, conn)
     for chan in chans:
         conn.join(chan[1])
         yield from asyncio.sleep(0.4)
