@@ -1,7 +1,7 @@
 import asyncio
+import concurrent.futures
 import enum
 import logging
-import concurrent.futures
 
 logger = logging.getLogger("cloudbot")
 
@@ -383,3 +383,10 @@ class RegexEvent(Event):
                          content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
                          irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
         self.match = match
+
+
+class CapEvent(Event):
+    def __init__(self, *args, cap, cap_param=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cap = cap
+        self.cap_param = cap_param

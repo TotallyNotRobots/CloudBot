@@ -18,6 +18,12 @@
             ],
             "disabled_commands": [],
             "acls": {},
+            "sasl": {
+                "enabled": false,
+                "mechanism": "PLAIN",
+                "user": "",
+                "pass": ""
+            },
             "nickserv": {
                 "enabled": false,
                 "nickserv_password": "",
