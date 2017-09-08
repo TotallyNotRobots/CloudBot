@@ -7,10 +7,12 @@ import os
 import re
 from collections import defaultdict
 from operator import attrgetter
+from itertools import chain
 
 import sqlalchemy
 
 from cloudbot.event import Event
+from cloudbot.hook import Priority, Action
 from cloudbot.util import database
 
 logger = logging.getLogger("cloudbot")
@@ -253,6 +255,15 @@ class PluginManager:
         # sort sieve hooks by priority
         self.sieves.sort(key=lambda x: x.priority)
         self.connect_hooks.sort(key=attrgetter("priority"))
+
+        # Sort hooks
+        self.regex_hooks.sort(key=lambda x: x[1].priority)
+        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers)
+        lists_of_hooks = [self.catch_all_triggers, self.sieves]
+        lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
+
+        for lst in lists_of_hooks:
+            lst.sort(key=lambda x: x.priority)
 
         # we don't need this anymore
         del plugin.run_on_start
@@ -643,6 +654,8 @@ class Hook:
 
         self.permissions = func_hook.kwargs.pop("permissions", [])
         self.single_thread = func_hook.kwargs.pop("singlethread", False)
+        self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
+        self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
 
         if func_hook.kwargs:
             # we should have popped all the args, so warn if there are any left
@@ -699,6 +712,7 @@ class RegexHook(Hook):
         :type regex_hook: cloudbot.util.hook._RegexHook
         """
         self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
+        self.only_no_match = regex_hook.kwargs.pop("only_no_match", False)
 
         self.regexes = regex_hook.regexes
 
