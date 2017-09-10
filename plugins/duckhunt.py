@@ -236,7 +236,7 @@ def bang(nick, chan, message, db, conn, notice):
     network = conn.name
     score = ""
     out = ""
-    miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.", "WTF!? Who are you Dick Cheney?" ]
+    miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.", "WTF?! Who are you, Kim Jong Un firing missiles? You missed." ]
     if not game_status[network][chan]['game_on']:
         return "There is no activehunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
@@ -299,7 +299,7 @@ def befriend(nick, chan, message, db, conn, notice):
             out = "KICK {} {} :You tried befriending a non-existent duck. That's fucking creepy.".format(chan, nick)
             conn.send(out)
             return
-        return "You tried befriending a non-existent duck. That's fucking creepy."
+        return "You tried befriending a non-existent duck. That's freaking creepy."
     else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
