@@ -67,7 +67,8 @@ def paginated_list(data, delim=" \u2022 ", suffix='...', max_len=256, page_size=
 
             lines[-1] += item
 
-    formatted_lines = [
-        "{}{}".format(line, suffix) for line in lines
-    ]
+    formatted_lines = []
+    while lines:
+        line = lines.pop(0)
+        formatted_lines.append("{}{}".format(line, suffix if lines else ""))
     return Pager(formatted_lines, chunk_size=page_size)
