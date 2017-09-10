@@ -30,7 +30,7 @@ class Pager:
 
     def next(self):
         with self.lock:
-            if self.current_pos > len(self.chunks):
+            if self.current_pos >= len(self.chunks):
                 return None
 
             chunk = self[self.current_pos]
