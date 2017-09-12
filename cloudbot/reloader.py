@@ -19,7 +19,7 @@ class PluginReloader(object):
         """Starts the plugin reloader
         :type module_path: str
         """
-        self.observer.schedule(self.event_handler, module_path, recursive=False)
+        self.observer.schedule(self.event_handler, module_path, recursive=True)
         self.observer.start()
 
     def stop(self):

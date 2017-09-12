@@ -6,6 +6,7 @@ import re
 import os
 import gc
 from operator import attrgetter
+from pathlib import Path
 
 from sqlalchemy import create_engine
 
@@ -59,6 +60,7 @@ class CloudBot:
 
     def __init__(self, loop=asyncio.get_event_loop()):
         # basic variables
+        self.base_dir = Path().resolve()
         self.loop = loop
         self.start_time = time.time()
         self.running = True
