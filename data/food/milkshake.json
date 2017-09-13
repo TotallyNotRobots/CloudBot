@@ -1,6 +1,6 @@
 {
    "templates":[
-      "hands {user} a {size} of {flavour} milkshake ."
+      "hands {user} a {size} of {flavour} milkshake."
    ],
    "parts":{
       "size":[
