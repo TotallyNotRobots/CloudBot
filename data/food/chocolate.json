@@ -5,27 +5,27 @@
   "parts": {
     "portion": [
       "tiny crumb",
-	    "custom made bar",
+      "custom made bar",
       "large bar stolen from a person",
-	    "medium sized bar presented by a butler",
-	    "designer made bowl",
-	    "melted and served on a plate",
-	    "large banana with an injection",
-	    "normal sized bar",
-	    "handful",
-	    "large milkshake blended with a generous quantity",
-	    "tiny hot chocolate flavoured cup",
-	    "medium sized crepe with a drizzle of",
-	    "freshly created miniscule mousse"
-	  ],
-	  "chocolate": [
-	    "Mars",
+      "medium sized bar presented by a butler",
+      "designer made bowl",
+      "melted and served on a plate",
+      "large banana with an injection",
+      "normal sized bar",
+      "handful",
+      "large milkshake blended with a generous quantity",
+      "tiny hot chocolate flavoured cup",
+      "medium sized crepe with a drizzle of",
+      "freshly created miniscule mousse"
+    ],
+    "chocolate": [
+      "Mars",
       "Snickers",
       "Godiva white chocolate",
       "Kinder surprise egg",
       "Hershey cookies and cream",
       "Valentine's chocolates",
-      "Reese’s peanut butter cups",
+      "Reese\u2019s peanut butter cups",
       "99% dark chocolate",
       "chocolate fat bombs",
       "chocolate mousse",
@@ -78,11 +78,11 @@
       "Wispa",
       "Bournville",
       "Curly Whirly",
-      "£100 Freddo",
+      "\u00a3100 Freddo",
       "Caramac",
-      "Fry’s Chocolate Cream",
+      "Fry\u2019s Chocolate Cream",
       "Twirl",
       "Turkish Delight"
-	  ]
+    ]
   }
 }
