@@ -101,10 +101,9 @@ def grab_add(nick, time, msg, chan, db, conn):
 
 
 def get_latest_line(conn, chan, nick):
-    for item in reversed(conn.history[chan]):
-        name, timestamp, msg = item
+    for name, timestamp, msg in reversed(conn.history[chan]):
         if nick.casefold() == name.casefold():
-            return item
+            return name, timestamp, msg
 
     return None, None, None
 
