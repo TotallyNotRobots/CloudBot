@@ -13,7 +13,7 @@
       "large",
       "medium",
       "small"
-     ],
+    ],
     "tea": [
       "chai",
       "english breakfast",
@@ -26,5 +26,5 @@
       "bubble",
       "thai"
     ]
-   }
+  }
 }
