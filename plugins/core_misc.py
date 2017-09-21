@@ -20,8 +20,9 @@ def invite(irc_paramlist, conn):
 
 
 @hook.irc_raw('JOIN')
-def on_join(chan, conn):
-    conn.cmd("MODE", chan)
+def on_join(chan, conn, nick):
+    if conn.nick.casefold() == nick.casefold():
+        conn.cmd("MODE", chan)
 
 
 @hook.irc_raw('324')
