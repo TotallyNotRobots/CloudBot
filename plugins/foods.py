@@ -77,12 +77,9 @@ def load_foods(bot):
         load_template_data(bot, food.datafile, basic_food_data[food.name])
 
 
-def basic_format(text, data, food_type, **kwargs):
+def basic_format(text, data, **kwargs):
     user = text
     kwargs['user'] = user
-
-    if not is_valid(user):
-        return "I can't give {} to that user.".format(food_type)
 
     generator = textgen.TextGenerator(
         data["templates"], data["parts"], variables=kwargs
@@ -99,7 +96,10 @@ def make_cmd_list(value):
 
 def basic_food(food):
     def func(text, action):
-        action(basic_format(text, basic_food_data[food.name], food.unitname))
+        if not is_valid(text):
+            return "I can't give {} to that user.".format(food.unitname)
+
+        action(basic_format(text, basic_food_data[food.name]))
 
     func.__name__ = food.name
     func.__doc__ = "<user> - gives {} to [user]".format(food.unitname)
