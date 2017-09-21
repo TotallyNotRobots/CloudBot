@@ -16,9 +16,13 @@ def invite(irc_paramlist, conn):
     """
     invite_join = conn.config.get('invite_join', True)
     if invite_join:
-        mode = "mode {}".format(irc_paramlist[-1])
-        conn.send(mode)
         conn.join(irc_paramlist[-1])
+
+
+@hook.irc_raw('JOIN')
+def on_join(chan, conn):
+    conn.cmd("MODE", chan)
+
 
 @hook.irc_raw('324')
 def check_mode(irc_paramlist, conn, message):
@@ -29,7 +33,7 @@ def check_mode(irc_paramlist, conn, message):
         message("I do not stay in unregistered channels", irc_paramlist[1])
         out = "PART {}".format(irc_paramlist[1])
         conn.send(out)
-        
+
 
 # Identify to NickServ (or other service)
 @asyncio.coroutine
@@ -77,9 +81,6 @@ def onjoin(conn, bot):
     for channel in conn.channels:
         conn.join(channel)
         yield from asyncio.sleep(0.4)
-        if conn.name == "snoonet":
-            mode = "mode {}".format(channel)
-            conn.send(mode)
 
     conn.ready = True
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
