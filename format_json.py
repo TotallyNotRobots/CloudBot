@@ -9,6 +9,7 @@ import json
 path = Path().resolve()
 
 for file in path.rglob("*.json"):
+    print(file)
     with file.open(encoding='utf8') as f:
         data = json.load(f)
 
