@@ -1,28 +1,23 @@
+import json
+from pathlib import Path
+
 from cloudbot import hook
-from random import choice
+from cloudbot.util.textgen import TextGenerator
+
+high_five_data = {}
+
+
+@hook.on_start
+def load_data(bot):
+    high_five_data.clear()
+    data_file = Path(bot.data_dir) / "highfive.json"
+    with data_file.open(encoding='utf-8') as f:
+        high_five_data.update(json.load(f))
 
 
 @hook.command("high5", "hi5", "highfive")
-def highfive(nick, text):
+def highfive(nick, text, message):
     """Highfives the requested user"""
-    highfives = [
-        "tries to give {nick} a five up high but misses."
-        "that was awkward",
-        "gives {nick} a killer high-five",
-        "gives {nick} an elbow-shattering high-five",
-        "smashes {nick} up high",
-        "slaps skin with {nick}",
-        "{nick} winds up for a killer five but misses and falls flat on his face",
-        "halfheartedly high-fives {nick}",
-        "gives {nick} a smooth five down low",
-        "gives {nick} a friendly high five",
-        "starts to give {nick} a high five, but leaves them hanging",
-        "performs an incomprehensible handshake with {nick} that identifies "
-        "them as the very best of friends",
-        "makes as if to high five {nick} but pulls his hand away at the last "
-        "second",
-        "leaves {nick} hanging",
-        "offers a fist and {nick} pounds it"
-
-    ]
-    return nick + " " + choice(highfives).format(nick=text)
+    data = {'user': nick, 'nick': text}
+    generator = TextGenerator(high_five_data['templates'], high_five_data['parts'], variables=data)
+    message(generator.generate_string())

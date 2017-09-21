@@ -1,33 +1,27 @@
-import random
+import json
+from pathlib import Path
 
 from cloudbot import hook
+from cloudbot.util.textgen import TextGenerator
+
+love_data = {}
 
 
-@hook.command("lurve","luff", "luv")
+@hook.on_start
+def load_love(bot):
+    love_data.clear()
+    data_file = Path(bot.data_dir) / "lurve.json"
+    with data_file.open(encoding='utf-8') as f:
+        love_data.update(json.load(f))
+
+
+@hook.command("lurve", "luff", "luv")
 def lurve(text, nick, message):
-	"""lurves all over <user>"""
-	target = text.strip()
+    """lurves all over <user>"""
+    data = {
+        'nick': nick,
+        'target': text,
+    }
 
-	# Use {N} to represent the person's nickname who is performing the action
-	# Use {T} to represent the person's nickname who is the target of the action
-	loving = [
-		"{N} wraps arms around {T} and clings forever",
-		"{N} cuddles {T} in the fluffiest blanket ever",
-		"{N} lays their head on the lap of {T} and goes to sleep, dreaming da best sweet dreams",
-		"{N} caresses {T}'s hair",
-		"{N} caresses {T}'s cheek",
-		"{N} plants a shy kiss on {T}'s cheek",
-		"{N} gives {T} a BIIIIIIIIG hug!!!",
-		"{N} lovingly tackles {T} into a pit of the softest pillows ever",
-		"{N} cheers happily for {T}!!",
-		"{N} pulls {T} back into bed for more cuddles ♥~",
-		"{N} snuggles {T} for Netflix and chili popcorn",
-		"{N} happily kisses {T} on the cheek",
-		"{N} shares a milkshake with {T}"
-	];
-
-	out = "{}".format(random.choice(loving))
-	out = out.replace("{N}", nick)
-	out = out.replace("{T}", target)
-
-	message(out)
+    generator = TextGenerator(love_data['templates'], love_data['parts'], variables=data)
+    message(generator.generate_string())

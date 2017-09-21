@@ -1,0 +1,59 @@
+{
+    "templates": [
+        "{bang}! {bang}! {bang}! {user1} {victory} over {user2} with a {blow_type} {blow}.",
+        "{bang}! {bang}! {bang}! {user2} {victory} over {user1} with a {blow_type} {blow}."
+    ],
+    "parts": {
+        "bang": [
+            "BANG",
+            "POW",
+            "SLAM",
+            "WHACK",
+            "SLAP",
+            "KAPOW",
+            "ZAM",
+            "BOOM"
+        ],
+        "blow_type": [
+            "devastating",
+            "destructive",
+            "ruthless",
+            "damaging",
+            "ruinous",
+            "catastrophic",
+            "traumatic",
+            "shattering",
+            "overwhelming",
+            "crushing",
+            "fierce",
+            "deadly",
+            "lethal",
+            "fatal",
+            "savage",
+            "violent"
+        ],
+        "victory": [
+            "wins",
+            "stands victorious",
+            "triumphs",
+            "conquers",
+            "is the champion",
+            "is the victor"
+        ],
+        "blow": [
+            "uppercut",
+            "hammerfist",
+            "elbow strike",
+            "shoulder strike",
+            "front kick",
+            "side kick",
+            "roundhouse kick",
+            "knee strike",
+            "butt strike",
+            "headbutt",
+            "haymaker punch",
+            "palm strike",
+            "pocket bees"
+        ]
+    }
+}
