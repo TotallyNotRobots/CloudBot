@@ -9,6 +9,7 @@ halal_data = {}
 kosher_data = {}
 
 
+@hook.on_start
 def load_data(bot):
     def load_file(file, data_dict):
         data_dict.clear()
