@@ -19,6 +19,9 @@ def correction(match, conn, nick, chan, message):
     replace = groups[1]
     if find == replace:
         return "really dude? you want me to replace {} with {}?".format(find, replace)
+    
+    if not find.strip(): # Replacing empty or entirely whitespace strings is spammy
+        return "really dude? you want me to replace nothing with {}?".format(replace)
 
     for item in conn.history[chan].__reversed__():
         name, timestamp, msg = item
