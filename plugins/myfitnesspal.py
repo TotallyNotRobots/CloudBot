@@ -8,8 +8,7 @@ from cloudbot import hook
 scrape_url = "http://www.myfitnesspal.com/food/diary/{}"
 
 
-@hook.command('mfp')
-@hook.command('myfitnesspal')
+@hook.command('mfp', 'myfitnesspal')
 def mfp(text, bot):
     """<user> - returns macros from the MyFitnessPal food diary of <user>"""
     request = requests.get(scrape_url.format(text))
