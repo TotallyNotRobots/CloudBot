@@ -49,7 +49,7 @@ def main():
             _bot.loop.call_soon_threadsafe(
                 lambda: asyncio.async(_bot.stop("Killed (Received SIGINT {})".format(signum)), loop=_bot.loop))
 
-        logger.warn("Bot received Signal Interrupt ({})".format(signum))
+        logger.warning("Bot received Signal Interrupt ({})".format(signum))
 
         # restore the original handler so if they do it again it triggers
         signal.signal(signal.SIGINT, original_sigint)
