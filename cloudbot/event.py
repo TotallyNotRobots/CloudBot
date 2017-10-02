@@ -2,6 +2,10 @@ import asyncio
 import concurrent.futures
 import enum
 import logging
+import warnings
+from functools import partial
+
+import sys
 
 logger = logging.getLogger("cloudbot")
 
@@ -310,16 +314,26 @@ class Event:
         return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
 
     @asyncio.coroutine
-    def async(self, function, *args, **kwargs):
+    def async_call(self, func, *args, **kwargs):
         if self.db_executor is not None:
             executor = self.db_executor
         else:
             executor = None
-        if kwargs:
-            result = yield from self.loop.run_in_executor(executor, function, *args)
-        else:
-            result = yield from self.loop.run_in_executor(executor, lambda: function(*args, **kwargs))
+
+        part = partial(func, *args, **kwargs)
+        result = yield from self.loop.run_in_executor(executor, part)
         return result
+
+    if sys.version_info < (3, 7, 0):
+        # noinspection PyCompatibility
+        @asyncio.coroutine
+        def async(self, function, *args, **kwargs):
+            warnings.warn(
+                "event.async() is deprecated, use event.async_call() instead.",
+                DeprecationWarning, stacklevel=2
+            )
+            result = yield from self.async_call(function, *args, **kwargs)
+            return result
 
 
 class CommandEvent(Event):
