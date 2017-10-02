@@ -98,10 +98,11 @@ def onjoin(conn, bot):
         conn.cmd('MODE', conn.nick, mode)
 
     # Join config-defined channels
+    join_throttle = conn.config.get('join_throttle', 0.4)
     bot.logger.info("[{}|misc] Bot is joining channels for network.".format(conn.name))
     for channel in conn.channels:
         conn.join(channel)
-        yield from asyncio.sleep(0.4)
+        yield from asyncio.sleep(join_throttle)
 
     conn.ready = True
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))

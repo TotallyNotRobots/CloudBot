@@ -23,9 +23,10 @@ def get_channels(db, conn):
 @hook.irc_raw('004')
 def do_joins(db, conn, async):
     chans = yield from async(get_channels, db, conn)
+    join_throttle = conn.config.get("join_throttle", 0.4)
     for chan in chans:
         conn.join(chan[1])
-        yield from asyncio.sleep(0.4)
+        yield from asyncio.sleep(join_throttle)
 
 
 @hook.irc_raw('JOIN', singlethread=True)
