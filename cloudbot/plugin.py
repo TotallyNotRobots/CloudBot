@@ -17,7 +17,7 @@ import time
 
 from cloudbot.event import Event
 from cloudbot.hook import Priority, Action
-from cloudbot.util import database
+from cloudbot.util import database, async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -204,7 +204,7 @@ class PluginManager:
             self._log_hook(on_cap_ack_hook)
 
         for periodic_hook in plugin.periodic:
-            task = asyncio.async(self._start_periodic(periodic_hook))
+            task = async_util.wrap_future(self._start_periodic(periodic_hook))
             plugin.tasks.append(task)
             self._log_hook(periodic_hook)
 

@@ -6,6 +6,10 @@ import time
 import signal
 
 # store the original working directory, for use when restarting
+from functools import partial
+
+from cloudbot.util import async_util
+
 original_wd = os.path.realpath(".")
 
 # set up environment - we need to make sure we are in the install directory
@@ -47,7 +51,8 @@ def main():
             stopped_while_restarting = True
         else:
             _bot.loop.call_soon_threadsafe(
-                lambda: asyncio.async(_bot.stop("Killed (Received SIGINT {})".format(signum)), loop=_bot.loop))
+                partial(async_util.wrap_future, _bot.stop("Killed (Received SIGINT {})".format(signum)), loop=_bot.loop)
+            )
 
         logger.warning("Bot received Signal Interrupt ({})".format(signum))
 

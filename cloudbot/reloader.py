@@ -1,8 +1,11 @@
 import asyncio
 import os.path
+from functools import partial
 
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
+
+from cloudbot.util import async_util
 
 
 class PluginReloader(object):
@@ -38,7 +41,8 @@ class PluginReloader(object):
 
         if isinstance(path, bytes):
             path = path.decode()
-        self.bot.loop.call_soon_threadsafe(lambda: asyncio.async(self._reload(path), loop=self.bot.loop))
+
+        self.bot.loop.call_soon_threadsafe(partial(async_util.wrap_future, self._reload(path), loop=self.bot.loop))
 
     def unload(self, path):
         """
@@ -48,7 +52,8 @@ class PluginReloader(object):
         """
         if isinstance(path, bytes):
             path = path.decode()
-        self.bot.loop.call_soon_threadsafe(lambda: asyncio.async(self._unload(path), loop=self.bot.loop))
+
+        self.bot.loop.call_soon_threadsafe(partial(async_util.wrap_future, self._unload(path), loop=self.bot.loop))
 
     @asyncio.coroutine
     def _reload(self, path):
