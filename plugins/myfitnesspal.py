@@ -69,7 +69,7 @@ def get_headers(soup):
 
 def get_values(soup, row_class):
     """get values from a specific summary row based on the row class"""
-    locale.setlocale(locale.LC_ALL, 'english_USA')  # for number parsing
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # for number parsing
 
     values = []
 
