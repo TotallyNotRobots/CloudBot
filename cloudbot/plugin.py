@@ -13,6 +13,8 @@ from itertools import chain
 import sqlalchemy
 import sys
 
+import time
+
 from cloudbot.event import Event
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database
@@ -649,6 +651,7 @@ class Hook:
         if sys.version_info < (3, 7, 0):
             if "async" in self.required_args:
                 logger.warning("Use of deprecated function 'async' in %s", self.description)
+                time.sleep(1)
                 warnings.warn(
                     "event.async() is deprecated, use event.async_call() instead.",
                     DeprecationWarning, stacklevel=2
