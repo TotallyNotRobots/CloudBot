@@ -5,11 +5,13 @@ import inspect
 import logging
 import os
 import re
+import warnings
 from collections import defaultdict
 from operator import attrgetter
 from itertools import chain
 
 import sqlalchemy
+import sys
 
 from cloudbot.event import Event
 from cloudbot.hook import Priority, Action
@@ -644,6 +646,13 @@ class Hook:
 
         # don't process args starting with "_"
         self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
+        if sys.version_info < (3, 7, 0):
+            if "async" in self.required_args:
+                logger.warning("Use of deprecated function 'async' in %s", self.description)
+                warnings.warn(
+                    "event.async() is deprecated, use event.async_call() instead.",
+                    DeprecationWarning, stacklevel=2
+                )
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
             self.threaded = False
