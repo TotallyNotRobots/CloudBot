@@ -640,12 +640,10 @@ class Hook:
         self.function = func_hook.function
         self.function_name = self.function.__name__
 
-        self.required_args = inspect.getargspec(self.function)[0]
-        if self.required_args is None:
-            self.required_args = []
+        sig = inspect.signature(self.function)
 
         # don't process args starting with "_"
-        self.required_args = [arg for arg in self.required_args if not arg.startswith("_")]
+        self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
             self.threaded = False
