@@ -9,10 +9,11 @@ halal_data = {}
 kosher_data = {}
 
 
+@hook.on_start
 def load_data(bot):
     def load_file(file, data_dict):
         data_dict.clear()
-        path = Path(bot.data_dir) / file
+        path = Path(bot.data_dir) / "food" / file
         with path.open(encoding='utf-8') as f:
             data_dict.update(json.load(f))
 
