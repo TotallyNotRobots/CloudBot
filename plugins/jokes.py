@@ -40,7 +40,7 @@ def load_jokes(bot):
 def yomomma(text, message, conn):
     """input <nick>, tells a yo momma joke to <nick>"""
     target = text.strip()
-    message('{}, {}'.format(target, random.choice(yo_momma).lower()))
+    return '{}, {}'.format(target, random.choice(yo_momma).lower())
 
 @hook.command(autohelp=False)
 def doit(message, conn):
@@ -94,7 +94,7 @@ def awesome(text, message):
     link = 'http://is-awesome.cool/{}'
     nick = text.split(' ')[0]
     if nick_re.match(nick):
-        message("{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(nick, link.format(nick)))
+        return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(nick, link.format(nick))
     else:
         return "Sorry I can't tell {} how awesome they are.".format(nick)
 
@@ -115,7 +115,7 @@ def kero(text, message):
         out = keror + " " + text.upper()
     else:
         out = text.upper() + " " + keror
-    message(out)
+    return out
 
 @hook.command(autohelp=False)
 def lawyerjoke(message, conn):
