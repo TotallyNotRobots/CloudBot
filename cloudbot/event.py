@@ -390,3 +390,9 @@ class CapEvent(Event):
         super().__init__(*args, **kwargs)
         self.cap = cap
         self.cap_param = cap_param
+
+
+class IrcOutEvent(Event):
+    @property
+    def line(self):
+        return self.irc_raw

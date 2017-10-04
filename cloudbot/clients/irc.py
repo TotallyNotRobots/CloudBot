@@ -6,7 +6,7 @@ from _ssl import PROTOCOL_SSLv23
 from ssl import SSLContext
 
 from cloudbot.client import Client
-from cloudbot.event import Event, EventType
+from cloudbot.event import Event, EventType, IrcOutEvent
 
 logger = logging.getLogger("cloudbot")
 
@@ -287,9 +287,20 @@ class _IrcProtocol(asyncio.Protocol):
         # make sure we are connected before sending
         if not self._connected:
             yield from self._connected_future
-        line = line[:510] + "\r\n"
-        data = line.encode("utf-8", "replace")
-        self._transport.write(data)
+
+        for out_sieve in self.bot.plugin_manager.out_sieves:
+            event = IrcOutEvent(bot=self.bot, hook=out_sieve, conn=self.conn, irc_raw=line)
+            ok, new_line = yield from self.bot.plugin_manager.internal_launch(out_sieve, event)
+            if not ok:
+                logger.warning("Error occurred in outgoing sieve, not sending line")
+                logger.debug("Line was: %s", line)
+                return
+
+            line = new_line
+            if not line:
+                return
+
+        self._transport.write(line)
 
     def data_received(self, data):
         self._input_buffer += data

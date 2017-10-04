@@ -6,8 +6,8 @@ import logging
 import os
 import re
 from collections import defaultdict
-from operator import attrgetter
 from itertools import chain
+from operator import attrgetter
 
 import sqlalchemy
 
@@ -37,9 +37,10 @@ def find_hooks(parent, module):
     on_cap_ack = []
     on_cap_available = []
     on_connect = []
+    out_sieve = []
     type_lists = {"command": command, "regex": regex, "irc_raw": raw, "sieve": sieve, "event": event,
                   "periodic": periodic, "on_start": on_start, "on_stop": on_stop, "on_cap_ack": on_cap_ack,
-                  "on_cap_available": on_cap_available, "on_connect": on_connect}
+                  "on_cap_available": on_cap_available, "on_connect": on_connect, "irc_out": out_sieve}
     for name, func in module.__dict__.items():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
@@ -51,7 +52,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             del func._cloudbot_hook
 
-    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available, on_connect
+    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available, on_connect, out_sieve
 
 
 def find_tables(code):
@@ -108,6 +109,7 @@ class PluginManager:
         self.sieves = []
         self.cap_hooks = {"on_available": defaultdict(list), "on_ack": defaultdict(list)}
         self.connect_hooks = []
+        self.out_sieves = []
         self._hook_waiting_queues = {}
 
     @asyncio.coroutine
@@ -429,6 +431,25 @@ class PluginManager:
             yield from event.close()
 
     @asyncio.coroutine
+    def internal_launch(self, hook, event):
+        """
+        Launches a hook with the data from [event]
+        :param hook: The hook to launch
+        :param event: The event providing data for the hook
+        :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result is the result from the hook
+        """
+        try:
+            if hook.threaded:
+                out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
+            else:
+                out = yield from self._execute_hook_sync(hook, event)
+        except Exception:
+            logger.exception("Error in hook {}".format(hook.description))
+            return False, None
+
+        return True, out
+
+    @asyncio.coroutine
     def _execute_hook(self, hook, event):
         """
         Runs the specific hook with the given bot and event.
@@ -439,17 +460,7 @@ class PluginManager:
         :type event: cloudbot.event.Event
         :rtype: bool
         """
-        try:
-            # _internal_run_threaded and _internal_run_coroutine prepare the database, and run the hook.
-            # _internal_run_* will prepare parameters and the database session, but won't do any error catching.
-            if hook.threaded:
-                out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
-            else:
-                out = yield from self._execute_hook_sync(hook, event)
-        except Exception:
-            logger.exception("Error in hook {}".format(hook.description))
-            return False
-
+        ok, out = yield from self.internal_launch(hook, event)
         if out is not None:
             if isinstance(out, (list, tuple)):
                 # if there are multiple items in the response, return them on multiple lines
@@ -878,6 +889,17 @@ class OnConnectHook(Hook):
         return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
 
 
+class IrcOutHook(Hook):
+    def __init__(self, plugin, out_hook):
+        super().__init__("irc_out", plugin, out_hook)
+
+    def __repr__(self):
+        return "Irc_Out[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
+
+
 _hook_name_to_plugin = {
     "command": CommandHook,
     "regex": RegexHook,
@@ -890,4 +912,5 @@ _hook_name_to_plugin = {
     "on_cap_available": OnCapAvaliableHook,
     "on_cap_ack": OnCapAckHook,
     "on_connect": OnConnectHook,
+    "irc_out": IrcOutHook,
 }

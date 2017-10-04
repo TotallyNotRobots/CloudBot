@@ -439,3 +439,19 @@ def on_connect(param=None, **kwargs):
 
 
 connect = on_connect
+
+
+def irc_out(param=None, **kwargs):
+    def _on_connect_hook(func):
+        hook = _get_hook(func, "irc_out")
+        if hook is None:
+            hook = _Hook(func, "irc_out")
+            _add_hook(func, hook)
+
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _on_connect_hook(param)
+    else:
+        return lambda func: _on_connect_hook(func)
