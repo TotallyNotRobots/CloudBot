@@ -254,18 +254,18 @@ class PluginManager:
             self.connect_hooks.append(connect_hook)
             self._log_hook(connect_hook)
 
-        # sort sieve hooks by priority
-        self.sieves.sort(key=lambda x: x.priority)
-        self.connect_hooks.sort(key=attrgetter("priority"))
+        for out_hook in plugin.irc_out_hooks:
+            self.out_sieves.append(out_hook)
+            self._log_hook(out_hook)
 
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
         dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers)
-        lists_of_hooks = [self.catch_all_triggers, self.sieves]
+        lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
         lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
 
         for lst in lists_of_hooks:
-            lst.sort(key=lambda x: x.priority)
+            lst.sort(key=attrgetter("priority"))
 
         # we don't need this anymore
         del plugin.run_on_start
@@ -350,6 +350,9 @@ class PluginManager:
         # unregister connect hooks
         for connect_hook in plugin.connect_hooks:
             self.connect_hooks.remove(connect_hook)
+
+        for out_hook in plugin.irc_out_hooks:
+            self.out_sieves.remove(out_hook)
 
         # Run on_stop hooks
         for on_stop_hook in plugin.run_on_stop:
@@ -592,7 +595,7 @@ class Plugin:
         self.commands, self.regexes, self.raw_hooks, *hooks = hooks
         self.sieves, self.events, self.periodic, *hooks = hooks
         self.run_on_start, self.run_on_stop, self.on_cap_ack, *hooks = hooks
-        self.on_cap_available, self.connect_hooks, *hooks = hooks
+        self.on_cap_available, self.connect_hooks, self.irc_out_hooks, *hooks = hooks
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
