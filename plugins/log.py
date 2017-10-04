@@ -1,16 +1,15 @@
 import asyncio
-import os
 import codecs
+import os
 import time
 
 import cloudbot
 from cloudbot import hook
 from cloudbot.event import EventType
-
-
 # +---------+
 # | Formats |
 # +---------+
+from cloudbot.hook import Priority
 from cloudbot.util.formatting import strip_colors
 
 base_formats = {
@@ -246,10 +245,20 @@ def console_log(bot, event):
         bot.logger.info(text)
 
 
-@hook.on_stop
 @hook.command("flushlog", permissions=["botcontrol"])
 def flush_log():
     for name, stream in stream_cache.values():
         stream.flush()
     for name, stream in raw_cache.values():
         stream.flush()
+
+
+@hook.on_stop
+def close_logs():
+    for name, stream in stream_cache.values():
+        stream.flush()
+        stream.close()
+
+    for name, stream in raw_cache.values():
+        stream.flush()
+        stream.close()

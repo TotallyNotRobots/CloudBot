@@ -7,6 +7,7 @@ from ssl import SSLContext
 
 from cloudbot.client import Client
 from cloudbot.event import Event, EventType
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -218,8 +219,7 @@ class IrcClient(Client):
         :type line: str
         """
         logger.info("[{}] >> {}".format(self.name, line))
-        asyncio.async(self._protocol.send(line), loop=self.loop)
-
+        async_util.wrap_future(self._protocol.send(line), loop=self.loop)
 
     @property
     def connected(self):
@@ -272,14 +272,14 @@ class _IrcProtocol(asyncio.Protocol):
             # we've been closed intentionally, so don't reconnect
             return
         logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
-        asyncio.async(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.connect(), loop=self.loop)
 
     def eof_received(self):
         self._connected = False
         # create a new connected_future for when we are connected.
         self._connected_future = asyncio.Future(loop=self.loop)
         logger.info("[{}] EOF received.".format(self.conn.name))
-        asyncio.async(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.connect(), loop=self.loop)
         return True
 
     @asyncio.coroutine
@@ -339,7 +339,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Reply to pings immediately
 
             if command == "PING":
-                asyncio.async(self.send("PONG " + command_params[-1]), loop=self.loop)
+                async_util.wrap_future(self.send("PONG " + command_params[-1]), loop=self.loop)
 
             # Parse the command and params
 
@@ -406,7 +406,7 @@ class _IrcProtocol(asyncio.Protocol):
                           irc_prefix=prefix, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text)
 
             # handle the message, async
-            asyncio.async(self.bot.process(event), loop=self.loop)
+            async_util.wrap_future(self.bot.process(event), loop=self.loop)
 
 # Channel Commands
 # NOTICE #chan :Text
