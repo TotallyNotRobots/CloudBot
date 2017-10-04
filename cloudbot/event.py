@@ -3,6 +3,8 @@ import concurrent.futures
 import enum
 import logging
 
+from cloudbot.util.parsers.irc import Message
+
 logger = logging.getLogger("cloudbot")
 
 
@@ -393,6 +395,31 @@ class CapEvent(Event):
 
 
 class IrcOutEvent(Event):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parsed_line = None
+
+    @asyncio.coroutine
+    def prepare(self):
+        yield from super().prepare()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
+    def prepare_threaded(self):
+        super().prepare_threaded()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
     @property
     def line(self):
-        return self.irc_raw
+        return str(self.irc_raw)
