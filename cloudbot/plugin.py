@@ -7,6 +7,7 @@ import os
 import re
 import warnings
 from collections import defaultdict
+from functools import partial
 from itertools import chain
 from operator import attrgetter
 
@@ -15,7 +16,7 @@ import sys
 
 import time
 
-from cloudbot.event import Event
+from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database, async_util
 
@@ -42,9 +43,11 @@ def find_hooks(parent, module):
     on_cap_available = []
     on_connect = []
     out_sieve = []
+    post_hooks = []
     type_lists = {"command": command, "regex": regex, "irc_raw": raw, "sieve": sieve, "event": event,
                   "periodic": periodic, "on_start": on_start, "on_stop": on_stop, "on_cap_ack": on_cap_ack,
-                  "on_cap_available": on_cap_available, "on_connect": on_connect, "irc_out": out_sieve}
+                  "on_cap_available": on_cap_available, "on_connect": on_connect, "irc_out": out_sieve,
+                  "post_hook": post_hooks}
     for name, func in module.__dict__.items():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
@@ -56,7 +59,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             del func._cloudbot_hook
 
-    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available, on_connect, out_sieve
+    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available, on_connect, out_sieve, post_hooks
 
 
 def find_tables(code):
@@ -114,6 +117,7 @@ class PluginManager:
         self.cap_hooks = {"on_available": defaultdict(list), "on_ack": defaultdict(list)}
         self.connect_hooks = []
         self.out_sieves = []
+        self.hook_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
     @asyncio.coroutine
@@ -262,9 +266,13 @@ class PluginManager:
             self.out_sieves.append(out_hook)
             self._log_hook(out_hook)
 
+        for post_hook in plugin.post_hook_hooks:
+            self.hook_hooks["post"].append(post_hook)
+            self._log_hook(post_hook)
+
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
-        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers)
+        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.hook_hooks)
         lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
         lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
 
@@ -358,6 +366,9 @@ class PluginManager:
         for out_hook in plugin.irc_out_hooks:
             self.out_sieves.remove(out_hook)
 
+        for post_hook in plugin.post_hook_hooks:
+            self.hook_hooks["post"].remove(post_hook)
+
         # Run on_stop hooks
         for on_stop_hook in plugin.run_on_stop:
             event = Event(bot=self.bot, hook=on_stop_hook)
@@ -450,9 +461,9 @@ class PluginManager:
                 out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
             else:
                 out = yield from self._execute_hook_sync(hook, event)
-        except Exception:
+        except Exception as e:
             logger.exception("Error in hook {}".format(hook.description))
-            return False, None
+            return False, e
 
         return True, out
 
@@ -468,13 +479,22 @@ class PluginManager:
         :rtype: bool
         """
         ok, out = yield from self.internal_launch(hook, event)
-        if out is not None:
-            if isinstance(out, (list, tuple)):
-                # if there are multiple items in the response, return them on multiple lines
-                event.reply(*out)
-            else:
-                event.reply(*str(out).split('\n'))
-        return True
+        result, error = None, None
+        if ok is True:
+            result = out
+        else:
+            error = out
+
+        post_event = partial(
+            PostHookEvent, launched_hook=hook, launched_event=event, bot=event.bot,
+            conn=event.conn, result=result, error=error
+        )
+        for post_hook in self.hook_hooks["post"]:
+            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
+            if success and res is False:
+                break
+
+        return ok
 
     @asyncio.coroutine
     def _sieve(self, sieve, event, hook):
@@ -523,10 +543,6 @@ class PluginManager:
                 event = yield from self._sieve(sieve, event, hook)
                 if event is None:
                     return False
-
-        if hook.type == "command" and hook.auto_help and not event.text and hook.doc is not None:
-            event.notice_doc()
-            return False
 
         if hook.single_thread:
             # There should only be one running instance of this hook, so let's wait for the last event to be processed
@@ -600,6 +616,7 @@ class Plugin:
         self.sieves, self.events, self.periodic, *hooks = hooks
         self.run_on_start, self.run_on_stop, self.on_cap_ack, *hooks = hooks
         self.on_cap_available, self.connect_hooks, self.irc_out_hooks, *hooks = hooks
+        self.post_hook_hooks, *hooks = hooks
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
@@ -803,9 +820,6 @@ class SieveHook(Hook):
         :type plugin: Plugin
         :type sieve_hook: cloudbot.util.hook._SieveHook
         """
-
-        self.priority = sieve_hook.kwargs.pop("priority", 100)
-        # We don't want to thread sieves by default - this is retaining old behavior for compatibility
         super().__init__("sieve", plugin, sieve_hook)
 
     def __repr__(self):
@@ -891,8 +905,6 @@ class OnConnectHook(Hook):
         :type plugin: Plugin
         :type sieve_hook: cloudbot.util.hook._Hook
         """
-
-        self.priority = sieve_hook.kwargs.pop("priority", 100)
         super().__init__("on_connect", plugin, sieve_hook)
 
     def __repr__(self):
@@ -913,6 +925,17 @@ class IrcOutHook(Hook):
         return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
 
 
+class PostHookHook(Hook):
+    def __init__(self, plugin, out_hook):
+        super().__init__("post_hook", plugin, out_hook)
+
+    def __repr__(self):
+        return "Post_hook[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
+
+
 _hook_name_to_plugin = {
     "command": CommandHook,
     "regex": RegexHook,
@@ -926,4 +949,5 @@ _hook_name_to_plugin = {
     "on_cap_ack": OnCapAckHook,
     "on_connect": OnConnectHook,
     "irc_out": IrcOutHook,
+    "post_hook": PostHookHook,
 }

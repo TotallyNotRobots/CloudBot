@@ -444,3 +444,12 @@ class IrcOutEvent(Event):
     @property
     def line(self):
         return str(self.irc_raw)
+
+
+class PostHookEvent(Event):
+    def __init__(self, *args, launched_hook=None, launched_event=None, result=None, error=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.launched_hook = launched_hook
+        self.launched_event = launched_event
+        self.result = result
+        self.error = error
