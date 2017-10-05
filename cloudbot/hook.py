@@ -309,7 +309,7 @@ def sieve(param=None, **kwargs):
     """
 
     def _sieve_hook(func):
-        assert len(inspect.getargspec(func).args) == 3, \
+        assert len(inspect.getfullargspec(func).args) == 3, \
             "Sieve plugin has incorrect argument count. Needs params: bot, input, plugin"
 
         hook = _get_hook(func, "sieve")

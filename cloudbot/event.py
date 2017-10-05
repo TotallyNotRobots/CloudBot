@@ -2,6 +2,10 @@ import asyncio
 import concurrent.futures
 import enum
 import logging
+import warnings
+from functools import partial
+
+import sys
 
 from cloudbot.util.parsers.irc import Message
 
@@ -155,7 +159,7 @@ class Event:
             # we're running a coroutine hook with a db, so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
             # be sure to initialize the db in the database executor, so it will be accessible in that thread.
-            self.db = yield from self.async(self.bot.db_session)
+            self.db = yield from self.async_call(self.bot.db_session)
 
     def prepare_threaded(self):
         """
@@ -191,7 +195,7 @@ class Event:
         if self.db is not None:
             #logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
             # be sure the close the database in the database executor, as it is only accessable in that one thread
-            yield from self.async(self.db.close)
+            yield from self.async_call(self.db.close)
             self.db = None
 
     def close_threaded(self):
@@ -312,16 +316,33 @@ class Event:
         return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
 
     @asyncio.coroutine
-    def async(self, function, *args, **kwargs):
+    def async_call(self, func, *args, **kwargs):
         if self.db_executor is not None:
             executor = self.db_executor
         else:
             executor = None
-        if kwargs:
-            result = yield from self.loop.run_in_executor(executor, function, *args)
-        else:
-            result = yield from self.loop.run_in_executor(executor, lambda: function(*args, **kwargs))
+
+        part = partial(func, *args, **kwargs)
+        result = yield from self.loop.run_in_executor(executor, part)
         return result
+
+    if sys.version_info < (3, 7, 0):
+        # noinspection PyCompatibility
+        @asyncio.coroutine
+        def async_(self, function, *args, **kwargs):
+            warnings.warn(
+                "event.async() is deprecated, use event.async_call() instead.",
+                DeprecationWarning, stacklevel=2
+            )
+            result = yield from self.async_call(function, *args, **kwargs)
+            return result
+
+
+# Silence deprecation warnings about use of the 'async' name as a function
+try:
+    setattr(Event, 'async', getattr(Event, 'async_'))
+except AttributeError:
+    pass
 
 
 class CommandEvent(Event):

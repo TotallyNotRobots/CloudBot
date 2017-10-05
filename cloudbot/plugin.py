@@ -5,15 +5,19 @@ import inspect
 import logging
 import os
 import re
+import warnings
 from collections import defaultdict
 from itertools import chain
 from operator import attrgetter
 
 import sqlalchemy
+import sys
+
+import time
 
 from cloudbot.event import Event
 from cloudbot.hook import Priority, Action
-from cloudbot.util import database
+from cloudbot.util import database, async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -202,7 +206,7 @@ class PluginManager:
             self._log_hook(on_cap_ack_hook)
 
         for periodic_hook in plugin.periodic:
-            task = asyncio.async(self._start_periodic(periodic_hook))
+            task = async_util.wrap_future(self._start_periodic(periodic_hook))
             plugin.tasks.append(task)
             self._log_hook(periodic_hook)
 
@@ -654,12 +658,18 @@ class Hook:
         self.function = func_hook.function
         self.function_name = self.function.__name__
 
-        self.required_args = inspect.getargspec(self.function)[0]
-        if self.required_args is None:
-            self.required_args = []
+        sig = inspect.signature(self.function)
 
         # don't process args starting with "_"
-        self.required_args = [arg for arg in self.required_args if not arg.startswith("_")]
+        self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
+        if sys.version_info < (3, 7, 0):
+            if "async" in self.required_args:
+                logger.warning("Use of deprecated function 'async' in %s", self.description)
+                time.sleep(1)
+                warnings.warn(
+                    "event.async() is deprecated, use event.async_call() instead.",
+                    DeprecationWarning, stacklevel=2
+                )
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
             self.threaded = False
