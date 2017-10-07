@@ -5,6 +5,7 @@ Wraps various asyncio functions
 import asyncio
 
 import sys
+from functools import partial
 
 
 def wrap_future(fut, *, loop=None):
@@ -18,3 +19,12 @@ def wrap_future(fut, *, loop=None):
         return asyncio.async(fut, loop=loop)
 
     return asyncio.ensure_future(fut, loop=loop)
+
+
+@asyncio.coroutine
+def run_func(loop, func, *args, **kwargs):
+    part = partial(func, *args, **kwargs)
+    if asyncio.iscoroutine(func) or asyncio.iscoroutinefunction(func):
+        return (yield from part())
+    else:
+        return (yield from loop.run_in_executor(None, part))

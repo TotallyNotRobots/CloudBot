@@ -171,6 +171,29 @@ def dump_dict(data, indent=2, level=0, _objects=None):
             yield ((" " * (indent * (level + 1))) + "{}".format(value))
 
 
+@hook.permission("chanop")
+def perm_check(bot, event, _hook):
+    chan = event.chan
+    if not chan:
+        return False
+
+    chans = event.conn.memory["chan_data"]
+    if chan not in chans:
+        return False
+
+    chan_data = chans[chan]
+    nick_cf = event.nick.casefold()
+    if nick_cf not in chan_data["users"]:
+        return False
+
+    memb = chan_data["users"][nick_cf]
+    status = memb["status"]
+    if status and status[0].level > 1:
+        return True
+
+    return False
+
+
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def dumpchans(conn):
     """- Dumps all stored channel data for this connection to the console"""
