@@ -74,7 +74,7 @@ def del_factoid(db, chan, word):
     load_cache(db)
 
 
-@hook.command("r","remember", permissions=["op"])
+@hook.command("r","remember", permissions=["op", "chanop"])
 def remember(text, nick, db, chan, notice):
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
@@ -107,7 +107,7 @@ def remember(text, nick, db, chan, notice):
     add_factoid(db, word, chan, data, nick)
 
 
-@hook.command("f","forget", permissions=["op"])
+@hook.command("f","forget", permissions=["op", "chanop"])
 def forget(text, chan, db, notice):
     """<word> - forgets previously remembered <word>"""
     global factoid_cache
