@@ -90,6 +90,9 @@ def pinger(bot):
 
             diff = time.time() - last_act
             if diff >= (ping_interval * 2):
+                conn.quit("Reconnecting due to lag...")
+                time.sleep(1)
+                conn._quit = False
                 conn.loop.call_soon_threadsafe(
                     partial(async_util.wrap_future, conn.connect(), loop=conn.loop)
                 )
