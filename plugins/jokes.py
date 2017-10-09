@@ -100,12 +100,11 @@ def boobies(text):
 
 
 @hook.command("awesome", "iscool", "cool")
-def awesome(text):
+def awesome(text, is_nick_valid):
     """- Prints a webpage to show <nick> how awesome they are."""
-    nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[]*$", re.I)
     link = 'http://is-awesome.cool/{}'
     nick = text.split(' ')[0]
-    if nick_re.match(nick):
+    if is_nick_valid(nick):
         return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(
             nick, link.format(nick)
         )

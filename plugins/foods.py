@@ -51,14 +51,6 @@ BASIC_FOOD = (
 basic_food_data = defaultdict(dict)
 
 
-def is_valid(target):
-    """ Checks if a string is a valid IRC nick. """
-    if nick_re.match(target):
-        return True
-    else:
-        return False
-
-
 def load_template_data(bot, filename, data_dict):
     data_dict.clear()
     food_dir = os.path.join(bot.data_dir, "food")
@@ -95,8 +87,8 @@ def make_cmd_list(value):
 
 
 def basic_food(food):
-    def func(text, action):
-        if not is_valid(text):
+    def func(text, action, is_nick_valid):
+        if not is_nick_valid(text):
             return "I can't give {} to that user.".format(food.unitname)
 
         action(basic_format(text, basic_food_data[food.name]))
