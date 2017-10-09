@@ -1,7 +1,9 @@
 import asyncio
+import time
+from functools import partial
 
 from cloudbot import hook
-from cloudbot.util import colors
+from cloudbot.util import colors, async_util
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -48,12 +50,19 @@ def reconnect(conn, text, bot):
 
 
 def format_conn(conn):
+    act_time = time.time() - conn.memory.get("last_activity", 0)
+    ping_interval = conn.config.get("ping_interval", 60)
     if conn.connected:
-        out = "$(green){name}$(clear)"
+        if act_time > ping_interval:
+            out = "$(yellow){name}$(clear) (last activity: {activity} secs)"
+        else:
+            out = "$(green){name}$(clear)"
     else:
         out = "$(red){name}$(clear)"
 
-    return colors.parse(out.format(name=conn.name))
+    return colors.parse(out.format(
+        name=conn.name, activity=round(act_time, 3)
+    ))
 
 
 @hook.command("connlist", "listconns", autohelp=False, permissions=["botcontrol"])
@@ -63,3 +72,31 @@ def list_conns(bot):
         map(format_conn, bot.connections.values())
     )
     return "Current connections: {}".format(conns)
+
+
+@hook.periodic(5)
+def pinger(bot):
+    for conn in bot.connections.values():
+        if conn.connected:
+            ping_interval = conn.config.get("ping_interval", 60)
+            # This is updated by a catch-all hook, so any activity from the server will indicate a live connection
+            # This mimics most modern clients, as they will only send a ping if they have not received any data recently
+            last_act = conn.memory.get("last_activity")
+            # If the activity time isn't set, default to the current time.
+            # This avoids an issue where the bot would reconnect just after loading this plugin
+            if last_act is None:
+                conn.memory["last_activity"] = time.time()
+                continue
+
+            diff = time.time() - last_act
+            if diff >= (ping_interval * 2):
+                conn.loop.call_soon_threadsafe(
+                    partial(async_util.wrap_future, conn.connect(), loop=conn.loop)
+                )
+            elif diff >= ping_interval:
+                conn.send("PING :LAGCHECK{}".format(time.time()))
+
+
+@hook.irc_raw('*')
+def on_activity(conn):
+    conn.memory["last_activity"] = time.time()
