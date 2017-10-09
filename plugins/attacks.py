@@ -1,22 +1,12 @@
+import asyncio
 import codecs
 import json
 import os
 import random
-import asyncio
 import re
 
 from cloudbot import hook
 from cloudbot.util import textgen
-
-nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}]*$", re.I)
-
-
-def is_valid(target):
-    """ Checks if a string is a valid IRC nick. """
-    if nick_re.match(target):
-        return True
-    else:
-        return False
 
 
 def is_self(conn, target):
@@ -64,11 +54,11 @@ def load_attacks(bot):
 
 @asyncio.coroutine
 @hook.command
-def lart(text, conn, nick, action):
+def lart(text, conn, nick, action, is_nick_valid):
     """<user> - LARTs <user>"""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't lart that."
 
     if is_self(conn, target):
@@ -83,11 +73,11 @@ def lart(text, conn, nick, action):
 
 @asyncio.coroutine
 @hook.command("flirt", "sexup", "jackmeoff")
-def flirt(text, conn, nick, message):
+def flirt(text, conn, nick, message, is_nick_valid):
     """<user> - flirts with <user>"""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't flirt with that."
 
     if is_self(conn, target):
@@ -99,11 +89,11 @@ def flirt(text, conn, nick, message):
 
 @asyncio.coroutine
 @hook.command("kill", "end")
-def kill(text, conn, nick, action):
+def kill(text, conn, nick, action, is_nick_valid):
     """<user> - kills <user>"""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't attack that."
 
     if is_self(conn, target):
@@ -118,11 +108,11 @@ def kill(text, conn, nick, action):
 
 @asyncio.coroutine
 @hook.command
-def slap(text, action, nick, conn):
+def slap(text, action, nick, conn, is_nick_valid):
     """<user> -- Makes the bot slap <user>."""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't slap that."
 
     if is_self(conn, target):
@@ -140,11 +130,11 @@ def slap(text, action, nick, conn):
 
 @asyncio.coroutine
 @hook.command
-def compliment(text, action, nick, conn):
+def compliment(text, action, nick, conn, is_nick_valid):
     """<user> -- Makes the bot compliment <user>."""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't compliment that."
 
     if is_self(conn, target):
@@ -159,20 +149,21 @@ def compliment(text, action, nick, conn):
     # act out the message
     action(generator.generate_string())
 
+
 @hook.command(autohelp=False)
-def strax(text, conn, message, nick):
+def strax(text, conn, message, nick, is_nick_valid):
     """Strax quote."""
 
     if text:
         target = text.strip()
-        if not is_valid(target):
-           return "I can't do that."
+        if not is_nick_valid(target):
+            return "I can't do that."
 
         if is_self(conn, target):
-           # user is trying to make the bot attack itself!
-           target = nick
+            # user is trying to make the bot attack itself!
+            target = nick
         variables = {
-           "user": target
+            "user": target
         }
 
         generator = textgen.TextGenerator(strax["target_template"], strax["parts"], variables=variables)
@@ -182,16 +173,18 @@ def strax(text, conn, message, nick):
     # Become Strax
     message(generator.generate_string())
 
+
 @hook.command(autohelp=False)
 def nk(chan, message):
     """outputs a random North Korea propoganda slogan"""
-    index = random.randint(0,len(north_korea)-1)
+    index = random.randint(0, len(north_korea) - 1)
     slogan = north_korea[index]
     message(slogan, chan)
 
+
 @asyncio.coroutine
 @hook.command()
-def insult(text, conn, nick, notice, message):
+def insult(text, conn, nick, notice, message, is_nick_valid):
     """<user> - insults <user>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -199,7 +192,7 @@ def insult(text, conn, nick, notice, message):
     """
     target = text.strip()
 
-    if " " in target:
+    if not is_nick_valid(target):
         notice("Invalid username!")
         return
 
@@ -209,20 +202,22 @@ def insult(text, conn, nick, notice, message):
 
     message("{}, {}".format(target, random.choice(insults)))
 
+
 @asyncio.coroutine
 @hook.command("present", "gift")
-def present(text, conn, nick, action):
+def present(text, conn, nick, action, is_nick_valid):
     """<user> - gives gift to <user>"""
     target = text.strip()
 
-    if not is_valid(target):
+    if not is_nick_valid(target):
         return "I can't gift that."
 
     if is_self(conn, target):
-        #user is trying to make the bot gift itself!
+        # user is trying to make the bot gift itself!
         target = nick
+
     variables = {
-       "user": target
+        "user": target
     }
 
     generator = textgen.TextGenerator(presents["templates"], presents["parts"], variables=variables)
