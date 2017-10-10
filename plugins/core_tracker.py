@@ -24,7 +24,9 @@ def bot_left_channel(conn, chan):
 
 def bot_joined_channel(conn, chan):
     logger.info("[{}|tracker] Bot joined channel '{}'".format(conn.name, chan))
-    conn.channels.append(chan)
+    if chan not in conn.channels:
+        conn.channels.append(chan)
+
     conn.history[chan] = deque(maxlen=100)
 
 
