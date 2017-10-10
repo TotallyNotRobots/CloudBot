@@ -121,7 +121,7 @@ def incrementMsgCounter(event, conn):
             game_status[conn.name][event.chan]['masks'].append(event.host)
 
 
-@hook.command("starthunt", autohelp=False, permissions=["chanop"])
+@hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def start_hunt(bot, chan, message, conn):
     """This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
@@ -151,7 +151,7 @@ def set_ducktime(chan, conn):
     return
 
 
-@hook.command("stophunt", autohelp=False, permissions=["chanop"])
+@hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def stop_hunt(chan, conn):
     """This command stops the duck hunt in your channel. Scores will be preserved"""
     global game_status
@@ -164,7 +164,7 @@ def stop_hunt(chan, conn):
         return "There is no game running in {}.".format(chan)
 
 
-@hook.command("duckkick", permissions=["chanop"])
+@hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(text, chan, conn, notice):
     """If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
     global game_status
