@@ -92,7 +92,7 @@ def ignore_sieve(bot, event, _hook):
     return event
 
 
-@hook.command(permissions=["ignore"])
+@hook.command(permissions=["ignore", "chanop"])
 def ignore(text, db, chan, conn, notice, message, nick):
     """<nick|mask> -- ignores all input from <nick|mask> in this channel."""
     target = text.lower()
@@ -108,7 +108,7 @@ def ignore(text, db, chan, conn, notice, message, nick):
         add_ignore(db, conn.name, chan, target)
 
 
-@hook.command(permissions=["ignore"])
+@hook.command(permissions=["ignore", "chanop"])
 def unignore(text, db, chan, conn, notice, nick, message):
     """<nick|mask> -- un-ignores all input from <nick|mask> in this channel."""
     target = text.lower()
