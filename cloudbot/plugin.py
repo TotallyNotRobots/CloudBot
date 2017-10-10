@@ -7,15 +7,16 @@ import os
 import re
 import warnings
 from collections import defaultdict
-from operator import attrgetter
+from functools import partial
 from itertools import chain
+from operator import attrgetter
 
 import sqlalchemy
 import sys
 
 import time
 
-from cloudbot.event import Event
+from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database, async_util
 
@@ -99,6 +100,8 @@ class PluginManager:
         self.sieves = []
         self.cap_hooks = {"on_available": defaultdict(list), "on_ack": defaultdict(list)}
         self.connect_hooks = []
+        self.out_sieves = []
+        self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
@@ -244,6 +247,14 @@ class PluginManager:
             self.connect_hooks.append(connect_hook)
             self._log_hook(connect_hook)
 
+        for out_hook in plugin.hooks["irc_out"]:
+            self.out_sieves.append(out_hook)
+            self._log_hook(out_hook)
+
+        for post_hook in plugin.hooks["post_hook"]:
+            self.hook_hooks["post"].append(post_hook)
+            self._log_hook(post_hook)
+
         for perm_hook in plugin.hooks["perm_check"]:
             for perm in perm_hook.perms:
                 self.perm_hooks[perm].append(perm_hook)
@@ -256,12 +267,12 @@ class PluginManager:
 
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
-        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks)
-        lists_of_hooks = [self.catch_all_triggers, self.sieves]
+        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks, self.hook_hooks)
+        lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
         lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
 
         for lst in lists_of_hooks:
-            lst.sort(key=lambda x: x.priority)
+            lst.sort(key=attrgetter("priority"))
 
         # we don't need this anymore
         del plugin.hooks["on_start"]
@@ -347,6 +358,12 @@ class PluginManager:
         for connect_hook in plugin.hooks["on_connect"]:
             self.connect_hooks.remove(connect_hook)
 
+        for out_hook in plugin.hooks["irc_out"]:
+            self.out_sieves.remove(out_hook)
+
+        for post_hook in plugin.hooks["post_hook"]:
+            self.hook_hooks["post"].remove(post_hook)
+
         for perm_hook in plugin.hooks["perm_check"]:
             for perm in perm_hook.perms:
                 self.perm_hooks[perm].remove(perm_hook)
@@ -431,6 +448,25 @@ class PluginManager:
             yield from event.close()
 
     @asyncio.coroutine
+    def internal_launch(self, hook, event):
+        """
+        Launches a hook with the data from [event]
+        :param hook: The hook to launch
+        :param event: The event providing data for the hook
+        :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result is the result from the hook
+        """
+        try:
+            if hook.threaded:
+                out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
+            else:
+                out = yield from self._execute_hook_sync(hook, event)
+        except Exception as e:
+            logger.exception("Error in hook {}".format(hook.description))
+            return False, e
+
+        return True, out
+
+    @asyncio.coroutine
     def _execute_hook(self, hook, event):
         """
         Runs the specific hook with the given bot and event.
@@ -441,24 +477,23 @@ class PluginManager:
         :type event: cloudbot.event.Event
         :rtype: bool
         """
-        try:
-            # _internal_run_threaded and _internal_run_coroutine prepare the database, and run the hook.
-            # _internal_run_* will prepare parameters and the database session, but won't do any error catching.
-            if hook.threaded:
-                out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
-            else:
-                out = yield from self._execute_hook_sync(hook, event)
-        except Exception:
-            logger.exception("Error in hook {}".format(hook.description))
-            return False
+        ok, out = yield from self.internal_launch(hook, event)
+        result, error = None, None
+        if ok is True:
+            result = out
+        else:
+            error = out
 
-        if out is not None:
-            if isinstance(out, (list, tuple)):
-                # if there are multiple items in the response, return them on multiple lines
-                event.reply(*out)
-            else:
-                event.reply(*str(out).split('\n'))
-        return True
+        post_event = partial(
+            PostHookEvent, launched_hook=hook, launched_event=event, bot=event.bot,
+            conn=event.conn, result=result, error=error
+        )
+        for post_hook in self.hook_hooks["post"]:
+            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
+            if success and res is False:
+                break
+
+        return ok
 
     @asyncio.coroutine
     def _sieve(self, sieve, event, hook):
@@ -507,10 +542,6 @@ class PluginManager:
                 event = yield from self._sieve(sieve, event, hook)
                 if event is None:
                     return False
-
-        if hook.type == "command" and hook.auto_help and not event.text and hook.doc is not None:
-            event.notice_doc()
-            return False
 
         if hook.single_thread:
             # There should only be one running instance of this hook, so let's wait for the last event to be processed
@@ -778,9 +809,6 @@ class SieveHook(Hook):
         :type plugin: Plugin
         :type sieve_hook: cloudbot.util.hook._SieveHook
         """
-
-        self.priority = sieve_hook.kwargs.pop("priority", 100)
-        # We don't want to thread sieves by default - this is retaining old behavior for compatibility
         super().__init__("sieve", plugin, sieve_hook)
 
     def __repr__(self):
@@ -866,8 +894,6 @@ class OnConnectHook(Hook):
         :type plugin: Plugin
         :type sieve_hook: cloudbot.util.hook._Hook
         """
-
-        self.priority = sieve_hook.kwargs.pop("priority", 100)
         super().__init__("on_connect", plugin, sieve_hook)
 
     def __repr__(self):
@@ -875,6 +901,28 @@ class OnConnectHook(Hook):
 
     def __str__(self):
         return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
+
+
+class IrcOutHook(Hook):
+    def __init__(self, plugin, out_hook):
+        super().__init__("irc_out", plugin, out_hook)
+
+    def __repr__(self):
+        return "Irc_Out[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
+
+
+class PostHookHook(Hook):
+    def __init__(self, plugin, out_hook):
+        super().__init__("post_hook", plugin, out_hook)
+
+    def __repr__(self):
+        return "Post_hook[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
 
 
 class PermHook(Hook):
@@ -901,5 +949,7 @@ _hook_name_to_plugin = {
     "on_cap_available": OnCapAvaliableHook,
     "on_cap_ack": OnCapAckHook,
     "on_connect": OnConnectHook,
+    "irc_out": IrcOutHook,
+    "post_hook": PostHookHook,
     "perm_check": PermHook,
 }

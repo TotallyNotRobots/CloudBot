@@ -7,6 +7,8 @@ from functools import partial
 
 import sys
 
+from cloudbot.util.parsers.irc import Message
+
 logger = logging.getLogger("cloudbot")
 
 
@@ -419,3 +421,43 @@ class CapEvent(Event):
         super().__init__(*args, **kwargs)
         self.cap = cap
         self.cap_param = cap_param
+
+
+class IrcOutEvent(Event):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parsed_line = None
+
+    @asyncio.coroutine
+    def prepare(self):
+        yield from super().prepare()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
+    def prepare_threaded(self):
+        super().prepare_threaded()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
+    @property
+    def line(self):
+        return str(self.irc_raw)
+
+
+class PostHookEvent(Event):
+    def __init__(self, *args, launched_hook=None, launched_event=None, result=None, error=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.launched_hook = launched_hook
+        self.launched_event = launched_event
+        self.result = result
+        self.error = error

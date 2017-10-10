@@ -1,7 +1,6 @@
 import collections
 import inspect
 import re
-import collections
 from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType
@@ -384,6 +383,7 @@ def on_stop(param=None, **kwargs):
     """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator
     :type param: function | None
     """
+
     def _on_stop_hook(func):
         hook = _get_hook(func, "on_stop")
         if hook is None:
@@ -391,10 +391,12 @@ def on_stop(param=None, **kwargs):
             _add_hook(func, hook)
         hook._add_hook(kwargs)
         return func
+
     if callable(param):
         return _on_stop_hook(param)
     else:
         return lambda func: _on_stop_hook(func)
+
 
 on_unload = on_stop
 
@@ -449,6 +451,42 @@ def on_connect(param=None, **kwargs):
 
 
 connect = on_connect
+
+
+def irc_out(param=None, **kwargs):
+    def _decorate(func):
+        hook = _get_hook(func, "irc_out")
+        if hook is None:
+            hook = _Hook(func, "irc_out")
+            _add_hook(func, hook)
+
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _decorate(param)
+    else:
+        return lambda func: _decorate(func)
+
+
+def post_hook(param=None, **kwargs):
+    """
+    This hook will be fired just after a hook finishes executing
+    """
+
+    def _decorate(func):
+        hook = _get_hook(func, "post_hook")
+        if hook is None:
+            hook = _Hook(func, "post_hook")
+            _add_hook(func, hook)
+
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _decorate(param)
+    else:
+        return lambda func: _decorate(func)
 
 
 def permission(*perms, **kwargs):
