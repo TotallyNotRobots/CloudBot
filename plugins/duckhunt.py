@@ -3,7 +3,7 @@ import operator
 
 from time import time
 from collections import defaultdict
-from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc
+from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
 from sqlalchemy.sql import select
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -32,7 +32,15 @@ optout = Table(
     PrimaryKeyConstraint('chan','network')
     )
 
-
+status_table = Table(
+    'duck_status',
+    database.metadata,
+    Column('network', String),
+    Column('chan', String),
+    Column('active', Boolean, default=False),
+    Column('duck_kick', Boolean, default=False),
+    PrimaryKeyConstraint('network', 'chan')
+)
 
 """
 game_status structure 
@@ -70,6 +78,35 @@ def load_optout(db):
             chan = row["chan"]
             opt_out.append(chan)
 
+
+@hook.on_start
+def load_status(db):
+    rows = db.execute(status_table.select())
+    for row in rows:
+        net = row['network']
+        chan = row['chan']
+        status = game_status[net][chan]
+        status["game_on"] = int(row['active'])
+        status["no_duck_kick"] = int(row['duck_kick'])
+        set_ducktime(chan, net)
+
+
+@hook.on_unload
+@hook.periodic(5 * 60, initial_interval=10 * 60)
+def save_status(db):
+    for network in game_status:
+        for chan, status in game_status[network].items():
+            active = bool(status['game_on'])
+            duck_kick = bool(status['no_duck_kick'])
+            res = db.execute(status_table.update().where(status_table.c.network == network).where(status_table.c.chan == chan).values(
+                active=active, duck_kick=duck_kick
+            ))
+            if not res.rowcount:
+                db.execute(status_table.insert().values(network=network, chan=chan, active=active, duck_kick=duck_kick))
+
+    db.commit()
+
+
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def incrementMsgCounter(event, conn):
     """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking."""
@@ -94,18 +131,20 @@ def start_hunt(bot, chan, message, conn):
         return "there is already a game running in {}.".format(chan)
     else:
         game_status[conn.name][chan]['game_on'] = 1
-    set_ducktime(chan, conn)
+    set_ducktime(chan, conn.name)
     message("Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.", chan)
+
 
 def set_ducktime(chan, conn):
     global game_status
-    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
-    #game_status[conn.name][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
-    game_status[conn.name][chan]['duck_status'] = 0
+    game_status[conn][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    #game_status[conn][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
+    game_status[conn][chan]['duck_status'] = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
-    game_status[conn.name][chan]['messages'] = 0
-    game_status[conn.name][chan]['masks'] = []
+    game_status[conn][chan]['messages'] = 0
+    game_status[conn][chan]['masks'] = []
     return
+
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop"])
 def stop_hunt(chan, conn):
@@ -280,7 +319,7 @@ def bang(nick, chan, message, db, conn, notice):
         timer = "{:.3f}".format(shoot - deploy)
         duck = "duck" if score == 1 else "ducks"
         message("{} you shot a duck in {} seconds! You have killed {} {} in {}.".format(nick, timer, score, duck, chan))
-        set_ducktime(chan, conn)
+        set_ducktime(chan, conn.name)
 
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice):
@@ -336,7 +375,7 @@ def befriend(nick, chan, message, db, conn, notice):
         duck = "duck" if score == 1 else "ducks"
         timer = "{:.3f}".format(shoot - deploy)
         message("{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
-        set_ducktime(chan,conn)
+        set_ducktime(chan,conn.name)
 
 def smart_truncate(content, length=320, suffix='...'):
     if len(content) <= length:
