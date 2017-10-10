@@ -206,6 +206,16 @@ class _CapHook(_Hook):
         self.caps.update(caps)
 
 
+class _PermissionHook(_Hook):
+    def __init__(self, func):
+        super().__init__(func, "perm_check")
+        self.perms = set()
+
+    def add_hook(self, perms, kwargs):
+        self._add_hook(kwargs)
+        self.perms.update(perms)
+
+
 def _add_hook(func, hook):
     if not hasattr(func, "_cloudbot_hook"):
         func._cloudbot_hook = {}
@@ -477,3 +487,18 @@ def post_hook(param=None, **kwargs):
         return _decorate(param)
     else:
         return lambda func: _decorate(func)
+
+
+def permission(*perms, **kwargs):
+    def _perm_hook(func):
+        assert len(inspect.getfullargspec(func).args) == 3, \
+            "Permission hook has incorrect argument count. Needs params: bot, event, hook"
+        hook = _get_hook(func, "perm_check")
+        if hook is None:
+            hook = _PermissionHook(func)
+            _add_hook(func, hook)
+
+        hook.add_hook(perms, kwargs)
+        return func
+
+    return lambda func: _perm_hook(func)

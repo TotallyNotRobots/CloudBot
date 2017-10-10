@@ -27,39 +27,23 @@ def find_hooks(parent, module):
     """
     :type parent: Plugin
     :type module: object
-    :rtype: (list[CommandHook], list[RegexHook], list[RawHook], list[SieveHook], List[EventHook], List[PeriodicHook], list[OnStartHook], List[OnStopHook], list[OnCapAckHook], list[OnCapAvailableHook], list[OnConnectHook])
+    :rtype: dict
     """
     # set the loaded flag
     module._cloudbot_loaded = True
-    command = []
-    regex = []
-    raw = []
-    sieve = []
-    event = []
-    periodic = []
-    on_start = []
-    on_stop = []
-    on_cap_ack = []
-    on_cap_available = []
-    on_connect = []
-    out_sieve = []
-    post_hooks = []
-    type_lists = {"command": command, "regex": regex, "irc_raw": raw, "sieve": sieve, "event": event,
-                  "periodic": periodic, "on_start": on_start, "on_stop": on_stop, "on_cap_ack": on_cap_ack,
-                  "on_cap_available": on_cap_available, "on_connect": on_connect, "irc_out": out_sieve,
-                  "post_hook": post_hooks}
+    hooks = defaultdict(list)
     for name, func in module.__dict__.items():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
             func_hooks = func._cloudbot_hook
 
             for hook_type, func_hook in func_hooks.items():
-                type_lists[hook_type].append(_hook_name_to_plugin[hook_type](parent, func_hook))
+                hooks[hook_type].append(_hook_name_to_plugin[hook_type](parent, func_hook))
 
             # delete the hook to free memory
             del func._cloudbot_hook
 
-    return command, regex, raw, sieve, event, periodic, on_start, on_stop, on_cap_ack, on_cap_available, on_connect, out_sieve, post_hooks
+    return hooks
 
 
 def find_tables(code):
@@ -118,6 +102,7 @@ class PluginManager:
         self.connect_hooks = []
         self.out_sieves = []
         self.hook_hooks = defaultdict(list)
+        self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
     @asyncio.coroutine
@@ -188,7 +173,7 @@ class PluginManager:
         yield from plugin.create_tables(self.bot)
 
         # run on_start hooks
-        for on_start_hook in plugin.run_on_start:
+        for on_start_hook in plugin.hooks["on_start"]:
             success = yield from self.launch(on_start_hook, Event(bot=self.bot, hook=on_start_hook))
             if not success:
                 logger.warning("Not registering hooks from plugin {}: on_start hook errored".format(plugin.title))
@@ -199,23 +184,23 @@ class PluginManager:
 
         self.plugins[plugin.file_name] = plugin
 
-        for on_cap_available_hook in plugin.on_cap_available:
+        for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             for cap in on_cap_available_hook.caps:
                 self.cap_hooks["on_available"][cap.casefold()].append(on_cap_available_hook)
             self._log_hook(on_cap_available_hook)
 
-        for on_cap_ack_hook in plugin.on_cap_ack:
+        for on_cap_ack_hook in plugin.hooks["on_cap_ack"]:
             for cap in on_cap_ack_hook.caps:
                 self.cap_hooks["on_ack"][cap.casefold()].append(on_cap_ack_hook)
             self._log_hook(on_cap_ack_hook)
 
-        for periodic_hook in plugin.periodic:
+        for periodic_hook in plugin.hooks["periodic"]:
             task = async_util.wrap_future(self._start_periodic(periodic_hook))
             plugin.tasks.append(task)
             self._log_hook(periodic_hook)
 
         # register commands
-        for command_hook in plugin.commands:
+        for command_hook in plugin.hooks["command"]:
             for alias in command_hook.aliases:
                 if alias in self.commands:
                     logger.warning(
@@ -226,7 +211,7 @@ class PluginManager:
             self._log_hook(command_hook)
 
         # register raw hooks
-        for raw_hook in plugin.raw_hooks:
+        for raw_hook in plugin.hooks["irc_raw"]:
             if raw_hook.is_catch_all():
                 self.catch_all_triggers.append(raw_hook)
             else:
@@ -238,7 +223,7 @@ class PluginManager:
             self._log_hook(raw_hook)
 
         # register events
-        for event_hook in plugin.events:
+        for event_hook in plugin.hooks["event"]:
             for event_type in event_hook.types:
                 if event_type in self.event_type_hooks:
                     self.event_type_hooks[event_type].append(event_hook)
@@ -247,32 +232,42 @@ class PluginManager:
             self._log_hook(event_hook)
 
         # register regexps
-        for regex_hook in plugin.regexes:
+        for regex_hook in plugin.hooks["regex"]:
             for regex_match in regex_hook.regexes:
                 self.regex_hooks.append((regex_match, regex_hook))
             self._log_hook(regex_hook)
 
         # register sieves
-        for sieve_hook in plugin.sieves:
+        for sieve_hook in plugin.hooks["sieve"]:
             self.sieves.append(sieve_hook)
             self._log_hook(sieve_hook)
 
         # register connect hooks
-        for connect_hook in plugin.connect_hooks:
+        for connect_hook in plugin.hooks["on_connect"]:
             self.connect_hooks.append(connect_hook)
             self._log_hook(connect_hook)
 
-        for out_hook in plugin.irc_out_hooks:
+        for out_hook in plugin.hooks["irc_out"]:
             self.out_sieves.append(out_hook)
             self._log_hook(out_hook)
 
-        for post_hook in plugin.post_hook_hooks:
+        for post_hook in plugin.hooks["post_hook"]:
             self.hook_hooks["post"].append(post_hook)
             self._log_hook(post_hook)
 
+        for perm_hook in plugin.hooks["perm_check"]:
+            for perm in perm_hook.perms:
+                self.perm_hooks[perm].append(perm_hook)
+
+            self._log_hook(perm_hook)
+
+        # sort sieve hooks by priority
+        self.sieves.sort(key=lambda x: x.priority)
+        self.connect_hooks.sort(key=attrgetter("priority"))
+
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
-        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.hook_hooks)
+        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks, self.hook_hooks)
         lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
         lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
 
@@ -280,7 +275,7 @@ class PluginManager:
             lst.sort(key=attrgetter("priority"))
 
         # we don't need this anymore
-        del plugin.run_on_start
+        del plugin.hooks["on_start"]
 
     @asyncio.coroutine
     def unload_plugin(self, path):
@@ -308,7 +303,7 @@ class PluginManager:
         for task in plugin.tasks:
             task.cancel()
 
-        for on_cap_available_hook in plugin.on_cap_available:
+        for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             available_hooks = self.cap_hooks["on_available"]
             for cap in on_cap_available_hook.caps:
                 cap_cf = cap.casefold()
@@ -316,7 +311,7 @@ class PluginManager:
                 if not available_hooks[cap_cf]:
                     del available_hooks[cap_cf]
 
-        for on_cap_ack in plugin.on_cap_ack:
+        for on_cap_ack in plugin.hooks["on_cap_ack"]:
             ack_hooks = self.cap_hooks["on_ack"]
             for cap in on_cap_ack.caps:
                 cap_cf = cap.casefold()
@@ -325,14 +320,14 @@ class PluginManager:
                     del ack_hooks[cap_cf]
 
         # unregister commands
-        for command_hook in plugin.commands:
+        for command_hook in plugin.hooks["command"]:
             for alias in command_hook.aliases:
                 if alias in self.commands and self.commands[alias] == command_hook:
                     # we need to make sure that there wasn't a conflict, so we don't delete another plugin's command
                     del self.commands[alias]
 
         # unregister raw hooks
-        for raw_hook in plugin.raw_hooks:
+        for raw_hook in plugin.hooks["irc_raw"]:
             if raw_hook.is_catch_all():
                 self.catch_all_triggers.remove(raw_hook)
             else:
@@ -343,7 +338,7 @@ class PluginManager:
                         del self.raw_triggers[trigger]
 
         # unregister events
-        for event_hook in plugin.events:
+        for event_hook in plugin.hooks["event"]:
             for event_type in event_hook.types:
                 assert event_type in self.event_type_hooks  # this can't be not true
                 self.event_type_hooks[event_type].remove(event_hook)
@@ -351,26 +346,30 @@ class PluginManager:
                     del self.event_type_hooks[event_type]
 
         # unregister regexps
-        for regex_hook in plugin.regexes:
+        for regex_hook in plugin.hooks["regex"]:
             for regex_match in regex_hook.regexes:
                 self.regex_hooks.remove((regex_match, regex_hook))
 
         # unregister sieves
-        for sieve_hook in plugin.sieves:
+        for sieve_hook in plugin.hooks["sieve"]:
             self.sieves.remove(sieve_hook)
 
         # unregister connect hooks
-        for connect_hook in plugin.connect_hooks:
+        for connect_hook in plugin.hooks["on_connect"]:
             self.connect_hooks.remove(connect_hook)
 
-        for out_hook in plugin.irc_out_hooks:
+        for out_hook in plugin.hooks["irc_out"]:
             self.out_sieves.remove(out_hook)
 
-        for post_hook in plugin.post_hook_hooks:
+        for post_hook in plugin.hooks["post_hook"]:
             self.hook_hooks["post"].remove(post_hook)
 
+        for perm_hook in plugin.hooks["perm_check"]:
+            for perm in perm_hook.perms:
+                self.perm_hooks[perm].remove(perm_hook)
+
         # Run on_stop hooks
-        for on_stop_hook in plugin.run_on_stop:
+        for on_stop_hook in plugin.hooks["on_stop"]:
             event = Event(bot=self.bot, hook=on_stop_hook)
             yield from self.launch(on_stop_hook, event)
 
@@ -592,11 +591,7 @@ class Plugin:
     :type file_path: str
     :type file_name: str
     :type title: str
-    :type commands: list[CommandHook]
-    :type regexes: list[RegexHook]
-    :type raw_hooks: list[RawHook]
-    :type sieves: list[SieveHook]
-    :type events: list[EventHook]
+    :type hooks: dict
     :type tables: list[sqlalchemy.Table]
     """
 
@@ -610,13 +605,7 @@ class Plugin:
         self.file_path = filepath
         self.file_name = filename
         self.title = title
-        # TODO clean up hook lists
-        hooks = find_hooks(self, code)
-        self.commands, self.regexes, self.raw_hooks, *hooks = hooks
-        self.sieves, self.events, self.periodic, *hooks = hooks
-        self.run_on_start, self.run_on_stop, self.on_cap_ack, *hooks = hooks
-        self.on_cap_available, self.connect_hooks, self.irc_out_hooks, *hooks = hooks
-        self.post_hook_hooks, *hooks = hooks
+        self.hooks = find_hooks(self, code)
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
@@ -936,6 +925,18 @@ class PostHookHook(Hook):
         return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
 
 
+class PermHook(Hook):
+    def __init__(self, plugin, perm_hook):
+        self.perms = perm_hook.perms
+        super().__init__("perm_check", plugin, perm_hook)
+
+    def __repr__(self):
+        return "PermHook[{}]".format(Hook.__repr__(self))
+
+    def __str__(self):
+        return "perm hook {} from {}".format(self.function_name, self.plugin.file_name)
+
+
 _hook_name_to_plugin = {
     "command": CommandHook,
     "regex": RegexHook,
@@ -950,4 +951,5 @@ _hook_name_to_plugin = {
     "on_connect": OnConnectHook,
     "irc_out": IrcOutHook,
     "post_hook": PostHookHook,
+    "perm_check": PermHook,
 }

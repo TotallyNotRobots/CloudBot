@@ -298,14 +298,15 @@ def cycle(text, conn, chan, notice):
 
 @asyncio.coroutine
 @hook.command(permissions=["botcontrol"])
-def nick(text, conn, notice):
+def nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
     :type text: str
     :type conn: cloudbot.client.Client
     """
-    if not re.match("^[a-z0-9_|.-\]\[]*$", text.lower()):
+    if not is_nick_valid(text):
         notice("Invalid username '{}'".format(text))
         return
+
     notice("Attempting to change nick to '{}'...".format(text))
     conn.set_nick(text)
 

@@ -1,5 +1,6 @@
 import asyncio
 import socket
+from copy import copy
 
 from cloudbot import hook
 
@@ -15,8 +16,12 @@ def invite(irc_paramlist, conn):
     :type conn: cloudbot.client.Client
     """
     invite_join = conn.config.get('invite_join', True)
+    chan = irc_paramlist[-1]
+    if chan.startswith(':'):
+        chan = chan[1:]
+
     if invite_join:
-        conn.join(irc_paramlist[-1])
+        conn.join(chan)
 
 
 @hook.irc_raw('JOIN')
@@ -64,6 +69,7 @@ def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
+    chans = copy(conn.channels)
     bot.logger.info("[{}|misc] Bot is sending join commands for network.".format(conn.name))
     nickserv = conn.config.get('nickserv')
     if nickserv and nickserv.get("enabled", True):
@@ -100,7 +106,7 @@ def onjoin(conn, bot):
     # Join config-defined channels
     join_throttle = conn.config.get('join_throttle', 0.4)
     bot.logger.info("[{}|misc] Bot is joining channels for network.".format(conn.name))
-    for channel in conn.channels:
+    for channel in chans:
         conn.join(channel)
         yield from asyncio.sleep(join_throttle)
 
