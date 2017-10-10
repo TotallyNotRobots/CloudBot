@@ -16,6 +16,8 @@ irc_noprefix_re = re.compile(r"([^ ]*) (.*)")
 irc_netmask_re = re.compile(r"([^!@]*)!([^@]*)@(.*)")
 irc_param_re = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)")
 
+irc_nick_re = re.compile(r'[A-Za-z0-9^{\}\[\]\-`_|\\]')
+
 irc_bad_chars = ''.join([chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))])
 irc_clean_re = re.compile('[{}]'.format(re.escape(irc_bad_chars)))
 
@@ -224,6 +226,9 @@ class IrcClient(Client):
     @property
     def connected(self):
         return self._connected
+
+    def is_nick_valid(self, nick):
+        return bool(irc_nick_re.fullmatch(nick))
 
 
 class _IrcProtocol(asyncio.Protocol):

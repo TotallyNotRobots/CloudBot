@@ -324,6 +324,14 @@ class Event:
         result = yield from self.loop.run_in_executor(executor, part)
         return result
 
+    def is_nick_valid(self, nick):
+        """
+        Returns whether a nick is valid for a given connection
+        :param nick: The nick to check
+        :return: Whether or not it is valid
+        """
+        return self.conn.is_nick_valid(nick)
+
     if sys.version_info < (3, 7, 0):
         # noinspection PyCompatibility
         @asyncio.coroutine
