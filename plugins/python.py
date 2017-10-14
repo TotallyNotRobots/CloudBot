@@ -8,6 +8,7 @@ from cloudbot.util import web
 @hook.command("python", "py")
 def python(text):
     """<python code> - executes <python code> using eval.appspot.com"""
+    return "This API has been deprecated and removed."
 
     output = yield from web.pyeval(text, pastebin=False)
 
