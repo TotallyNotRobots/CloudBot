@@ -175,11 +175,10 @@ def strax(text, conn, message, nick, is_nick_valid):
 
 
 @hook.command(autohelp=False)
-def nk(chan, message):
+def nk(message):
     """outputs a random North Korea propoganda slogan"""
-    index = random.randint(0, len(north_korea) - 1)
-    slogan = north_korea[index]
-    message(slogan, chan)
+    slogan = random.choice(north_korea)
+    message(slogan)
 
 
 @asyncio.coroutine
