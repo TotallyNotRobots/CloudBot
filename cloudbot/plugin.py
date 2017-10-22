@@ -11,6 +11,7 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter
 from pathlib import Path
+from weakref import WeakValueDictionary
 
 import sqlalchemy
 
@@ -90,6 +91,7 @@ class PluginManager:
         self.bot = bot
 
         self.plugins = {}
+        self._plugin_name_map = WeakValueDictionary()
         self.commands = {}
         self.raw_triggers = {}
         self.catch_all_triggers = []
@@ -102,6 +104,14 @@ class PluginManager:
         self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
+
+    def find_plugin(self, title):
+        """
+        Finds a loaded plugin and returns its Plugin object
+        :param title: the title of the plugin to find
+        :return: The Plugin object if it exists, otherwise None
+        """
+        return self._plugin_name_map.get(title)
 
     @asyncio.coroutine
     def load_all(self, plugin_dir):
@@ -187,6 +197,7 @@ class PluginManager:
                 return
 
         self.plugins[plugin.file_path] = plugin
+        self._plugin_name_map[plugin.title] = plugin
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             for cap in on_cap_available_hook.caps:
@@ -610,6 +621,8 @@ class Plugin:
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
+        # Keep a reference to this in case another plugin needs to access it
+        self.code = code
 
     @asyncio.coroutine
     def create_tables(self, bot):
