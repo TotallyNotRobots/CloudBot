@@ -1,4 +1,3 @@
-import asyncio
 import codecs
 import json
 import os
@@ -52,7 +51,6 @@ def load_attacks(bot):
         presents = json.load(f)
 
 
-@asyncio.coroutine
 @hook.command
 def lart(text, conn, nick, action, is_nick_valid):
     """<user> - LARTs <user>"""
@@ -71,7 +69,6 @@ def lart(text, conn, nick, action, is_nick_valid):
     action(phrase.format(user=target))
 
 
-@asyncio.coroutine
 @hook.command("flirt", "sexup", "jackmeoff")
 def flirt(text, conn, nick, message, is_nick_valid):
     """<user> - flirts with <user>"""
@@ -87,7 +84,6 @@ def flirt(text, conn, nick, message, is_nick_valid):
     message('{}, {}'.format(target, random.choice(flirts)))
 
 
-@asyncio.coroutine
 @hook.command("kill", "end")
 def kill(text, conn, nick, action, is_nick_valid):
     """<user> - kills <user>"""
@@ -106,7 +102,6 @@ def kill(text, conn, nick, action, is_nick_valid):
     action(generator.generate_string())
 
 
-@asyncio.coroutine
 @hook.command
 def slap(text, action, nick, conn, is_nick_valid):
     """<user> -- Makes the bot slap <user>."""
@@ -128,7 +123,6 @@ def slap(text, action, nick, conn, is_nick_valid):
     action(generator.generate_string())
 
 
-@asyncio.coroutine
 @hook.command
 def compliment(text, nick, conn, is_nick_valid, message):
     """<user> -- Makes the bot compliment <user>."""
@@ -181,7 +175,6 @@ def nk(message):
     message(slogan)
 
 
-@asyncio.coroutine
 @hook.command()
 def insult(text, conn, nick, notice, message, is_nick_valid):
     """<user> - insults <user>
@@ -202,7 +195,6 @@ def insult(text, conn, nick, notice, message, is_nick_valid):
     message("{}, {}".format(target, random.choice(insults)))
 
 
-@asyncio.coroutine
 @hook.command("present", "gift")
 def present(text, conn, nick, action, is_nick_valid):
     """<user> - gives gift to <user>"""
