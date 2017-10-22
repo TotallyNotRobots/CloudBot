@@ -1,5 +1,5 @@
 {
-    "templates": [
+    "target_templates": [
         "{hits} {user} with a {item}.",
         "{hits} {user} around a bit with a {item}.",
         "{throws} a {item} at {user}.",

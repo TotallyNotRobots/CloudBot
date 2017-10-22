@@ -1,5 +1,5 @@
 {
-    "templates": [
+    "target_templates": [
         "{user} {phrase}."
     ],
     "parts": {
