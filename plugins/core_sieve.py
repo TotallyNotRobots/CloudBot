@@ -4,6 +4,7 @@ import logging
 from time import time
 
 from cloudbot import hook
+from cloudbot.util import async_util
 from cloudbot.util.tokenbucket import TokenBucket
 
 ready = False
@@ -64,6 +65,19 @@ def sieve_suite(bot, event, _hook):
         for perm in allowed_permissions:
             if event.has_permission(perm):
                 allowed = True
+                break
+
+            for perm_hook in bot.plugin_manager.perm_hooks[perm]:
+                try:
+                    res = yield from async_util.run_func(event.loop, perm_hook.function, bot, event, _hook)
+                except Exception:
+                    logger.exception("Error in hook {}".format(perm_hook.description))
+                else:
+                    if res:
+                        allowed = True
+                        break
+
+            if allowed:
                 break
 
         if not allowed:

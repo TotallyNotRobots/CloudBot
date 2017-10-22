@@ -1,7 +1,10 @@
+import logging
 import random
 from collections import defaultdict
+from threading import RLock
 
 from sqlalchemy import Table, Column, String
+from sqlalchemy.exc import SQLAlchemyError
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -19,6 +22,11 @@ table = Table(
 )
 
 grab_cache = {}
+grab_locks = defaultdict(dict)
+grab_locks_lock = RLock()
+cache_lock = RLock()
+
+logger = logging.getLogger("cloudbot")
 
 
 @hook.on_start()
@@ -26,12 +34,13 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    grab_cache.clear()
-    for row in db.execute(table.select().order_by(table.c.time)):
-        name = row["name"].lower()
-        quote = row["quote"]
-        chan = row["chan"]
-        grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
+    with cache_lock:
+        grab_cache.clear()
+        for row in db.execute(table.select().order_by(table.c.time)):
+            name = row["name"].lower()
+            quote = row["quote"]
+            chan = row["chan"]
+            grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
 
 
 @hook.command("moregrab", autohelp=False)
@@ -77,6 +86,14 @@ def grab_add(nick, time, msg, chan, db, conn):
     load_cache(db)
 
 
+def get_latest_line(conn, chan, nick):
+    for name, timestamp, msg in reversed(conn.history[chan]):
+        if nick.casefold() == name.casefold():
+            return name, timestamp, msg
+
+    return None, None, None
+
+
 @hook.command()
 def grab(text, nick, chan, db, conn):
     """grab <nick> grabs the last message from the
@@ -84,20 +101,27 @@ def grab(text, nick, chan, db, conn):
     if text.lower() == nick.lower():
         return "Didn't your mother teach you not to grab yourself?"
 
-    for item in conn.history[chan].__reversed__():
-        name, timestamp, msg = item
-        if text.lower() == name.lower():
-            # check to see if the quote has been added
-            if check_grabs(name.lower(), msg, chan):
-                return "I already have that quote from {} in the database".format(text)
-            else:
-                # the quote is new so add it to the db.
-                grab_add(name.lower(),timestamp, msg, chan, db, conn)
-                if check_grabs(name.lower(), msg, chan):
-                    return "the operation succeeded."
-                else:
-                    return "the operation failed"
-    return "I couldn't find anything from {} in recent history.".format(text)
+    with grab_locks_lock:
+        grab_lock = grab_locks[conn.name.casefold()].setdefault(chan.casefold(), RLock())
+
+    with grab_lock:
+        name, timestamp, msg = get_latest_line(conn, chan, text)
+        if not msg:
+            return "I couldn't find anything from {} in recent history.".format(text)
+
+        if check_grabs(text.casefold(), msg, chan):
+            return "I already have that quote from {} in the database".format(text)
+
+        try:
+            grab_add(name.casefold(), timestamp, msg, chan, db, conn)
+        except SQLAlchemyError:
+            logger.exception("Error occurred when grabbing %s in %s", name, chan)
+            return "Error occurred."
+
+        if check_grabs(name.casefold(), msg, chan):
+            return "the operation succeeded."
+        else:
+            return "the operation failed"
 
 
 def format_grab(name, quote):
@@ -122,7 +146,7 @@ def lastgrab(text, chan, message):
         return "<{}> has never been grabbed.".format(text)
     if lgrab:
         quote = lgrab
-        message(format_grab(text, quote),chan)
+        message(format_grab(text, quote), chan)
 
 
 @hook.command("grabrandom", "grabr", autohelp=False)

@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
 from cloudbot.util import colors
@@ -60,20 +59,15 @@ def moremod(text, chan, conn):
 @hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan, conn):
     """This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
-    #This command was written using concepts from FurCode http://github.com/FurCode.
     user = text
-    r = requests.get(user_url.format(user), headers=agent)
+    r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
-    soup = BeautifulSoup(r.text)
-    mod_list = soup.find('ul', id="side-mod-list")
-    if mod_list is None:
-        return "{} does not moderate any public subreddits.".format(user)
 
-    mod_list = mod_list.text.split('r/')
-    del mod_list[0]
+    data = r.json()
+    subs = data['data']
     out = colors.parse("$(b){}$(b) moderates these public subreddits: ".format(user))
-    pager = paginated_list(mod_list)
+    pager = paginated_list([sub['sr'] for sub in subs])
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
     if len(page) > 1:
@@ -154,7 +148,7 @@ def submods(text, chan, conn):
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
-        return statuscheck(r.status_code, 'r/'+sub)
+        return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()
     moderators = []
     for mod in data['data']['children']:
@@ -176,7 +170,7 @@ def submods(text, chan, conn):
     return page
 
 
-@hook.command("subinfo","subreddit", "sub", "rinfo", singlethread=True)
+@hook.command("subinfo", "subreddit", "sub", "rinfo", singlethread=True)
 def subinfo(text):
     """subinfo <subreddit> fetches information about the specified subreddit."""
     sub = text
@@ -187,7 +181,7 @@ def subinfo(text):
     url = subreddit_url + "about.json"
     r = requests.get(url.format(sub), headers=agent)
     if r.status_code != 200:
-        return statuscheck(r.status_code, 'r/'+sub)
+        return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()
     if data['kind'] == "Listing":
         return "It appears r/{} does not exist.".format(sub)

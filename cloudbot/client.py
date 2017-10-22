@@ -122,6 +122,14 @@ class Client:
         """
         raise NotImplementedError
 
+    def is_nick_valid(self, nick):
+        """
+        Determines if a nick is valid for this connection
+        :param nick: The nick to check
+        :return: True if it is valid, otherwise false
+        """
+        raise NotImplementedError
+
     @property
     def connected(self):
         raise NotImplementedError

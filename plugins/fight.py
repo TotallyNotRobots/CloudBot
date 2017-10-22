@@ -1,18 +1,28 @@
+import json
 import random
-from cloudbot import hook
+from pathlib import Path
 
-bang = ["BANG", "POW", "SLAM", "WHACK", "SLAP", "KAPOW", "ZAM", "BOOM"]
-blow_type = ["devastating", "destructive", "ruthless", "damaging", "ruinous", "catastrophic", "traumatic", "shattering", "overwhelming", "crushing", "fierce", "deadly", "lethal", "fatal", "savage", "violent"]
-victory = ["wins", "stands victorious", "triumphs", "conquers", "is the champion", "is the victor" ]
-blow = ["uppercut", "hammerfist", "elbow strike", "shoulder strike", "front kick", "side kick", "roundhouse kick", "knee strike", "butt strike", "headbutt", "haymaker punch", "palm strike", "pocket bees"]
+from cloudbot import hook
+from cloudbot.util.textgen import TextGenerator
+
+fight_data = {}
+
+
+@hook.on_start
+def load_data(bot):
+    fight_data.clear()
+    data_file = Path(bot.data_dir) / "fight.json"
+    with data_file.open(encoding='utf-8') as f:
+        fight_data.update(json.load(f))
+
 
 @hook.command("fight", "fite", "spar", "challenge")
 def fight(text, nick, message):
     """<nick>, makes you fight <nick> and generates a winner."""
-    fighter1 = nick
-    fighter2 = text.strip()
-    if random.random() < .5:
-        out = "{}! {}! {}! {} {} over {} with a {} {}.".format(random.choice(bang), random.choice(bang), random.choice(bang), fighter1, random.choice(victory),fighter2, random.choice(blow_type), random.choice(blow))
-    else:
-        out = "{}! {}! {}! {} {} over {} with a {} {}.".format(random.choice(bang), random.choice(bang), random.choice(bang), fighter2, random.choice(victory),fighter1, random.choice(blow_type), random.choice(blow))
-    message(out)
+    data = {
+        'user1': nick,
+        'user2': text,
+    }
+
+    generator = TextGenerator(fight_data['templates'], fight_data['parts'], variables=data)
+    message(generator.generate_string())
