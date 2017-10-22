@@ -8,6 +8,7 @@ from ssl import SSLContext
 from cloudbot.client import Client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
+from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
 
@@ -335,43 +336,17 @@ class _IrcProtocol(asyncio.Protocol):
             line_data, self._input_buffer = self._input_buffer.split(b"\r\n", 1)
             line = decode(line_data)
 
-            # parse the line into a message
-            if line.startswith(":"):
-                prefix_line_match = irc_prefix_re.match(line)
-                if prefix_line_match is None:
-                    logger.critical("[{}] Received invalid IRC line '{}' from {}".format(
-                        self.conn.name, line, self.conn.describe_server()))
-                    continue
+            try:
+                message = Message.parse(line)
+            except Exception:
+                logger.exception(
+                    "[%s] Error occurred while parsing IRC line '%s' from %s",
+                    self.conn.name, line, self.conn.describe_server()
+                )
+                continue
 
-                netmask_prefix, command, params = prefix_line_match.groups()
-                prefix = ":" + netmask_prefix  # TODO: Do we need to know this?
-                netmask_match = irc_netmask_re.match(netmask_prefix)
-                if netmask_match is None:
-                    # This isn't in the format of a netmask
-                    nick = netmask_prefix
-                    user = None
-                    host = None
-                    mask = netmask_prefix
-                else:
-                    nick = netmask_match.group(1)
-                    user = netmask_match.group(2)
-                    host = netmask_match.group(3)
-                    mask = netmask_prefix
-            else:
-                prefix = None
-                noprefix_line_match = irc_noprefix_re.match(line)
-                if noprefix_line_match is None:
-                    logger.critical("[{}] Received invalid IRC line '{}' from {}".format(
-                        self.conn.name, line, self.conn.describe_server()))
-                    continue
-                command = noprefix_line_match.group(1)
-                params = noprefix_line_match.group(2)
-                nick = None
-                user = None
-                host = None
-                mask = None
-
-            command_params = irc_param_re.findall(params)
+            command = message.command
+            command_params = message.parameters
 
             # Reply to pings immediately
 
@@ -381,9 +356,8 @@ class _IrcProtocol(asyncio.Protocol):
             # Parse the command and params
 
             # Content
-            if command_params and command_params[-1].startswith(":"):
-                # If the last param is in the format of `:content` remove the `:` from it, and set content from it
-                content_raw = command_params[-1][1:]
+            if command_params.has_trail:
+                content_raw = command_params[-1]
                 content = irc_clean(content_raw)
             else:
                 content_raw = None
@@ -426,21 +400,32 @@ class _IrcProtocol(asyncio.Protocol):
                     channel = command_params[0]
                 elif command == "INVITE":
                     channel = command_params[1]
-                elif len(command_params) > 2 or command_params[0][0] != ':':
+                elif len(command_params) > 2 or not (command_params.has_trail and len(command_params) == 1):
                     channel = command_params[0]
 
+            prefix = message.prefix
+
+            nick = prefix.nick
+            user = prefix.user
+            host = prefix.host
+            mask = prefix.mask
+
             if channel:
+                # TODO Migrate plugins to accept the original case of the channel
                 channel = channel.lower()
-                if channel[0] == ':':
-                    channel = channel[1:].split()[0]  # Just in case there is more data
+
+                channel = channel.split()[0]  # Just in case there is more data
+
                 if channel == self.conn.nick.lower():
                     channel = nick.lower()
 
             # Set up parsed message
             # TODO: Do we really want to send the raw `prefix` and `command_params` here?
-            event = Event(bot=self.bot, conn=self.conn, event_type=event_type, content_raw=content_raw, content=content,
-                          target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=line,
-                          irc_prefix=prefix, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text)
+            event = Event(
+                bot=self.bot, conn=self.conn, event_type=event_type, content_raw=content_raw, content=content,
+                target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=line,
+                irc_prefix=mask, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text
+            )
 
             # handle the message, async
             async_util.wrap_future(self.bot.process(event), loop=self.loop)
