@@ -46,7 +46,7 @@ def load_cache(db):
 @hook.command("moregrab", autohelp=False)
 def moregrab(text, chan, conn):
     """if a grab search has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
-    pages = search_pages[conn.name][chan]
+    pages = search_pages[conn.name].get(chan)
     if not pages:
         return "There are no grabsearch pages to show."
 
