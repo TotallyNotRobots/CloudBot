@@ -99,7 +99,7 @@ def welcome(nick, message, event, db, bot):
                 candidates = greet.lower().split(' ')[1:]
                 text = random.choice(candidates)
             if grab is not None:
-                out = grab.grabrandom(text, chan, message)
+                out = grab.code.grabrandom(text, chan, message)
             else:
                 out = "grab.py not loaded, original herald: {}".format(greet)
 
