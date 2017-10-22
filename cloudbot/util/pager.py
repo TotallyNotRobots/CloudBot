@@ -1,5 +1,7 @@
 from threading import RLock
 
+from cloudbot.util.sequence import chunk_iter
+
 
 class Pager:
     """Multiline pager
@@ -16,16 +18,14 @@ class Pager:
         # Added here due to extensive use of threads throughout plugins
         self.lock = RLock()
         self.chunk_size = chunk_size
-        self.chunks = tuple(
-            lines[i:i + self.chunk_size]
-            for i in range(0, len(lines), self.chunk_size)
-        )
+        self.chunks = tuple(chunk_iter(lines, self.chunk_size))
         self.current_pos = 0
 
     def format_chunk(self, chunk, pagenum):
         chunk = list(chunk)
         if len(self.chunks) > 1:
             chunk[-1] += " (page {}/{})".format(pagenum + 1, len(self.chunks))
+
         return chunk
 
     def next(self):
@@ -35,6 +35,7 @@ class Pager:
 
             chunk = self[self.current_pos]
             self.current_pos += 1
+
         return chunk
 
     def get(self, index):
@@ -71,4 +72,5 @@ def paginated_list(data, delim=" \u2022 ", suffix='...', max_len=256, page_size=
     while lines:
         line = lines.pop(0)
         formatted_lines.append("{}{}".format(line, suffix if lines else ""))
+
     return Pager(formatted_lines, chunk_size=page_size)
