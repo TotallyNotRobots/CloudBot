@@ -5,18 +5,6 @@ from cloudbot.event import EventType
 from cloudbot import hook
 
 
-cheers = [
-    "FUCK YEAH!",
-    "HOORAH!",
-    "HURRAY!",
-    "OORAH!",
-    "YAY!",
-    "*\o/* CHEERS! *\o/*",
-    "HOOHAH!",
-    "HOOYAH!",
-    "HUAH!",
-    "♪  ┏(°.°)┛  ┗(°.°)┓ ♬"
-    ]
 db_ready = []
 
 
@@ -134,20 +122,3 @@ def test_badwords(event, db, conn, message):
             conn.send(out)
         else:
             pass
-
-
-
-
-cheer_re = re.compile('\\\\o\/', re.IGNORECASE)
-
-
-@hook.regex(cheer_re)
-def cheer(match, conn, nick, chan, message):
-    """
-    :type match: re.__Match
-    :type conn: cloudbot.client.Client
-    :type chan: str
-    """
-    if chan not in ["#yogscast"]:
-        shit = random.choice(cheers)
-        message(shit, chan)

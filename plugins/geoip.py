@@ -10,6 +10,7 @@ import geoip2.database
 import geoip2.errors
 
 from cloudbot import hook
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -52,6 +53,7 @@ def update_db():
         return geoip2.database.Reader(PATH)
 
 
+@asyncio.coroutine
 def check_db(loop):
     """
     runs update_db in an executor thread and sets geoip_reader to the result
@@ -68,7 +70,7 @@ def check_db(loop):
 @asyncio.coroutine
 @hook.on_start
 def load_geoip(loop):
-    asyncio.async(check_db(loop), loop=loop)
+    async_util.wrap_future(check_db(loop), loop=loop)
 
 
 @asyncio.coroutine

@@ -6,7 +6,8 @@ from _ssl import PROTOCOL_SSLv23
 from ssl import SSLContext
 
 from cloudbot.client import Client
-from cloudbot.event import Event, EventType
+from cloudbot.event import Event, EventType, IrcOutEvent
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -15,11 +16,15 @@ irc_noprefix_re = re.compile(r"([^ ]*) (.*)")
 irc_netmask_re = re.compile(r"([^!@]*)!([^@]*)@(.*)")
 irc_param_re = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)")
 
+irc_nick_re = re.compile(r'[A-Za-z0-9^{\}\[\]\-`_|\\]+')
+
 irc_bad_chars = ''.join([chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))])
 irc_clean_re = re.compile('[{}]'.format(re.escape(irc_bad_chars)))
 
+
 def irc_clean(dirty):
-    return irc_clean_re.sub('',dirty)
+    return irc_clean_re.sub('', dirty)
+
 
 irc_command_to_event_type = {
     "PRIVMSG": EventType.message,
@@ -218,12 +223,14 @@ class IrcClient(Client):
         :type line: str
         """
         logger.info("[{}] >> {}".format(self.name, line))
-        asyncio.async(self._protocol.send(line), loop=self.loop)
-
+        async_util.wrap_future(self._protocol.send(line), loop=self.loop)
 
     @property
     def connected(self):
         return self._connected
+
+    def is_nick_valid(self, nick):
+        return bool(irc_nick_re.fullmatch(nick))
 
 
 class _IrcProtocol(asyncio.Protocol):
@@ -272,14 +279,14 @@ class _IrcProtocol(asyncio.Protocol):
             # we've been closed intentionally, so don't reconnect
             return
         logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
-        asyncio.async(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.connect(), loop=self.loop)
 
     def eof_received(self):
         self._connected = False
         # create a new connected_future for when we are connected.
         self._connected_future = asyncio.Future(loop=self.loop)
         logger.info("[{}] EOF received.".format(self.conn.name))
-        asyncio.async(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.connect(), loop=self.loop)
         return True
 
     @asyncio.coroutine
@@ -287,9 +294,39 @@ class _IrcProtocol(asyncio.Protocol):
         # make sure we are connected before sending
         if not self._connected:
             yield from self._connected_future
-        line = line[:510] + "\r\n"
-        data = line.encode("utf-8", "replace")
-        self._transport.write(data)
+
+        old_line = line
+        filtered = bool(self.bot.plugin_manager.out_sieves)
+
+        for out_sieve in self.bot.plugin_manager.out_sieves:
+            event = IrcOutEvent(
+                bot=self.bot, hook=out_sieve, conn=self.conn, irc_raw=line
+            )
+
+            ok, new_line = yield from self.bot.plugin_manager.internal_launch(out_sieve, event)
+            if not ok:
+                logger.warning("Error occurred in outgoing sieve, falling back to old behavior")
+                logger.debug("Line was: %s", line)
+                filtered = False
+                break
+
+            line = new_line
+            if line is not None and not isinstance(line, bytes):
+                line = str(line)
+
+            if not line:
+                return
+
+        if not filtered:
+            # No outgoing sieves loaded or one of the sieves errored, fall back to old behavior
+            line = old_line[:510] + "\r\n"
+            line = line.encode("utf-8", "replace")
+
+        if not isinstance(line, bytes):
+            # the line must be encoded before we send it, one of the sieves didn't encode it, fall back to the default
+            line = line.encode("utf-8", "replace")
+
+        self._transport.write(line)
 
     def data_received(self, data):
         self._input_buffer += data
@@ -339,7 +376,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Reply to pings immediately
 
             if command == "PING":
-                asyncio.async(self.send("PONG " + command_params[-1]), loop=self.loop)
+                async_util.wrap_future(self.send("PONG " + command_params[-1]), loop=self.loop)
 
             # Parse the command and params
 
@@ -406,13 +443,4 @@ class _IrcProtocol(asyncio.Protocol):
                           irc_prefix=prefix, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text)
 
             # handle the message, async
-            asyncio.async(self.bot.process(event), loop=self.loop)
-
-# Channel Commands
-# NOTICE #chan :Text
-# PRIVMSG #chan :Text
-# KICK #chan nick :reason
-# JOIN #chan
-# PART #chan :reason
-# MODE #chan +<modes>
-# INVITE nick :#chan
+            async_util.wrap_future(self.bot.process(event), loop=self.loop)

@@ -1,5 +1,6 @@
 import asyncio
 import socket
+from copy import copy
 
 from cloudbot import hook
 
@@ -15,10 +16,19 @@ def invite(irc_paramlist, conn):
     :type conn: cloudbot.client.Client
     """
     invite_join = conn.config.get('invite_join', True)
+    chan = irc_paramlist[-1]
+    if chan.startswith(':'):
+        chan = chan[1:]
+
     if invite_join:
-        mode = "mode {}".format(irc_paramlist[-1])
-        conn.send(mode)
-        conn.join(irc_paramlist[-1])
+        conn.join(chan)
+
+
+@hook.irc_raw('JOIN')
+def on_join(chan, conn, nick):
+    if conn.nick.casefold() == nick.casefold():
+        conn.cmd("MODE", chan)
+
 
 @hook.irc_raw('324')
 def check_mode(irc_paramlist, conn, message):
@@ -29,7 +39,27 @@ def check_mode(irc_paramlist, conn, message):
         message("I do not stay in unregistered channels", irc_paramlist[1])
         out = "PART {}".format(irc_paramlist[1])
         conn.send(out)
-        
+
+
+@hook.irc_raw('MODE')
+def on_mode_change(conn, irc_paramlist, message):
+    require_reg = conn.config.get('require_registered_channels', False)
+    chan = irc_paramlist[0]
+    modes = irc_paramlist[1]
+    new_modes = {}
+    adding = True
+    for c in modes:
+        if c == '+':
+            adding = True
+        elif c == '-':
+            adding = False
+        else:
+            new_modes[c] = adding
+
+    if chan[0] == '#' and require_reg and not new_modes.get("r", True):
+        message("I do not stay in unregistered channels", chan)
+        conn.part(chan)
+
 
 # Identify to NickServ (or other service)
 @asyncio.coroutine
@@ -39,6 +69,7 @@ def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
+    chans = copy(conn.channels)
     bot.logger.info("[{}|misc] Bot is sending join commands for network.".format(conn.name))
     nickserv = conn.config.get('nickserv')
     if nickserv and nickserv.get("enabled", True):
@@ -73,13 +104,11 @@ def onjoin(conn, bot):
         conn.cmd('MODE', conn.nick, mode)
 
     # Join config-defined channels
+    join_throttle = conn.config.get('join_throttle', 0.4)
     bot.logger.info("[{}|misc] Bot is joining channels for network.".format(conn.name))
-    for channel in conn.channels:
+    for channel in chans:
         conn.join(channel)
-        yield from asyncio.sleep(0.4)
-        if conn.name == "snoonet":
-            mode = "mode {}".format(channel)
-            conn.send(mode)
+        yield from asyncio.sleep(join_throttle)
 
     conn.ready = True
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))

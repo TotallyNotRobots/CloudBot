@@ -73,24 +73,20 @@ def moremod(text, chan):
 @hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan):
     """This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
-    #This command was written using concepts from FurCode http://github.com/FurCode.
     global search_pages
     search_pages[chan] = []
     search_page_indexes[chan] = 0
     user = text
-    r = requests.get(user_url.format(user), headers=agent)
+    r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
-    soup = BeautifulSoup(r.text)
-    mod_list = soup.find('ul', id="side-mod-list")
-    if mod_list is None:
-        return "{} does not moderate any public subreddits.".format(user)
 
-    mod_list = mod_list.text.split('r/')
-    del mod_list[0]
+    data = r.json()
+    subs = data['data']
     out = colors.parse("$(b){}$(b) moderates these public subreddits: ".format(user))
-    for sub in mod_list:
-        out += "{} \u2022 ".format(sub)
+    for sub in subs:
+        out += "{} \u2022 ".format(sub['sr'])
+
     out = out[:-2]
     out = smart_truncate(out)
     if len(out.split('\n')) > 2:

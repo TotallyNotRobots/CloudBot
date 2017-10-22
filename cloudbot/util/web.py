@@ -32,6 +32,8 @@ SNOONET_PASTE = 'https://paste.snoonet.org'
 
 @asyncio.coroutine
 def pyeval(code, pastebin=True):
+    raise ValueError("The pyeval API has been removed")
+
     p = {'input': code}
     r = requests.post('http://pyeval.appspot.com/exec', data=p)
 
@@ -222,7 +224,7 @@ class Hastebin(Pastebin):
 @_pastebin('snoonet')
 class SnoonetPaste(Pastebin):
     def paste(self, data, ext):
-        
+
         params={
             'text':data,
             'expire':'1d'
