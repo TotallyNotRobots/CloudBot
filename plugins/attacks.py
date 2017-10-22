@@ -58,7 +58,7 @@ ATTACKS = (
         require_target=False
     ),
     BasicAttack("insult", "<user> - insults <user>", response=RespType.MESSAGE),
-    BasicAttack("present", "<user> - gives gift to <user>", action="give a gift to"),
+    BasicAttack("present", "<user> - gives gift to <user>", "present", "gift", action="give a gift to"),
 )
 
 
@@ -92,7 +92,7 @@ def basic_format(text, data, **kwargs):
         templates = data["templates"]
 
     generator = textgen.TextGenerator(
-        templates, data["parts"], variables=kwargs
+        templates, data.get("parts", {}), variables=kwargs
     )
 
     return generator.generate_string()
