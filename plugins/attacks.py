@@ -130,7 +130,7 @@ def slap(text, action, nick, conn, is_nick_valid):
 
 @asyncio.coroutine
 @hook.command
-def compliment(text, action, nick, conn, is_nick_valid):
+def compliment(text, nick, conn, is_nick_valid, message):
     """<user> -- Makes the bot compliment <user>."""
     target = text.strip()
 
@@ -147,7 +147,7 @@ def compliment(text, action, nick, conn, is_nick_valid):
     generator = textgen.TextGenerator(compliments["templates"], compliments["parts"], variables=variables)
 
     # act out the message
-    action(generator.generate_string())
+    message(generator.generate_string())
 
 
 @hook.command(autohelp=False)
