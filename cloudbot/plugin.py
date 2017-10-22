@@ -293,12 +293,6 @@ class PluginManager:
         """
         path = Path(path)
         file_path = path.resolve()
-        plugin_path = file_path.relative_to(self.bot.base_dir)
-
-        title = '.'.join(plugin_path.parts[1:]).rsplit('.', 1)[0]
-        if "disabled_plugins" in self.bot.config and title in self.bot.config['disabled_plugins']:
-            # this plugin hasn't been loaded, so no need to unload it
-            return False
 
         # make sure this plugin is actually loaded
         if str(file_path) not in self.plugins:
