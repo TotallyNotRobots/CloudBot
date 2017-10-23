@@ -16,9 +16,12 @@ def wrap_future(fut, *, loop=None):
     :return: The wrapped future
     """
     if sys.version_info < (3, 4, 4):
-        return asyncio.async(fut, loop=loop)
+        # This is to avoid a SyntaxError on 3.7.0a2+
+        func = getattr(asyncio, "async")
+    else:
+        func = asyncio.ensure_future
 
-    return asyncio.ensure_future(fut, loop=loop)
+    return func(fut, loop=loop)
 
 
 @asyncio.coroutine
