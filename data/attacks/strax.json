@@ -1,8 +1,8 @@
 {
-    "template": [
+    "templates": [
         "Might I suggest {type} {attack} with {preweapon} {postweapon} and {weapon}!"
     ],
-    "target_template": [
+    "target_templates": [
         "Might I suggest {type} {attack} on {user} with {preweapon} {postweapon} and {weapon}!"
     ],
     "parts": {

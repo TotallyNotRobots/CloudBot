@@ -1,6 +1,6 @@
 {
-    "templates": [
-        "{user} {phrase}."
+    "target_templates": [
+        "{user}, {phrase}."
     ],
     "parts": {
         "phrase": [

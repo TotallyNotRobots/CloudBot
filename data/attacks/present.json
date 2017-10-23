@@ -1,5 +1,5 @@
 {
-    "templates": [
+    "target_templates": [
         "hands {user} a {gift}"
     ],
     "parts": {
