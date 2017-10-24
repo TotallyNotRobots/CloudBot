@@ -6,9 +6,6 @@ A plugin that uses the CoinMarketCap JSON API to get values for cryptocurrencies
 Created By:
     - Luke Rogers <https://github.com/lukeroge>
 
-Special Thanks:
-    - https://coinmarketcap-nexuist.rhcloud.com/
-
 License:
     GPL v3
 """
@@ -19,7 +16,7 @@ import requests
 
 from cloudbot import hook
 
-API_URL = "https://coinmarketcap-nexuist.rhcloud.com/api/{}"
+API_URL = "https://api.coinmarketcap.com/v1/ticker/{}?convert={}"
 
 
 # aliases
@@ -27,21 +24,21 @@ API_URL = "https://coinmarketcap-nexuist.rhcloud.com/api/{}"
 def bitcoin(text):
     """ -- Returns current bitcoin value """
     # alias
-    return crypto_command(" ".join(["btc", text]))
+    return crypto_command(" ".join(["bitcoin", text]))
 
 
 @hook.command("litecoin", "ltc", autohelp=False)
 def litecoin(text):
     """ -- Returns current litecoin value """
     # alias
-    return crypto_command(" ".join(["ltc", text]))
+    return crypto_command(" ".join(["litecoin", text]))
 
 
 @hook.command("dogecoin", "doge", autohelp=False)
 def dogecoin(text):
     """ -- Returns current dogecoin value """
     # alias
-    return crypto_command(" ".join(["doge", text]))
+    return crypto_command(" ".join(["dogecoin", text]))
 
 
 # main command
@@ -53,12 +50,13 @@ def crypto_command(text):
 
     try:
         if not args:
-            currency = 'usd'
+            currency = 'USD'
         else:
-            currency = args.pop(0).lower()
+            currency = args.pop(0).upper()
 
-        encoded = quote_plus(ticker)
-        request = requests.get(API_URL.format(encoded))
+        encoded_ticker = quote_plus(ticker)
+        encoded_currency = quote_plus(currency)
+        request = requests.get(API_URL.format(encoded_ticker, encoded_currency))
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         return "Could not get value: {}".format(e)
@@ -68,13 +66,13 @@ def crypto_command(text):
     if "error" in data:
         return "{}.".format(data['error'])
 
-    updated_time = datetime.fromtimestamp(float(data['timestamp']))
+    updated_time = datetime.fromtimestamp(float(data[0]['last_updated']))
     if (datetime.today() - updated_time).days > 2:
         # the API retains data for old ticker names that are no longer updated
         # in these cases we just return a "not found" message
         return "Currency not found."
 
-    change = float(data['change'])
+    change = float(data[0]['percent_change_24h'])
     if change > 0:
         change_str = "\x033 {}%\x0f".format(change)
     elif change < 0:
@@ -82,16 +80,18 @@ def crypto_command(text):
     else:
         change_str = "{}%".format(change)
 
-    if currency == 'gbp':
+    if currency == 'GBP':
         currency_sign = '£'
-    elif currency == 'eur':
+    elif currency == 'EUR':
         currency_sign = '€'
-    else:
+    elif currency == 'USD':
         currency_sign = '$'
+    else:
+        currency_sign = ''
 
-    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'].upper(),
+    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data[0]['symbol'],
                                                                             currency_sign,
-                                                                            float(data['price'][currency]),
+                                                                            float(data[0]['price_'+currency.lower()]),
                                                                             currency.upper(),
-                                                                            float(data['price']['btc']),
+                                                                            float(data[0]['price_btc']),
                                                                             change_str)
