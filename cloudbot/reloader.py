@@ -16,13 +16,13 @@ class PluginReloader(object):
         self.observer = Observer()
         self.bot = bot
         self.reloading = set()
-        self.event_handler = PluginEventHandler(self, patterns=["*.py"])
+        self.event_handler = PluginEventHandler(self, patterns=["[!_]*.py"])
 
     def start(self, module_path):
         """Starts the plugin reloader
         :type module_path: str
         """
-        self.observer.schedule(self.event_handler, module_path, recursive=False)
+        self.observer.schedule(self.event_handler, module_path, recursive=True)
         self.observer.start()
 
     def stop(self):

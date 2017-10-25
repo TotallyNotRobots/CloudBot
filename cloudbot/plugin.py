@@ -1,20 +1,19 @@
 import asyncio
-import glob
 import importlib
 import inspect
 import logging
-import os
 import re
+import sys
+import time
 import warnings
 from collections import defaultdict
 from functools import partial
 from itertools import chain
 from operator import attrgetter
+from pathlib import Path
+from weakref import WeakValueDictionary
 
 import sqlalchemy
-import sys
-
-import time
 
 from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
@@ -92,6 +91,7 @@ class PluginManager:
         self.bot = bot
 
         self.plugins = {}
+        self._plugin_name_map = WeakValueDictionary()
         self.commands = {}
         self.raw_triggers = {}
         self.catch_all_triggers = []
@@ -105,6 +105,14 @@ class PluginManager:
         self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
+    def find_plugin(self, title):
+        """
+        Finds a loaded plugin and returns its Plugin object
+        :param title: the title of the plugin to find
+        :return: The Plugin object if it exists, otherwise None
+        """
+        return self._plugin_name_map.get(title)
+
     @asyncio.coroutine
     def load_all(self, plugin_dir):
         """
@@ -114,7 +122,10 @@ class PluginManager:
 
         :type plugin_dir: str
         """
-        path_list = glob.iglob(os.path.join(plugin_dir, '*.py'))
+        plugin_dir = Path(plugin_dir)
+        # Load all .py files in the plugins directory and any subdirectory
+        # But ignore files starting with _
+        path_list = plugin_dir.rglob("[!_]*.py")
         # Load plugins asynchronously :O
         yield from asyncio.gather(*[self.load_plugin(path) for path in path_list], loop=self.bot.loop)
 
@@ -131,27 +142,30 @@ class PluginManager:
 
         Won't load any plugins listed in "disabled_plugins".
 
-        :type path: str
+        :type path: str | Path
         """
 
-        file_path = os.path.abspath(path)
-        file_name = os.path.basename(path)
-        title = os.path.splitext(file_name)[0]
+        path = Path(path)
+        file_path = path.resolve()
+        file_name = file_path.name
+        # Resolve the path relative to the current directory
+        plugin_path = file_path.relative_to(self.bot.base_dir)
+        title = '.'.join(plugin_path.parts[1:]).rsplit('.', 1)[0]
 
         if "plugin_loading" in self.bot.config:
             pl = self.bot.config.get("plugin_loading")
 
             if pl.get("use_whitelist", False):
                 if title not in pl.get("whitelist", []):
-                    logger.info('Not loading plugin module "{}": plugin not whitelisted'.format(file_name))
+                    logger.info('Not loading plugin module "{}": plugin not whitelisted'.format(title))
                     return
             else:
                 if title in pl.get("blacklist", []):
-                    logger.info('Not loading plugin module "{}": plugin blacklisted'.format(file_name))
+                    logger.info('Not loading plugin module "{}": plugin blacklisted'.format(title))
                     return
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
-        if file_name in self.plugins:
+        if file_path in self.plugins:
             yield from self.unload_plugin(file_path)
 
         module_name = "plugins.{}".format(title)
@@ -161,11 +175,11 @@ class PluginManager:
             if hasattr(plugin_module, "_cloudbot_loaded"):
                 importlib.reload(plugin_module)
         except Exception:
-            logger.exception("Error loading {}:".format(file_name))
+            logger.exception("Error loading {}:".format(title))
             return
 
         # create the plugin
-        plugin = Plugin(file_path, file_name, title, plugin_module)
+        plugin = Plugin(str(file_path), file_name, title, plugin_module)
 
         # proceed to register hooks
 
@@ -182,7 +196,8 @@ class PluginManager:
                 plugin.unregister_tables(self.bot)
                 return
 
-        self.plugins[plugin.file_name] = plugin
+        self.plugins[plugin.file_path] = plugin
+        self._plugin_name_map[plugin.title] = plugin
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             for cap in on_cap_available_hook.caps:
@@ -284,21 +299,18 @@ class PluginManager:
 
         Returns True if the plugin was unloaded, False if the plugin wasn't loaded in the first place.
 
-        :type path: str
+        :type path: str | Path
         :rtype: bool
         """
-        file_name = os.path.basename(path)
-        title = os.path.splitext(file_name)[0]
-        if "disabled_plugins" in self.bot.config and title in self.bot.config['disabled_plugins']:
-            # this plugin hasn't been loaded, so no need to unload it
-            return False
+        path = Path(path)
+        file_path = path.resolve()
 
         # make sure this plugin is actually loaded
-        if not file_name in self.plugins:
+        if str(file_path) not in self.plugins:
             return False
 
         # get the loaded plugin
-        plugin = self.plugins[file_name]
+        plugin = self.plugins[str(file_path)]
 
         for task in plugin.tasks:
             task.cancel()
@@ -377,10 +389,10 @@ class PluginManager:
         plugin.unregister_tables(self.bot)
 
         # remove last reference to plugin
-        del self.plugins[plugin.file_name]
+        del self.plugins[plugin.file_path]
 
         if self.bot.config.get("logging", {}).get("show_plugin_loading", True):
-            logger.info("Unloaded all plugins from {}.py".format(plugin.title))
+            logger.info("Unloaded all plugins from {}".format(plugin.title))
 
         return True
 
@@ -609,6 +621,8 @@ class Plugin:
         # we need to find tables for each plugin so that they can be unloaded from the global metadata when the
         # plugin is reloaded
         self.tables = find_tables(code)
+        # Keep a reference to this in case another plugin needs to access it
+        self.code = code
 
     @asyncio.coroutine
     def create_tables(self, bot):

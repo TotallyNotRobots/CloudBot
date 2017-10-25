@@ -1,7 +1,6 @@
 import re
 import time
 from cloudbot import hook
-from plugins import grab
 
 import random
 
@@ -62,7 +61,7 @@ def deleteherald(text, chan, db, conn):
         return "{} does not have a herald".format(text.lower())
 
 @hook.irc_raw("JOIN", singlethread=True)
-def welcome(nick, action, message, chan, event, db, conn):
+def welcome(nick, message, event, db, bot):
     # For some reason chan isn't passed correctly. The below hack is sloppy and may need to be adjusted for different networks.
     # If someone knows how to get the channel a better way please fix this.
     # freenode uncomment then next line
@@ -72,6 +71,8 @@ def welcome(nick, action, message, chan, event, db, conn):
     colors_re = re.compile("\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
     bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
     offensive_re = re.compile('卐')
+
+    grab = bot.plugin_manager.find_plugin("grab")
 
     try:
         chan = event.irc_raw.split(':')[2].lower()
@@ -97,7 +98,11 @@ def welcome(nick, action, message, chan, event, db, conn):
             if len(greet.split(' ')) >= 2:
                 candidates = greet.lower().split(' ')[1:]
                 text = random.choice(candidates)
-            out = grab.grabrandom(text, chan, message)
+            if grab is not None:
+                out = grab.code.grabrandom(text, chan, message)
+            else:
+                out = "grab.py not loaded, original herald: {}".format(greet)
+
             message(out, chan)
         elif decoy.search(colors_re.sub("", greet.replace('\u200b', '').replace(' ', '').replace('\u202f','').replace('\x02', ''))):
             message("DECOY DUCK --> {}".format(greet), chan)
