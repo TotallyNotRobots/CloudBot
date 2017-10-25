@@ -8,9 +8,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from cloudbot import hook
 from cloudbot.util import database
+from cloudbot.util.pager import paginated_list
 
-search_pages = defaultdict(list)
-search_page_indexes = {}
+search_pages = defaultdict(dict)
 
 table = Table(
     'grab',
@@ -43,42 +43,28 @@ def load_cache(db):
             grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
 
 
-def two_lines(bigstring, chan):
-    """Receives a string with new lines. Groups the string into a list of strings with up to 3 new lines per string element. Returns first string element then stores the remaining list in search_pages."""
-    global search_pages
-    temp = bigstring.split('\n')
-    for i in range(0, len(temp), 2):
-        search_pages[chan].append('\n'.join(temp[i:i+2]))
-    search_page_indexes[chan] = 0
-    return search_pages[chan][0]
-
-
-def smart_truncate(content, length=355, suffix='...\n'):
-    if len(content) <= length:
-        return content
-    else:
-        return content[:length].rsplit(' \u2022 ', 1)[0]+ suffix + content[:length].rsplit(' \u2022 ', 1)[1] + smart_truncate(content[length:])
-
-
 @hook.command("moregrab", autohelp=False)
-def moregrab(text, chan):
+def moregrab(text, chan, conn):
     """if a grab search has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
-    if not search_pages[chan]:
-        return "There are grabsearch pages to show."
+    pages = search_pages[conn.name].get(chan)
+    if not pages:
+        return "There are no grabsearch pages to show."
+
     if text:
-        index = ""
         try:
             index = int(text)
         except ValueError:
             return "Please specify an integer value."
-        if abs(int(index)) > len(search_pages[chan]) or index == 0:
-            return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
+
+        page = pages[index - 1]
+        if page is None:
+            return "Please specify a valid page number between 1 and {}.".format(len(pages))
         else:
-            return "{}(page {}/{})".format(search_pages[chan][index-1], index, len(search_pages[chan]))
+            return page
     else:
-        search_page_indexes[chan] += 1
-        if search_page_indexes[chan] < len(search_pages[chan]):
-            return "{}(page {}/{})".format(search_pages[chan][search_page_indexes[chan]], search_page_indexes[chan] + 1, len(search_pages[chan]))
+        page = pages.next()
+        if page is not None:
+            return page
         else:
             return "All pages have been shown you can specify a page number or do a new search."
 
@@ -160,7 +146,7 @@ def lastgrab(text, chan, message):
         return "<{}> has never been grabbed.".format(text)
     if lgrab:
         quote = lgrab
-        message(format_grab(text, quote),chan)
+        message(format_grab(text, quote), chan)
 
 
 @hook.command("grabrandom", "grabr", autohelp=False)
@@ -190,12 +176,9 @@ def grabrandom(text, chan, message):
 
 
 @hook.command("grabsearch", "grabs", autohelp=False)
-def grabsearch(text, chan):
+def grabsearch(text, chan, conn):
     """.grabsearch <text> matches "text" against nicks or grab strings in the database"""
-    out = ""
     result = []
-    search_pages[chan] = []
-    search_page_indexes[chan] = 0
     try:
         quotes = grab_cache[chan][text.lower()]
         for grab in quotes:
@@ -208,17 +191,17 @@ def grabsearch(text, chan):
                 if text.lower() in grab.lower():
                     result.append((name, grab))
     if result:
-        for grab in result:
-            name = grab[0]
+        grabs = []
+        for name, quote in result:
             if text.lower() == name:
                 name = text
-            quote = grab[1]
-            out += "{} {} ".format(format_grab(name, quote), u'\u2022')
-        out = smart_truncate(out)
-        out = out[:-2]
-        out = two_lines(out, chan)
-        if len(search_pages[chan]) > 1:
-            return "{}(page {}/{}) .moregrab".format(out, search_page_indexes[chan] + 1, len(search_pages[chan]))
-        return out
+            grabs.append(format_grab(name, quote))
+        pager = paginated_list(grabs)
+        search_pages[conn.name][chan] = pager
+        page = pager.next()
+        if len(page) > 1:
+            page[-1] += " .moregrab"
+
+        return page
     else:
         return "I couldn't find any matches for {}.".format(text)
