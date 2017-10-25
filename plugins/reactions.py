@@ -1,51 +1,63 @@
-#DWI for the fucking lUsers in my channel, by IlGnome
-
+import codecs
+import json
+import asyncio
+import os
 
 import random
 from cloudbot import hook
 
 
 
-DWImacros =['https://i.imgur.com/WhgY2sX.gif',
-			      'https://i.imgur.com/eGInc.jpg',
-			      'https://i.imgur.com/KA3XSt5.gif',
-			      'https://i.imgur.com/rsuXB69.gif',
-			      'https://i.imgur.com/fFXmuSS.jpg',
-			      'https://j.gifs.com/L9mmYr.gif',
-			      'https://i.imgur.com/nxMBqb4.gif']
-
-DWIphrases = [	
-				'Stop complaining, \x02{}\x02, and',
-				'Jesus fuck \x02{}\x02, just',
-				'Looks like \x02{}\x02 needs to',
-				'Ever think that \x02{}\x02 just needs to'
-				
-
-				]
 
 
-Facepalmacros = ['https://i.imgur.com/iWKad22r.jpg',
-                 'https://i.imgur.com/3Jauxrw.jpg',
-                 'https://i.imgur.com/kFyKOgj.gif',
-                 'https://i.imgur.com/5JaFlhU.jpg?1',
-                 'https://i.imgur.com/qbnNXWy.gif',
-                 'https://i.imgur.com/h46ycmx.png',
-                 'https://i.imgur.com/gPNQzaf.jpg',
-                 'https://i.imgur.com/9I8A9C5.jpg']
+DWIphrases = [    
+               'Stop complaining, \x02{}\x02, and',
+               'Jesus fuck \x02{}\x02, just',
+               'Looks like \x02{}\x02 needs to',
+               'Ever think that \x02{}\x02 just needs to'
+    
+
+    ]
+
+@hook.on_start()
+def load_macros(bot):
+    global reactionmacros
+    with codecs.open(os.path.join(bot.data_dir,"reactionmacros.json"), encoding = "utf-8") as macros:
+        reactionmacros = json.load(macros)
+
 
 
 @hook.command('dwi','dealwithit')
 
 def DWI(text, message):
-	'''Tell some one in the channel to deal with it. File located in dwi.py'''
-	PersonNeedsToDeal = text.strip()
+    '''Tell some one in the channel to deal with it. File located in reactions.py'''
+    PersonNeedsToDeal = text.strip()
 
-	message('{} {}'.format(random.choice(DWIphrases).format(PersonNeedsToDeal), random.choice(DWImacros)))
+    message('{} {}'.format(random.choice(DWIphrases).format(PersonNeedsToDeal), random.choice(reactionmacros['DWImacros'])))
+
+
+
 
 @hook.command('fp','facepalm')
 
 def FP(text,message):
-	''' Expresses your frustration with another user. File located in dwi.py'''
-	FacePalmer = text.strip()
+    ''' Expresses your frustration with another user. File located in reactions.py'''
+    FacePalmer = text.strip()
 
-	message('Dammit {} {}'.format(FacePalmer, random.choice(Facepalmacros)))    
+    message('Dammit {} {}'.format(FacePalmer, random.choice(reactionmacros['Facepalmmacros'])))
+
+@hook.command('hd', 'headdesk')
+
+def HD(nick, message):
+    ''' Hit your head against the desk becausae of a user. Code located in reactions.py'''
+    idiot = nick.strip()
+
+    message('{} {}'.format(idiot, random.choice(reactionmacros['HeadDeskMacros'])))
+
+@hook.command('fetish', 'tmf')
+
+def Fetish(nick, message):
+    ''' Did some one just mention what your fetish was? Let them know! Code located in reactions.py'''
+    PersonToShareFetishWith = nick.strip()
+
+    message('{} {}'.format(PersonToShareFetishWith, random.choice(reactionmacros['Fetishmacros'])))
