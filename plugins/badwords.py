@@ -1,29 +1,27 @@
 import re
 import random
 
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+
 from cloudbot.event import EventType
 from cloudbot import hook
+from cloudbot.util import database
 
-
-db_ready = []
-
-
-def db_init(db, conn_name):
-    """Make sure that the badwords table exists. Connection name is for caching the result per connection."""
-    global db_ready
-    if db_ready.count(conn_name) < 1:
-        db.execute(
-            "create table if not exists badwords(word, nick, chan, PRIMARY KEY(word, chan))")
-        db.commit()
-        db_ready.append(conn_name)
+table = Table(
+    'badwords',
+    database.metadata,
+    Column('word', String),
+    Column('nick', String),
+    Column('chan', String),
+    PrimaryKeyConstraint('word', 'chan')
+)
 
 
 @hook.on_start()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
-def load_bad(db, conn):
+def load_bad(db):
     """Should run on start of bot to load the existing words into the regex"""
     global badword_re, blacklist, black_re
-    db_init(db, conn)
     words = db.execute("select word from badwords").fetchall()
     out = ""
     for word in words:
@@ -37,7 +35,6 @@ def load_bad(db, conn):
 def add_bad(text, nick, db, conn):
     """adds a bad word to the auto kick list must specify a channel with each word"""
     global blacklist, black_re, blacklist
-    db_init(db, conn.name)
     word = text.split(' ')[0].lower()
     channel = text.split(' ')[1].lower()
     if not channel.startswith('#'):
@@ -66,10 +63,9 @@ def add_bad(text, nick, db, conn):
 
 
 @hook.command("rmbad", "delbad", permissions=["badwords"], autohelp=False)
-def del_bad(text, nick, db, conn):
+def del_bad(text, db, conn):
     """removes the specified word from the specified channels bad word list"""
     global blacklist, black_re, blacklist
-    db_init(db, conn.name)
     word = text.split(' ')[0].lower()
     if not (text.split(' ')[1] or text.split(' ')[1]('#')):
         return "please specify a valid channel name"
@@ -87,9 +83,8 @@ def del_bad(text, nick, db, conn):
 
 
 @hook.command("listbad", permissions=["badwords"], autohelp=False)
-def list_bad(text, db, conn):
+def list_bad(text, db):
     """Returns a list of bad words specify a channel to see words for a particular channel"""
-    db_init(db, conn)
     text = text.split(' ')[0].lower()
     out = ""
     if not text.startswith('#'):

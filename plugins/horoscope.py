@@ -2,14 +2,17 @@
 
 import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import Table, String, Column
 
 from cloudbot import hook
+from cloudbot.util import database
 
-
-@hook.on_start()
-def init(db):
-    db.execute("create table if not exists horoscope(nick primary key, sign)")
-    db.commit()
+table = Table(
+    'horoscope',
+    database.metadata,
+    Column('nick', String, primary_key=True),
+    Column('sign', String)
+)
 
 
 @hook.command(autohelp=False)
@@ -38,8 +41,6 @@ def horoscope(text, db, bot, notice, nick):
         sign = text[:-9].strip().lower()
     else:
         sign = text.strip().lower()
-
-    db.execute("create table if not exists horoscope(nick primary key, sign)")
 
     if not sign:
         sign = db.execute("select sign from horoscope where "

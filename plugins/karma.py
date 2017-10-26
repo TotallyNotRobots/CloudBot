@@ -2,29 +2,30 @@ import re
 import operator
 
 from collections import defaultdict
+
+from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint
+
 from cloudbot import hook
+from cloudbot.util import database
 
 karmaplus_re = re.compile('^.*\+\+$')
 karmaminus_re = re.compile('^.*\-\-$')
-db_ready = []
 
-
-def db_init(db, conn_name):
-    """Check to see if the DB has the herald table. Connection name is for caching the result per connection.
-    :type db: sqlalchemy.orm.Session
-    """
-    global db_ready
-    if db_ready.count(conn_name) < 1:
-        db.execute("create table if not exists karma(name, chan, thing, score INTEGER, primary key(name, chan, thing))")
-        db.commit()
-        db_ready.append(conn_name)
+karma_table = Table(
+    'karma',
+    database.metadata,
+    Column('name', String),
+    Column('chan', String),
+    Column('thing', String),
+    Column('score', Integer),
+    PrimaryKeyConstraint('name', 'chan', 'thing')
+)
 
 
 @hook.command("pp", "addpoint")
 def addpoint(text, nick, chan, db, conn):
     """<thing> - adds a point to the <thing>"""
     text = text.strip()
-    db_init(db, conn.name)
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
@@ -53,7 +54,6 @@ def re_addpt(match, nick, chan, db, conn, notice):
 def rmpoint(text, nick, chan, db, conn):
     """<thing> - subtracts a point from the <thing>"""
     text = text.strip()
-    db_init(db, conn.name)
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
@@ -70,7 +70,6 @@ def rmpoint(text, nick, chan, db, conn):
 @hook.command("pluspts", autohelp=False)
 def pluspts(nick, chan, db, conn):
     """- prints the things you have liked and their scores"""
-    db_init(db, conn.name)
     output = ""
     likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc", {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
@@ -81,7 +80,6 @@ def pluspts(nick, chan, db, conn):
 @hook.command("minuspts", autohelp=False)
 def minuspts(nick, chan, db, conn):
     """- prints the things you have disliked and their scores"""
-    db_init(db, conn.name)
     output = ""
     likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score", {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
@@ -103,7 +101,6 @@ def re_rmpt(match, nick, chan, db, conn, notice):
 @hook.command("points", autohelp=False)
 def points(text, chan, db, conn):
     """<thing> - will print the total points for <thing> in the channel."""
-    db_init(db, conn.name)
     score = 0
     karma = ""
     thing = ""
@@ -132,7 +129,6 @@ def points(text, chan, db, conn):
 @hook.command("topten", "pointstop", "loved", autohelp=False)
 def pointstop(text, chan, db, message, conn, notice):
     """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
-    db_init(db, conn.name)
     scores = []
     points = defaultdict(int)
     items = ""
@@ -163,7 +159,6 @@ def pointstop(text, chan, db, message, conn, notice):
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
 def pointsbottom(text, chan, db, message, conn, notice):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
-    db_init(db, conn.name)
     scores = []
     points = defaultdict(int)
     items = ""
