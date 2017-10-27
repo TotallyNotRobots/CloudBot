@@ -172,17 +172,16 @@ def dump_dict(data, indent=2, level=0, _objects=None):
 
 
 @hook.permission("chanop")
-def perm_check(bot, event, _hook):
-    chan = event.chan
+def perm_check(chan, conn, nick):
     if not chan:
         return False
 
-    chans = event.conn.memory["chan_data"]
+    chans = conn.memory["chan_data"]
     if chan not in chans:
         return False
 
     chan_data = chans[chan]
-    nick_cf = event.nick.casefold()
+    nick_cf = nick.casefold()
     if nick_cf not in chan_data["users"]:
         return False
 
