@@ -74,7 +74,11 @@ def optout_sieve(bot, event, _hook):
         optouts = optout_cache[event.conn.name]
         for _optout in optouts:
             if _optout.match(event.chan, hook_name):
-                return event if _optout.allow else None
+                if not _optout.allow:
+                    if _hook.type == "command":
+                        event.notice("Sorry, that command is disabled in this channel.")
+                    return None
+                return event
 
     return event
 
