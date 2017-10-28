@@ -61,6 +61,8 @@ ATTACKS = (
     BasicAttack("present", "<user> - gives gift to <user>", "present", "gift", action="give a gift to"),
     BasicAttack("spank", "<user> - Spanks <user>"),
     BasicAttack("bdsm", "<user> - Just a little bit of kinky fun.", "bdsm", "dominate"),
+    BasicAttack("clinton", "<user> - Clinton a <user>"),
+    BasicAttack("trump", "<user> - Trump a <user>"),
 )
 
 
