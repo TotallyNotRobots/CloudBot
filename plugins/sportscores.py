@@ -24,7 +24,7 @@ def morescore(text, chan, conn):
 
         page = pages[index - 1]
         if page is None:
-            return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
+            return "please specify a valid page number between 1 and {}.".format(len(pages))
         else:
             return page
     else:
