@@ -68,6 +68,7 @@ ATTACKS = (
     BasicAttack("lurve", "<user> - lurves <user>", "lurve", "luff", "luv", response=RespType.MESSAGE),
     BasicAttack("hug", "<user> - hugs <user>", response=RespType.MESSAGE),
     BasicAttack("highfive", "<user> - highfives <user>", "high5", "hi5", "highfive", response=RespType.MESSAGE),
+    BasicAttack("fight", "<user> - fights <user>", "fight", "fite", "spar", "challenge", response=RespType.MESSAGE),
 )
 
 
