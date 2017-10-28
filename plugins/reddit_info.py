@@ -70,7 +70,7 @@ def moderates(text, chan, conn):
     pager = paginated_list([sub['sr'] for sub in subs])
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
-    if len(page) > 1:
+    if len(pager) > 1:
         page[-1] += " .moremod"
 
     page[0] = out + page[0]
@@ -161,7 +161,7 @@ def submods(text, chan, conn):
     pager = paginated_list(moderators)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
-    if len(page) > 1:
+    if len(pager) > 1:
         page[-1] += " .moremod"
 
     out = colors.parse("/r/$(b){}$(b) mods: ".format(sub))

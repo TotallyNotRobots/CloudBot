@@ -114,7 +114,7 @@ def profile(text, chan, notice, nick):
         cat_pages[chan_cf][nick_cf] = pager
         page = pager.next()
         page[0] = "Categories: {}".format(page[0])
-        if len(page) > 1:
+        if len(pager) > 1:
             page[-1] += " .moreprofile"
 
         for line in page:
