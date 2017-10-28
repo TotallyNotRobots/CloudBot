@@ -37,6 +37,7 @@ BASIC_FOOD = (
     BasicFood("cereal", "cereal", "cereal.json", "cereal"),
     BasicFood("sushi", "sushi", "sushi.json", "sushi"),
     BasicFood("steak", "steak", "steak.json", "a nice steak dinner"),
+    BasicFood("burger", ["hamburger", "cheeseburger", "burger"], "burger.json", "a tasty burger"),
     BasicFood("milkshake", "milkshake", "milkshake.json", "a milkshake"),
     BasicFood("kebab", "kebab", "kebab.json", "a kebab"),
     BasicFood("cake", "cake", "cake.json", "a cake"),
