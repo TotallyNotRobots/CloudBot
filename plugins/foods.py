@@ -96,12 +96,6 @@ def basic_format(text, nick, data, **kwargs):
     return generator.generate_string()
 
 
-def make_cmd_list(value):
-    if isinstance(value, str):
-        value = [value]
-    return value
-
-
 def basic_food(food):
     def func(text, nick, action, is_nick_valid):
         if not is_nick_valid(text):
