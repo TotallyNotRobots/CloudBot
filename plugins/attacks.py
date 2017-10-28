@@ -59,6 +59,8 @@ ATTACKS = (
     ),
     BasicAttack("insult", "<user> - insults <user>", response=RespType.MESSAGE),
     BasicAttack("present", "<user> - gives gift to <user>", "present", "gift", action="give a gift to"),
+    BasicAttack("spank", "<user> - Spanks <user>"),
+    BasicAttack("bdsm", "<user> - Just a little bit of kinky fun.", "bdsm", "dominate"),
 )
 
 
