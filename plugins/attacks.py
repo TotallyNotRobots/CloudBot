@@ -63,6 +63,8 @@ ATTACKS = (
     BasicAttack("bdsm", "<user> - Just a little bit of kinky fun.", "bdsm", "dominate"),
     BasicAttack("clinton", "<user> - Clinton a <user>"),
     BasicAttack("trump", "<user> - Trump a <user>"),
+    BasicAttack("glomp", "<user> - glomps <user>"),
+    BasicAttack("bite", "<user> - bites <user>"),
 )
 
 
