@@ -65,6 +65,7 @@ ATTACKS = (
     BasicAttack("trump", "<user> - Trump a <user>"),
     BasicAttack("glomp", "<user> - glomps <user>"),
     BasicAttack("bite", "<user> - bites <user>"),
+    BasicAttack("lurve", "<user> - lurves <user>", "lurve", "luff", "luv", response=RespType.MESSAGE),
 )
 
 
@@ -85,9 +86,11 @@ def load_attacks(bot):
         load_data(data_dir / data_file.file, attack_data[data_file.name])
 
 
-def basic_format(text, data, **kwargs):
+def basic_format(nick, text, data, **kwargs):
     user = text
     kwargs['user'] = user
+    kwargs['target'] = user
+    kwargs['nick'] = nick
 
     if text:
         try:
@@ -120,7 +123,7 @@ def basic_attack(attack):
             if is_self(conn, target):
                 target = nick
 
-        out = basic_format(target, attack_data[attack.name])
+        out = basic_format(nick, target, attack_data[attack.name])
 
         responses[attack.response](out)
 
