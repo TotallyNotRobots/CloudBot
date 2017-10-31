@@ -239,7 +239,7 @@ def check_global_perms(event):
 @asyncio.coroutine
 @hook.command("listoptout", autohelp=False)
 def list_optout(conn, event, async_call):
-    """[channel] - View the global optout data for <channel> or the current channel if not specified
+    """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to view all data for this network
     :type conn: cloudbot.clients.irc.Client
     :type chan: str
     :type text: str
@@ -256,7 +256,7 @@ def list_optout(conn, event, async_call):
 @asyncio.coroutine
 @hook.command("clearoptout", autohelp=False)
 def clear(conn, event, db, async_call):
-    """[channel] - Clears the optout list for a channel"""
+    """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = yield from check_global_perms(event)
 
     count = yield from async_call(clear_optout, db, conn.name, chan)
