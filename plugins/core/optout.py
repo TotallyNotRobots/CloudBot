@@ -2,6 +2,7 @@
 Bot wide hook opt-out for channels
 """
 import asyncio
+import copy
 from collections import defaultdict
 from fnmatch import fnmatch
 from functools import total_ordering
@@ -48,8 +49,14 @@ class OptOut:
     def __str__(self):
         return "{} {} {}".format(self.channel, self.hook, self.allow)
 
+    def __repr__(self):
+        return "{}({}, {}, {})".format(self.__class__.__name__, self.channel, self.hook, self.allow)
+
     def match(self, channel, hook_name):
-        return fnmatch(channel.casefold(), self.channel) and fnmatch(hook_name.casefold(), self.hook)
+        return self.match_chan(channel) and fnmatch(hook_name.casefold(), self.hook)
+
+    def match_chan(self, channel):
+        return fnmatch(channel.casefold(), self.channel)
 
 
 @hook.onload
@@ -110,6 +117,21 @@ def set_optout(db, conn, chan, pattern, allowed):
     load_cache(db)
 
 
+def clear_optout(db, conn, chan=None):
+    conn_cf = conn.casefold()
+    if chan:
+        chan_cf = chan.casefold()
+        clause = and_(optout_table.c.network == conn_cf, optout_table.c.chan == chan_cf)
+    else:
+        clause = optout_table.c.network == conn_cf
+
+    res = db.execute(optout_table.delete().where(clause))
+    db.commit()
+    load_cache(db)
+
+    return res.rowcount
+
+
 @asyncio.coroutine
 @hook.command
 def optout(text, event, db, conn):
@@ -155,10 +177,110 @@ def optout(text, event, db, conn):
     )
 
 
-@hook.command("dumpoptout", permissions=["botcontrol"], autohelp=False)
+@hook.command("dumpoptout", permissions=["botcontrol", "snoonetstaff"], autohelp=False)
 def dump_optout(conn):
     """- Dump the optout table to a pastebin"""
     with cache_lock:
-        out = '\n'.join(map(str, optout_cache[conn.name]))
+        opts = copy.copy(optout_cache[conn.name])
 
-    return web.paste(out)
+    return web.paste(format_optout_list(opts), "markdown", "snoonet")
+
+
+def get_channel_optouts(conn_name, chan):
+    with cache_lock:
+        return [opt for opt in optout_cache[conn_name] if opt.match_chan(chan)]
+
+
+def gen_markdown_table(headers, rows):
+    rows = copy.copy(rows)
+    rows.insert(0, headers)
+    rotated = zip(*reversed(rows))
+
+    sizes = tuple(map(lambda l: max(map(len, l)), rotated))
+    rows.insert(1, tuple(('-' * size) for size in sizes))
+    lines = [
+        "| {} |".format(' | '.join(cell.ljust(sizes[i]) for i, cell in enumerate(row)))
+        for row in rows
+    ]
+    return '\n'.join(lines)
+
+
+def format_optout_list(opts):
+    headers = ("Channel Pattern", "Hook Pattern", "Allowed")
+    table = [(opt.channel, opt.hook, "true" if opt.allow else "false") for opt in opts]
+    return gen_markdown_table(headers, table)
+
+
+@asyncio.coroutine
+@hook.command("listoptout", autohelp=False)
+def list_optout(conn, chan, text, event, async_call):
+    """[channel] - View the global optout data for <channel> or the current channel if not specified
+    :type conn: cloudbot.clients.irc.Client
+    :type chan: str
+    :type text: str
+    :type event: cloudbot.event.Event
+    """
+    if text:
+        chan = text.split()[0]
+
+    old_chan = event.chan
+
+    event.chan = chan
+    allowed = False
+    for perm in ("chanop", "op", "snoonetstaff", "botcontrol"):
+        if (yield from event.check_permission(perm)):
+            allowed = True
+            break
+
+    event.chan = old_chan
+
+    if not allowed:
+        event.notice("Sorry, you are not allowed to use this command.")
+        return
+
+    opts = yield from async_call(get_channel_optouts, conn.name, chan)
+    table = yield from async_call(format_optout_list, opts)
+
+    return web.paste(table, "markdown", "snoonet")
+
+
+@asyncio.coroutine
+@hook.command("clearoptout", autohelp=False)
+def clear(conn, chan, text, event, db, async_call):
+    """[channel] - Clears the optout list for a channel"""
+    if text:
+        chan = text.split()[0]
+
+    old_chan = event.chan
+
+    event.chan = chan
+    allowed = False
+    can_global = False
+    for perm in ("snoonetstaff", "botcontrol"):
+        if (yield from event.check_permission(perm)):
+            allowed = True
+            can_global = True
+            break
+
+    if not allowed:
+        for perm in ("chanop", "op"):
+            if (yield from event.check_permission(perm)):
+                allowed = True
+                break
+
+    event.chan = old_chan
+
+    if not allowed:
+        event.notice("Sorry, you are not allowed to use this command.")
+        return
+
+    if chan.lower() == "global":
+        if not can_global:
+            event.notice("You do not have permission to clear global opt outs")
+            return
+
+        count = yield from async_call(clear_optout, db, conn.name)
+    else:
+        count = yield from async_call(clear_optout, db, conn.name, chan)
+
+    return "Cleared {} opt outs from the list.".format(count)
