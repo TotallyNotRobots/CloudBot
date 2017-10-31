@@ -214,14 +214,9 @@ def optout(text, event, chan, db, conn):
 
 
 @asyncio.coroutine
-@hook.command("listoptout", autohelp=False)
-def list_optout(conn, chan, text, event, async_call):
-    """[channel] - View the global optout data for <channel> or the current channel if not specified
-    :type conn: cloudbot.clients.irc.Client
-    :type chan: str
-    :type text: str
-    :type event: cloudbot.event.Event
-    """
+def check_global_perms(event):
+    chan = event.chan
+    text = event.text
     if text:
         chan = text.split()[0]
 
@@ -230,7 +225,6 @@ def list_optout(conn, chan, text, event, async_call):
 
     if not allowed:
         event.notice("Sorry, you are not allowed to use this command.")
-        return
 
     if chan.lower() == "global":
         if not can_global:
@@ -238,6 +232,20 @@ def list_optout(conn, chan, text, event, async_call):
             return
 
         chan = None
+
+    return chan, allowed
+
+
+@asyncio.coroutine
+@hook.command("listoptout", autohelp=False)
+def list_optout(conn, event, async_call):
+    """[channel] - View the global optout data for <channel> or the current channel if not specified
+    :type conn: cloudbot.clients.irc.Client
+    :type chan: str
+    :type text: str
+    :type event: cloudbot.event.CommandEvent
+    """
+    chan, allowed = yield from check_global_perms(event)
 
     opts = yield from async_call(get_channel_optouts, conn.name, chan)
     table = yield from async_call(format_optout_list, opts)
@@ -247,24 +255,9 @@ def list_optout(conn, chan, text, event, async_call):
 
 @asyncio.coroutine
 @hook.command("clearoptout", autohelp=False)
-def clear(conn, chan, text, event, db, async_call):
+def clear(conn, event, db, async_call):
     """[channel] - Clears the optout list for a channel"""
-    if text:
-        chan = text.split()[0]
-
-    can_global = yield from check_permissions(event, "snoonetstaff", "botcontrol")
-    allowed = can_global or (yield from check_channel_permissions(event, chan, "op", "chanop"))
-
-    if not allowed:
-        event.notice("Sorry, you are not allowed to use this command.")
-        return
-
-    if chan.lower() == "global":
-        if not can_global:
-            event.notice("You do not have permission to clear global opt outs")
-            return
-
-        chan = None
+    chan, allowed = yield from check_global_perms(event)
 
     count = yield from async_call(clear_optout, db, conn.name, chan)
 
