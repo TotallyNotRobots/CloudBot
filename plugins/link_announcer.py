@@ -52,7 +52,7 @@ def print_url_title(message, match, chan):
         if len(content) > 1000000:
             r.close()
             return
-        html = BeautifulSoup(content)
+        html = BeautifulSoup(content, "lxml", from_encoding=r.encoding)
         r.close()
         title = " ".join(html.title.text.strip().splitlines())
         out = "Title: \x02{}\x02".format(title)
