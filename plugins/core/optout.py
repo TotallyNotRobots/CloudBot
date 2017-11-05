@@ -60,18 +60,11 @@ class OptOut:
 
 
 @asyncio.coroutine
-def check_permissions(event, *perms):
-    for perm in perms:
-        if (yield from event.check_permission(perm)):
-            return True
-
-
-@asyncio.coroutine
 def check_channel_permissions(event, chan, *perms):
     old_chan = event.chan
     event.chan = chan
 
-    allowed = yield from check_permissions(event, *perms)
+    allowed = yield from event.check_permissions(*perms)
 
     event.chan = old_chan
     return allowed
@@ -220,7 +213,7 @@ def check_global_perms(event):
     if text:
         chan = text.split()[0]
 
-    can_global = yield from check_permissions(event, "snoonetstaff", "botcontrol")
+    can_global = yield from event.check_permissions("snoonetstaff", "botcontrol")
     allowed = can_global or (yield from check_channel_permissions(event, chan, "op", "chanop"))
 
     if not allowed:

@@ -334,6 +334,14 @@ class Event:
         return False
 
     @asyncio.coroutine
+    def check_permissions(self, *perms, notice=True):
+        for perm in perms:
+            if (yield from self.check_permission(perm, notice=notice)):
+                return True
+
+        return False
+
+    @asyncio.coroutine
     def async_call(self, func, *args, **kwargs):
         if self.db_executor is not None:
             executor = self.db_executor
