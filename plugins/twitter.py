@@ -47,17 +47,7 @@ def twitter_url(match):
     except tweepy.error.TweepError:
         return
 
-    # Format the return the text of the tweet
-    text = " ".join(tweet.text.split())
-
-    if user.verified:
-        prefix = "\u2713"
-    else:
-        prefix = ""
-
-    time = timeformat.time_since(tweet.created_at, datetime.utcnow())
-
-    return "{}@\x02{}\x02 ({}): {} ({} ago)".format(prefix, user.screen_name, user.name, html.unescape(text), time)
+    return format_tweet(tweet, user)
 
 
 @hook.command("twitter", "tw", "twatter")
@@ -130,7 +120,11 @@ def twitter(text):
         # ???
         return "Invalid Input"
 
-    # Format the return the text of the tweet
+    return format_tweet(tweet, user)
+
+
+# Format the return the text of the tweet
+def format_tweet(tweet, user):
     text = " ".join(tweet.text.split())
 
     if user.verified:
