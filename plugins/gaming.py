@@ -117,17 +117,18 @@ def dice(text, notice):
 
 
 @hook.command
-def choose(text, notice):
+def choose(text, event):
     """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
     :type text: str
     """
-    choices = re.findall(r'([^,]+)', text)
+    choices = re.findall(r'([^,]+)', text.strip())
     if len(choices) == 1:
         choices = choices[0].split(' or ')
         if len(choices) == 1:
-            notice(choose.__doc__)
+            event.notice_doc()
             return
-    return random.choice(choices)
+
+    return random.choice([choice.strip() for choice in choices])
 
 
 @hook.command(autohelp=False)
