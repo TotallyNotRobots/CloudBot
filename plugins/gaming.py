@@ -10,7 +10,6 @@ License:
     GPL v3
 """
 
-import asyncio
 import random
 import re
 
@@ -54,7 +53,6 @@ def n_rolls(count, n):
                                                (.5 * (1 + n)) ** 2) * count) ** .5))]
 
 
-@asyncio.coroutine
 @hook.command("roll", "dice")
 def dice(text, notice):
     """<dice roll> - simulates dice rolls. Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4
@@ -118,7 +116,6 @@ def dice(text, notice):
         return "{} ({})".format(total, ", ".join(rolls))
 
 
-@asyncio.coroutine
 @hook.command
 def choose(text, notice):
     """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
@@ -133,7 +130,6 @@ def choose(text, notice):
     return random.choice(choices)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
 def coin(text, notice, action):
     """[amount] - flips [amount] coins
