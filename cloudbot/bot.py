@@ -11,6 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
+from watchdog.observers import Observer
 
 from cloudbot.client import Client
 from cloudbot.clients.irc import IrcClient, irc_clean
@@ -118,6 +119,8 @@ class CloudBot:
         # create bot connections
         self.create_connections()
 
+        self.observer = Observer()
+
         if self.plugin_reloading_enabled:
             self.plugin_reloader = PluginReloader(self)
 
@@ -170,6 +173,8 @@ class CloudBot:
         if self.plugin_reloading_enabled:
             logger.debug("Stopping plugin reloader.")
             self.plugin_reloader.stop()
+
+        self.observer.stop()
 
         for connection in self.connections.values():
             if not connection.connected:
