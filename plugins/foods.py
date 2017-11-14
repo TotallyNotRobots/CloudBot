@@ -50,7 +50,7 @@ BASIC_FOOD = (
     # <Luke> BRILLIANT
     BasicFood("potato", "a potato"),
     BasicFood("cookie", "a cookie", file="cookies.json"),
-    BasicFood("soup", "Some Soup", file="soup.json"),
+    BasicFood("soup", "Some Soup",
     BasicFood("halal", "food", "halal", "halaal"),
     BasicFood("kosher", "food"),
 )
