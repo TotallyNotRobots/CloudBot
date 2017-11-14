@@ -218,6 +218,8 @@ class CloudBot:
         if self.config_reloading_enabled:
             self.config_reloader.start()
 
+        self.observer.start()
+
         # Connect to servers
         yield from asyncio.gather(*[conn.connect() for conn in self.connections.values()], loop=self.loop)
 
