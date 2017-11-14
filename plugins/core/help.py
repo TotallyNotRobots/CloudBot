@@ -1,7 +1,7 @@
-from operator import attrgetter
 import asyncio
-import re
 import os
+import re
+from operator import attrgetter
 
 from cloudbot import hook
 from cloudbot.util import formatting
@@ -71,6 +71,49 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
                 #This is an user in this case.
                 message(line)
         notice("For detailed help, use {}help <command>, without the brackets.".format(conn.config["command_prefix"]))
+
+
+@asyncio.coroutine
+@hook.command
+def cmdinfo(text, bot, notice, event):
+    """<command> - Gets various information about a command"""
+    cmd = text.split()[0].lower().strip()
+
+    if cmd in bot.plugin_manager.commands:
+        cmd_hook = bot.plugin_manager.commands[cmd]
+    else:
+        potentials = []
+        for potential_match, plugin in bot.plugin_manager.commands.items():
+            if potential_match.startswith(cmd):
+                potentials.append((potential_match, plugin))
+
+        if potentials:
+            if len(potentials) == 1:
+                cmd_hook = potentials[0][1]
+            else:
+                notice("Possible matches: {}".format(
+                    formatting.get_text_list([command for command, plugin in potentials])))
+                return
+        else:
+            cmd_hook = None
+
+    if cmd_hook is None:
+        notice("Unknown command: '{}'".format(cmd))
+        return
+
+    hook_name = cmd_hook.plugin.title + "." + cmd_hook.function_name
+    info = "Command: {}, Aliases: [{}], Hook name: {}".format(
+        cmd_hook.name, ', '.join(cmd_hook.aliases), hook_name
+    )
+
+    if cmd_hook.permissions:
+        info += ", Permissions: [{}]".format(', '.join(cmd_hook.permissions))
+        if not (yield from event.check_permissions(cmd_hook.permissions)):
+            notice("Sorry, you are not allowed to view information about this command")
+            return
+
+    notice(info)
+
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def generatehelp(conn, bot, notice, has_permission):
