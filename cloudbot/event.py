@@ -316,6 +316,32 @@ class Event:
         return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
 
     @asyncio.coroutine
+    def check_permission(self, permission, notice=True):
+        """ returns whether or not the current user has a given permission
+        :type permission: str
+        :type notice: bool
+        :rtype: bool
+        """
+        if self.has_permission(permission, notice=notice):
+            return True
+
+        for perm_hook in self.bot.plugin_manager.perm_hooks[permission]:
+            # noinspection PyTupleAssignmentBalance
+            ok, res = yield from self.bot.plugin_manager.internal_launch(perm_hook, self)
+            if ok and res:
+                return True
+
+        return False
+
+    @asyncio.coroutine
+    def check_permissions(self, *perms, notice=True):
+        for perm in perms:
+            if (yield from self.check_permission(perm, notice=notice)):
+                return True
+
+        return False
+
+    @asyncio.coroutine
     def async_call(self, func, *args, **kwargs):
         if self.db_executor is not None:
             executor = self.db_executor
