@@ -221,8 +221,8 @@ def check_global_perms(event):
 
     if chan.lower() == "global":
         if not can_global:
-            event.notice("You do not have permission to view global opt outs")
-            return
+            event.notice("You do not have permission to access global opt outs")
+            allowed = False
 
         chan = None
 
@@ -240,6 +240,9 @@ def list_optout(conn, event, async_call):
     """
     chan, allowed = yield from check_global_perms(event)
 
+    if not allowed:
+        return
+
     opts = yield from async_call(get_channel_optouts, conn.name, chan)
     table = yield from async_call(format_optout_list, opts)
 
@@ -251,6 +254,9 @@ def list_optout(conn, event, async_call):
 def clear(conn, event, db, async_call):
     """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = yield from check_global_perms(event)
+
+    if not allowed:
+        return
 
     count = yield from async_call(clear_optout, db, conn.name, chan)
 
