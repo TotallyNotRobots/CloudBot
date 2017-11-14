@@ -8,25 +8,13 @@ from cloudbot import hook
 from cloudbot.util.textgen import TextGenerator
 
 hookups = {}
-bites = {}
-glomps = []
 
 
 @hook.on_start
 def load_data(bot):
     hookups.clear()
-    glomps.clear()
-    bites.clear()
-
     with codecs.open(os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8") as f:
         hookups.update(json.load(f))
-
-    with codecs.open(os.path.join(bot.data_dir, "glomp.txt"), encoding="utf-8") as f:
-        lines = (line.strip() for line in f if not line.startswith("//"))
-        glomps.extend(filter(None, lines))
-
-    with codecs.open(os.path.join(bot.data_dir, "bite.json"), encoding="utf-8") as f:
-        bites.update(json.load(f))
 
 
 @hook.command(autohelp=False)
@@ -46,22 +34,3 @@ def hookup(db, chan):
     }
     generator = TextGenerator(hookups['templates'], hookups['parts'], variables=variables)
     return generator.generate_string()
-
-
-@hook.command(autohelp=False)
-def bite(text, chan, action):
-    """bites the specified nick somewhere random."""
-    if not text:
-        return "please tell me who to bite."
-    name = text.split(' ')[0]
-    generator = TextGenerator(bites['templates'], bites['parts'], variables={'user': name})
-    action(generator.generate_string(), chan)
-
-
-@hook.command(autohelp=False)
-def glomp(text, chan, action):
-    """glomps the specified nick."""
-    name = text.split(' ')[0]
-    glomp = random.choice(glomps)
-    out = "{} {}.".format(glomp, name)
-    action(out, chan)

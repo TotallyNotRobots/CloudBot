@@ -1,0 +1,19 @@
+{
+    "templates": [
+        "{nick} tries to give {user} a five up high but misses. that was awkward",
+        "{nick} gives {user} a killer high-five",
+        "{nick} gives {user} an elbow-shattering high-five",
+        "{nick} smashes {user} up high",
+        "{nick} slaps skin with {user}",
+        "{nick} {user} winds up for a killer five but misses and falls flat on his face",
+        "{nick} halfheartedly high-fives {user}",
+        "{nick} gives {user} a smooth five down low",
+        "{nick} gives {user} a friendly high five",
+        "{nick} starts to give {user} a high five, but leaves them hanging",
+        "{nick} performs an incomprehensible handshake with {user} that identifies them as the very best of friends",
+        "{nick} makes as if to high five {user} but pulls his hand away at the last second",
+        "{nick} leaves {user} hanging",
+        "{nick} offers a fist and {user} pounds it"
+    ],
+    "parts": {}
+}

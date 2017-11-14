@@ -1,7 +1,7 @@
 {
     "templates": [
-        "{bang}! {bang}! {bang}! {user1} {victory} over {user2} with a {blow_type} {blow}.",
-        "{bang}! {bang}! {bang}! {user2} {victory} over {user1} with a {blow_type} {blow}."
+        "{bang}! {bang}! {bang}! {nick} {victory} over {user} with a {blow_type} {blow}.",
+        "{bang}! {bang}! {bang}! {user} {victory} over {nick} with a {blow_type} {blow}."
     ],
     "parts": {
         "bang": [
