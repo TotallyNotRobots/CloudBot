@@ -1,32 +1,31 @@
 import re
 import time
+
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+
 from cloudbot import hook
 
 import random
 
-db_ready = []
+from cloudbot.util import database
+
 opt_out = []
 delay = 10
 floodcheck = {}
 
-def db_init(db, conn_name):
-    """Check to see if the DB has the herald table. Connection name is for caching the result per connection.
-    :type db: sqlalchemy.orm.Session
-    """
-    global db_ready
-    if db_ready.count(conn_name) < 1:
-        db.execute(
-            "create table if not exists herald(name, chan, quote, primary key(name, chan))")
-        db.commit()
-        db_ready.append(conn_name)
+table = Table(
+    'herald',
+    database.metadata,
+    Column('name', String),
+    Column('chan', String),
+    Column('quote', String),
+    PrimaryKeyConstraint('name', 'chan')
+)
 
 
 @hook.command()
-def herald(text, nick, chan, db, conn):
+def herald(text, nick, chan, db):
     """herald [message] adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
-
-    db_init(db, conn.name)
-
     if text.lower() == "show":
         greeting = db.execute("select quote from herald where name = :name and chan = :chan", {
                               'name': nick.lower(), 'chan': chan}).fetchone()
@@ -47,10 +46,9 @@ def herald(text, nick, chan, db, conn):
         return("greeting successfully added")
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def deleteherald(text, chan, db, conn):
+def deleteherald(text, chan, db):
     """deleteherald [nickname] Delete [nickname]'s herald."""
 
-    db_init(db, conn.name)
     tnick = db.execute("select name from herald where name = :name and chan = :chan", {'name': text.lower(), 'chan': chan.lower()}).fetchone()
 
     if tnick:
