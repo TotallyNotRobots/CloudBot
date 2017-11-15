@@ -1,52 +1,58 @@
 import codecs
 import json
 import os
-import re
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 
 from cloudbot import hook
 from cloudbot.util import textgen
 
-nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}\*\`]*$", re.I)
 
-BasicFood = namedtuple('BasicFood', "name commands datafile unitname")
+class BasicFood:
+    def __init__(self, name, unit, *commands, file=None):
+        self.name = name
+        self.unit = unit
+        self.commands = commands or (name,)
+        self.file = file or "{}.json".format(self.name)
+
 
 BASIC_FOOD = (
-    BasicFood("sandwich", "sandwich", "sandwich.json", "a potato"),
-    BasicFood("taco", "taco", "taco.json", "a taco"),
-    BasicFood("coffee", "coffee", "coffee.json", "coffee"),
-    BasicFood("noodles", "noodles", "noodles.json", "noodles"),
-    BasicFood("muffin", "muffin", "muffin.json", "a muffin"),
-    BasicFood("scone", "scone", "scone.json", "a scone"),
-    BasicFood("donut", "donut", "donut.json", "a donut"),
-    BasicFood("rice", "rice", "rice.json", "rice"),
-    BasicFood("tea", "tea", "tea.json", "tea"),
-    BasicFood("keto", "keto", "keto.json", "food"),
-    BasicFood("beer", "beer", "beer.json", "beer"),
-    BasicFood("cheese", "cheese", "cheese.json", "cheese"),
-    BasicFood("pancake", "pancake", "pancake.json", "pancakes"),
-    BasicFood("chicken", "chicken", "chicken.json", "chicken"),
-    BasicFood("nugget", "nugget", "nugget.json", "nuggets"),
-    BasicFood("pie", "pie", "pie.json", "pie"),
-    BasicFood("brekkie", ["brekkie", "brekky"], "brekkie.json", "brekkie"),
-    BasicFood("icecream", "icecream", "icecream.json", "icecream"),
-    BasicFood("doobie", "doobie", "doobie.json", "a doobie"),
-    BasicFood("pizza", "pizza", "pizza.json", "pizza"),
-    BasicFood("chocolate", "chocolate", "chocolate.json", "chocolate"),
-    BasicFood("pasta", "pasta", "pasta.json", "pasta"),
-    BasicFood("cereal", "cereal", "cereal.json", "cereal"),
-    BasicFood("sushi", "sushi", "sushi.json", "sushi"),
-    BasicFood("steak", "steak", "steak.json", "a nice steak dinner"),
-    BasicFood("burger", ["hamburger", "cheeseburger", "burger"], "burger.json", "a tasty burger"),
-    BasicFood("milkshake", "milkshake", "milkshake.json", "a milkshake"),
-    BasicFood("kebab", "kebab", "kebab.json", "a kebab"),
-    BasicFood("cake", "cake", "cake.json", "a cake"),
+    BasicFood("sandwich", "a sandwich"),
+    BasicFood("taco", "a taco"),
+    BasicFood("coffee", "coffee"),
+    BasicFood("noodles", "noodles"),
+    BasicFood("muffin", "a muffin"),
+    BasicFood("scone", "a scone"),
+    BasicFood("donut", "a donut"),
+    BasicFood("rice", "rice"),
+    BasicFood("tea", "tea"),
+    BasicFood("keto", "food"),
+    BasicFood("beer", "beer"),
+    BasicFood("cheese", "cheese"),
+    BasicFood("pancake", "pancakes"),
+    BasicFood("chicken", "chicken"),
+    BasicFood("nugget", "nuggets"),
+    BasicFood("pie", "pie"),
+    BasicFood("brekkie", "brekkie", "brekkie", "brekky"),
+    BasicFood("icecream", "icecream"),
+    BasicFood("doobie", "a doobie"),
+    BasicFood("pizza", "pizza"),
+    BasicFood("chocolate", "chocolate"),
+    BasicFood("pasta", "pasta"),
+    BasicFood("cereal", "cereal"),
+    BasicFood("sushi", "sushi"),
+    BasicFood("steak", "a nice steak dinner"),
+    BasicFood("burger", "a tasty burger"),
+    BasicFood("milkshake", "a milkshake"),
+    BasicFood("kebab", "a kebab"),
+    BasicFood("cake", "a cake"),
     # Kept for posterity
     # <Luke> Hey guys, any good ideas for plugins?
     # <User> I don't know, something that lists every potato known to man?
     # <Luke> BRILLIANT
-    BasicFood("potato", "potato", "potato.json", "a potato"),
-    BasicFood("cookie", "cookie", "cookies.json", "a cookie"),
+    BasicFood("potato", "a potato"),
+    BasicFood("cookie", "a cookie", file="cookies.json"),
+    BasicFood("halal", "food", "halal", "halaal"),
+    BasicFood("kosher", "food"),
 )
 
 basic_food_data = defaultdict(dict)
@@ -67,38 +73,45 @@ def load_foods(bot):
     basic_food_data.clear()
 
     for food in BASIC_FOOD:
-        load_template_data(bot, food.datafile, basic_food_data[food.name])
+        load_template_data(bot, food.file, basic_food_data[food.name])
 
 
-def basic_format(text, data, **kwargs):
+def basic_format(text, nick, data, **kwargs):
     user = text
     kwargs['user'] = user
+    kwargs['target'] = user
+    kwargs['nick'] = nick
+
+    if text:
+        try:
+            templates = data["target_templates"]
+        except KeyError:
+            templates = data["templates"]
+    else:
+        templates = data["templates"]
 
     generator = textgen.TextGenerator(
-        data["templates"], data["parts"], variables=kwargs
+        templates, data.get("parts", {}), variables=kwargs
     )
 
     return generator.generate_string()
 
 
-def make_cmd_list(value):
-    if isinstance(value, str):
-        value = [value]
-    return value
-
-
 def basic_food(food):
-    def func(text, action, is_nick_valid):
+    def func(text, nick, action, is_nick_valid):
         if not is_nick_valid(text):
-            return "I can't give {} to that user.".format(food.unitname)
+            return "I can't give {} to that user.".format(food.unit)
 
-        action(basic_format(text, basic_food_data[food.name]))
+        action(basic_format(text, nick, basic_food_data[food.name]))
 
     func.__name__ = food.name
-    func.__doc__ = "<user> - gives {} to [user]".format(food.unitname)
+    func.__doc__ = "<user> - gives {} to [user]".format(food.unit)
     return func
 
 
-for food in BASIC_FOOD:
-    globals()[food.name] = hook.command(*make_cmd_list(food.commands))(basic_food(food))
+def init_hooks():
+    for food in BASIC_FOOD:
+        globals()[food.name] = hook.command(*food.commands)(basic_food(food))
 
+
+init_hooks()

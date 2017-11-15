@@ -1,14 +1,10 @@
-import asyncio
 import logging
 import os
+import signal
 import sys
 import time
-import signal
-
 # store the original working directory, for use when restarting
 from functools import partial
-
-from cloudbot.util import async_util
 
 original_wd = os.path.realpath(".")
 
@@ -21,6 +17,7 @@ os.chdir(path0)
 
 # import bot
 from cloudbot.bot import CloudBot
+from cloudbot.util import async_util
 
 
 def main():

@@ -1,30 +1,30 @@
 import asyncio
-import time
-import logging
 import collections
-import re
-import os
 import gc
-from operator import attrgetter
+import logging
+import os
+import re
+import time
 from pathlib import Path
 
 from sqlalchemy import create_engine
-
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
+from watchdog.observers import Observer
 
 from cloudbot.client import Client
-from cloudbot.config import Config
-from cloudbot.hook import Action
-from cloudbot.reloader import PluginReloader
-from cloudbot.plugin import PluginManager
-from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
-from cloudbot.util import database, formatting
 from cloudbot.clients.irc import IrcClient, irc_clean
+from cloudbot.config import Config
+from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
+from cloudbot.hook import Action
+from cloudbot.plugin import PluginManager
+from cloudbot.reloader import PluginReloader, ConfigReloader
+from cloudbot.util import database, formatting
 
 try:
     from cloudbot.web.main import WebInterface
+
     web_installed = True
 except ImportError:
     web_installed = False
@@ -48,7 +48,7 @@ class CloudBot:
     :type data_dir: bytes
     :type config: core.config.Config
     :type plugin_manager: PluginManager
-    :type reloader: PluginReloader
+    :type plugin_reloader: PluginReloader
     :type db_engine: sqlalchemy.engine.Engine
     :type db_factory: sqlalchemy.orm.session.sessionmaker
     :type db_session: sqlalchemy.orm.scoping.scoped_session
@@ -87,8 +87,9 @@ class CloudBot:
         logger.debug("Config system initialised.")
 
         # set values for reloading
-        self.plugin_reloading_enabled = self.config.get("reloading", {}).get("plugin_reloading", False)
-        self.config_reloading_enabled = self.config.get("reloading", {}).get("config_reloading", True)
+        reloading_conf = self.config.get("reloading", {})
+        self.plugin_reloading_enabled = reloading_conf.get("plugin_reloading", False)
+        self.config_reloading_enabled = reloading_conf.get("config_reloading", True)
 
         # this doesn't REALLY need to be here but it's nice
         self.user_agent = self.config.get('user_agent', 'CloudBot/3.0 - CloudBot Refresh '
@@ -118,8 +119,13 @@ class CloudBot:
         # create bot connections
         self.create_connections()
 
+        self.observer = Observer()
+
         if self.plugin_reloading_enabled:
-            self.reloader = PluginReloader(self)
+            self.plugin_reloader = PluginReloader(self)
+
+        if self.config_reloading_enabled:
+            self.config_reloader = ConfigReloader(self)
 
         self.plugin_manager = PluginManager(self)
 
@@ -151,8 +157,8 @@ class CloudBot:
                 local_bind = False
 
             self.connections[name] = IrcClient(self, name, nick, config=config, channels=config['channels'],
-                                              server=server, port=port, use_ssl=config['connection'].get('ssl', False),
-                                              local_bind=local_bind)
+                                               server=server, port=port, use_ssl=config['connection'].get('ssl', False),
+                                               local_bind=local_bind)
             logger.debug("[{}] Created connection.".format(name))
 
     @asyncio.coroutine
@@ -162,11 +168,13 @@ class CloudBot:
 
         if self.config_reloading_enabled:
             logger.debug("Stopping config reloader.")
-            self.config.stop()
+            self.config_reloader.stop()
 
         if self.plugin_reloading_enabled:
             logger.debug("Stopping plugin reloader.")
-            self.reloader.stop()
+            self.plugin_reloader.stop()
+
+        self.observer.stop()
 
         for connection in self.connections.values():
             if not connection.connected:
@@ -205,7 +213,12 @@ class CloudBot:
 
         if self.plugin_reloading_enabled:
             # start plugin reloader
-            self.reloader.start(os.path.abspath("plugins"))
+            self.plugin_reloader.start(os.path.abspath("plugins"))
+
+        if self.config_reloading_enabled:
+            self.config_reloader.start()
+
+        self.observer.start()
 
         # Connect to servers
         yield from asyncio.gather(*[conn.connect() for conn in self.connections.values()], loop=self.loop)

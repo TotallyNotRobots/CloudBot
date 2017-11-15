@@ -3,31 +3,29 @@ import time
 import asyncio
 import re
 
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+
 from cloudbot import hook
-from cloudbot.util import timeformat
+from cloudbot.util import timeformat, database
 from cloudbot.event import EventType
 
-db_ready = []
+table = Table(
+    'seen_user',
+    database.metadata,
+    Column('name', String),
+    Column('time', String),
+    Column('quote', String),
+    Column('chan', String),
+    Column('host', String),
+    PrimaryKeyConstraint('name', 'chan')
+)
 
 
-def db_init(db, conn_name):
-    """check to see that our db has the the seen table (connection name is for caching the result per connection)
-    :type db: sqlalchemy.orm.Session
-    """
-    global db_ready
-    if db_ready.count(conn_name) < 1:
-        db.execute("create table if not exists seen_user(name, time, quote, chan, host, primary key(name, chan))")
-        db.commit()
-        db_ready.append(conn_name)
-
-
-def track_seen(event, db, conn):
+def track_seen(event, db):
     """ Tracks messages for the .seen command
     :type event: cloudbot.event.Event
     :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
     """
-    db_init(db, conn)
     # keep private messages private
     if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
         db.execute(
@@ -65,7 +63,7 @@ def chat_tracker(event, db, conn):
         event.content = "\x01ACTION {}\x01".format(event.content)
 
     message_time = time.time()
-    track_seen(event, db, conn)
+    track_seen(event, db)
     track_history(event, message_time, conn)
 
 
@@ -85,7 +83,7 @@ def resethistory(event, conn):
 
 
 @hook.command()
-def seen(text, nick, chan, db, event, conn):
+def seen(text, nick, chan, db, event):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
@@ -100,8 +98,6 @@ def seen(text, nick, chan, db, event, conn):
 
     if not re.match("^[A-Za-z0-9_|\^\*\`.\-\]\[\{\}\\\\]*$", text.lower()):
         return "I can't look up that name, its impossible to use!"
-
-    db_init(db, conn.name)
 
     if '_' in text:
         text = text.replace("_", "/_")

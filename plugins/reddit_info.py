@@ -45,7 +45,7 @@ def moremod(text, chan, conn):
             return "Please specify an integer value."
         page = pages[index - 1]
         if page is None:
-            return "please specify a valid page number between 1 and {}.".format(len(search_pages[chan]))
+            return "please specify a valid page number between 1 and {}.".format(len(pages))
         else:
             return page
     else:
@@ -70,7 +70,7 @@ def moderates(text, chan, conn):
     pager = paginated_list([sub['sr'] for sub in subs])
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
-    if len(page) > 1:
+    if len(pager) > 1:
         page[-1] += " .moremod"
 
     page[0] = out + page[0]
@@ -161,7 +161,7 @@ def submods(text, chan, conn):
     pager = paginated_list(moderators)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
-    if len(page) > 1:
+    if len(pager) > 1:
         page[-1] += " .moremod"
 
     out = colors.parse("/r/$(b){}$(b) mods: ".format(sub))

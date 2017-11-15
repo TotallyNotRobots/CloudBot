@@ -92,12 +92,26 @@ def ignore_sieve(bot, event, _hook):
     return event
 
 
+def get_user(conn, text):
+    users = conn.memory.get("users", {})
+    text_cf = text.casefold()
+    try:
+        user = users[text_cf]
+    except LookupError:
+        mask = text
+    else:
+        mask = "*!*@{host}".format_map(user)
+
+    if '@' not in mask:
+        mask += "!*@*"
+
+    return mask
+
+
 @hook.command(permissions=["ignore", "chanop"])
 def ignore(text, db, chan, conn, notice, message, nick):
     """<nick|mask> -- ignores all input from <nick|mask> in this channel."""
-    target = text.lower()
-    if "!" not in target or "@" not in target:
-        target = "{}!*@*".format(target)
+    target = get_user(conn, text)
 
     if is_ignored(conn.name, chan, target):
         notice("{} is already ignored in {}.".format(target, chan))
@@ -111,9 +125,7 @@ def ignore(text, db, chan, conn, notice, message, nick):
 @hook.command(permissions=["ignore", "chanop"])
 def unignore(text, db, chan, conn, notice, nick, message):
     """<nick|mask> -- un-ignores all input from <nick|mask> in this channel."""
-    target = text.lower()
-    if "!" not in target or "@" not in target:
-        target = "{}!*@*".format(target)
+    target = get_user(conn, text)
 
     if not is_ignored(conn.name, chan, target):
         notice("{} is not ignored in {}.".format(target, chan))
@@ -127,9 +139,7 @@ def unignore(text, db, chan, conn, notice, nick, message):
 @hook.command(permissions=["botcontrol"])
 def global_ignore(text, db, conn, notice, nick, message):
     """<nick|mask> -- ignores all input from <nick|mask> in ALL channels."""
-    target = text.lower()
-    if "!" not in target or "@" not in target:
-        target = "{}!*@*".format(target)
+    target = get_user(conn, text)
 
     if is_ignored(conn.name, "*", target):
         notice("{} is already globally ignored.".format(target))
@@ -143,9 +153,7 @@ def global_ignore(text, db, conn, notice, nick, message):
 @hook.command(permissions=["botcontrol"])
 def global_unignore(text, db, conn, notice, nick, message):
     """<nick|mask> -- un-ignores all input from <nick|mask> in ALL channels."""
-    target = text.lower()
-    if "!" not in target or "@" not in target:
-        target = "{}!*@*".format(target)
+    target = get_user(conn, text)
 
     if not is_ignored(conn.name, "*", target):
         notice("{} is not globally ignored.".format(target))

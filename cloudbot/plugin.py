@@ -312,9 +312,6 @@ class PluginManager:
         # get the loaded plugin
         plugin = self.plugins[str(file_path)]
 
-        for task in plugin.tasks:
-            task.cancel()
-
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             available_hooks = self.cap_hooks["on_available"]
             for cap in on_cap_available_hook.caps:
@@ -387,6 +384,14 @@ class PluginManager:
 
         # unregister databases
         plugin.unregister_tables(self.bot)
+
+        task_count = len(plugin.tasks)
+        if task_count > 0:
+            logger.debug("Cancelling running tasks in %s", plugin.title)
+            for task in plugin.tasks:
+                task.cancel()
+
+            logger.info("Cancelled %d tasks from %s", task_count, plugin.title)
 
         # remove last reference to plugin
         del self.plugins[plugin.file_path]
@@ -467,16 +472,24 @@ class PluginManager:
         :param event: The event providing data for the hook
         :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result is the result from the hook
         """
+        if hook.threaded:
+            coro = self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
+        else:
+            coro = self._execute_hook_sync(hook, event)
+
+        task = async_util.wrap_future(coro)
+        hook.plugin.tasks.append(task)
         try:
-            if hook.threaded:
-                out = yield from self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
-            else:
-                out = yield from self._execute_hook_sync(hook, event)
+            out = yield from task
+            ok = True
         except Exception as e:
             logger.exception("Error in hook {}".format(hook.description))
-            return False, e
+            ok = False
+            out = e
 
-        return True, out
+        hook.plugin.tasks.remove(task)
+
+        return ok, out
 
     @asyncio.coroutine
     def _execute_hook(self, hook, event):
@@ -515,16 +528,21 @@ class PluginManager:
         :type hook: cloudbot.plugin.Hook
         :rtype: cloudbot.event.Event
         """
+        if sieve.threaded:
+            coro = self.bot.loop.run_in_executor(None, sieve.function, self.bot, event, hook)
+        else:
+            coro = sieve.function(self.bot, event, hook)
+
+        task = async_util.wrap_future(coro)
+        sieve.plugin.tasks.append(task)
         try:
-            if sieve.threaded:
-                result = yield from self.bot.loop.run_in_executor(None, sieve.function, self.bot, event, hook)
-            else:
-                result = yield from sieve.function(self.bot, event, hook)
+            result = yield from task
         except Exception:
             logger.exception("Error running sieve {} on {}:".format(sieve.description, hook.description))
-            return None
-        else:
-            return result
+            result = None
+
+        sieve.plugin.tasks.remove(task)
+        return result
 
     @asyncio.coroutine
     def _start_periodic(self, hook):

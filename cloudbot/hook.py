@@ -491,8 +491,6 @@ def post_hook(param=None, **kwargs):
 
 def permission(*perms, **kwargs):
     def _perm_hook(func):
-        assert len(inspect.getfullargspec(func).args) == 3, \
-            "Permission hook has incorrect argument count. Needs params: bot, event, hook"
         hook = _get_hook(func, "perm_check")
         if hook is None:
             hook = _PermissionHook(func)

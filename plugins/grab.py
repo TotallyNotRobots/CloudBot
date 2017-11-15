@@ -199,7 +199,7 @@ def grabsearch(text, chan, conn):
         pager = paginated_list(grabs)
         search_pages[conn.name][chan] = pager
         page = pager.next()
-        if len(page) > 1:
+        if len(pager) > 1:
             page[-1] += " .moregrab"
 
         return page
