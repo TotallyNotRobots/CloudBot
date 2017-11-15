@@ -108,9 +108,6 @@ def cmdinfo(text, bot, notice, event):
 
     if cmd_hook.permissions:
         info += ", Permissions: [{}]".format(', '.join(cmd_hook.permissions))
-        if not (yield from event.check_permissions(cmd_hook.permissions)):
-            notice("Sorry, you are not allowed to view information about this command")
-            return
 
     notice(info)
 
