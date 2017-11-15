@@ -41,6 +41,7 @@ BASIC_FOOD = (
     BasicFood("cereal", "cereal"),
     BasicFood("sushi", "sushi"),
     BasicFood("steak", "a nice steak dinner"),
+    BasicFood("burger", "a tasty burger"),
     BasicFood("milkshake", "a milkshake"),
     BasicFood("kebab", "a kebab"),
     BasicFood("cake", "a cake"),
