@@ -611,14 +611,17 @@ def ducks_user(text, nick, chan, conn, db, message):
     else:
         name = nick
     if scores:
+        has_hunted_in_chan = False
         for row in scores:
             if row["chan"].lower() == chan.lower():
+                has_hunted_in_chan = True
                 ducks["chankilled"] += row["shot"]
                 ducks["chanfriends"] += row["befriend"]
             ducks["killed"] += row["shot"]
             ducks["friend"] += row["befriend"]
             ducks["chans"] += 1
-        if ducks["chans"] == 1:
+        # Check if the user has only participated in the hunt in this channel
+        if ducks["chans"] == 1 and has_hunted_in_chan:
             message("{} has killed {} and befriended {} ducks in {}.".format(name, ducks["chankilled"],
                                                                              ducks["chanfriends"], chan))
             return
