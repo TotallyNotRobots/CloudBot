@@ -10,8 +10,7 @@ import os
 import sys
 from collections import OrderedDict
 
-error = False
-warning = False
+exit_code = 0
 print("Travis: Testing all JSON files in source")
 
 for root, dirs, files in os.walk('.'):
@@ -23,17 +22,13 @@ for root, dirs, files in os.walk('.'):
         try:
             data = json.loads(text, object_pairs_hook=OrderedDict)
         except Exception as e:
-            error = True
+            exit_code |= 1
             print("Travis: {} is not a valid JSON file, json.load threw exception:\n{}".format(file, e))
         else:
             formatted_text = json.dumps(data, indent=4) + '\n'
 
             if text != formatted_text:
+                exit_code |= 2
                 print("Travis: {} is not a properly formatted JSON file".format(file))
-                warning = True
 
-if error:
-    sys.exit(1)
-
-if warning:
-    sys.exit(2)
+sys.exit(exit_code)
