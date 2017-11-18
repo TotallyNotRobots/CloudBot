@@ -1,6 +1,5 @@
 import codecs
 import json
-import asyncio
 import os
 import random
 from cloudbot import hook
@@ -18,13 +17,13 @@ def load_macros(bot):
     with codecs.open(os.path.join(bot.data_dir, "reaction_macros.json"), encoding="utf-8") as macros:
         reaction_macros = json.load(macros)
 
-        
+
 @hook.command('dwi', 'dealwithit')
 def deal_with_it(text, message):
     """<nick> - Tell <nick> in the channel to deal with it. Code located in reactions.py"""
     person_needs_to_deal = text.strip()
     phrase = random.choice(deal_with_it_phrases)
-    formated_phrase = phrase.format(text.strip())
+    formated_phrase = phrase.format(person_needs_to_deal)
     message('{} {}'.format(formated_phrase, random.choice(reaction_macros['deal_with_it_macros'])))
 
 
@@ -32,16 +31,16 @@ def deal_with_it(text, message):
 def face_palm(text, message):
     """<nick> - Expresses your frustration with <Nick>. Code located in reactions.py"""
     face_palmer = text.strip()
-    message('Dammit {} {}'.format(FacePalmer, random.choice(reaction_macros['facepalm_macros'])))
+    message('Dammit {} {}'.format(face_palmer, random.choice(reaction_macros['facepalm_macros'])))
 
-    
+
 @hook.command('hd', 'headdesk')
 def head_desk(text, message):
     """<nick> - Hit your head against the desk becausae of <nick>. Code located in reactions.py"""
     idiot = text.strip()
     message('{} {}'.format(idiot, random.choice(reaction_macros['head_desk_macros'])))
 
-    
+
 @hook.command('fetish', 'tmf')
 def my_fetish(text, message):
     """<nick> - Did some one just mention what your fetish was? Let <nick> know! Code located in reactions.py"""
