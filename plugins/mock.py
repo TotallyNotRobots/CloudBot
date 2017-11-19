@@ -2,7 +2,7 @@ from cloudbot import hook
 
 
 def get_latest_line(conn, chan, nick):
-    for name, timestamp, msg in reversed(conn.history[chan.casefold()]):
+    for name, _, msg in reversed(conn.history[chan.casefold()]):
         if nick.casefold() == name.casefold():
             return msg
 
