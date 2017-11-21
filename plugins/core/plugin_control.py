@@ -56,7 +56,7 @@ def pluginload(bot, text, reply):
 def pluginunload(bot, text):
     """<plugin path> - Unload <plugin> manually"""
     manager = bot.plugin_manager
-    path = Path(text.strip()).resolve()
+    path = str(Path(text.strip()).resolve())
     is_loaded = path in manager.plugins
 
     if not is_loaded:

@@ -165,7 +165,7 @@ class PluginManager:
                     return
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
-        if file_path in self.plugins:
+        if str(file_path) in self.plugins:
             yield from self.unload_plugin(file_path)
 
         module_name = "plugins.{}".format(title)
