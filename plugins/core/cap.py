@@ -79,7 +79,7 @@ def _launch_handler(subcmd, event, **kwargs):
 @asyncio.coroutine
 @_subcmd_handler("LS")
 def cap_ls(conn, caplist, event, irc_paramlist, bot, logger):
-    logger.info("Available capabilities: %s", caplist)
+    logger.info("[%s|cap] Available capabilities: %s", conn.name, caplist)
     yield from handle_available_caps(conn, caplist, event, irc_paramlist, bot)
 
 
@@ -116,20 +116,20 @@ def cap_nak(conn, caplist, event, bot):
 
 @_subcmd_handler("LIST")
 def cap_list(logger, caplist):
-    logger.info("Enabled Capabilities: %s", caplist)
+    logger.info("[%s|cap] Enabled Capabilities: %s", conn.name, caplist)
 
 
 @asyncio.coroutine
 @_subcmd_handler("NEW")
 def cap_new(logger, caplist, conn, event, bot, irc_paramlist):
-    logger.info("New capabilities advertised: %s", caplist)
+    logger.info("[%s|cap] New capabilities advertised: %s", conn.name, caplist)
     yield from handle_available_caps(conn, caplist, event, irc_paramlist, bot)
 
 
 @_subcmd_handler("DEL")
 def cap_del(logger, conn, caplist):
     # TODO add hooks for CAP removal
-    logger.info("Capabilities removed by server: %s", caplist)
+    logger.info("[%s|cap] Capabilities removed by server: %s", conn.name, caplist)
     server_caps = conn.memory.setdefault('server_caps', {})
     for cap in caplist:
         server_caps[cap.name.casefold()] = False
