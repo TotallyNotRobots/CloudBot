@@ -482,10 +482,10 @@ class PluginManager:
         try:
             out = yield from task
             ok = True
-        except Exception as e:
+        except Exception:
             logger.exception("Error in hook {}".format(hook.description))
             ok = False
-            out = e
+            out = sys.exc_info()
 
         hook.plugin.tasks.remove(task)
 
