@@ -1,22 +1,20 @@
 import asyncio
 import base64
-import logging
 
 from cloudbot import hook
 
-logger = logging.getLogger("cloudbot")
-
 
 @hook.on_cap_available("sasl")
-def sasl_available():
-    pass
+def sasl_available(conn):
+    sasl_conf = conn.config.get('sasl')
+    return bool(sasl_conf and sasl_conf.get('enabled', True))
 
 
 @asyncio.coroutine
 @hook.on_cap_ack("sasl")
-def sasl_ack(conn):
+def sasl_ack(conn, logger):
     sasl_auth = conn.config.get('sasl')
-    if sasl_auth:
+    if sasl_auth and sasl_auth.get('enabled', True):
         sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()
         auth_fut = conn.loop.create_future()
         conn.memory["sasl_auth_future"] = auth_fut

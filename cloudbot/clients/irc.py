@@ -202,7 +202,7 @@ class IrcClient(Client):
         :type command: str
         :type params: (str)
         """
-        params = list(params)  # turn the tuple of parameters into a list
+        params = list(map(str, params))  # turn the tuple of parameters into a list
         if params:
             params[-1] = ':' + params[-1]
             self.send("{} {}".format(command, ' '.join(params)))
