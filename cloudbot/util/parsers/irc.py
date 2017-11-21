@@ -70,8 +70,11 @@ class Cap(Parseable):
 
         return NotImplemented
 
+    def __hash__(self):
+        return hash((self.name, self.value))
+
     @staticmethod
-    def parse(text: str):
+    def parse(text):
         """Parse a CAP entity from a string"""
         name, _, value = text.partition(CAP_VALUE_SEP)
         return Cap(name, value)
@@ -81,7 +84,7 @@ class CapList(Parseable, list):
     """Represents a list of CAP entities"""
 
     def __str__(self):
-        return CAP_SEP.join(self)
+        return CAP_SEP.join(map(str, self))
 
     @staticmethod
     def parse(text):
