@@ -85,10 +85,9 @@ def remember(text, nick, db, chan, notice):
 
     word = word.lower()
     try:
-        old_data = factoid_cache[chan].get(word)
-    except Exception:
-        old_data = ""
-        pass
+        old_data = factoid_cache[chan][word]
+    except LookupError:
+        old_data = None
 
     if data.startswith('+') and old_data:
         # remove + symbol
