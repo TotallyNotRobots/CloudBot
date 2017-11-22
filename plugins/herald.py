@@ -59,7 +59,7 @@ def deleteherald(text, chan, db):
         return "{} does not have a herald".format(text.lower())
 
 @hook.irc_raw("JOIN", singlethread=True)
-def welcome(nick, message, event, db, bot):
+def welcome(nick, message, db, bot, chan):
     # For some reason chan isn't passed correctly. The below hack is sloppy and may need to be adjusted for different networks.
     # If someone knows how to get the channel a better way please fix this.
     # freenode uncomment then next line
@@ -72,10 +72,6 @@ def welcome(nick, message, event, db, bot):
 
     grab = bot.plugin_manager.find_plugin("grab")
 
-    try:
-        chan = event.irc_raw.split(':')[2].lower()
-    except:
-        return
     if chan in opt_out:
         return
 
