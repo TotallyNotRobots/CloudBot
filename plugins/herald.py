@@ -60,11 +60,6 @@ def deleteherald(text, chan, db):
 
 @hook.irc_raw("JOIN", singlethread=True)
 def welcome(nick, message, db, bot, chan):
-    # For some reason chan isn't passed correctly. The below hack is sloppy and may need to be adjusted for different networks.
-    # If someone knows how to get the channel a better way please fix this.
-    # freenode uncomment then next line
-    # chan = event.irc_raw.split('JOIN ')[1].lower()
-    # snoonet
     decoy = re.compile('[o○O0öøóóȯôőŏᴏōο](<|>|＜)')
     colors_re = re.compile("\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
     bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
@@ -107,6 +102,3 @@ def welcome(nick, message, db, bot, chan):
         else:
             message("\u200b {}".format(greet), chan)
         floodcheck[chan] = time.time()
-    # Saying something whenever someone joins can get really spammy
-    # else:
-        # action("welcomes {} to {}".format(nick, chan), chan)
