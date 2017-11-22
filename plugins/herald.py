@@ -2,7 +2,7 @@ import random
 import re
 import time
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, select
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -25,43 +25,47 @@ table = Table(
 def herald(text, nick, chan, db):
     """herald [message] adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
     if text.lower() == "show":
-        greeting = db.execute(
-            "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
-            {'name': nick.lower(), 'chan': chan}
-        ).fetchone()
+        query = select([table.c.quote]).where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        greeting = db.execute(query).fetchone()
         if greeting:
             return greeting[0]
         else:
             return "you don't have a herald set try .herald <message> to set your greeting."
     elif text.lower() in ["delete", "remove"]:
         greeting = db.execute(
-            "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
-            {'name': nick.lower(), 'chan': chan}
-        ).fetchone()[0]
-        db.execute("DELETE FROM herald WHERE name = :name AND chan = :chan", {'name': nick.lower(), 'chan': chan})
+            select([table.c.quote]).where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        ).fetchone()
+        query = table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        res = db.execute(query)
         db.commit()
-        return ("greeting \'{}\' for {} has been removed".format(greeting, nick))
+        if res.rowcount > 0:
+            return "greeting \'{}\' for {} has been removed".format(greeting[0], nick)
+        else:
+            return "no herald set, unable to delete."
     else:
-        db.execute(
-            "insert or replace into herald(name, chan, quote) values(:name, :chan, :quote)",
-            {'name': nick.lower(), 'chan': chan, 'quote': text}
+        res = db.execute(
+            table.update().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower()).values(quote=text)
         )
+        if res.rowcount == 0:
+            db.execute(table.insert().values(name=nick.lower(), chan=chan.lower(), quote=text))
+
         db.commit()
-        return ("greeting successfully added")
+        return "greeting successfully added"
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 def deleteherald(text, chan, db):
     """deleteherald [nickname] Delete [nickname]'s herald."""
 
-    tnick = db.execute(
-        "SELECT name FROM herald WHERE name = :name AND chan = :chan",
-        {'name': text.lower(), 'chan': chan.lower()}
-    ).fetchone()
+    nick = text.strip()
 
-    if tnick:
-        db.execute("DELETE FROM herald WHERE name = :name AND chan = :chan", {'name': text.lower(), 'chan': chan})
-        db.commit()
+    res = db.execute(
+        table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+    )
+
+    db.commit()
+
+    if res.rowcount > 0:
         return "greeting for {} has been removed".format(text.lower())
     else:
         return "{} does not have a herald".format(text.lower())
@@ -86,8 +90,7 @@ def welcome(nick, message, db, bot, chan):
         floodcheck[chan] = time.time()
 
     welcome = db.execute(
-        "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
-        {'name': nick.lower(), 'chan': chan.lower()}
+        select([table.c.quote]).where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
     ).fetchone()
     if welcome:
         greet = welcome[0]
