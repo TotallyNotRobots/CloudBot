@@ -87,11 +87,14 @@ def welcome(nick, message, db, bot, chan):
         greet = welcome[0]
         greet = re.sub(bino_re, 'flenny', greet)
         greet = re.sub(offensive_re, ' freespeech oppression ', greet)
-        if greet.lower().split(' ')[0] == ".grabrandom":
+
+        words = greet.lower().split()
+        cmd = words.pop(0)
+        if cmd == ".grabrandom":
             text = ""
-            if len(greet.split(' ')) >= 2:
-                candidates = greet.lower().split(' ')[1:]
-                text = random.choice(candidates)
+            if words:
+                text = random.choice(words)
+
             if grab is not None:
                 out = grab.code.grabrandom(text, chan, message)
             else:
