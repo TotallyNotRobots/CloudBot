@@ -238,7 +238,7 @@ def lastfm(event, db, text, nick, bot):
     artist = track["artist"]["#text"]
     try:
         url = web.try_shorten(track["url"])
-    except:
+    except Exception:
         url = track["url"]
         pass
 
@@ -338,7 +338,7 @@ def lastfmcompare(bot, text, nick):
         return "please specify a lastfm username to compare"
     try:
         user1, user2 = text.split()
-    except:
+    except Exception:
         user2 = text
         user1 = nick
 

@@ -86,7 +86,7 @@ def remember(text, nick, db, chan, notice):
     word = word.lower()
     try:
         old_data = factoid_cache[chan].get(word)
-    except:
+    except Exception:
         old_data = ""
         pass
 

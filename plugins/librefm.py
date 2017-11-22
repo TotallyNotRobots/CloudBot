@@ -105,7 +105,7 @@ def librefm(text, nick, db, bot, notice):
     artist = track["artist"]["#text"]
     try:
         url = web.try_shorten(track["url"])
-    except:
+    except Exception:
         url = track["url"]
         pass
     tags = getartisttags(artist, bot)
@@ -137,7 +137,7 @@ def getartisttags(artist, bot):
 
     try:
         tag = tags['toptags']['tag']
-    except:
+    except Exception:
         return 'no tags'
         pass
 
@@ -178,7 +178,7 @@ def displaybandinfo(text, nick, bot, notice):
 
     try:
         url = web.try_shorten(a["url"])
-    except:
+    except Exception:
         url = a["url"]
         pass
 

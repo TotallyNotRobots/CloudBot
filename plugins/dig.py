@@ -11,7 +11,7 @@ def dig(text, nick, notice):
         rtype = rtype.upper()
         if rtype not in ["A", "NS", "MX", "TXT"]:
             rtype = "A"
-    except:
+    except Exception:
         domain = text.strip()
         rtype = "A"
     url = "http://dig.jsondns.org/IN/{}/{}".format(domain, rtype)

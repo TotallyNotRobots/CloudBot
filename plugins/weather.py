@@ -164,13 +164,13 @@ def weather(text, reply, db, nick, notice):
     if "?query=," in response["current_observation"]['ob_url']:
         try:
             weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
-        except:
+        except Exception:
             weather_data['url'] = response["current_observation"]["forcast_url"]
             pass
     else:
         try:
             weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
-        except:
+        except Exception:
             weather_data['url'] = response["current_observation"]["ob_url"]
             pass
 

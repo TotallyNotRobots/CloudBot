@@ -42,7 +42,7 @@ def get_video_description(video_id):
     out += ' - length \x02{}\x02'.format(timeformat.format_time(int(length.total_seconds()), simple=True))
     try:
         total_votes = float(statistics['likeCount']) + float(statistics['dislikeCount'])
-    except:
+    except Exception:
         total_votes = 0
         pass
 
@@ -98,7 +98,7 @@ def youtube(text):
 
     if json['pageInfo']['totalResults'] == 0:
         return 'No results found.'
-    
+
     video_id = json['items'][0]['id']['videoId']
 
     return get_video_description(video_id) + " - " + video_url % video_id

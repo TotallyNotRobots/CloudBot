@@ -25,7 +25,7 @@ def refresh_fml_cache(loop):
             fml_id = int(e.find('div', {'id': re.compile('card')})['id'].split('-')[-1])
             text = ''.join(e.find('p').find_all(text=True))
             fml_cache.append((fml_id, text))
-    except:
+    except Exception:
         pass
 
 
@@ -43,7 +43,7 @@ def refresh_mlia_cache(loop):
             mlia_text = story.find('div', {'class': 'sc'}).text
             mlia_text = " ".join(mlia_text.split())
             mlia_cache.append((mlia_id, mlia_text))
-    except:
+    except Exception:
         pass
 
 
