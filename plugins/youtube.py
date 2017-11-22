@@ -42,9 +42,8 @@ def get_video_description(video_id):
     out += ' - length \x02{}\x02'.format(timeformat.format_time(int(length.total_seconds()), simple=True))
     try:
         total_votes = float(statistics['likeCount']) + float(statistics['dislikeCount'])
-    except Exception:
+    except (LookupError, ValueError):
         total_votes = 0
-        pass
 
     if total_votes != 0:
         # format
