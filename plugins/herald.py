@@ -23,7 +23,7 @@ table = Table(
 
 @hook.command()
 def herald(text, nick, chan, db):
-    """herald [message] adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
+    """{<message>|show|delete|remove} - adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
     if text.lower() == "show":
         query = select([table.c.quote]).where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
         greeting = db.execute(query).fetchone()
@@ -55,7 +55,7 @@ def herald(text, nick, chan, db):
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 def deleteherald(text, chan, db):
-    """deleteherald [nickname] Delete [nickname]'s herald."""
+    """<nickname> - Delete [nickname]'s herald."""
 
     nick = text.strip()
 
