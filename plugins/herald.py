@@ -100,7 +100,8 @@ def welcome(nick, message, db, bot, chan):
             else:
                 out = "grab.py not loaded, original herald: {}".format(greet)
 
-            message(out, chan)
+            if out:
+                message(out, chan)
         elif decoy.search(colors_re.sub("", greet.replace('\u200b', '').replace(' ', '').replace('\u202f','').replace('\x02', ''))):
             message("DECOY DUCK --> {}".format(greet), chan)
         else:
