@@ -1,12 +1,10 @@
+import random
 import re
 import time
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
 from cloudbot import hook
-
-import random
-
 from cloudbot.util import database
 
 opt_out = []
@@ -27,36 +25,47 @@ table = Table(
 def herald(text, nick, chan, db):
     """herald [message] adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
     if text.lower() == "show":
-        greeting = db.execute("select quote from herald where name = :name and chan = :chan", {
-                              'name': nick.lower(), 'chan': chan}).fetchone()
+        greeting = db.execute(
+            "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
+            {'name': nick.lower(), 'chan': chan}
+        ).fetchone()
         if greeting:
             return greeting[0]
         else:
             return "you don't have a herald set try .herald <message> to set your greeting."
     elif text.lower() in ["delete", "remove"]:
-        greeting = db.execute("select quote from herald where name = :name and chan = :chan", {
-                              'name': nick.lower(), 'chan': chan}).fetchone()[0]
-        db.execute("delete from herald where name = :name and chan = :chan", {'name': nick.lower(), 'chan': chan})
+        greeting = db.execute(
+            "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
+            {'name': nick.lower(), 'chan': chan}
+        ).fetchone()[0]
+        db.execute("DELETE FROM herald WHERE name = :name AND chan = :chan", {'name': nick.lower(), 'chan': chan})
         db.commit()
         return ("greeting \'{}\' for {} has been removed".format(greeting, nick))
     else:
-        db.execute("insert or replace into herald(name, chan, quote) values(:name, :chan, :quote)", {
-                   'name': nick.lower(), 'chan': chan, 'quote': text})
+        db.execute(
+            "insert or replace into herald(name, chan, quote) values(:name, :chan, :quote)",
+            {'name': nick.lower(), 'chan': chan, 'quote': text}
+        )
         db.commit()
-        return("greeting successfully added")
+        return ("greeting successfully added")
+
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 def deleteherald(text, chan, db):
     """deleteherald [nickname] Delete [nickname]'s herald."""
 
-    tnick = db.execute("select name from herald where name = :name and chan = :chan", {'name': text.lower(), 'chan': chan.lower()}).fetchone()
+    tnick = db.execute(
+        "SELECT name FROM herald WHERE name = :name AND chan = :chan",
+        {'name': text.lower(), 'chan': chan.lower()}
+    ).fetchone()
 
     if tnick:
-        db.execute("delete from herald where name = :name and chan = :chan", {'name': text.lower(), 'chan': chan})
+        db.execute("DELETE FROM herald WHERE name = :name AND chan = :chan", {'name': text.lower(), 'chan': chan})
         db.commit()
         return "greeting for {} has been removed".format(text.lower())
     else:
         return "{} does not have a herald".format(text.lower())
+
 
 @hook.irc_raw("JOIN", singlethread=True)
 def welcome(nick, message, db, bot, chan):
@@ -71,15 +80,19 @@ def welcome(nick, message, db, bot, chan):
         return
 
     if chan in floodcheck:
-        if time.time() -  floodcheck[chan] <= delay:
+        if time.time() - floodcheck[chan] <= delay:
             return
     else:
         floodcheck[chan] = time.time()
 
-    welcome = db.execute("select quote from herald where name = :name and chan = :chan", {
-                         'name': nick.lower(), 'chan': chan.lower()}).fetchone()
+    welcome = db.execute(
+        "SELECT quote FROM herald WHERE name = :name AND chan = :chan",
+        {'name': nick.lower(), 'chan': chan.lower()}
+    ).fetchone()
     if welcome:
         greet = welcome[0]
+        stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
+        stripped = colors_re.sub("", stripped)
         greet = re.sub(bino_re, 'flenny', greet)
         greet = re.sub(offensive_re, ' freespeech oppression ', greet)
 
@@ -97,7 +110,7 @@ def welcome(nick, message, db, bot, chan):
 
             if out:
                 message(out, chan)
-        elif decoy.search(colors_re.sub("", greet.replace('\u200b', '').replace(' ', '').replace('\u202f','').replace('\x02', ''))):
+        elif decoy.search(stripped):
             message("DECOY DUCK --> {}".format(greet), chan)
         else:
             message("\u200b {}".format(greet), chan)
