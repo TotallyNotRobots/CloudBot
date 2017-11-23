@@ -37,7 +37,7 @@ class DataDict(defaultdict):
         super().__delitem__(key.casefold())
 
     def __missing__(self, key):
-        data = WeakDict({"name": key, "users": {}})
+        data = WeakDict(name=key, users={})
         self[key] = data
         return data
 
@@ -96,7 +96,7 @@ def replace_user_data(conn, chan_data):
     has_multi_pfx = caps.get("multi-prefix", False)
     for name in new_data:
         user_data = WeakDict()
-        memb_data = WeakDict({"user": user_data, "chan": weakref.proxy(chan_data)})
+        memb_data = WeakDict(user=user_data, chan=weakref.proxy(chan_data))
         user_statuses = []
         while name[:1] in statuses:
             status, name = name[:1], name[1:]
@@ -224,10 +224,10 @@ def on_join(chan, nick, user, host, conn):
         chan = chan[1:]
 
     users = conn.memory['users']
-    user_data = WeakDict({"nick": nick, "user": user, "host": host})
+    user_data = WeakDict(nick=nick, user=user, host=host)
     user_data = users.setdefault(nick.casefold(), user_data)
     chan_data = conn.memory["chan_data"][chan]
-    memb_data = WeakDict({"chan": weakref.proxy(chan_data), "user": user_data, "status": []})
+    memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
     chan_data["users"][nick.casefold()] = memb_data
     user_chans = user_data.setdefault("channels", WeakValueDictionary())
     user_chans[chan.casefold()] = memb_data
