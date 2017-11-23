@@ -1,6 +1,6 @@
 import asyncio
-import logging
 import collections
+import logging
 
 from cloudbot.permissions import PermissionManager
 
@@ -82,6 +82,14 @@ class Client:
         Sends a message to the given target
         :type target: str
         :type text: str
+        """
+        raise NotImplementedError
+
+    def admin_log(self, text, console=True):
+        """
+        Log a message to the configured admin channel
+        :type text: str
+        :type console: bool
         """
         raise NotImplementedError
 
