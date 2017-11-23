@@ -4,15 +4,13 @@ Track channel ops for permissions checks
 Requires:
 server_info.py
 """
-import re
 import weakref
 from collections import defaultdict
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
 from cloudbot import hook
-
-NUH_RE = re.compile(r'(?P<nick>.+?)(?:!(?P<user>.+?))?(?:@(?P<host>.+?))?')
+from cloudbot.util.parsers.irc import Prefix
 
 
 class WeakDict(dict):
@@ -74,17 +72,6 @@ def init_chan_data(conn):
     users.clear()
 
 
-def parse_nuh(mask):
-    match = NUH_RE.fullmatch(mask)
-    if not match:
-        return None, None, None
-
-    nick = match.group('nick')
-    user = match.group('user')
-    host = match.group('host')
-    return nick, user, host
-
-
 def replace_user_data(conn, chan_data):
     statuses = {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
     users = conn.memory["users"]
@@ -111,8 +98,8 @@ def replace_user_data(conn, chan_data):
         memb_data["status"] = user_statuses
 
         if has_uh_i_n:
-            nick, user, host = parse_nuh(name)
-            user_data.update({"nick": nick, "ident": user, "host": host})
+            pfx = Prefix.parse(name)
+            user_data.update({"nick": pfx.nick, "ident": pfx.user, "host": pfx.host})
         else:
             user_data["nick"] = name
 
