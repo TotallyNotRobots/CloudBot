@@ -205,7 +205,18 @@ def updateusers(bot):
     return "Updating all channel data"
 
 
-@hook.irc_raw('JOIN')
+@hook.irc_raw(['JOIN', 'MODE'], singlethread=True)
+def on_join_mode(chan, nick, user, host, conn, irc_command, irc_paramlist):
+    """
+    Both JOIN and MODE are handled in one hook with Hook:singlethread=True
+    to ensure they are handled in order, avoiding a possible race condition
+    """
+    if irc_command == 'JOIN':
+        return on_join(chan, nick, user, host, conn)
+    elif irc_command == 'MODE':
+        return on_mode(chan, irc_paramlist, conn)
+
+
 def on_join(chan, nick, user, host, conn):
     if chan.startswith(':'):
         chan = chan[1:]
@@ -220,43 +231,6 @@ def on_join(chan, nick, user, host, conn):
     user_chans[chan.casefold()] = memb_data
 
 
-@hook.irc_raw('PART')
-def on_part(chan, nick, conn):
-    if chan.startswith(':'):
-        chan = chan[1:]
-
-    channels = conn.memory["chan_data"]
-    nick_cf = nick.casefold()
-    if nick_cf == conn.nick.casefold():
-        try:
-            del channels[chan]
-        except KeyError:
-            pass
-    else:
-        chan_data = channels[chan]
-        try:
-            del chan_data["users"][nick_cf]
-        except KeyError:
-            pass
-
-
-@hook.irc_raw('KICK')
-def on_kick(chan, target, conn):
-    on_part(chan, target, conn)
-
-
-@hook.irc_raw('QUIT')
-def on_quit(nick, conn):
-    nick_cf = nick.casefold()
-    users = conn.memory["users"]
-    if nick_cf in users:
-        user = users[nick_cf]
-        for memb in user.get("channels", {}).values():
-            chan = memb["chan"]
-            chan["users"].pop(nick_cf)
-
-
-@hook.irc_raw('MODE')
 def on_mode(chan, irc_paramlist, conn):
     if chan.startswith(':'):
         chan = chan[1:]
@@ -301,6 +275,42 @@ def on_mode(chan, irc_paramlist, conn):
                     else:
                         if status in memb["status"]:
                             memb["status"].remove(status)
+
+
+@hook.irc_raw('PART')
+def on_part(chan, nick, conn):
+    if chan.startswith(':'):
+        chan = chan[1:]
+
+    channels = conn.memory["chan_data"]
+    nick_cf = nick.casefold()
+    if nick_cf == conn.nick.casefold():
+        try:
+            del channels[chan]
+        except KeyError:
+            pass
+    else:
+        chan_data = channels[chan]
+        try:
+            del chan_data["users"][nick_cf]
+        except KeyError:
+            pass
+
+
+@hook.irc_raw('KICK')
+def on_kick(chan, target, conn):
+    on_part(chan, target, conn)
+
+
+@hook.irc_raw('QUIT')
+def on_quit(nick, conn):
+    nick_cf = nick.casefold()
+    users = conn.memory["users"]
+    if nick_cf in users:
+        user = users[nick_cf]
+        for memb in user.get("channels", {}).values():
+            chan = memb["chan"]
+            chan["users"].pop(nick_cf)
 
 
 @hook.irc_raw('NICK')
