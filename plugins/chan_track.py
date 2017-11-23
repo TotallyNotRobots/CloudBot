@@ -53,7 +53,7 @@ def update_conn_data(conn):
 
 @hook.on_cap_available("userhost-in-names", "multi-prefix")
 def do_caps():
-    pass
+    return True
 
 
 @hook.on_start
