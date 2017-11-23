@@ -18,10 +18,7 @@ class WeakDict(dict):
     pass
 
 
-class DataDict(defaultdict):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+class KeyFoldMixin:
     def __contains__(self, item):
         return super().__contains__(item.casefold())
 
@@ -34,8 +31,18 @@ class DataDict(defaultdict):
     def __delitem__(self, key):
         super().__delitem__(key.casefold())
 
+
+class KeyFoldDict(dict, KeyFoldMixin):
+    pass
+
+
+class KeyFoldWeakValueDict(WeakValueDictionary, KeyFoldMixin):
+    pass
+
+
+class ChanDict(defaultdict, KeyFoldMixin):
     def __missing__(self, key):
-        data = WeakDict(name=key, users={})
+        data = WeakDict(name=key, users=KeyFoldDict())
         self[key] = data
         return data
 
@@ -65,11 +72,16 @@ def get_chan_data(bot):
 
 @hook.connect
 def init_chan_data(conn):
-    chan_data = conn.memory.setdefault("chan_data", DataDict())
+    chan_data = conn.memory.setdefault("chan_data", ChanDict())
     chan_data.clear()
 
-    users = conn.memory.setdefault("users", WeakValueDictionary())
+    users = conn.memory.setdefault("users", KeyFoldWeakValueDict())
     users.clear()
+
+
+def add_user_membership(user, chan, membership):
+    chans = user.setdefault("channels", KeyFoldWeakValueDict())
+    chans[chan] = membership
 
 
 def replace_user_data(conn, chan_data):
@@ -77,7 +89,7 @@ def replace_user_data(conn, chan_data):
     users = conn.memory["users"]
     old_users = chan_data['users']
     new_data = chan_data.pop("new_users", [])
-    new_users = {}
+    new_users = KeyFoldDict()
     caps = conn.memory.get("server_caps", {})
     has_uh_i_n = caps.get("userhost-in-names", False)
     has_multi_pfx = caps.get("multi-prefix", False)
@@ -103,19 +115,18 @@ def replace_user_data(conn, chan_data):
         else:
             user_data["nick"] = name
 
-        nick_cf = user_data["nick"].casefold()
-        new_users[nick_cf] = memb_data
-        if nick_cf in old_users:
-            old_data = old_users[nick_cf]
+        nick = user_data["nick"]
+        new_users[nick] = memb_data
+        if nick in old_users:
+            old_data = old_users[nick]
             old_data.update(memb_data)  # New data takes priority over old data
             memb_data.update(old_data)
 
-        old_user_data = users.setdefault(nick_cf, user_data)
+        old_user_data = users.setdefault(nick, user_data)
         old_user_data.update(user_data)
         user_data = old_user_data
         memb_data["user"] = user_data
-        user_chans = user_data.setdefault("channels", WeakValueDictionary())
-        user_chans[chan_data["name"].casefold()] = memb_data
+        add_user_membership(user_data, chan_data["name"], memb_data)
 
     old_users.clear()
     old_users.update(new_users)  # Reassigning the dict would break other references to the data, so just update instead
@@ -168,11 +179,10 @@ def perm_check(chan, conn, nick):
         return False
 
     chan_data = chans[chan]
-    nick_cf = nick.casefold()
-    if nick_cf not in chan_data["users"]:
+    if nick not in chan_data["users"]:
         return False
 
-    memb = chan_data["users"][nick_cf]
+    memb = chan_data["users"][nick]
     status = memb["status"]
     if status and status[0].level > 1:
         return True
@@ -223,12 +233,11 @@ def on_join(chan, nick, user, host, conn):
 
     users = conn.memory['users']
     user_data = WeakDict(nick=nick, user=user, host=host)
-    user_data = users.setdefault(nick.casefold(), user_data)
+    user_data = users.setdefault(nick, user_data)
     chan_data = conn.memory["chan_data"][chan]
     memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
-    chan_data["users"][nick.casefold()] = memb_data
-    user_chans = user_data.setdefault("channels", WeakValueDictionary())
-    user_chans[chan.casefold()] = memb_data
+    chan_data["users"][nick] = memb_data
+    add_user_membership(user_data, chan, memb_data)
 
 
 def on_mode(chan, irc_paramlist, conn):
@@ -267,7 +276,7 @@ def on_mode(chan, irc_paramlist, conn):
                 param = mode_params.pop(0)
 
                 if is_status:
-                    memb = chan_data["users"][param.casefold()]
+                    memb = chan_data["users"][param]
                     status = statuses[c]
                     if adding:
                         memb["status"].append(status)
@@ -283,8 +292,7 @@ def on_part(chan, nick, conn):
         chan = chan[1:]
 
     channels = conn.memory["chan_data"]
-    nick_cf = nick.casefold()
-    if nick_cf == conn.nick.casefold():
+    if nick.casefold() == conn.nick.casefold():
         try:
             del channels[chan]
         except KeyError:
@@ -292,7 +300,7 @@ def on_part(chan, nick, conn):
     else:
         chan_data = channels[chan]
         try:
-            del chan_data["users"][nick_cf]
+            del chan_data["users"][nick]
         except KeyError:
             pass
 
@@ -304,27 +312,24 @@ def on_kick(chan, target, conn):
 
 @hook.irc_raw('QUIT')
 def on_quit(nick, conn):
-    nick_cf = nick.casefold()
     users = conn.memory["users"]
-    if nick_cf in users:
-        user = users[nick_cf]
+    if nick in users:
+        user = users[nick]
         for memb in user.get("channels", {}).values():
             chan = memb["chan"]
-            chan["users"].pop(nick_cf)
+            chan["users"].pop(nick)
 
 
 @hook.irc_raw('NICK')
 def on_nick(nick, irc_paramlist, conn):
     users = conn.memory["users"]
-    nick_cf = nick.casefold()
     new_nick = irc_paramlist[0]
     if new_nick.startswith(':'):
         new_nick = new_nick[1:]
 
-    new_nick_cf = new_nick.casefold()
-    user = users.pop(nick_cf)
-    users[new_nick_cf] = user
+    user = users.pop(nick)
+    users[new_nick] = user
     user["nick"] = nick
-    for memb in user["channels"].values():
+    for memb in user.get("channels", {}).values():
         chan_users = memb["chan"]["users"]
-        chan_users[new_nick_cf] = chan_users.pop(nick_cf)
+        chan_users[new_nick] = chan_users.pop(nick)
