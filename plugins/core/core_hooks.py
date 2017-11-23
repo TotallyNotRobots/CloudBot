@@ -12,8 +12,8 @@ def cmd_autohelp(bot, event, _hook):
 
 
 @hook.post_hook(priority=Priority.LOWEST)
-def do_reply(result, error, launched_event):
-    if launched_event.hook.type in ("sieve", "on_start", "on_stop"):
+def do_reply(result, error, launched_event, launched_hook):
+    if launched_hook.type in ("sieve", "on_start", "on_stop"):
         return
 
     if error is None and result is not None:
