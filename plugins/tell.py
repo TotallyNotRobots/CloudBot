@@ -1,12 +1,12 @@
 import re
 from datetime import datetime
-from sqlalchemy import Table, Column, String, Boolean, DateTime
 
+from sqlalchemy import Table, Column, String, Boolean, DateTime
 from sqlalchemy.sql import select
 
 from cloudbot import hook
-from cloudbot.util import timeformat, database
 from cloudbot.event import EventType
+from cloudbot.util import timeformat, database
 
 table = Table(
     'tells',
@@ -19,6 +19,7 @@ table = Table(
     Column('time_sent', DateTime),
     Column('time_read', DateTime)
 )
+
 
 @hook.on_start
 def load_cache(db):
@@ -62,6 +63,7 @@ def read_all_tells(db, server, target):
     db.commit()
     load_cache(db)
 
+
 def read_tell(db, server, target, message):
     query = table.update() \
         .where(table.c.connection == server.lower()) \
@@ -86,12 +88,14 @@ def add_tell(db, server, sender, target, message):
     db.commit()
     load_cache(db)
 
+
 def tell_check(conn, nick):
     for _conn, _target in tell_cache:
         if (conn, nick.lower()) == (_conn, _target):
             return True
         else:
             continue
+
 
 @hook.event(EventType.message, singlethread=True)
 def tellinput(event, conn, db, nick, notice):
