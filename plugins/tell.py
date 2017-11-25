@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 
 from sqlalchemy import Table, Column, String, Boolean, DateTime
@@ -148,7 +147,7 @@ def showtells(nick, notice, db, conn):
 
 
 @hook.command("tell")
-def tell_cmd(text, nick, db, notice, conn, notice_doc):
+def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
     if query[0].lower() == "paradox":
@@ -165,12 +164,7 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc):
         notice("Have you looked in a mirror lately?")
         return
 
-    if target.lower() == conn.nick.lower():
-        # we can't send messages to ourselves
-        notice("Invalid nick '{}'.".format(target))
-        return
-
-    if not re.match("^[a-z0-9_|.\-\`\]\[]*$", target.lower()):
+    if not is_nick_valid(target.lower()) or target.lower() == conn.nick.lower():
         notice("Invalid nick '{}'.".format(target))
         return
 
