@@ -16,7 +16,7 @@ table = Table(
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, nick, notice_doc):
+def horoscope(text, db, bot, nick, notice, notice_doc):
     """[sign] - get your horoscope"""
     signs = {
         'aries': '1',
@@ -49,6 +49,10 @@ def horoscope(text, db, bot, nick, notice_doc):
             notice_doc()
             return
         sign = sign[0].strip().lower()
+
+    if sign not in signs:
+        notice("Unknown sign: {}".format(sign))
+        return
 
     params = {
         "sign": signs[sign]
