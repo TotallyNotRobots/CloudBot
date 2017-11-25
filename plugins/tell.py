@@ -131,7 +131,7 @@ def tellinput(event, conn, db, nick, notice):
 
 @hook.command(autohelp=False)
 def showtells(nick, notice, db, conn):
-    """showtells -- View all pending tell messages (sent in a notice)."""
+    """- View all pending tell messages (sent in a notice)."""
 
     tells = get_unread(db, conn.name, nick)
 
@@ -149,7 +149,7 @@ def showtells(nick, notice, db, conn):
 
 @hook.command("tell")
 def tell_cmd(text, nick, db, notice, conn, notice_doc):
-    """tell <nick> <message> -- Relay <message> to <nick> when <nick> is around."""
+    """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
     if query[0].lower() == "paradox":
         return "Paradox doesn't want to hear from me. Just send him a fucking message."
