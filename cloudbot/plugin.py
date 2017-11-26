@@ -533,15 +533,26 @@ class PluginManager:
         else:
             coro = sieve.function(self.bot, event, hook)
 
+        result, error = None, None
         task = async_util.wrap_future(coro)
         sieve.plugin.tasks.append(task)
         try:
             result = yield from task
         except Exception:
             logger.exception("Error running sieve {} on {}:".format(sieve.description, hook.description))
-            result = None
+            error = sys.exc_info()
 
         sieve.plugin.tasks.remove(task)
+
+        post_event = partial(
+            PostHookEvent, launched_hook=sieve, launched_event=event, bot=event.bot,
+            conn=event.conn, result=result, error=error
+        )
+        for post_hook in self.hook_hooks["post"]:
+            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
+            if success and res is False:
+                break
+
         return result
 
     @asyncio.coroutine

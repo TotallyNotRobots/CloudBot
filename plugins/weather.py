@@ -162,17 +162,9 @@ def weather(text, reply, db, nick, notice):
 
     # Get the more accurate URL if available, if not, get the generic one.
     if "?query=," in response["current_observation"]['ob_url']:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["forcast_url"]
-            pass
+        weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
     else:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["ob_url"]
-            pass
+        weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
 
     reply("{place} - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, {humidity}, "
           "Wind: {wind_mph}MPH/{wind_kph}KPH {wind_direction}, \x02Today:\x02 {today_conditions}, "

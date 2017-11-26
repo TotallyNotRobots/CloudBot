@@ -47,7 +47,7 @@ to ian@ianweller.org. Thanks!""".format(lookup))
 
 
 @hook.command("tfw", autohelp=False)
-def get_weather(text):
+def get_weather(text, reply):
     """
     Retrieves weather and forecast data for a given location.
 
@@ -91,8 +91,9 @@ def get_weather(text):
             raise ParseError("p.large")
         if large.text == "I CAN'T FIND THAT SHIT":
             raise LocationError()
-    except:
-        return("RESPONSE FROM THEFUCKINGWEATHER.COM: I CAN'T FIND THAT SHIT!")
+    except Exception:
+        reply("RESPONSE FROM THEFUCKINGWEATHER.COM: I CAN'T FIND THAT SHIT!")
+        raise
 
     # No error, so parse current weather data
     return_val = {"current": {}, "forecast": []}

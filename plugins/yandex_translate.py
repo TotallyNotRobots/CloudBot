@@ -35,7 +35,7 @@ def check_code(code):
     out = ""
     try:
         out = codes[code]
-    except:
+    except LookupError:
         out = "The API returned an undocumented error."
     return out
 
