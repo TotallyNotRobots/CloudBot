@@ -236,11 +236,7 @@ def lastfm(event, db, text, nick, bot):
     title = track["name"]
     album = track["album"]["#text"]
     artist = track["artist"]["#text"]
-    try:
-        url = web.try_shorten(track["url"])
-    except:
-        url = track["url"]
-        pass
+    url = web.try_shorten(track["url"])
 
     tags = gettracktags(api_key, artist, title)
     if tags == "no tags":
@@ -336,10 +332,14 @@ def lastfmcompare(bot, text, nick):
 
     if not text:
         return "please specify a lastfm username to compare"
-    try:
-        user1, user2 = text.split()
-    except:
-        user2 = text
+
+    users = text.split(None, 2)
+    user1 = users.pop(0)
+
+    if users:
+        user2 = users.pop(0)
+    else:
+        user2 = user1
         user1 = nick
 
     user2_check = get_account(user2)

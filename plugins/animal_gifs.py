@@ -27,12 +27,12 @@ def get_random_gif(url):
 
 
 @hook.command(autohelp=False)
-def doggifs(logger):
+def doggifs(reply):
     """- Returns a random dog GIF from http://bestanimations.com/"""
     page = random.choice(DOG_PAGES)
     url = urljoin(BASE_URL, page)
     try:
         return get_random_gif(url)
     except Exception:
-        logger.exception("An error occurred while trying to get a dog GIF:")
-        return "Error occurred when retrieving GIF"
+        reply("Error occurred when retrieving GIF")
+        raise

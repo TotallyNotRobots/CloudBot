@@ -72,10 +72,7 @@ def welcome(nick, message, event, db, bot):
 
     grab = bot.plugin_manager.find_plugin("grab")
 
-    try:
-        chan = event.irc_raw.split(':')[2].lower()
-    except:
-        return
+    chan = event.irc_raw.split(':')[2].lower()
     if chan in opt_out:
         return
 

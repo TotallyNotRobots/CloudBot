@@ -6,14 +6,17 @@ from cloudbot import hook
 @hook.command
 def dig(text, nick, notice):
     """.dig <domain> <recordtype> returns a list of records for the specified domain valid record types are A, NS, TXT, and MX. If a record type is not chosen A will be the default."""
-    try:
-        domain, rtype = text.split()
-        rtype = rtype.upper()
-        if rtype not in ["A", "NS", "MX", "TXT"]:
-            rtype = "A"
-    except:
-        domain = text.strip()
+    args = text.split()
+    domain = args.pop(0)
+
+    if args:
+        rtype = args.pop(0).upper()
+    else:
         rtype = "A"
+
+    if rtype not in ("A", "NS", "MX", "TXT"):
+        rtype = "A"
+
     url = "http://dig.jsondns.org/IN/{}/{}".format(domain, rtype)
     r = requests.get(url)
     results = r.json()
