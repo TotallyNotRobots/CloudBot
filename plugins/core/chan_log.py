@@ -6,7 +6,7 @@ from cloudbot.util import web
 
 @hook.post_hook
 def on_hook_end(error, launched_hook, launched_event, conn, admin_log):
-    should_broadcast = conn is None
+    should_broadcast = True
     if error is not None:
         admin_log(
             "Error occurred in {}.{}".format(launched_hook.plugin.title, launched_hook.function_name), should_broadcast
