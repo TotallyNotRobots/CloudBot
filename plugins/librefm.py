@@ -103,11 +103,7 @@ def librefm(text, nick, db, bot, notice):
     title = track["name"]
     album = track["album"]["#text"]
     artist = track["artist"]["#text"]
-    try:
-        url = web.try_shorten(track["url"])
-    except:
-        url = track["url"]
-        pass
+    url = web.try_shorten(track["url"])
     tags = getartisttags(artist, bot)
 
     out = '{} {} "{}"'.format(user, status, title)
@@ -137,9 +133,8 @@ def getartisttags(artist, bot):
 
     try:
         tag = tags['toptags']['tag']
-    except:
+    except LookupError:
         return 'no tags'
-        pass
 
     if type(tag) == dict:
         tag_list = tag['name']
@@ -176,11 +171,7 @@ def displaybandinfo(text, nick, bot, notice):
     summary = a["bio"]["summary"]
     tags = getartisttags(text, bot)
 
-    try:
-        url = web.try_shorten(a["url"])
-    except:
-        url = a["url"]
-        pass
+    url = web.try_shorten(a["url"])
 
     out = "{}: ".format(a["name"])
     out += summary if summary else "No artist summary listed."
