@@ -11,12 +11,12 @@ License:
 """
 
 import json
-import requests
 import re
+
+import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
-
 
 # CONSTANTS
 
@@ -94,7 +94,7 @@ def newegg_url(match):
 
 @hook.command()
 def newegg(text):
-    """newegg <item name> - searches newegg.com for <item name>"""
+    """<item name> - searches newegg.com for <item name>"""
 
     # form the search request
     request = {
@@ -122,7 +122,7 @@ def newegg(text):
     r = request.json()
 
     if r.get("Description", False):
-        return "Newegg Error: {Description} (\x02{Code}\x02)". format(**r)
+        return "Newegg Error: {Description} (\x02{Code}\x02)".format(**r)
 
     # get the first result
     if r["ProductListItems"]:
