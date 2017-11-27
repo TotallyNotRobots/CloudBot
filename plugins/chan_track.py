@@ -90,7 +90,8 @@ def init_chan_data(conn):
 
 
 def add_user_membership(user, chan, membership):
-    user["channels"][chan] = membership
+    chans = user.setdefault('channels', KeyFoldWeakValueDict())
+    chans[chan] = membership
 
 
 def replace_user_data(conn, chan_data):
