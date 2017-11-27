@@ -22,7 +22,7 @@ from cloudbot.util import formatting, web
 
 ITEM_URL = "https://www.newegg.com/Product/Product.aspx?Item={}"
 
-API_PRODUCT = "https://www.ows.newegg.com/Products.egg/{}/ProductDetails"
+API_PRODUCT = "https://www.ows.newegg.com/Products.egg/{}"
 API_SEARCH = "https://www.ows.newegg.com/Search.egg/Advanced"
 
 NEWEGG_RE = re.compile(r"(?:(?:www.newegg.com|newegg.com)/Product/Product\.aspx\?Item=)([-_a-zA-Z0-9]+)", re.I)
@@ -37,11 +37,11 @@ def format_item(item, show_url=True):
     # format the rating nicely if it exists
     if not item["ReviewSummary"]["TotalReviews"] == "[]":
         rating = "Rated {}/5 ({} ratings)".format(item["ReviewSummary"]["Rating"],
-                                                  item["ReviewSummary"]["TotalReviews"][1:-1])
+                                                  item["ReviewSummary"]["TotalReviews"])
     else:
         rating = "No Ratings"
 
-    if not item["FinalPrice"] == item["OriginalPrice"]:
+    if item["OriginalPrice"] and item["FinalPrice"] != item["OriginalPrice"]:
         price = "{FinalPrice}, was {OriginalPrice}".format(**item)
     else:
         price = item["FinalPrice"]
@@ -53,7 +53,7 @@ def format_item(item, show_url=True):
     else:
         tags.append("\x02Out Of Stock\x02")
 
-    if item["FreeShippingFlag"]:
+    if item["IsFreeShipping"]:
         tags.append("\x02Free Shipping\x02")
 
     if item.get("IsPremierItem"):
@@ -61,9 +61,6 @@ def format_item(item, show_url=True):
 
     if item["IsFeaturedItem"]:
         tags.append("\x02Featured\x02")
-
-    if item["IsShellShockerItem"]:
-        tags.append("\x02SHELL SHOCKER\u00AE\x02")
 
     # join all the tags together in a comma separated string ("tag1, tag2, tag3")
     tag_text = ", ".join(tags)
@@ -92,7 +89,7 @@ def newegg_url(match):
     }
 
     item = requests.get(API_PRODUCT.format(item_id), headers=headers).json()
-    return format_item(item, show_url=False)
+    return format_item(item['Basic'], show_url=False)
 
 
 @hook.command()
