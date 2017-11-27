@@ -20,10 +20,10 @@ from cloudbot.util import formatting, web
 
 # CONSTANTS
 
-ITEM_URL = "http://www.newegg.com/Product/Product.aspx?Item={}"
+ITEM_URL = "https://www.newegg.com/Product/Product.aspx?Item={}"
 
-API_PRODUCT = "http://www.ows.newegg.com/Products.egg/{}/ProductDetails"
-API_SEARCH = "http://www.ows.newegg.com/Search.egg/Advanced"
+API_PRODUCT = "https://www.ows.newegg.com/Products.egg/{}/ProductDetails"
+API_SEARCH = "https://www.ows.newegg.com/Search.egg/Advanced"
 
 NEWEGG_RE = re.compile(r"(?:(?:www.newegg.com|newegg.com)/Product/Product\.aspx\?Item=)([-_a-zA-Z0-9]+)", re.I)
 
