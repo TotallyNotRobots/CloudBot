@@ -48,6 +48,7 @@ def remove_ignore(db, conn, chan, mask):
     db.commit()
     load_cache(db)
 
+
 def is_ignored(conn, chan, mask):
     for _conn, _chan, _mask in ignore_cache:
         if _chan == "*":
@@ -92,10 +93,9 @@ def ignore_sieve(bot, event, _hook):
 
 def get_user(conn, text):
     users = conn.memory.get("users", {})
-    text_cf = text.casefold()
-    try:
-        user = users[text_cf]
-    except LookupError:
+    user = users.get(text)
+
+    if user is None:
         mask = text
     else:
         mask = "*!*@{host}".format_map(user)
