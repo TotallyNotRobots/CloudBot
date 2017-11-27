@@ -5,7 +5,6 @@ Requires:
 server_info.py
 """
 import weakref
-from collections import defaultdict
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
@@ -32,15 +31,15 @@ class KeyFoldMixin:
         super().__delitem__(key.casefold())
 
 
-class KeyFoldDict(dict, KeyFoldMixin):
+class KeyFoldDict(KeyFoldMixin, dict):
     pass
 
 
-class KeyFoldWeakValueDict(WeakValueDictionary, KeyFoldMixin):
+class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
     pass
 
 
-class ChanDict(defaultdict, KeyFoldMixin):
+class ChanDict(KeyFoldDict):
     def __missing__(self, key):
         data = WeakDict(name=key, users=KeyFoldDict())
         self[key] = data
