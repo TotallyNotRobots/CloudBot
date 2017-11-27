@@ -52,6 +52,12 @@ class ChanDict(KeyFoldDict):
 class UsersDict(KeyFoldWeakValueDict):
     __slots__ = ()
 
+    def __getitem__(self, item):
+        try:
+            return super().__getitem__(item)
+        except KeyError:
+            return self.__missing__(item)
+
     def __missing__(self, key):
         self[key] = value = WeakDict(nick=key, channels=KeyFoldWeakValueDict())
         return value
