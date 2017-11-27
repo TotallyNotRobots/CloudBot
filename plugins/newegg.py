@@ -93,7 +93,7 @@ def newegg_url(match):
 
 
 @hook.command()
-def newegg(text):
+def newegg(text, admin_log, reply):
     """<item name> - searches newegg.com for <item name>"""
 
     # form the search request
@@ -121,8 +121,16 @@ def newegg(text):
 
     r = request.json()
 
-    if r.get("Description", False):
-        return "Newegg Error: {Description} (\x02{Code}\x02)".format(**r)
+    if not request.ok:
+        if r.get("Message"):
+            msg = "{ExceptionMessage}\n{ExceptionType}\n{StackTrace}".format(**r).replace("\r", "")
+            url = web.paste(msg)
+            admin_log("Newegg API Error: {ExceptionType}: {url}".format(url=url, **r))
+            return "Newegg Error: {Message} (\x02{code}\x02)".format(code=request.status_code, **r)
+        else:
+            reply("Unknown error occurred.")
+            request.raise_for_status()
+            return
 
     # get the first result
     if r["ProductListItems"]:
