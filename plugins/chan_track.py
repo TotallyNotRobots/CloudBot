@@ -5,7 +5,7 @@ Requires:
 server_info.py
 """
 import weakref
-from collections import defaultdict
+from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
@@ -32,19 +32,29 @@ class KeyFoldMixin:
         super().__delitem__(key.casefold())
 
 
-class KeyFoldDict(dict, KeyFoldMixin):
+class KeyFoldDict(KeyFoldMixin, dict):
     pass
 
 
-class KeyFoldWeakValueDict(WeakValueDictionary, KeyFoldMixin):
+class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
     pass
 
 
-class ChanDict(defaultdict, KeyFoldMixin):
+class ChanDict(KeyFoldDict):
+    __slots__ = ()
+
     def __missing__(self, key):
         data = WeakDict(name=key, users=KeyFoldDict())
         self[key] = data
         return data
+
+
+class UsersDict(KeyFoldWeakValueDict):
+    __slots__ = ()
+
+    def __missing__(self, key):
+        self[key] = value = WeakDict(nick=key, channels=KeyFoldWeakValueDict())
+        return value
 
 
 def update_chan_data(conn, chan):
@@ -75,13 +85,12 @@ def init_chan_data(conn):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
     chan_data.clear()
 
-    users = conn.memory.setdefault("users", KeyFoldWeakValueDict())
+    users = conn.memory.setdefault("users", UsersDict())
     users.clear()
 
 
 def add_user_membership(user, chan, membership):
-    chans = user.setdefault("channels", KeyFoldWeakValueDict())
-    chans[chan] = membership
+    user["channels"][chan] = membership
 
 
 def replace_user_data(conn, chan_data):
@@ -232,8 +241,8 @@ def on_join(chan, nick, user, host, conn):
         chan = chan[1:]
 
     users = conn.memory['users']
-    user_data = WeakDict(nick=nick, user=user, host=host)
-    user_data = users.setdefault(nick, user_data)
+    user_data = users[nick]
+    user_data.update(user=user, host=host)
     chan_data = conn.memory["chan_data"][chan]
     memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
     chan_data["users"][nick] = memb_data
@@ -293,16 +302,12 @@ def on_part(chan, nick, conn):
 
     channels = conn.memory["chan_data"]
     if nick.casefold() == conn.nick.casefold():
-        try:
+        with suppress(KeyError):
             del channels[chan]
-        except KeyError:
-            pass
     else:
         chan_data = channels[chan]
-        try:
+        with suppress(KeyError):
             del chan_data["users"][nick]
-        except KeyError:
-            pass
 
 
 @hook.irc_raw('KICK')
@@ -317,7 +322,8 @@ def on_quit(nick, conn):
         user = users[nick]
         for memb in user.get("channels", {}).values():
             chan = memb["chan"]
-            chan["users"].pop(nick)
+            with suppress(KeyError):
+                del chan["users"][nick]
 
 
 @hook.irc_raw('NICK')
@@ -332,4 +338,5 @@ def on_nick(nick, irc_paramlist, conn):
     user["nick"] = nick
     for memb in user.get("channels", {}).values():
         chan_users = memb["chan"]["users"]
-        chan_users[new_nick] = chan_users.pop(nick)
+        with suppress(KeyError):
+            chan_users[new_nick] = chan_users.pop(nick)
