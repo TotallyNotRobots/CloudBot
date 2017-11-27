@@ -41,6 +41,8 @@ class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
 
 
 class ChanDict(KeyFoldDict):
+    __slots__ = ()
+
     def __missing__(self, key):
         data = WeakDict(name=key, users=KeyFoldDict())
         self[key] = data
@@ -48,6 +50,8 @@ class ChanDict(KeyFoldDict):
 
 
 class UsersDict(KeyFoldWeakValueDict):
+    __slots__ = ()
+
     def __missing__(self, key):
         self[key] = value = WeakDict(nick=key, channels=KeyFoldWeakValueDict())
         return value
