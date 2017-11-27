@@ -90,16 +90,24 @@ def do_caps():
 def get_chan_data(bot):
     for conn in bot.connections.values():
         if conn.connected:
+            init_chan_data(conn, False)
             update_conn_data(conn)
 
 
 @hook.connect
-def init_chan_data(conn):
+def init_chan_data(conn, _clear=True):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
-    chan_data.clear()
-
     users = conn.memory.setdefault("users", UsersDict())
-    users.clear()
+
+    if not (isinstance(chan_data, ChanDict) and isinstance(users, UsersDict)):
+        del conn.memory["chan_data"]
+        del conn.memory["users"]
+
+        return init_chan_data(conn, _clear)
+
+    if _clear:
+        chan_data.clear()
+        users.clear()
 
 
 def add_user_membership(user, chan, membership):
