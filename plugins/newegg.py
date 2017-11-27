@@ -92,7 +92,7 @@ def newegg_url(match):
     return format_item(item['Basic'], show_url=False)
 
 
-@hook.command()
+# @hook.command()
 def newegg(text, admin_log, reply):
     """<item name> - searches newegg.com for <item name>"""
 
