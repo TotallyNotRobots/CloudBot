@@ -47,6 +47,12 @@ class ChanDict(KeyFoldDict):
         return data
 
 
+class UsersDict(KeyFoldWeakValueDict):
+    def __missing__(self, key):
+        self[key] = value = WeakDict(nick=key, channels=KeyFoldWeakValueDict())
+        return value
+
+
 def update_chan_data(conn, chan):
     chan_data = conn.memory["chan_data"][chan]
     chan_data["receiving_names"] = False
@@ -75,13 +81,12 @@ def init_chan_data(conn):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
     chan_data.clear()
 
-    users = conn.memory.setdefault("users", KeyFoldWeakValueDict())
+    users = conn.memory.setdefault("users", UsersDict())
     users.clear()
 
 
 def add_user_membership(user, chan, membership):
-    chans = user.setdefault("channels", KeyFoldWeakValueDict())
-    chans[chan] = membership
+    user["channels"][chan] = membership
 
 
 def replace_user_data(conn, chan_data):
@@ -232,8 +237,8 @@ def on_join(chan, nick, user, host, conn):
         chan = chan[1:]
 
     users = conn.memory['users']
-    user_data = WeakDict(nick=nick, user=user, host=host)
-    user_data = users.setdefault(nick, user_data)
+    user_data = users[nick]
+    user_data.update(user=user, host=host)
     chan_data = conn.memory["chan_data"][chan]
     memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
     chan_data["users"][nick] = memb_data
