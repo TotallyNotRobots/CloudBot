@@ -37,7 +37,14 @@ class KeyFoldDict(KeyFoldMixin, dict):
 
 
 class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
-    pass
+    def pop(self, key, *args):
+        return super().pop(key.casefold(), *args)
+
+    def get(self, key, default=None):
+        return super().get(key.casefold(), default=default)
+
+    def setdefault(self, key, default=None):
+        return super().setdefault(key.casefold(), default=default)
 
 
 class ChanDict(KeyFoldDict):
