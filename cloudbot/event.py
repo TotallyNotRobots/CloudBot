@@ -2,10 +2,9 @@ import asyncio
 import concurrent.futures
 import enum
 import logging
+import sys
 import warnings
 from functools import partial
-
-import sys
 
 from cloudbot.util.parsers.irc import Message
 
@@ -154,7 +153,7 @@ class Event:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            #logger.debug("Opening database session for {}:threaded=False".format(self.hook.description))
+            # logger.debug("Opening database session for {}:threaded=False".format(self.hook.description))
 
             # we're running a coroutine hook with a db, so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
@@ -175,7 +174,7 @@ class Event:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            #logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
+            # logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
 
             self.db = self.bot.db_session()
 
@@ -193,7 +192,7 @@ class Event:
             raise ValueError("event.hook is required to close an event")
 
         if self.db is not None:
-            #logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
+            # logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
             # be sure the close the database in the database executor, as it is only accessable in that one thread
             yield from self.async_call(self.db.close)
             self.db = None
@@ -210,7 +209,7 @@ class Event:
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
         if self.db is not None:
-            #logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
+            # logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
             self.db.close()
             self.db = None
 
@@ -241,7 +240,20 @@ class Event:
             if self.chan is None:
                 raise ValueError("Target must be specified when chan is not assigned")
             target = self.chan
-        self.conn.message( target, message)
+        self.conn.message(target, message)
+
+    def admin_log(self, message, broadcast=False):
+        """Log a message in the current connections admin log
+        :type message: str
+        :type broadcast: bool
+        :param message: The message to log
+        :param broadcast: Should this be broadcast to all connections
+        """
+        conns = [self.conn] if not broadcast else self.bot.connections.values()
+
+        for conn in conns:
+            if conn and conn.connected:
+                conn.admin_log(message, console=not broadcast)
 
     def reply(self, *messages, target=None):
         """sends a message to the current channel/user with a prefix

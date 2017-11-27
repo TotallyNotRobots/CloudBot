@@ -158,6 +158,14 @@ class IrcClient(Client):
             text = "".join(text.splitlines())
             self.cmd("PRIVMSG", target, text)
 
+    def admin_log(self, text, console=True):
+        log_chan = self.config.get("log_channel")
+        if log_chan:
+            self.message(log_chan, text)
+
+        if console:
+            logger.info("[%s|admin] %s", self.name, text)
+
     def action(self, target, text):
         text = "".join(text.splitlines())
         self.ctcp(target, "ACTION", text)

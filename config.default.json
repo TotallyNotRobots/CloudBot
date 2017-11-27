@@ -16,6 +16,7 @@
                 "#cloudbot",
                 "#cloudbot2"
             ],
+            "log_channel": "#MyAdminChannel",
             "disabled_commands": [],
             "acls": {},
             "sasl": {
