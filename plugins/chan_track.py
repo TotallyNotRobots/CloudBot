@@ -5,6 +5,7 @@ Requires:
 server_info.py
 """
 import weakref
+from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
@@ -292,16 +293,12 @@ def on_part(chan, nick, conn):
 
     channels = conn.memory["chan_data"]
     if nick.casefold() == conn.nick.casefold():
-        try:
+        with suppress(KeyError):
             del channels[chan]
-        except KeyError:
-            pass
     else:
         chan_data = channels[chan]
-        try:
+        with suppress(KeyError):
             del chan_data["users"][nick]
-        except KeyError:
-            pass
 
 
 @hook.irc_raw('KICK')
@@ -316,7 +313,8 @@ def on_quit(nick, conn):
         user = users[nick]
         for memb in user.get("channels", {}).values():
             chan = memb["chan"]
-            chan["users"].pop(nick)
+            with suppress(KeyError):
+                del chan["users"][nick]
 
 
 @hook.irc_raw('NICK')
@@ -331,4 +329,5 @@ def on_nick(nick, irc_paramlist, conn):
     user["nick"] = nick
     for memb in user.get("channels", {}).values():
         chan_users = memb["chan"]["users"]
-        chan_users[new_nick] = chan_users.pop(nick)
+        with suppress(KeyError):
+            chan_users[new_nick] = chan_users.pop(nick)
