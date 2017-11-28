@@ -77,9 +77,14 @@ def update_conn_data(conn):
         update_chan_data(conn, chan)
 
 
-@hook.on_cap_available("userhost-in-names", "multi-prefix")
+@hook.on_cap_available("userhost-in-names", "multi-prefix", "extended-join")
 def do_caps():
     return True
+
+
+def is_cap_available(conn, cap):
+    caps = conn.memory.get("server_caps", {})
+    return bool(caps.get(cap, False))
 
 
 @hook.on_start
@@ -116,9 +121,8 @@ def replace_user_data(conn, chan_data):
     old_users = chan_data["users"]
     new_data = chan_data.pop("new_users", [])
     new_users = KeyFoldDict()
-    caps = conn.memory.get("server_caps", {})
-    has_uh_i_n = caps.get("userhost-in-names", False)
-    has_multi_pfx = caps.get("multi-prefix", False)
+    has_uh_i_n = is_cap_available(conn, "userhost-in-names")
+    has_multi_pfx = is_cap_available(conn, "multi-prefix")
     for name in new_data:
         user_data = WeakDict(channels=KeyFoldWeakValueDict())
         memb_data = WeakDict(user=user_data, chan=weakref.proxy(chan_data))
@@ -244,14 +248,22 @@ def updateusers(bot):
 
 
 @hook.irc_raw('JOIN')
-def on_join(chan, nick, user, host, conn):
+def on_join(nick, user, host, conn, irc_paramlist):
+    chan, *other_data = irc_paramlist
+
     if chan.startswith(':'):
         chan = chan[1:]
+
+    data = {'ident': user, 'host': host}
+
+    if is_cap_available(conn, "extended-join"):
+        acct, realname = other_data
+        data.update(account=acct, realname=realname)
 
     users = conn.memory['users']
 
     user_data = users.getuser(nick)
-    user_data.update(user=user, host=host)
+    user_data.update(data)
 
     chan_data = conn.memory["chan_data"].getchan(chan)
     memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
