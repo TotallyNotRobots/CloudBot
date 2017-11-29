@@ -258,6 +258,9 @@ def on_join(nick, user, host, conn, irc_paramlist):
 
     if is_cap_available(conn, "extended-join"):
         acct, realname = other_data
+        if acct == "*":
+            acct = None
+
         data.update(account=acct, realname=realname)
 
     users = conn.memory['users']
