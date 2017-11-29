@@ -395,3 +395,51 @@ def on_away(conn, nick, irc_paramlist):
         reason = None
 
     conn.memory["users"][nick].update(is_away=(reason is not None), away_message=reason)
+
+
+@hook.irc_raw('352')
+def on_who(conn, irc_paramlist):
+    _, ident, host, server, nick, status, realname = irc_paramlist
+    realname = realname.split(None, 1)[1]
+    user = conn.memory["users"][nick]
+    status = list(status)
+    is_away = status.pop(0) == "G"
+    is_oper = status[:1] == "*"
+    user.update(
+        ident=ident,
+        host=host,
+        server=server,
+        realname=realname,
+        is_away=is_away,
+        is_oper=is_oper,
+    )
+
+
+@hook.irc_raw('311')
+def on_whois_name(conn, irc_paramlist):
+    _, nick, ident, host, _, realname = irc_paramlist
+    conn.memory["users"][nick].update(ident=ident, host=host, realname=realname)
+
+
+@hook.irc_raw('330')
+def on_whois_acct(conn, irc_paramlist):
+    _, nick, acct = irc_paramlist[:2]
+    conn.memory["users"][nick]["account"] = acct
+
+
+@hook.irc_raw('301')
+def on_whois_away(conn, irc_paramlist):
+    _, nick, msg = irc_paramlist
+    conn.memory["users"][nick].update(is_away=True, away_message=msg)
+
+
+@hook.irc_raw('312')
+def on_whois_server(conn, irc_paramlist):
+    _, nick, server, _ = irc_paramlist
+    conn.memory["users"][nick].update(server=server)
+
+
+@hook.irc_raw('313')
+def on_whois_oper(conn, irc_paramlist):
+    nick = irc_paramlist[1]
+    conn.memory["users"][nick].update(is_oper=True)
