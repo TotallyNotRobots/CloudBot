@@ -77,7 +77,7 @@ def update_conn_data(conn):
         update_chan_data(conn, chan)
 
 
-@hook.on_cap_available("userhost-in-names", "multi-prefix", "extended-join")
+@hook.on_cap_available("userhost-in-names", "multi-prefix", "extended-join", "account-notify")
 def do_caps():
     return True
 
@@ -364,3 +364,8 @@ def on_nick(nick, irc_paramlist, conn):
     for memb in user.get("channels", {}).values():
         chan_users = memb["chan"]["users"]
         chan_users[new_nick] = chan_users.pop(nick)
+
+
+@hook.irc_raw('ACCOUNT')
+def on_account(conn, nick, irc_paramlist):
+    conn.memory["users"][nick]["account"] = irc_paramlist[0]
