@@ -394,4 +394,4 @@ def on_away(conn, nick, irc_paramlist):
     else:
         reason = None
 
-    conn.memory["users"][nick].update(is_away=bool(reason), away_message=reason)
+    conn.memory["users"][nick].update(is_away=(reason is not None), away_message=reason)
