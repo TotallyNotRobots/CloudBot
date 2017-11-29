@@ -82,6 +82,7 @@ SUPPORTED_CAPS = frozenset({
     "multi-prefix",
     "extended-join",
     "account-notify",
+    "away-notify",
     "chghost",
 })
 
@@ -384,3 +385,13 @@ def on_account(conn, nick, irc_paramlist):
 def on_chghost(conn, nick, irc_paramlist):
     ident, host = irc_paramlist
     conn.memory["users"][nick].update(ident=ident, host=host)
+
+
+@hook.irc_raw('AWAY')
+def on_away(conn, nick, irc_paramlist):
+    if irc_paramlist:
+        reason = irc_paramlist[0]
+    else:
+        reason = None
+
+    conn.memory["users"][nick].update(is_away=bool(reason), away_message=reason)
