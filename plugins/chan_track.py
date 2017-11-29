@@ -5,7 +5,6 @@ Requires:
 server_info.py
 """
 import weakref
-from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
@@ -26,10 +25,19 @@ class KeyFoldMixin:
         return super().__getitem__(item.casefold())
 
     def __setitem__(self, key, value):
-        super().__setitem__(key.casefold(), value)
+        return super().__setitem__(key.casefold(), value)
 
     def __delitem__(self, key):
-        super().__delitem__(key.casefold())
+        return super().__delitem__(key.casefold())
+
+    def pop(self, key, *args, **kwargs):
+        return super().pop(key.casefold(), *args, **kwargs)
+
+    def get(self, key, default=None):
+        return super().get(key, default)
+
+    def setdefault(self, key, default=None):
+        return super().setdefault(key, default)
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
@@ -37,41 +45,29 @@ class KeyFoldDict(KeyFoldMixin, dict):
 
 
 class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
-    def pop(self, key, *args):
-        return super().pop(key.casefold(), *args)
-
-    def get(self, key, default=None):
-        return super().get(key.casefold(), default=default)
-
-    def setdefault(self, key, default=None):
-        return super().setdefault(key.casefold(), default=default)
+    pass
 
 
 class ChanDict(KeyFoldDict):
-    __slots__ = ()
-
-    def __missing__(self, key):
-        data = WeakDict(name=key, users=KeyFoldDict())
-        self[key] = data
-        return data
+    def getchan(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            self[name] = value = WeakDict(name=name, users=KeyFoldDict())
+            return value
 
 
 class UsersDict(KeyFoldWeakValueDict):
-    __slots__ = ()
-
-    def __getitem__(self, item):
+    def getuser(self, nick):
         try:
-            return super().__getitem__(item)
+            return self[nick]
         except KeyError:
-            return self.__missing__(item)
-
-    def __missing__(self, key):
-        self[key] = value = WeakDict(nick=key, channels=KeyFoldWeakValueDict())
-        return value
+            self[nick] = value = WeakDict(nick=nick, channels=KeyFoldWeakValueDict())
+            return value
 
 
 def update_chan_data(conn, chan):
-    chan_data = conn.memory["chan_data"][chan]
+    chan_data = conn.memory["chan_data"].getchan(chan)
     chan_data["receiving_names"] = False
     conn.cmd("NAMES", chan)
 
@@ -81,9 +77,24 @@ def update_conn_data(conn):
         update_chan_data(conn, chan)
 
 
-@hook.on_cap_available("userhost-in-names", "multi-prefix")
+SUPPORTED_CAPS = frozenset({
+    "userhost-in-names",
+    "multi-prefix",
+    "extended-join",
+    "account-notify",
+    "away-notify",
+    "chghost",
+})
+
+
+@hook.on_cap_available(*SUPPORTED_CAPS)
 def do_caps():
     return True
+
+
+def is_cap_available(conn, cap):
+    caps = conn.memory.get("server_caps", {})
+    return bool(caps.get(cap, False))
 
 
 @hook.on_start
@@ -111,21 +122,19 @@ def init_chan_data(conn, _clear=True):
 
 
 def add_user_membership(user, chan, membership):
-    chans = user.setdefault('channels', KeyFoldWeakValueDict())
-    chans[chan] = membership
+    user["channels"][chan] = membership
 
 
 def replace_user_data(conn, chan_data):
     statuses = {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
     users = conn.memory["users"]
-    old_users = chan_data['users']
+    old_users = chan_data["users"]
     new_data = chan_data.pop("new_users", [])
     new_users = KeyFoldDict()
-    caps = conn.memory.get("server_caps", {})
-    has_uh_i_n = caps.get("userhost-in-names", False)
-    has_multi_pfx = caps.get("multi-prefix", False)
+    has_uh_i_n = is_cap_available(conn, "userhost-in-names")
+    has_multi_pfx = is_cap_available(conn, "multi-prefix")
     for name in new_data:
-        user_data = WeakDict()
+        user_data = WeakDict(channels=KeyFoldWeakValueDict())
         memb_data = WeakDict(user=user_data, chan=weakref.proxy(chan_data))
         user_statuses = []
         while name[:1] in statuses:
@@ -142,7 +151,7 @@ def replace_user_data(conn, chan_data):
 
         if has_uh_i_n:
             pfx = Prefix.parse(name)
-            user_data.update({"nick": pfx.nick, "ident": pfx.user, "host": pfx.host})
+            user_data.update(nick=pfx.nick, ident=pfx.user, host=pfx.host)
         else:
             user_data["nick"] = name
 
@@ -153,7 +162,7 @@ def replace_user_data(conn, chan_data):
             old_data.update(memb_data)  # New data takes priority over old data
             memb_data.update(old_data)
 
-        old_user_data = users.setdefault(nick, user_data)
+        old_user_data = users.getuser(nick)
         old_user_data.update(user_data)
         user_data = old_user_data
         memb_data["user"] = user_data
@@ -166,7 +175,7 @@ def replace_user_data(conn, chan_data):
 @hook.irc_raw(['353', '366'], singlethread=True)
 def on_names(conn, irc_paramlist, irc_command):
     chan = irc_paramlist[2 if irc_command == '353' else 1]
-    chan_data = conn.memory["chan_data"][chan]
+    chan_data = conn.memory["chan_data"].getchan(chan)
     if irc_command == '366':
         chan_data["receiving_names"] = False
         replace_user_data(conn, chan_data)
@@ -202,18 +211,20 @@ def dump_dict(data, indent=2, level=0, _objects=None):
 
 @hook.permission("chanop")
 def perm_check(chan, conn, nick):
-    if not chan:
+    if not (chan and conn):
         return False
 
     chans = conn.memory["chan_data"]
-    if chan not in chans:
+    try:
+        chan_data = chans[chan]
+    except KeyError:
         return False
 
-    chan_data = chans[chan]
-    if nick not in chan_data["users"]:
+    try:
+        memb = chan_data["users"][nick]
+    except KeyError:
         return False
 
-    memb = chan_data["users"][nick]
     status = memb["status"]
     if status and status[0].level > 1:
         return True
@@ -246,31 +257,34 @@ def updateusers(bot):
     return "Updating all channel data"
 
 
-@hook.irc_raw(['JOIN', 'MODE'], singlethread=True)
-def on_join_mode(chan, nick, user, host, conn, irc_command, irc_paramlist):
-    """
-    Both JOIN and MODE are handled in one hook with Hook:singlethread=True
-    to ensure they are handled in order, avoiding a possible race condition
-    """
-    if irc_command == 'JOIN':
-        return on_join(chan, nick, user, host, conn)
-    elif irc_command == 'MODE':
-        return on_mode(chan, irc_paramlist, conn)
+@hook.irc_raw('JOIN')
+def on_join(nick, user, host, conn, irc_paramlist):
+    chan, *other_data = irc_paramlist
 
-
-def on_join(chan, nick, user, host, conn):
     if chan.startswith(':'):
         chan = chan[1:]
 
+    data = {'ident': user, 'host': host}
+
+    if is_cap_available(conn, "extended-join") and other_data:
+        acct, realname = other_data
+        if acct == "*":
+            acct = None
+
+        data.update(account=acct, realname=realname)
+
     users = conn.memory['users']
-    user_data = users[nick]
-    user_data.update(user=user, host=host)
-    chan_data = conn.memory["chan_data"][chan]
+
+    user_data = users.getuser(nick)
+    user_data.update(data)
+
+    chan_data = conn.memory["chan_data"].getchan(chan)
     memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
     chan_data["users"][nick] = memb_data
     add_user_membership(user_data, chan, memb_data)
 
 
+@hook.irc_raw('MODE')
 def on_mode(chan, irc_paramlist, conn):
     if chan.startswith(':'):
         chan = chan[1:]
@@ -280,11 +294,13 @@ def on_mode(chan, irc_paramlist, conn):
     status_modes = {status.mode for status in statuses.values()}
     mode_types = serv_info["channel_modes"]
     chans = conn.memory["chan_data"]
-    if chan not in chans:
+
+    try:
+        chan_data = chans[chan]
+    except KeyError:
         return
 
-    chan_data = chans[chan]
-
+    chan_users = chan_data["users"]
     modes = irc_paramlist[1]
     mode_params = irc_paramlist[2:]
     new_modes = {}
@@ -307,14 +323,14 @@ def on_mode(chan, irc_paramlist, conn):
                 param = mode_params.pop(0)
 
                 if is_status:
-                    memb = chan_data["users"][param]
+                    memb = chan_users[param]
                     status = statuses[c]
+                    memb_status = memb["status"]
                     if adding:
-                        memb["status"].append(status)
-                        memb["status"].sort(key=attrgetter("level"), reverse=True)
+                        memb_status.append(status)
+                        memb_status.sort(key=attrgetter("level"), reverse=True)
                     else:
-                        if status in memb["status"]:
-                            memb["status"].remove(status)
+                        memb_status.remove(status)
 
 
 @hook.irc_raw('PART')
@@ -324,12 +340,10 @@ def on_part(chan, nick, conn):
 
     channels = conn.memory["chan_data"]
     if nick.casefold() == conn.nick.casefold():
-        with suppress(KeyError):
-            del channels[chan]
+        del channels[chan]
     else:
         chan_data = channels[chan]
-        with suppress(KeyError):
-            del chan_data["users"][nick]
+        del chan_data["users"][nick]
 
 
 @hook.irc_raw('KICK')
@@ -344,8 +358,7 @@ def on_quit(nick, conn):
         user = users[nick]
         for memb in user.get("channels", {}).values():
             chan = memb["chan"]
-            with suppress(KeyError):
-                del chan["users"][nick]
+            del chan["users"][nick]
 
 
 @hook.irc_raw('NICK')
@@ -357,8 +370,76 @@ def on_nick(nick, irc_paramlist, conn):
 
     user = users.pop(nick)
     users[new_nick] = user
-    user["nick"] = nick
+    user["nick"] = new_nick
     for memb in user.get("channels", {}).values():
         chan_users = memb["chan"]["users"]
-        with suppress(KeyError):
-            chan_users[new_nick] = chan_users.pop(nick)
+        chan_users[new_nick] = chan_users.pop(nick)
+
+
+@hook.irc_raw('ACCOUNT')
+def on_account(conn, nick, irc_paramlist):
+    conn.memory["users"][nick]["account"] = irc_paramlist[0]
+
+
+@hook.irc_raw('CHGHOST')
+def on_chghost(conn, nick, irc_paramlist):
+    ident, host = irc_paramlist
+    conn.memory["users"][nick].update(ident=ident, host=host)
+
+
+@hook.irc_raw('AWAY')
+def on_away(conn, nick, irc_paramlist):
+    if irc_paramlist:
+        reason = irc_paramlist[0]
+    else:
+        reason = None
+
+    conn.memory["users"][nick].update(is_away=(reason is not None), away_message=reason)
+
+
+@hook.irc_raw('352')
+def on_who(conn, irc_paramlist):
+    _, ident, host, server, nick, status, realname = irc_paramlist
+    realname = realname.split(None, 1)[1]
+    user = conn.memory["users"][nick]
+    status = list(status)
+    is_away = status.pop(0) == "G"
+    is_oper = status[:1] == "*"
+    user.update(
+        ident=ident,
+        host=host,
+        server=server,
+        realname=realname,
+        is_away=is_away,
+        is_oper=is_oper,
+    )
+
+
+@hook.irc_raw('311')
+def on_whois_name(conn, irc_paramlist):
+    _, nick, ident, host, _, realname = irc_paramlist
+    conn.memory["users"][nick].update(ident=ident, host=host, realname=realname)
+
+
+@hook.irc_raw('330')
+def on_whois_acct(conn, irc_paramlist):
+    _, nick, acct = irc_paramlist[:2]
+    conn.memory["users"][nick]["account"] = acct
+
+
+@hook.irc_raw('301')
+def on_whois_away(conn, irc_paramlist):
+    _, nick, msg = irc_paramlist
+    conn.memory["users"][nick].update(is_away=True, away_message=msg)
+
+
+@hook.irc_raw('312')
+def on_whois_server(conn, irc_paramlist):
+    _, nick, server, _ = irc_paramlist
+    conn.memory["users"][nick].update(server=server)
+
+
+@hook.irc_raw('313')
+def on_whois_oper(conn, irc_paramlist):
+    nick = irc_paramlist[1]
+    conn.memory["users"][nick].update(is_oper=True)
