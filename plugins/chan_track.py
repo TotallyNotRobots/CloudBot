@@ -266,7 +266,7 @@ def on_join(nick, user, host, conn, irc_paramlist):
 
     data = {'ident': user, 'host': host}
 
-    if is_cap_available(conn, "extended-join"):
+    if is_cap_available(conn, "extended-join") and other_data:
         acct, realname = other_data
         if acct == "*":
             acct = None
