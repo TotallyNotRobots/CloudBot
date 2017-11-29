@@ -38,12 +38,15 @@ def correction(match, conn, nick, chan, message):
                 mod_msg = msg
                 fmt = "<{}> {}"
 
-            mod_msg = ireplace(mod_msg, find_esc, "\x02" + replace_esc + "\x02")
+            mod_msg = ireplace(re.escape(mod_msg), find_esc, "\x02" + replace_esc + "\x02")
+
+            mod_msg = unescape_re.sub(r"\1", mod_msg)
 
             message("Correction, {}".format(fmt.format(name, mod_msg)))
 
-            msg = ireplace(msg, find_esc, replace_esc)
             if nick.lower() == name.lower():
+                msg = ireplace(re.escape(msg), find_esc, replace_esc)
+                msg = unescape_re.sub(r"\1", msg)
                 conn.history[chan].append((name, timestamp, msg))
 
             break
