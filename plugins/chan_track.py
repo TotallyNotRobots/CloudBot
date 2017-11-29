@@ -77,7 +77,16 @@ def update_conn_data(conn):
         update_chan_data(conn, chan)
 
 
-@hook.on_cap_available("userhost-in-names", "multi-prefix", "extended-join", "account-notify")
+SUPPORTED_CAPS = frozenset({
+    "userhost-in-names",
+    "multi-prefix",
+    "extended-join",
+    "account-notify",
+    "chghost",
+})
+
+
+@hook.on_cap_available(*SUPPORTED_CAPS)
 def do_caps():
     return True
 
@@ -369,3 +378,9 @@ def on_nick(nick, irc_paramlist, conn):
 @hook.irc_raw('ACCOUNT')
 def on_account(conn, nick, irc_paramlist):
     conn.memory["users"][nick]["account"] = irc_paramlist[0]
+
+
+@hook.irc_raw('CHGHOST')
+def on_chghost(conn, nick, irc_paramlist):
+    ident, host = irc_paramlist
+    conn.memory["users"][nick].update(ident=ident, host=host)
