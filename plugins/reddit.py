@@ -54,6 +54,7 @@ def reddit_url(match, bot):
     # the reddit API gets grumpy if we don't include headers
     headers = {'User-Agent': bot.user_agent}
     r = requests.get(url, headers=headers)
+    r.raise_for_status()
     if r.status_code != 200:
         return
     data = r.json()
@@ -68,7 +69,7 @@ def reddit_url(match, bot):
 
 @asyncio.coroutine
 @hook.command(autohelp=False)
-def reddit(text, bot, loop):
+def reddit(text, bot, loop, reply):
     """<subreddit> [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
     headers = {'User-Agent': bot.user_agent}
@@ -92,11 +93,13 @@ def reddit(text, bot, loop):
     try:
         # Again, identify with Reddit using an User Agent, otherwise get a 429
         inquiry = yield from loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
+        inquiry.raise_for_status()
         if inquiry.status_code != 200:
             return "r/{} either does not exist or is private.".format(text)
         data = inquiry.json()
     except Exception as e:
-        return "Error: " + str(e)
+        reply("Error: " + str(e))
+        raise
     data = data["data"]["children"]
 
     # get the requested/random post

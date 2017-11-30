@@ -8,6 +8,7 @@ def RUADICK(text, message):
     '''checks ruadick.com to see if you're a dick on reddit'''
     DickCheck = text.strip()
     dickstatus = requests.get('http://www.ruadick.com/user/{}'.format(DickCheck))
+    dickstatus.raise_for_status()
     DickSoup = BeautifulSoup(dickstatus.content, 'lxml')
     Dickstr = str(DickSoup.h2)
 

@@ -26,6 +26,7 @@ def print_url_title(message, match, chan):
         return
 
     with closing(requests.get(match.group(), headers=HEADERS, stream=True, timeout=3)) as r:
+        r.raise_for_status()
         if not r.encoding:
             return
 

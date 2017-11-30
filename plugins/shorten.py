@@ -3,7 +3,7 @@ from cloudbot.util import web
 
 
 @hook.command()
-def shorten(text):
+def shorten(text, reply):
     """<url> [custom] - shortens a url with [custom] as an optional custom shortlink"""
     args = text.split()
     url = args[0]
@@ -12,11 +12,12 @@ def shorten(text):
     try:
         return web.shorten(url, custom=custom)
     except web.ServiceError as e:
-        return e.message
+        reply(e.message)
+        raise
 
 
 @hook.command
-def expand(text):
+def expand(text, reply):
     """<url> - unshortens <url>"""
     args = text.split()
     url = args[0]
@@ -24,11 +25,12 @@ def expand(text):
     try:
         return web.expand(url)
     except web.ServiceError as e:
-        return e.message
+        reply(e.message)
+        raise
 
 
 @hook.command()
-def isgd(text):
+def isgd(text, reply):
     """<url> [custom] - shortens a url using is.gd with [custom] as an optional custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()
@@ -41,11 +43,12 @@ def isgd(text):
         else:
             return web.shorten(url, custom, 'is.gd')
     except web.ServiceError as e:
-        return e.message
+        reply(e.message)
+        raise
 
 
 @hook.command
-def googl(text):
+def googl(text, reply):
     """<url> [custom] - shorten <url> using goo.gl with [custom] as an option custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()
@@ -58,11 +61,12 @@ def googl(text):
         else:
             return web.shorten(url, custom, 'goo.gl')
     except web.ServiceError as e:
-        return e.message
+        reply(e.message)
+        raise
 
 
 @hook.command
-def gitio(text):
+def gitio(text, reply):
     """<url> [custom] - shortens a github URL <url> using git.io with [custom] as an optional custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()
@@ -75,4 +79,5 @@ def gitio(text):
         else:
             return web.shorten(url, custom, 'git.io')
     except web.ServiceError as e:
-        return e.message
+        reply(e.message)
+        raise

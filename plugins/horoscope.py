@@ -16,7 +16,7 @@ table = Table(
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, notice, nick):
+def horoscope(text, db, bot, notice, nick, reply):
     """<sign> - get your horoscope"""
     signs = {
             'aries': '1',
@@ -60,7 +60,8 @@ def horoscope(text, db, bot, notice, nick):
         request = requests.get(url, params=params, headers=headers)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get horoscope: {}. URL Error".format(e)
+        reply("Could not get horoscope: {}. URL Error".format(e))
+        raise
 
     soup = BeautifulSoup(request.text)
 

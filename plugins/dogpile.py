@@ -19,6 +19,7 @@ def dogpileimage(text, chan):
     image_url = search_url + "/images"
     params = { 'q': " ".join(text.split())}
     r = requests.get(image_url, params=params, headers=HEADERS)
+    r.raise_for_status()
     soup = BeautifulSoup(r.content)
     data = soup.find_all("script")[6].string
     link_re = re.compile('"url":"(.*?)",')
@@ -35,6 +36,7 @@ def dogpile(text, chan):
     web_url = search_url + "/web"
     params = {'q':" ".join(text.split())}
     r = requests.get(web_url, params=params, headers=HEADERS)
+    r.raise_for_status()
     soup = BeautifulSoup(r.content)
     result_url = parse.unquote(parse.unquote(soup.find('div', id="webResults").find_all('a', {'class':'resultDisplayUrl'})[0]['href']).split('ru=')[1].split('&')[0])
     result_description = soup.find('div', id="webResults").find_all('div', {'class':'resultDescription'})[0].text

@@ -81,7 +81,7 @@ def format_game(app_id, show_url=True):
 # HOOK FUNCTIONS
 
 @hook.command()
-def steam(text):
+def steam(text, reply):
     """<query> - Search for specified game/trailer/DLC"""
     params = {'term': text.strip().lower()}
 
@@ -89,7 +89,9 @@ def steam(text):
         request = requests.get("http://store.steampowered.com/search/", params=params)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get game info: {}".format(e)
+        reply("Could not get game info: {}".format(e))
+        raise
+
     soup = BeautifulSoup(request.text, from_encoding="utf-8")
     result = soup.find('a', {'class': 'search_result_row'})
 

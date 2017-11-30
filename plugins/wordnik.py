@@ -40,7 +40,9 @@ def define(text):
         'api_key': api_key,
         'limit': 1
     }
-    json = requests.get(url, params=params).json()
+    request = requests.get(url, params=params)
+    request.raise_for_status()
+    json = request.json()
 
     if json:
         data = json[0]

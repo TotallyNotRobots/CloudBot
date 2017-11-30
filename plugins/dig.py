@@ -19,6 +19,7 @@ def dig(text, nick, notice):
 
     url = "http://dig.jsondns.org/IN/{}/{}".format(domain, rtype)
     r = requests.get(url)
+    r.raise_for_status()
     results = r.json()
     out = "The following records were found for {}: ".format(domain)
     if results['header']['rcode'] == "NXDOMAIN":
