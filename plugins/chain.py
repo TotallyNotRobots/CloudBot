@@ -49,7 +49,7 @@ def get_hook_from_command(bot, hook_name):
         if name.startswith(hook_name):
             possible.append(_hook)
 
-    return possible[1] if len(possible) == 1 else None
+    return possible[0] if len(possible) == 1 else None
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
