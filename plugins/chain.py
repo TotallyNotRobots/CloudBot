@@ -182,6 +182,10 @@ def chain(text, bot, event):
         cmd_event.message = message
         cmd_event.reply = reply
         cmd_event.action = action
+        if _hook.auto_help and not cmd_event.text and _hook.doc is not None:
+            cmd_event.notice_doc()
+            return "Invalid syntax."
+
         ok, res = yield from bot.plugin_manager.internal_launch(_hook, cmd_event)
         if not ok:
             return "Error occurred."
