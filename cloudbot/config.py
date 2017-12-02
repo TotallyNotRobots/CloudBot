@@ -3,11 +3,12 @@ import logging
 import os
 import sys
 import time
+from collections import OrderedDict
 
 logger = logging.getLogger("cloudbot")
 
 
-class Config(dict):
+class Config(OrderedDict):
     """
     :type filename: str
     :type path: str
@@ -41,8 +42,10 @@ class Config(dict):
             sys.exit()
 
         with open(self.path) as f:
-            self.update(json.load(f))
-            logger.debug("Config loaded from file.")
+            data = json.load(f, object_pairs_hook=OrderedDict)
+
+        self.update(data)
+        logger.debug("Config loaded from file.")
 
         # reload permissions
         if self.bot.connections:
@@ -51,5 +54,7 @@ class Config(dict):
 
     def save_config(self):
         """saves the contents of the config dict to the config file"""
-        json.dump(self, open(self.path, 'w'), sort_keys=True, indent=4)
+        with open(self.path, 'w') as f:
+            json.dump(self, f, indent=4)
+
         logger.info("Config saved to file.")
