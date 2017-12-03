@@ -58,6 +58,12 @@ def handle_chan_modes(value, serv_info):
             modelist[mode] = ChanMode(mode, types[i])
 
 
+def handle_extbans(value, serv_info):
+    pfx, extbans = value.split(',', 1)
+    serv_info["extbans"] = extbans
+    serv_info["extban_prefix"] = pfx
+
+
 @hook.irc_raw('005', singlethread=True)
 def on_isupport(conn, irc_paramlist):
     serv_info = conn.memory["server_info"]
@@ -71,3 +77,5 @@ def on_isupport(conn, irc_paramlist):
             handle_prefixes(value, serv_info)
         elif name == "CHANMODES":
             handle_chan_modes(value, serv_info)
+        elif name == "EXTBAN":
+            handle_extbans(value, serv_info)

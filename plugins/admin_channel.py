@@ -33,6 +33,26 @@ def mode_cmd_no_target(mode, text, text_inp, chan, conn, notice, nick, admin_log
         conn.send("MODE {} {}".format(channel, mode))
 
 
+def do_extban(char, text, text_inp, chan, conn, notice, nick, admin_log, adding=True):
+    serv_info = conn.memory["server_info"]
+    if char not in serv_info.get("extbans", ""):
+        return False
+
+    extban_pfx = serv_info["extban_prefix"]
+
+    split = text_inp.split(" ")
+    if split[0].startswith("#"):
+        channel = split[0]
+        target = split[1]
+        text_inp = "{} {}{}:{}".format(channel, extban_pfx, char, target)
+    else:
+        target = split[0]
+        text_inp = "{}{}:{}".format(extban_pfx, char, target)
+
+    mode_cmd("+b" if adding else "-b", text, text_inp, chan, conn, notice, nick, admin_log)
+    return True
+
+
 @hook.command(permissions=["op_ban", "op"])
 def ban(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - bans <user> in [channel], or in the caller's channel if no channel is specified"""
@@ -48,21 +68,23 @@ def unban(text, conn, chan, notice, nick, admin_log):
 @hook.command(permissions=["op_quiet", "op"])
 def quiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - quiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if conn.name == "snoonet":
-        out = "mode {} +b m:{}".format(chan, text)
-        conn.send(out)
-        return
-    mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log)
+    serv_info = conn.memory["server_info"]
+    if 'q' in serv_info.get("channel_modes", ""):
+        return mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log)
+
+    if not do_extban('m', "quiet", text, chan, conn, notice, nick, admin_log, True):
+        notice("Unable to set +q or a mute extban on this network.")
 
 
 @hook.command(permissions=["op_quiet", "op"])
 def unquiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - unquiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if conn.name == "snoonet":
-        out = "mode {} -b m:{}".format(chan, text)
-        conn.send(out)
-        return
-    mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log)
+    serv_info = conn.memory["server_info"]
+    if 'q' in serv_info.get("channel_modes", ""):
+        return mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log)
+
+    if not do_extban('m', "unquiet", text, chan, conn, notice, nick, admin_log, False):
+        notice("Unable to unset +q or a mute extban on this network.")
 
 
 @hook.command(permissions=["op_voice", "op"])
