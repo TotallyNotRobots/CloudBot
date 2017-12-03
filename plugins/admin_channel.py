@@ -1,36 +1,47 @@
 from cloudbot import hook
 
 
+def check_for_chan_mode(char, conn):
+    serv_info = conn.memory["server_info"]
+    modes = serv_info.get("channel_modes", "")
+    return bool(char in modes)
+
+
 def mode_cmd(mode, text, text_inp, chan, conn, notice, nick, admin_log):
     """ generic mode setting function """
+    if not check_for_chan_mode(mode[1], conn):
+        return False
+
     split = text_inp.split(" ")
     if split[0].startswith("#"):
         channel = split[0]
         target = split[1]
-        notice("Attempting to {} {} in {}...".format(text, target, channel))
-        admin_log("{} used {} to set {} on {} in {}.".format(nick, text, mode, target, channel))
-        conn.send("MODE {} {} {}".format(channel, mode, target))
     else:
         channel = chan
         target = split[0]
-        notice("Attempting to {} {} in {}...".format(text, target, channel))
-        admin_log("{} used {} to set {} on {} in {}.".format(nick, text, mode, target, channel))
-        conn.send("MODE {} {} {}".format(channel, mode, target))
+
+    notice("Attempting to {} {} in {}...".format(text, target, channel))
+    admin_log("{} used {} to set {} on {} in {}.".format(nick, text, mode, target, channel))
+    conn.send("MODE {} {} {}".format(channel, mode, target))
+
+    return True
 
 
 def mode_cmd_no_target(mode, text, text_inp, chan, conn, notice, nick, admin_log):
     """ generic mode setting function without a target"""
+    if not check_for_chan_mode(mode[1], conn):
+        return False
+
     split = text_inp.split(" ")
     if split[0].startswith("#"):
         channel = split[0]
-        notice("Attempting to {} {}...".format(text, channel))
-        admin_log("{} used {} to set {} in {}.".format(nick, text, mode, channel))
-        conn.send("MODE {} {}".format(channel, mode))
     else:
         channel = chan
-        notice("Attempting to {} {}...".format(text, channel))
-        admin_log("{} used {} to set {} in {}.".format(nick, text, mode, channel))
-        conn.send("MODE {} {}".format(channel, mode))
+
+    notice("Attempting to {} {}...".format(text, channel))
+    admin_log("{} used {} to set {} in {}.".format(nick, text, mode, channel))
+    conn.send("MODE {} {}".format(channel, mode))
+    return True
 
 
 def do_extban(char, text, text_inp, chan, conn, notice, nick, admin_log, adding=True):
@@ -68,9 +79,8 @@ def unban(text, conn, chan, notice, nick, admin_log):
 @hook.command(permissions=["op_quiet", "op"])
 def quiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - quiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    serv_info = conn.memory["server_info"]
-    if 'q' in serv_info.get("channel_modes", ""):
-        return mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log)
+    if mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log):
+        return
 
     if not do_extban('m', "quiet", text, chan, conn, notice, nick, admin_log, True):
         notice("Unable to set +q or a mute extban on this network.")
@@ -79,9 +89,8 @@ def quiet(text, conn, chan, notice, nick, admin_log):
 @hook.command(permissions=["op_quiet", "op"])
 def unquiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - unquiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    serv_info = conn.memory["server_info"]
-    if 'q' in serv_info.get("channel_modes", ""):
-        return mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log)
+    if mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log):
+        return
 
     if not do_extban('m', "unquiet", text, chan, conn, notice, nick, admin_log, False):
         notice("Unable to unset +q or a mute extban on this network.")
