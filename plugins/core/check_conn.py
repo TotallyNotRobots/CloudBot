@@ -1,9 +1,8 @@
 import asyncio
 import time
-from functools import partial
 
 from cloudbot import hook
-from cloudbot.util import colors, async_util
+from cloudbot.util import colors
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -22,8 +21,27 @@ def conncheck(nick, bot, notice):
 
 
 @asyncio.coroutine
+def reconnect(conn, reply):
+    if conn.connected:
+        conn.quit("Reconnecting...")
+        yield from asyncio.sleep(2)
+        conn._quit = False
+
+    coro = conn.connect()
+    try:
+        yield from asyncio.wait_for(coro, 30)
+    except asyncio.TimeoutError:
+        return "Connection timed out"
+    except Exception as e:
+        reply("{}: {}".format(type(e).__name__, e))
+        raise
+
+    reply("Reconnected to '{}'".format(conn.name))
+
+
+@asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
-def reconnect(conn, text, bot):
+def reconnect(conn, text, bot, reply):
     """[connection] - Reconnects to [connection] or the current connection if not specified"""
     if not text:
         to_reconnect = conn
@@ -33,20 +51,7 @@ def reconnect(conn, text, bot):
         except KeyError:
             return "Connection '{}' not found".format(text)
 
-    if to_reconnect.connected:
-        to_reconnect.quit("Reconnecting...")
-        yield from asyncio.sleep(1)
-        to_reconnect._quit = False
-
-    coro = to_reconnect.connect()
-    try:
-        yield from asyncio.wait_for(coro, 30)
-    except asyncio.TimeoutError:
-        return "Connection timed out"
-    except Exception as e:
-        return "{}: {}".format(type(e).__name__, e)
-
-    return "Reconnected to '{}'".format(conn.name)
+    yield from reconnect(to_reconnect, reply)
 
 
 def format_conn(conn):
@@ -74,6 +79,7 @@ def list_conns(bot):
     return "Current connections: {}".format(conns)
 
 
+@asyncio.coroutine
 @hook.periodic(5)
 def pinger(bot):
     for conn in bot.connections.values():
@@ -90,12 +96,7 @@ def pinger(bot):
 
             diff = time.time() - last_act
             if diff >= (ping_interval * 2):
-                conn.quit("Reconnecting due to lag...")
-                time.sleep(1)
-                conn._quit = False
-                conn.loop.call_soon_threadsafe(
-                    partial(async_util.wrap_future, conn.connect(), loop=conn.loop)
-                )
+                yield from reconnect(conn)
             elif diff >= ping_interval:
                 conn.send("PING :LAGCHECK{}".format(time.time()))
 
