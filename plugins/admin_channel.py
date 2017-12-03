@@ -114,7 +114,7 @@ def kick(text, chan, conn, notice, nick, admin_log):
         target = split[1]
         if len(split) > 2:
             reason = " ".join(split[2:])
-            out = "KICK {} {}: {}".format(channel, target, reason)
+            out = "KICK {} {} :{}".format(channel, target, reason)
         else:
             out = "KICK {} {}".format(channel, target)
     else:
