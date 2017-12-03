@@ -184,7 +184,7 @@ def listfactoids(notice, chan):
 
 
 @hook.command("listdetailedfacts", autohelp=False)
-def listdetailedfactoids(notice, chan, bot):
+def listdetailedfactoids(notice, chan):
     """- lists all available factoids with their respective data"""
     formatted_facts = []
     for fact in sorted(factoid_cache[chan].items()):
