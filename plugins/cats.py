@@ -4,9 +4,9 @@ from requests import HTTPError
 from cloudbot import hook
 
 
-def get_data(url, reply, bot):
+def get_data(url, reply, bot, params=None):
     try:
-        r = requests.get(url, headers={'User-Agent': bot.user_agent})
+        r = requests.get(url, headers={'User-Agent': bot.user_agent}, params=params)
         r.raise_for_status()
     except HTTPError:
         reply("API error occurred.")
@@ -18,7 +18,7 @@ def get_data(url, reply, bot):
 @hook.command(autohelp=False)
 def cats(reply, bot):
     """gets a fucking fact about cats."""
-    r = get_data('http://catfacts-api.appspot.com/api/facts?number=1', reply, bot)
+    r = get_data('https://catfact.ninja/fact', reply, bot, params={'max_length': 100})
     json = r.json()
     response = json['facts']
     return response
