@@ -25,30 +25,42 @@ CURRENCY_SYMBOLS = {
 }
 
 
+class Alias:
+    __slots__ = ("name", "cmds")
+
+    def __init__(self, name, *cmds):
+        self.name = name
+        if name not in cmds:
+            cmds = (name,) + cmds
+
+        self.cmds = cmds
+
+
+ALIASES = (
+    Alias('bitcoin', 'btc'),
+    Alias('litecoin', 'ltc'),
+    Alias('dogecoin', 'doge'),
+)
+
+
 def get_request(ticker, currency):
     return requests.get(API_URL.format(quote_plus(ticker)), params={'convert': currency})
 
 
-# aliases
-@hook.command("bitcoin", "btc", autohelp=False)
-def bitcoin(text):
-    """ -- Returns current bitcoin value """
-    # alias
-    return crypto_command(" ".join(["bitcoin", text]))
+def alias_wrapper(alias):
+    def func(text):
+        return crypto_command(" ".join((alias.name, text)))
+
+    func.__doc__ = """- Returns the current {} value""".format(alias.name)
+    func.__name__ = alias.name + "_alias"
+
+    return func
 
 
-@hook.command("litecoin", "ltc", autohelp=False)
-def litecoin(text):
-    """ -- Returns current litecoin value """
-    # alias
-    return crypto_command(" ".join(["litecoin", text]))
-
-
-@hook.command("dogecoin", "doge", autohelp=False)
-def dogecoin(text):
-    """ -- Returns current dogecoin value """
-    # alias
-    return crypto_command(" ".join(["dogecoin", text]))
+def init_aliases():
+    for alias in ALIASES:
+        _hook = alias_wrapper(alias)
+        globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(_hook)
 
 
 # main command
