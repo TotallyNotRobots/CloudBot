@@ -69,7 +69,6 @@ def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
-    chans = copy(conn.channels)
     bot.logger.info("[{}|misc] Bot is sending join commands for network.".format(conn.name))
     nickserv = conn.config.get('nickserv')
     if nickserv and nickserv.get("enabled", True):
@@ -103,15 +102,21 @@ def onjoin(conn, bot):
         bot.logger.info("[{}|misc] Bot is setting mode on itself: {}".format(conn.name, mode))
         conn.cmd('MODE', conn.nick, mode)
 
+    conn.ready = True
+    bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
+
+
+@asyncio.coroutine
+@hook.irc_raw('376')
+def do_joins(logger, conn):
+    chans = copy(conn.channels)
+
     # Join config-defined channels
     join_throttle = conn.config.get('join_throttle', 0.4)
-    bot.logger.info("[{}|misc] Bot is joining channels for network.".format(conn.name))
+    logger.info("[%s|misc] Bot is joining channels for network.", conn.name)
     for channel in chans:
         conn.join(channel)
         yield from asyncio.sleep(join_throttle)
-
-    conn.ready = True
-    bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
 
 
 @asyncio.coroutine
