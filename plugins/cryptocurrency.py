@@ -18,6 +18,12 @@ from cloudbot import hook
 
 API_URL = "https://api.coinmarketcap.com/v1/ticker/{}"
 
+CURRENCY_SYMBOLS = {
+    'USD': '$',
+    'GBP': '£',
+    'EUR': '€',
+}
+
 
 def get_request(ticker, currency):
     return requests.get(API_URL.format(quote_plus(ticker)), params={'convert': currency})
@@ -84,14 +90,7 @@ def crypto_command(text):
     else:
         change_str = "{}%".format(change)
 
-    if currency == 'GBP':
-        currency_sign = '£'
-    elif currency == 'EUR':
-        currency_sign = '€'
-    elif currency == 'USD':
-        currency_sign = '$'
-    else:
-        currency_sign = ''
+    currency_sign = CURRENCY_SYMBOLS.get(currency, '')
 
     try:
         converted_value = data['price_' + currency.lower()]
