@@ -35,10 +35,9 @@ def check_mode(irc_paramlist, conn, message):
     #message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
     require_reg = conn.config.get('require_registered_channels', False)
-    if not "r" in mode and conn.name == "snoonet" and require_reg:
+    if "r" not in mode and require_reg:
         message("I do not stay in unregistered channels", irc_paramlist[1])
-        out = "PART {}".format(irc_paramlist[1])
-        conn.send(out)
+        conn.part(irc_paramlist[1])
 
 
 @hook.irc_raw('MODE')
