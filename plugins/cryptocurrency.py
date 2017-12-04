@@ -16,7 +16,11 @@ import requests
 
 from cloudbot import hook
 
-API_URL = "https://api.coinmarketcap.com/v1/ticker/{}?convert={}"
+API_URL = "https://api.coinmarketcap.com/v1/ticker/{}"
+
+
+def get_request(ticker, currency):
+    return requests.get(API_URL.format(quote_plus(ticker)), params={'convert': currency})
 
 
 # aliases
@@ -48,15 +52,13 @@ def crypto_command(text):
     args = text.split()
     ticker = args.pop(0)
 
-    try:
-        if not args:
-            currency = 'USD'
-        else:
-            currency = args.pop(0).upper()
+    if not args:
+        currency = 'USD'
+    else:
+        currency = args.pop(0).upper()
 
-        encoded_ticker = quote_plus(ticker)
-        encoded_currency = quote_plus(currency)
-        request = requests.get(API_URL.format(encoded_ticker, encoded_currency))
+    try:
+        request = get_request(ticker, currency)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         return "Could not get value: {}".format(e)
