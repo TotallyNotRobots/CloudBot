@@ -66,13 +66,15 @@ def crypto_command(text):
     if "error" in data:
         return "{}.".format(data['error'])
 
-    updated_time = datetime.fromtimestamp(float(data[0]['last_updated']))
+    data = data[0]
+
+    updated_time = datetime.fromtimestamp(float(data['last_updated']))
     if (datetime.today() - updated_time).days > 2:
         # the API retains data for old ticker names that are no longer updated
         # in these cases we just return a "not found" message
         return "Currency not found."
 
-    change = float(data[0]['percent_change_24h'])
+    change = float(data['percent_change_24h'])
     if change > 0:
         change_str = "\x033 {}%\x0f".format(change)
     elif change < 0:
@@ -89,9 +91,14 @@ def crypto_command(text):
     else:
         currency_sign = ''
 
-    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data[0]['symbol'],
+    try:
+        converted_value = data['price_' + currency.lower()]
+    except LookupError:
+        return "Unable to convert to currency '{}'".format(currency)
+
+    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'],
                                                                             currency_sign,
-                                                                            float(data[0]['price_'+currency.lower()]),
+                                                                            float(converted_value),
                                                                             currency.upper(),
-                                                                            float(data[0]['price_btc']),
+                                                                            float(data['price_btc']),
                                                                             change_str)
