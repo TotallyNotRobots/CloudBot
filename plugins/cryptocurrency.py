@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 import requests
 
 from cloudbot import hook
+from cloudbot.util import colors
 
 API_URL = "https://api.coinmarketcap.com/v1/ticker/{}"
 
@@ -96,9 +97,9 @@ def crypto_command(text):
 
     change = float(data['percent_change_24h'])
     if change > 0:
-        change_str = "\x033 {}%\x0f".format(change)
+        change_str = "$(dark_green) {}%$(clear)".format(change)
     elif change < 0:
-        change_str = "\x035 {}%\x0f".format(change)
+        change_str = "$(dark_red) {}%$(clear)".format(change)
     else:
         change_str = "{}%".format(change)
 
@@ -109,9 +110,7 @@ def crypto_command(text):
     except LookupError:
         return "Unable to convert to currency '{}'".format(currency)
 
-    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data['symbol'],
-                                                                            currency_sign,
-                                                                            float(converted_value),
-                                                                            currency.upper(),
-                                                                            float(data['price_btc']),
-                                                                            change_str)
+    return colors.parse("{} // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
+        data['symbol'], currency_sign, float(converted_value), currency.upper(),
+        float(data['price_btc']), change_str
+    ))
