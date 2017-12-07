@@ -57,7 +57,7 @@ def mcuser(text, bot, reply):
             return results['error']
 
     username = results['data']['username']
-    id = uuid.UUID(results['data']['uuid'])
+    uid = uuid.UUID(results['data']['uuid'])
 
     return 'The account \x02{}\x02 ({}) exists. It is a \x02paid\x02' \
-           ' account.'.format(username, id)
+           ' account.'.format(username, uid)

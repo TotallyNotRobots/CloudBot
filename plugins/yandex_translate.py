@@ -61,8 +61,8 @@ def list_langs(message):
 @hook.command("tran", "translate")
 def trans(text, reply):
     """tran <language or language code> text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
-    inp = text.split(' ',1)
-    lang = inp[0].replace(':','')
+    inp = text.split(' ', 1)
+    lang = inp[0].replace(':', '')
     text = inp[1]
     if lang.title() in lang_dict.keys():
         lang = lang_dict[lang.title()]

@@ -17,7 +17,7 @@ def dogpileimage(text, chan):
     if chan in opt_out:
         return
     image_url = search_url + "/images"
-    params = { 'q': " ".join(text.split())}
+    params = {'q': " ".join(text.split())}
     r = requests.get(image_url, params=params, headers=HEADERS)
     r.raise_for_status()
     soup = BeautifulSoup(r.content)

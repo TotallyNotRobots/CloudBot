@@ -3,7 +3,7 @@ import requests
 from cloudbot import hook
 
 
-@hook.command('ruad','rud','ruadick')
+@hook.command('ruad', 'rud', 'ruadick')
 def RUADICK(text, message):
     '''checks ruadick.com to see if you're a dick on reddit'''
     DickCheck = text.strip()

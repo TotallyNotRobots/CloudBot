@@ -58,9 +58,9 @@ def reddit_url(match, bot):
     if r.status_code != 200:
         return
     data = r.json()
-    if type(data) == list:
+    if isinstance(data, list):
         item = data[0]["data"]["children"][0]["data"]
-    elif type(data) == dict:
+    elif isinstance(data, dict):
         #item = data["data"]["children"][random.randint(0,9)]["data"]
         return
 

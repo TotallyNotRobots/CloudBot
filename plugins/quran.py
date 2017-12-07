@@ -27,7 +27,7 @@ def quran(text, message, reply):
     api_url = "http://quranapi.azurewebsites.net/api/verse/"
     chapter = text.split(':')[0]
     verse = text.split(':')[1]
-    params={"chapter":chapter, "number": verse, "lang": "ar"}
+    params = {"chapter":chapter, "number": verse, "lang": "ar"}
     r = requests.get(api_url, params=params)
     try:
         r.raise_for_status()
