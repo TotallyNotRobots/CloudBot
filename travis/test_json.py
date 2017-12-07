@@ -31,4 +31,5 @@ for root, dirs, files in os.walk('.'):
                 exit_code |= 2
                 print("Travis: {} is not a properly formatted JSON file".format(file))
 
-sys.exit(exit_code)
+if exit_code != 0:
+    sys.exit(exit_code)
