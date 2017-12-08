@@ -5,4 +5,4 @@ pytest-pep8
 flake8
 python-coveralls
 pylint
-sqlalchemy
+-r ../requirements.txt
