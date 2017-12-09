@@ -2,6 +2,7 @@
 Validates all hook registrations in all plugins
 """
 import importlib
+import string
 from numbers import Number
 from pathlib import Path
 
@@ -84,3 +85,7 @@ def _test_hook(hook):
         else:
             assert isinstance(attr, types), \
                 "Unexpected type '{}' for hook attribute '{}'".format(type(attr).__name__, name)
+
+    if hook.type == "command" and hook.doc:
+        assert hook.doc[:1] not in "." + string.ascii_letters,\
+            "Invalid docstring '{}' format for command hook".format(hook.doc)
