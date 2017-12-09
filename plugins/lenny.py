@@ -17,11 +17,11 @@ def load_faces(bot):
 
 @hook.command(autohelp=False)
 def lenny(message):
-    """why the shit not lennyface"""
+    """- why the shit not lennyface"""
     message(random.choice(lenny_data['lenny']))
 
 
 @hook.command(autohelp=False)
 def flenny(message):
-    """flenny is watching."""
+    """- flenny is watching."""
     message(random.choice(lenny_data['flenny']))

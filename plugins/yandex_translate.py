@@ -41,7 +41,7 @@ def check_code(code):
 
 @hook.command("langlist", "tlist", autohelp=False)
 def list_langs(message):
-    """List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
+    """- List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
     url = api_url + "getLangs"
     params = {
         'key':api_key,
@@ -59,7 +59,7 @@ def list_langs(message):
 
 @hook.command("tran", "translate")
 def trans(text):
-    """tran <language or language code> text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
+    """<language or language code> - text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
     inp = text.split(' ',1)
     lang = inp[0].replace(':','')
     text = inp[1]

@@ -7,7 +7,7 @@ api_url = "http://api.lyricsnmusic.com/songs"
 
 @hook.command("lyrics")
 def lyricsnmusic(text,bot):
-    """lyrics <artist and/or song> will fetch the first 150 characters of a song and a link to the full lyrics."""
+    """<artist and/or song> - will fetch the first 150 characters of a song and a link to the full lyrics."""
     api_key = bot.config.get("api_keys", {}).get("lyricsnmusic")
     params = { "api_key": api_key, "q": text}
     r = requests.get(api_url, params=params)
@@ -17,7 +17,7 @@ def lyricsnmusic(text,bot):
     snippet = r[0]["snippet"].replace("\r\n"," ")
     url = web.try_shorten(r[0]["url"])
     title = r[0]["title"]
-    viewable = r[0]["viewable"]        
+    viewable = r[0]["viewable"]
     out = "\x02{}\x02 -- {} {}".format(title, snippet, url)
     if not viewable:
         out += " Full lyrics not available."

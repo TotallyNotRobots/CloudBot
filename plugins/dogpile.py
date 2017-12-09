@@ -13,7 +13,7 @@ opt_out = []
 
 @hook.command("dpis", "gis")
 def dogpileimage(text, chan):
-    """Uses the dogpile search engine to search for images."""
+    """<query> - Uses the dogpile search engine to search for images."""
     if chan in opt_out:
         return
     image_url = search_url + "/images"
@@ -29,7 +29,7 @@ def dogpileimage(text, chan):
 
 @hook.command("dp", "g", "dogpile")
 def dogpile(text, chan):
-    """Uses the dogpile search engine to find shit on the web."""
+    """<query> - Uses the dogpile search engine to find shit on the web."""
     if chan in opt_out:
         return
     web_url = search_url + "/web"

@@ -153,7 +153,7 @@ def getartisttags(artist, bot):
 
 @hook.command("libreplays")
 def getuserartistplaycount():
-    """This command is not supported in the libre.fm API"""
+    """- This command is not supported in the libre.fm API"""
     return unsupported_msg
 
 @hook.command("libreband", "librela")
@@ -191,12 +191,12 @@ def getartistinfo(artist, bot, user = ''):
 
 @hook.command("librecompare", "librelc")
 def librefmcompare(bot, text):
-    """This command is not supported in the libre.fm API"""
+    """- This command is not supported in the libre.fm API"""
     return unsupported_msg
 
 @hook.command("libretoptrack", "libretoptracks", "libretop", "librett", autohelp=False)
 def toptrack(text, nick, bot):
-    """Grabs a list of the top tracks for a libre.fm username"""
+    """[username] - Grabs a list of the top tracks for a libre.fm username"""
 
     if text:
         username = get_account(text)
@@ -230,7 +230,7 @@ def toptrack(text, nick, bot):
 
 @hook.command("libretopartists", "libreta", autohelp=False)
 def libretopartists(text, nick, bot):
-    """Grabs a list of the top artists for a libre.fm username. You can set your libre.fm username with .librefm username"""
+    """[username] - Grabs a list of the top artists for a libre.fm username. You can set your libre.fm username with .librefm username"""
     if text:
         username = get_account(text)
         if not username:
@@ -264,19 +264,19 @@ def libretopartists(text, nick, bot):
 
 @hook.command("libreltw", "libretopweek", autohelp=False)
 def topweek(text, nick, db, bot, notice):
-    """Grabs a list of the top artists in the last week for a libre.fm username. You can set your librefm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last week for a libre.fm username. You can set your librefm username with .l username"""
     topweek = topartists(text, nick, db, bot, notice, '7day')
     return topweek
 
 @hook.command("libreltm", "libretopmonth", autohelp=False)
 def topmonth(text, nick, db, bot, notice):
-    """Grabs a list of the top artists in the last month for a libre.fm username. You can set your librefm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last month for a libre.fm username. You can set your librefm username with .l username"""
     topmonth = topartists(text, nick, db, bot, notice, '1month')
     return topmonth
 
 @hook.command("librelibrelta", "libretopall", autohelp=False)
 def topall(text, nick, db, bot, notice):
-    """Grabs a list of the top artists in the last year for a libre.fm username. You can set your librefm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last year for a libre.fm username. You can set your librefm username with .l username"""
     topall = topartists(text, nick, db, bot, notice, '12month')
     return topall
 

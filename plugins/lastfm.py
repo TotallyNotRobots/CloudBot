@@ -325,7 +325,7 @@ def displaybandinfo(bot, text):
 
 @hook.command("lastfmcompare", "compare", "lc")
 def lastfmcompare(bot, text, nick):
-    """[user] ([user] optional) - displays the now playing (or last played) track of LastFM user [user]"""
+    """<user1> [user2] - displays the now playing (or last played) track of LastFM user [user]"""
     api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
@@ -389,7 +389,7 @@ def lastfmcompare(bot, text, nick):
 
 @hook.command("ltop", "ltt", autohelp=False)
 def toptrack(bot, text, nick):
-    """Grabs a list of the top tracks for a last.fm username"""
+    """[username] - Grabs a list of the top tracks for a last.fm username"""
     api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
@@ -419,23 +419,23 @@ def toptrack(bot, text, nick):
 
 @hook.command("lta", "topartist", autohelp=False)
 def topartists(bot, text, nick):
-    """Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick)
 
 
 @hook.command("ltw", "topweek", autohelp=False)
 def topweek(bot, text, nick):
-    """Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '7day')
 
 
 @hook.command("ltm", "topmonth", autohelp=False)
 def topmonth(bot, text, nick):
-    """Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '1month')
 
 
 @hook.command("lty", "topyear", autohelp=False)
 def topall(bot, text, nick):
-    """Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '1year')

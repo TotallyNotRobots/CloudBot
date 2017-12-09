@@ -15,7 +15,7 @@ def striphtml(data):
 
 @hook.command("dragon", "ds")
 def dragonsearch(text):
-    """Searches the dragonvale wiki for the specified text."""
+    """<query> - Searches the dragonvale wiki for the specified text."""
     params = {
         "query": text.strip(),
         "limit":1
@@ -31,7 +31,7 @@ def dragonsearch(text):
 
 @hook.command("eggcalc", "dragoncalc", "dc")
 def egg_calculator(text):
-    """Parses dragonvalebreedingguide.com for a list of possible dragons based on the incubation time. Enter the time as 5 hours, 30 minutes. For upgraded incubation times put 'upgrade' at the front of the time length"""
+    """<time> - Parses dragonvalebreedingguide.com for a list of possible dragons based on the incubation time. Enter the time as 5 hours, 30 minutes. For upgraded incubation times put 'upgrade' at the front of the time length"""
     time = ""
     time2 = ""
     if text.lower().startswith("upgrade"):

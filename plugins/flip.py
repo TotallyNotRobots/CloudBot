@@ -53,7 +53,7 @@ table_flipper = "┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻"
 
 @hook.command
 def flip(text, reply, message, chan):
-    """<text> -- Flips <text> over."""
+    """<text> - Flips <text> over."""
     global table_status
     #table_status = defaultdict(False)
     if USE_FLIPPERS:
@@ -74,12 +74,12 @@ def flip(text, reply, message, chan):
 
 @hook.command(autohelp=False)
 def table(text, message):
-    """<text> -- (╯°□°）╯︵ <ʇxǝʇ>"""
+    """<text> - (╯°□°）╯︵ <ʇxǝʇ>"""
     message(random.choice(flippers) + " ︵ " + formatting.multi_replace(text[::-1].lower(), replacements))
 
 @hook.command
 def fix(text, reply, message, chan):
-    """fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
+    """<text> - fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
     global table_status
     if text in ['table', 'tables']:
         if table_status[chan] == True:

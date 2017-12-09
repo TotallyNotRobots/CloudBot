@@ -104,7 +104,7 @@ def poll(text, conn, nick, chan, message, reply):
 
 @hook.command(autohelp=True)
 def vote(text, nick, conn, chan, notice):
-    """.vote <poll> <choice> - Vote on a poll; responds on error and silently records on success."""
+    """<poll> <choice> - Vote on a poll; responds on error and silently records on success."""
     global polls
 
     if len(text.split(' ', 1)) == 2:
@@ -126,7 +126,7 @@ def vote(text, nick, conn, chan, notice):
     notice("Voted \x02\"{}\"\x02 on {}'s poll!".format(o.title, p.creator))
 
 
-@hook.command(autohelp=Poll)
+@hook.command(autohelp=False)
 def results(text, conn, chan, nick, message, reply):
     """[user] -- Shows current results from [user]'s poll. If [user] is empty,
      it will show results for your poll."""

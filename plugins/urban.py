@@ -13,7 +13,7 @@ random_url = base_url + "/random"
 
 @hook.command("urban", "u", autohelp=False)
 def urban(text):
-    """urban <phrase> [id] -- Looks up <phrase> on urbandictionary.com."""
+    """<phrase> [id] - Looks up <phrase> on urbandictionary.com."""
 
     headers = {
         "Referer": "http://m.urbandictionary.com"

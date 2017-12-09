@@ -4,7 +4,7 @@ from cloudbot import hook
 
 @hook.command(autohelp=False)
 def cats(reply):
-    """gets a fucking fact about cats."""
+    """- gets a fucking fact about cats."""
 
     attempts = 0
     while True:
@@ -24,7 +24,7 @@ def cats(reply):
 
 @hook.command(autohelp=False)
 def catgifs(reply):
-    """gets a fucking cat gif."""
+    """- gets a fucking cat gif."""
     attempts = 0
     while True:
         try:

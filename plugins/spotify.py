@@ -37,7 +37,7 @@ def sprequest(bot, params, alturl=None):
 
 @hook.command('spotify', 'sptrack')
 def spotify(bot, text):
-    """spotify <song> -- Search Spotify for <song>"""
+    """<song> - Search Spotify for <song>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "track"}
 
     request = sprequest(bot, params)
@@ -57,7 +57,7 @@ def spotify(bot, text):
 
 @hook.command("spalbum")
 def spalbum(bot, text):
-    """spalbum <album> -- Search Spotify for <album>"""
+    """<album> - Search Spotify for <album>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "album"}
 
     request = sprequest(bot, params)
@@ -77,7 +77,7 @@ def spalbum(bot, text):
 
 @hook.command("spartist", "artist")
 def spartist(bot, text):
-    """spartist <artist> -- Search Spotify for <artist>"""
+    """<artist> - Search Spotify for <artist>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "artist"}
 
     request = sprequest(bot, params)

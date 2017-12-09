@@ -106,7 +106,7 @@ def get_location(nick):
 
 @hook.command("weather", "we", autohelp=False)
 def weather(text, reply, db, nick, notice):
-    """weather <location> -- Gets weather data for <location>."""
+    """<location> - Gets weather data for <location>."""
     if not wunder_key:
         return "This command requires a Weather Underground API key."
     if not dev_key:

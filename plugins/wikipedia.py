@@ -20,7 +20,7 @@ paren_re = re.compile('\s*\(.*\)$')
 
 @hook.command("wiki", "wikipedia", "w")
 def wiki(text):
-    """wiki <phrase> -- Gets first sentence of Wikipedia article on <phrase>."""
+    """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
     try:
         request = requests.get(search_url, params={'search': text.strip()})

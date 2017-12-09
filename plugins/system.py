@@ -15,7 +15,7 @@ import cloudbot
 
 @hook.command(autohelp=False)
 def about(text, conn):
-    """-- Gives information about CloudBot. Use .about license for licensing information"""
+    """- Gives information about CloudBot. Use .about license for licensing information"""
     if text.lower() in ("license", "gpl", "source"):
         return "CloudBot Refresh is released under the GPL v3 license, get the source code " \
                "at https://github.com/CloudBotIRC/CloudBot/"
@@ -26,7 +26,7 @@ def about(text, conn):
 
 @hook.command(autohelp=False)
 def system(reply, message):
-    """-- Retrieves information about the host system."""
+    """- Retrieves information about the host system."""
 
     # Get general system info
     sys_os = platform.platform()
@@ -71,7 +71,7 @@ def system(reply, message):
 
 @hook.command("sauce", "source", autohelp=False)
 def sauce():
-    """Returns a link to the source"""
+    """- Returns a link to the source"""
     return "Check out my source code! I am a fork of cloudbot: " \
            "https://github.com/CloudBotIRC/CloudBot/ and my source is here: " \
            "https://github.com/edwardslabs/CloudBot"

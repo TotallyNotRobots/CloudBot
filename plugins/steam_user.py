@@ -96,7 +96,7 @@ def set_headers(bot):
 
 @hook.command("steamid", "sid", "steamuser", "su")
 def steamid(text):
-    """steamid <username> -- gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>. """
+    """<username> - gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>. """
 
     try:
         data = get_data(text)

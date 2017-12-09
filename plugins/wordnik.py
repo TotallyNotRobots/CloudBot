@@ -30,7 +30,7 @@ def load_key(bot):
 
 @hook.command("define", "dictionary")
 def define(text):
-    """<word> -- Returns a dictionary definition from Wordnik for <word>."""
+    """<word> - Returns a dictionary definition from Wordnik for <word>."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -54,7 +54,7 @@ def define(text):
 
 @hook.command("wordusage", "wordexample", "usage")
 def word_usage(text):
-    """<word> -- Returns an example sentence showing the usage of <word>."""
+    """<word> - Returns an example sentence showing the usage of <word>."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -76,7 +76,7 @@ def word_usage(text):
 
 @hook.command("pronounce", "sounditout")
 def pronounce(text):
-    """<word> -- Returns instructions on how to pronounce <word> with an audio example."""
+    """<word> - Returns instructions on how to pronounce <word> with an audio example."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -112,7 +112,7 @@ def pronounce(text):
 
 @hook.command()
 def synonym(text):
-    """<word> -- Returns a list of synonyms for <word>."""
+    """<word> - Returns a list of synonyms for <word>."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -135,7 +135,7 @@ def synonym(text):
 
 @hook.command()
 def antonym(text):
-    """<word> -- Returns a list of antonyms for <word>."""
+    """<word> - Returns a list of antonyms for <word>."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -161,7 +161,7 @@ def antonym(text):
 # word of the day
 @hook.command("word", "wordoftheday", autohelp=False)
 def wordoftheday(text):
-    """returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd. The specified date must be after 2009-08-10."""
+    """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd. The specified date must be after 2009-08-10."""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
@@ -201,7 +201,7 @@ def wordoftheday(text):
 # random word
 @hook.command("wordrandom", "randomword", autohelp=False)
 def random_word():
-    """Grabs a random word from wordnik.com"""
+    """- Grabs a random word from wordnik.com"""
     if not api_key:
         return "This command requires an API key from wordnik.com."
     url = API_URL + "words.json/randomWord"

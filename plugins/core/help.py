@@ -114,7 +114,7 @@ def cmdinfo(text, bot, notice, event):
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def generatehelp(conn, bot, notice, has_permission):
-    """Dumps a list of commands with their help text to the docs directory formatted using markdown."""
+    """- Dumps a list of commands with their help text to the docs directory formatted using markdown."""
     message = "{} Command list\n".format(conn.nick)
     message += "------\n"
     for plugin in sorted(set(bot.plugin_manager.commands.values()), key=attrgetter("name")):

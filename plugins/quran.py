@@ -22,7 +22,7 @@ def smart_truncate(content, length=425, suffix='...\n'):
 
 @hook.command("quran", "verse", singlethread=True)
 def quran(text, message):
-    """Prints the specified Qur'anic verse(s) and its/their translation(s)"""
+    """<verse> - Prints the specified Qur'anic verse(s) and its/their translation(s)"""
     api_url = "http://quranapi.azurewebsites.net/api/verse/"
     chapter = text.split(':')[0]
     verse = text.split(':')[1]

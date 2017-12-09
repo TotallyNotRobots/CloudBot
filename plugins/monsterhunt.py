@@ -348,7 +348,7 @@ def smart_truncate(content, length=320, suffix='...'):
 
 @hook.command("monsterfriends", autohelp=False)
 def friends(text, chan, conn, db):
-    """Prints a list of the top monster friends in the channel, if 'global' is specified all channels in the database are included."""
+    """[{global|average}] - Prints a list of the top monster friends in the channel, if 'global' is specified all channels in the database are included."""
     if chan in opt_out:
         return
     friends = defaultdict(int)
@@ -393,7 +393,7 @@ def friends(text, chan, conn, db):
 
 @hook.command("monsterkillers", autohelp=False)
 def killers(text, chan, conn, db):
-    """Prints a list of the top monster killers in the channel, if 'global' is specified all channels in the database are included."""
+    """[{global|average}] - Prints a list of the top monster killers in the channel, if 'global' is specified all channels in the database are included."""
     if chan in opt_out:
         return
     killers = defaultdict(int)
@@ -536,7 +536,7 @@ def duck_merge(text, conn, db, message):
 
 @hook.command("monsters", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
-    """Prints a users monster stats. If no nick is input it will check the calling username."""
+    """<nick> - Prints a users monster stats. If no nick is input it will check the calling username."""
     name = nick.lower()
     if text:
         name = text.split()[0].lower()
@@ -563,7 +563,7 @@ def ducks_user(text, nick, chan, conn, db, message):
 
 @hook.command("monsterstats", autohelp=False)
 def duck_stats(chan, conn, db, message):
-    """Prints monster statistics for the entire channel and totals for the network."""
+    """- Prints monster statistics for the entire channel and totals for the network."""
     ducks = defaultdict(int)
     scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
         .where(table.c.network == conn.name)).fetchall()

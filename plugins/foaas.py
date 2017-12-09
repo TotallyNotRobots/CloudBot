@@ -40,6 +40,6 @@ def load_fuck_offs(bot):
 
 @hook.command('fos', 'fuckoff', 'foaas', autohelp=False)
 def foaas(text, nick, message):
-    """fos [name] to tell some one to fuck off or just .fos for a generic fuckoff"""
+    """[name] - tell some one to fuck off or just .fos for a generic fuckoff"""
     out = get_fuck_off(nick, text)
     message(out)

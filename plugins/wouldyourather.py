@@ -4,7 +4,7 @@ from cloudbot.util import http, web
 
 @hook.command("wouldyou", autohelp=False)
 def wouldyourather_first(reply):
-    """Asks a would you rather question"""
+    """- Asks a would you rather question"""
 
     attempts = 0
     while True:

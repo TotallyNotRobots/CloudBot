@@ -92,7 +92,7 @@ def get_data(user, currency="us"):
 
 @hook.command("steamcalc", "steamdb")
 def steamcalc(text):
-    """steamcalc <username> - Gets value of steam account. Uses steamcommunity.com/id/<nickname>."""
+    """<username> - Gets value of steam account. Uses steamcommunity.com/id/<nickname>."""
     user = text.strip().lower()
 
     try:
