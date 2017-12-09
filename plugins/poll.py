@@ -1,9 +1,7 @@
 from re import findall
 
 from cloudbot import hook
-
 from cloudbot.util.formatting import get_text_list
-
 
 polls = {}
 
@@ -19,7 +17,7 @@ class PollOption:
 
 
 class Poll:
-    def __init__(self, question, creator, options=["Yes", "No"]):
+    def __init__(self, question, creator, options=("Yes", "No")):
         self.question = question
         self.creator = creator
         self.options = {i.lower(): PollOption(i) for i in options}
@@ -65,6 +63,7 @@ class Poll:
 
 @hook.command()
 def poll(text, conn, nick, chan, message, reply):
+    """{<question>[: <option1>, <option2>[, <option3>]...|close} - Creates a poll for [question] with the provided options (default: Yes, No), or closes the poll if the argument is 'close'"""
     global polls
 
     # get poll ID
@@ -104,7 +103,7 @@ def poll(text, conn, nick, chan, message, reply):
 
 @hook.command(autohelp=True)
 def vote(text, nick, conn, chan, notice):
-    """.vote <poll> <choice> - Vote on a poll; responds on error and silently records on success."""
+    """<poll> <choice> - Vote on a poll; responds on error and silently records on success."""
     global polls
 
     if len(text.split(' ', 1)) == 2:
@@ -126,10 +125,9 @@ def vote(text, nick, conn, chan, notice):
     notice("Voted \x02\"{}\"\x02 on {}'s poll!".format(o.title, p.creator))
 
 
-@hook.command(autohelp=Poll)
+@hook.command(autohelp=False)
 def results(text, conn, chan, nick, message, reply):
-    """[user] -- Shows current results from [user]'s poll. If [user] is empty,
-     it will show results for your poll."""
+    """[user] - Shows current results from [user]'s poll. If [user] is empty, it will show results for your poll."""
     global polls
 
     if text:
