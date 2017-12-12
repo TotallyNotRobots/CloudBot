@@ -1,9 +1,7 @@
 from re import findall
 
 from cloudbot import hook
-
 from cloudbot.util.formatting import get_text_list
-
 
 polls = {}
 
@@ -19,7 +17,7 @@ class PollOption:
 
 
 class Poll:
-    def __init__(self, question, creator, options=["Yes", "No"]):
+    def __init__(self, question, creator, options=("Yes", "No")):
         self.question = question
         self.creator = creator
         self.options = {i.lower(): PollOption(i) for i in options}
@@ -65,6 +63,7 @@ class Poll:
 
 @hook.command()
 def poll(text, conn, nick, chan, message, reply):
+    """{<question>[: <option1>, <option2>[, <option3>]...|close} - Creates a poll for [question] with the provided options (default: Yes, No), or closes the poll if the argument is 'close'"""
     global polls
 
     # get poll ID
@@ -128,8 +127,7 @@ def vote(text, nick, conn, chan, notice):
 
 @hook.command(autohelp=False)
 def results(text, conn, chan, nick, message, reply):
-    """[user] -- Shows current results from [user]'s poll. If [user] is empty,
-     it will show results for your poll."""
+    """[user] - Shows current results from [user]'s poll. If [user] is empty, it will show results for your poll."""
     global polls
 
     if text:

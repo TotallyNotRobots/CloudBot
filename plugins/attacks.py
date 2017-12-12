@@ -125,6 +125,7 @@ def basic_attack(attack):
 
             if is_self(conn, target):
                 target = nick
+                nick = conn.nick
 
         out = basic_format(nick, target, attack_data[attack.name])
 
