@@ -1,4 +1,5 @@
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 
@@ -21,17 +22,30 @@ def smart_truncate(content, length=425, suffix='...\n'):
 
 
 @hook.command("quran", "verse", singlethread=True)
-def quran(text, message):
+def quran(text, message, reply):
     """Prints the specified Qur'anic verse(s) and its/their translation(s)"""
     api_url = "http://quranapi.azurewebsites.net/api/verse/"
     chapter = text.split(':')[0]
     verse = text.split(':')[1]
-    params={"chapter":chapter, "number": verse, "lang": "ar"}
+    params = {"chapter":chapter, "number": verse, "lang": "ar"}
     r = requests.get(api_url, params=params)
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, text))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, text)
     params["lang"] = "en"
     r2 = requests.get(api_url, params=params)
+
+    try:
+        r2.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, text))
+        raise
+
     data = r.json()
     data2 = r2.json()
     out = "\x02{}\x02: ".format(text)

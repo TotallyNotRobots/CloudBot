@@ -2,6 +2,7 @@ import random
 
 import requests
 from lxml import html
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, filesize, colors
@@ -30,7 +31,7 @@ def bingify(s):
 
 
 @hook.command("bing", "b")
-def bing(text, bot):
+def bing(text, bot, reply):
     """<query> - returns the first bing search result for <query>"""
     api_key = bot.config.get("api_keys", {}).get("bing_azure")
 
@@ -55,6 +56,12 @@ def bing(text, bot):
 
     request = requests.get(API_URL, params=params, auth=(api_key, api_key))
 
+    try:
+        request.raise_for_status()
+    except HTTPError:
+        reply("Bing API error occurred.")
+        raise
+
     # I'm not even going to pretend to know why results are in ['d']['results'][0]
     j = request.json()['d']['results'][0]
 
@@ -72,7 +79,7 @@ def bing(text, bot):
 
 
 @hook.command("bingimage", "bis")
-def bingimage(text, bot):
+def bingimage(text, bot, reply):
     """<query> - returns the first bing image search result for <query>"""
     api_key = bot.config.get("api_keys", {}).get("bing_azure")
 
@@ -97,6 +104,12 @@ def bingimage(text, bot):
     }
 
     request = requests.get(API_URL, params=params, auth=(api_key, api_key))
+
+    try:
+        request.raise_for_status()
+    except HTTPError:
+        reply("Bing API error occurred.")
+        raise
 
     # I'm not even going to pretend to know why results are in ['d']['results'][0]
     j = request.json()['d']['results'][0]

@@ -1,5 +1,7 @@
 import traceback
 
+from requests import HTTPError
+
 from cloudbot import hook
 from cloudbot.util import web
 
@@ -20,5 +22,19 @@ def on_hook_end(error, launched_hook, launched_event, conn, admin_log):
 
         event_data = launched_event.__dict__.items()
         lines = ["{} = {}".format(k, v) for k, v in event_data]
+
+        if isinstance(error, HTTPError) and error.response is not None:
+            response = error.response
+            lines.append("")
+            lines.append("Request Info:")
+            data = (
+                ("URL", response.url),
+                ("Status", response.status_code),
+                ("Raw Content", response.content),
+            )
+            lines.extend(
+                "{} = {}".format(k, v) for k, v in data
+            )
+
         url = web.paste('\n'.join(lines))
         admin_log("Event: " + url, should_broadcast)

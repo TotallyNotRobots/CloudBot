@@ -47,7 +47,9 @@ def locate(text):
     if bias:
         params['region'] = bias
 
-    json = requests.get(geocode_api, params=params).json()
+    r = requests.get(geocode_api, params=params)
+    r.raise_for_status()
+    json = r.json()
 
     error = check_status(json['status'])
     if error:

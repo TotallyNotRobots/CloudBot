@@ -43,7 +43,8 @@ def octopart(text, reply):
         request = requests.get(API_URL, params=params)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not fetch part data: {}".format(e)
+        reply("Could not fetch part data: {}".format(e))
+        raise
 
     response = request.json()
 

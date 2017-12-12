@@ -1,5 +1,6 @@
 import re
 import requests
+from requests import HTTPError
 from requests.auth import HTTPBasicAuth
 from datetime import datetime
 
@@ -36,11 +37,18 @@ def sprequest(bot, params, alturl=None):
 
 
 @hook.command('spotify', 'sptrack')
-def spotify(bot, text):
+def spotify(bot, text, reply):
     """spotify <song> -- Search Spotify for <song>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "track"}
 
     request = sprequest(bot, params)
+
+    try:
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Could not get track information: {}".format(e.request.status_code))
+        raise
+
     if request.status_code != requests.codes.ok:
         return "Could not get track information: {}".format(
             request.status_code)
@@ -56,11 +64,18 @@ def spotify(bot, text):
 
 
 @hook.command("spalbum")
-def spalbum(bot, text):
+def spalbum(bot, text, reply):
     """spalbum <album> -- Search Spotify for <album>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "album"}
 
     request = sprequest(bot, params)
+
+    try:
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Could not get album information: {}".format(e.request.status_code))
+        raise
+
     if request.status_code != requests.codes.ok:
         return "Could not get album information: {}".format(
             request.status_code)
@@ -76,11 +91,17 @@ def spalbum(bot, text):
 
 
 @hook.command("spartist", "artist")
-def spartist(bot, text):
+def spartist(bot, text, reply):
     """spartist <artist> -- Search Spotify for <artist>"""
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "artist"}
 
     request = sprequest(bot, params)
+    try:
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Could not get artist information: {}".format(e.request.status_code))
+        raise
+
     if request.status_code != requests.codes.ok:
         return "Could not get artist information: {}".format(
             request.status_code)
@@ -104,8 +125,7 @@ def spotify_url(bot, match):
     # no error catching here, if the API is down fail silently
     request = sprequest(bot, {}, 'http://api.spotify.com/v1/{}/{}'.format(
         api_method[_type], spotify_id))
-    if request.status_code != requests.codes.ok:
-        return
+    request.raise_for_status()
     data = request.json()
     if _type == "track":
         name = data["name"]

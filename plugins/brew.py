@@ -1,4 +1,5 @@
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 
@@ -12,7 +13,7 @@ def load_key(bot):
 
 
 @hook.command('brew')
-def brew(text, bot):
+def brew(text, reply):
     """<query> - returns the first brewerydb search result for <query>"""
 
     if not api_key:
@@ -21,8 +22,11 @@ def brew(text, bot):
     params = {'key': api_key, 'type': 'beer', 'withBreweries': 'Y', 'q': text}
     request = requests.get(api_url, params=params)
 
-    if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
+    try:
+        request.raise_for_status()
+    except HTTPError:
+        reply("Failed to fetch info ({})".format(request.status_code))
+        raise
 
     response = request.json()
 
@@ -58,6 +62,7 @@ def brew(text, bot):
 
     except Exception as e:
         print(e)
-        output = "Error parsing results."
+        reply("Error parsing results.")
+        raise
 
     return output

@@ -88,7 +88,9 @@ def newegg_url(match):
         'Referer': 'http://www.newegg.com/'
     }
 
-    item = requests.get(API_PRODUCT.format(item_id), headers=headers).json()
+    request = requests.get(API_PRODUCT.format(item_id), headers=headers)
+    request.raise_for_status()
+    item = request.json()
     return format_item(item['Basic'], show_url=False)
 
 
