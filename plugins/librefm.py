@@ -78,7 +78,7 @@ def librefm(text, nick, db, bot, notice):
 
     tracks = response["recenttracks"]["track"]
 
-    if type(tracks) == list:
+    if isinstance(tracks, list):
         track = tracks[0]
 
         if "@attr" in track and "nowplaying" in track["@attr"] and track["@attr"]["nowplaying"] == "true":
@@ -89,7 +89,7 @@ def librefm(text, nick, db, bot, notice):
             status = 'is listening to'
             ending = '.'
 
-    elif type(tracks) == dict:
+    elif isinstance(tracks, dict):
         track = tracks
         # otherwise, the user is not listening to anything right now
         status = 'last listened to'
@@ -138,16 +138,16 @@ def getartisttags(artist, bot):
     except LookupError:
         return 'no tags'
 
-    if type(tag) == dict:
+    if isinstance(tag, dict):
         tag_list = tag['name']
-    elif type(tag) == list:
+    elif isinstance(tag, list):
         tag_list = []
         for item in tag:
             tag_list.append(item['name'])
     else:
         return "error returning tags"
 
-    if type(tag_list) == list:
+    if isinstance(tag_list, list):
         tag_list = tag_list[0:4]
         return ', '.join(tag_list)
     else:
@@ -190,7 +190,7 @@ def getartistinfo(artist, bot, user=''):
               'autocorrect': '1'}
     if user:
         params['username'] = user
-    request = requests.get(api_url, params=params);
+    request = requests.get(api_url, params=params)
     artist = request.json()
     return artist
 

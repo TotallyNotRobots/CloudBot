@@ -55,7 +55,7 @@ def list_langs(message):
     data = r.json()
     langs = data['langs']
     out = "Language Codes:"
-    out += ",".join("\n{}-{}".format(key, value) for (key, value) in sorted(langs.items(), ))
+    out += ",".join("\n{}-{}".format(key, value) for (key, value) in sorted(langs.items(),))
     out += "\n\nTranslation directions:"
     out += ",".join("\n{}".format(code) for code in data['dirs'])
     paste = web.paste(out, ext="txt")
