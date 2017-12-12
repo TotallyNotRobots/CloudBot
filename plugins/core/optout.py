@@ -95,6 +95,19 @@ def set_optout(db, conn, chan, pattern, allowed):
     load_cache(db)
 
 
+def del_optout(db, conn, chan, pattern):
+    conn_cf = conn.casefold()
+    chan_cf = chan.casefold()
+    pattern_cf = pattern.casefold()
+    clause = and_(optout_table.c.network == conn_cf, optout_table.c.chan == chan_cf, optout_table.c.hook == pattern_cf)
+    res = db.execute(optout_table.delete().where(clause))
+
+    db.commit()
+    load_cache(db)
+
+    return res.rowcount > 0
+
+
 def clear_optout(db, conn, chan=None):
     conn_cf = conn.casefold()
     if chan:
@@ -191,6 +204,30 @@ def optout(text, event, chan, db, conn):
         pattern=pattern,
         channel=chan
     )
+
+
+@asyncio.coroutine
+@hook.command
+def deloptout(text, event, chan, db, conn):
+    """[chan] <pattern> - Delete global optout hooks matching <pattern> in [chan], or the current channel if not specified"""
+    args = text.split()
+    if len(args) > 1:
+        chan = args.pop(0)
+
+    has_perm = yield from check_channel_permissions(event, chan, "op", "chanop", "snoonetstaff", "botcontrol")
+
+    if not has_perm:
+        event.notice("Sorry, you may not configure optout settings for that channel.")
+        return
+
+    pattern = args.pop(0)
+
+    deleted = yield from event.async_call(del_optout, db, conn, chan, pattern)
+
+    if deleted:
+        return "Deleted optout '{}' in channel '{}'.".format(pattern, chan)
+
+    return "No matching optouts in channel '{}'.".format(chan)
 
 
 @asyncio.coroutine
