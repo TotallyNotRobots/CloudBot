@@ -15,30 +15,53 @@ from urllib.parse import quote_plus
 import requests
 
 from cloudbot import hook
+from cloudbot.util import colors
 
-API_URL = "https://api.coinmarketcap.com/v1/ticker/{}?convert={}"
+API_URL = "https://api.coinmarketcap.com/v1/ticker/{}"
 
-
-# aliases
-@hook.command("bitcoin", "btc", autohelp=False)
-def bitcoin(text, reply):
-    """ -- Returns current bitcoin value """
-    # alias
-    return crypto_command(" ".join(["bitcoin", text]), reply)
-
-
-@hook.command("litecoin", "ltc", autohelp=False)
-def litecoin(text, reply):
-    """ -- Returns current litecoin value """
-    # alias
-    return crypto_command(" ".join(["litecoin", text]), reply)
+CURRENCY_SYMBOLS = {
+    'USD': '$',
+    'GBP': '£',
+    'EUR': '€',
+}
 
 
-@hook.command("dogecoin", "doge", autohelp=False)
-def dogecoin(text, reply):
-    """ -- Returns current dogecoin value """
-    # alias
-    return crypto_command(" ".join(["dogecoin", text]), reply)
+class Alias:
+    __slots__ = ("name", "cmds")
+
+    def __init__(self, name, *cmds):
+        self.name = name
+        if name not in cmds:
+            cmds = (name,) + cmds
+
+        self.cmds = cmds
+
+
+ALIASES = (
+    Alias('bitcoin', 'btc'),
+    Alias('litecoin', 'ltc'),
+    Alias('dogecoin', 'doge'),
+)
+
+
+def get_request(ticker, currency):
+    return requests.get(API_URL.format(quote_plus(ticker)), params={'convert': currency})
+
+
+def alias_wrapper(alias):
+    def func(text):
+        return crypto_command(" ".join((alias.name, text)))
+
+    func.__doc__ = """- Returns the current {} value""".format(alias.name)
+    func.__name__ = alias.name + "_alias"
+
+    return func
+
+
+def init_aliases():
+    for alias in ALIASES:
+        _hook = alias_wrapper(alias)
+        globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(_hook)
 
 
 # main command
@@ -48,15 +71,13 @@ def crypto_command(text, reply):
     args = text.split()
     ticker = args.pop(0)
 
-    try:
-        if not args:
-            currency = 'USD'
-        else:
-            currency = args.pop(0).upper()
+    if not args:
+        currency = 'USD'
+    else:
+        currency = args.pop(0).upper()
 
-        encoded_ticker = quote_plus(ticker)
-        encoded_currency = quote_plus(currency)
-        request = requests.get(API_URL.format(encoded_ticker, encoded_currency))
+    try:
+        request = get_request(ticker, currency)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         reply("Could not get value: {}".format(e))
@@ -67,32 +88,30 @@ def crypto_command(text, reply):
     if "error" in data:
         return "{}.".format(data['error'])
 
-    updated_time = datetime.fromtimestamp(float(data[0]['last_updated']))
+    data = data[0]
+
+    updated_time = datetime.fromtimestamp(float(data['last_updated']))
     if (datetime.today() - updated_time).days > 2:
         # the API retains data for old ticker names that are no longer updated
         # in these cases we just return a "not found" message
         return "Currency not found."
 
-    change = float(data[0]['percent_change_24h'])
+    change = float(data['percent_change_24h'])
     if change > 0:
-        change_str = "\x033 {}%\x0f".format(change)
+        change_str = "$(dark_green) {}%$(clear)".format(change)
     elif change < 0:
-        change_str = "\x035 {}%\x0f".format(change)
+        change_str = "$(dark_red) {}%$(clear)".format(change)
     else:
         change_str = "{}%".format(change)
 
-    if currency == 'GBP':
-        currency_sign = '£'
-    elif currency == 'EUR':
-        currency_sign = '€'
-    elif currency == 'USD':
-        currency_sign = '$'
-    else:
-        currency_sign = ''
+    currency_sign = CURRENCY_SYMBOLS.get(currency, '')
 
-    return "{} // \x0307{}{:,.2f}\x0f {} - {:,.7f} BTC // {} change".format(data[0]['symbol'],
-                                                                            currency_sign,
-                                                                            float(data[0]['price_' + currency.lower()]),
-                                                                            currency.upper(),
-                                                                            float(data[0]['price_btc']),
-                                                                            change_str)
+    try:
+        converted_value = data['price_' + currency.lower()]
+    except LookupError:
+        return "Unable to convert to currency '{}'".format(currency)
+
+    return colors.parse("{} // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
+        data['symbol'], currency_sign, float(converted_value), currency.upper(),
+        float(data['price_btc']), change_str
+    ))
