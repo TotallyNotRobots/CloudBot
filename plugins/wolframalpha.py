@@ -3,6 +3,7 @@ import urllib.parse
 
 import requests
 from lxml import etree
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web, formatting
@@ -15,7 +16,7 @@ query_url = 'http://www.wolframalpha.com/input/?i={}'
 
 
 @hook.command("wolframalpha", "wa", "calc", "ca", "math", "convert")
-def wolframalpha(text, bot):
+def wolframalpha(text, bot, reply):
     """<query> -- Computes <query> using Wolfram Alpha."""
     api_key = bot.config.get("api_keys", {}).get("wolframalpha", None)
     if not api_key:
@@ -26,6 +27,12 @@ def wolframalpha(text, bot):
         'appid': api_key
     }
     request = requests.get(api_url, params=params)
+
+    try:
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Error getting query: {}".format(e.response.status_code))
+        raise
 
     if request.status_code != requests.codes.ok:
         return "Error getting query: {}".format(request.status_code)

@@ -66,7 +66,7 @@ def init_aliases():
 
 # main command
 @hook.command("crypto", "cryptocurrency")
-def crypto_command(text):
+def crypto_command(text, reply):
     """ <ticker> [currency] -- Returns current value of a cryptocurrency """
     args = text.split()
     ticker = args.pop(0)
@@ -80,7 +80,8 @@ def crypto_command(text):
         request = get_request(ticker, currency)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get value: {}".format(e)
+        reply("Could not get value: {}".format(e))
+        raise
 
     data = request.json()
 

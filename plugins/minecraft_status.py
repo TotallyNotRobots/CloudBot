@@ -5,14 +5,15 @@ from cloudbot import hook
 
 
 @hook.command(autohelp=False)
-def mcstatus():
+def mcstatus(reply):
     """- gets the status of various Mojang (Minecraft) servers"""
 
     try:
         request = requests.get("http://status.mojang.com/check")
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Unable to get Minecraft server status: {}".format(e)
+        reply("Unable to get Minecraft server status: {}".format(e))
+        raise
 
     # lets just reformat this data to get in a nice format
     data = json.loads(request.text.replace("}", "").replace("{", "").replace("]", "}").replace("[", "{"))

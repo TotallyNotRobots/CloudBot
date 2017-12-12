@@ -3,11 +3,12 @@
 from lxml import html
 
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 
 @hook.command("e", "etymology")
-def etymology(text):
+def etymology(text, reply):
     """<word> - retrieves the etymology of <word>
     :type text: str
     """
@@ -15,6 +16,13 @@ def etymology(text):
     url = 'http://www.etymonline.com/index.php'
 
     response = requests.get(url, params={"term": text})
+
+    try:
+        response.raise_for_status()
+    except HTTPError as e:
+        reply("Error reaching etymonline.com: {}".format(e.response.status_code))
+        raise
+
     if response.status_code != requests.codes.ok:
         return "Error reaching etymonline.com: {}".format(response.status_code)
 

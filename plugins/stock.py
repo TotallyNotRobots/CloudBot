@@ -17,14 +17,15 @@ def get_data(symbol):
 
 
 @hook.command()
-def stock(text):
+def stock(text, reply):
     """<symbol> -- gets stock information"""
     sym = text.strip()
 
     try:
         data = get_data(text)
     except requests.exceptions.HTTPError as e:
-        return "Could not get stock data: {}".format(e)
+        reply("Could not get stock data: {}".format(e))
+        raise
 
     if not data["results"]:
         return "No results."

@@ -27,6 +27,7 @@ def format_url(fucker, fuckee=None):
 def get_fuck_off(fucker, fuckee):
     url = format_url(fucker, fuckee)
     r = requests.get(url, headers=headers)
+    r.raise_for_status()
     return r.text
 
 
