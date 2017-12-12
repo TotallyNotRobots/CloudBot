@@ -1,7 +1,8 @@
 import requests
+from requests import HTTPError
 
-from cloudbot.util import web
 from cloudbot import hook
+from cloudbot.util import web
 
 api_url = "https://translate.yandex.net/api/v1.5/tr.json/"
 
@@ -15,8 +16,7 @@ def load_key(bot):
         'ui':'en'
     }
     r = requests.get(url, params=params)
-    if r.status_code != 200:
-        return
+    r.raise_for_status()
     data = r.json()
     lang_dict = dict((v, k) for k, v in data['langs'].items())
     lang_dir = data['dirs']
@@ -48,6 +48,7 @@ def list_langs(message):
         'ui':'en'
     }
     r = requests.get(url, params=params)
+    r.raise_for_status()
     data = r.json()
     langs = data['langs']
     out = "Language Codes:"
@@ -58,10 +59,10 @@ def list_langs(message):
     return "Here is information on what I can translate as well as valid language codes. {}".format(paste)
 
 @hook.command("tran", "translate")
-def trans(text):
+def trans(text, reply):
     """<language or language code> - text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
-    inp = text.split(' ',1)
-    lang = inp[0].replace(':','')
+    inp = text.split(' ', 1)
+    lang = inp[0].replace(':', '')
     text = inp[1]
     if lang.title() in lang_dict.keys():
         lang = lang_dict[lang.title()]
@@ -74,9 +75,17 @@ def trans(text):
         'text':text,
         'options':1
     }
-    r = requests.get(url, params=params)
-    if r.status_code != 200:
-        return check_code(r.status_code)
+
+    try:
+        r = requests.get(url, params=params)
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(check_code(e.response.status_code))
+        raise
+    except Exception:
+        reply("Unknown error occurred.")
+        raise
+
     data = r.json()
     out = "Translation ({}): {}".format(data['lang'], data['text'][0])
     return out

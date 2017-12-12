@@ -41,17 +41,14 @@ def twitter_url(match):
     if tw_api is None:
         return
 
-    try:
-        tweet = tw_api.get_status(tweet_id)
-        user = tweet.user
-    except tweepy.error.TweepError:
-        return
+    tweet = tw_api.get_status(tweet_id)
+    user = tweet.user
 
     return format_tweet(tweet, user)
 
 
 @hook.command("twitter", "tw", "twatter")
-def twitter(text):
+def twitter(text, reply):
     """<user> [n] - Gets last/[n]th tweet from <user>"""
 
     if tw_api is None:
@@ -65,9 +62,11 @@ def twitter(text):
             tweet = tw_api.get_status(text)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
-                return "Could not find tweet."
+                reply("Could not find tweet.")
             else:
-                return "Error: {}".format(e.reason)
+                reply("Error: {}".format(e.reason))
+
+            raise
 
         user = tweet.user
 
@@ -89,9 +88,10 @@ def twitter(text):
             user = tw_api.get_user(username)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
-                return "Could not find user."
+                reply("Could not find user.")
             else:
-                return "Error: {}".format(e.reason)
+                reply("Error: {}".format(e.reason))
+            raise
 
         # get the users tweets
         user_timeline = tw_api.user_timeline(id=user.id, count=tweet_number + 1)
@@ -138,7 +138,7 @@ def format_tweet(tweet, user):
 
 
 @hook.command("twuser", "twinfo")
-def twuser(text):
+def twuser(text, reply):
     """<user> - Get info on the Twitter user <user>"""
 
     if tw_api is None:
@@ -149,9 +149,10 @@ def twuser(text):
         user = tw_api.get_user(text)
     except tweepy.error.TweepError as e:
         if "404" in e.reason:
-            return "Could not find user."
+            reply("Could not find user.")
         else:
-            return "Error: {}".format(e.reason)
+            reply("Error: {}".format(e.reason))
+        raise
 
     if user.verified:
         prefix = "\u2713"

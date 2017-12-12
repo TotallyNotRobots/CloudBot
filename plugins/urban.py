@@ -12,7 +12,7 @@ random_url = base_url + "/random"
 
 
 @hook.command("urban", "u", autohelp=False)
-def urban(text):
+def urban(text, reply):
     """<phrase> [id] - Looks up <phrase> on urbandictionary.com."""
 
     headers = {
@@ -39,7 +39,8 @@ def urban(text):
             request = requests.get(define_url, params=params, headers=headers)
             request.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            return "Could not get definition: {}".format(e)
+            reply("Could not get definition: {}".format(e))
+            raise
 
         page = request.json()
 
@@ -51,7 +52,8 @@ def urban(text):
             request = requests.get(random_url, headers=headers)
             request.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            return "Could not get definition: {}".format(e)
+            reply("Could not get definition: {}".format(e))
+            raise
 
         page = request.json()
         id_num = None

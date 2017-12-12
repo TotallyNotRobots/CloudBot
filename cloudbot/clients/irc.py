@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import random
 import re
 import ssl
 from _ssl import PROTOCOL_SSLv23
@@ -106,7 +107,20 @@ class IrcClient(Client):
             return "{}:{}".format(self.server, self.port)
 
     @asyncio.coroutine
-    def connect(self):
+    def try_connect(self):
+        timeout = self.config["connection"].get("timeout", 30)
+        while True:
+            try:
+                yield from self.connect(timeout)
+            except (asyncio.TimeoutError, OSError):
+                logger.exception("[%s] Error occurred while connecting", self.name)
+            else:
+                break
+
+            yield from asyncio.sleep(random.randrange(timeout))
+
+    @asyncio.coroutine
+    def connect(self, timeout=None):
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -125,8 +139,15 @@ class IrcClient(Client):
         optional_params = {}
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
-        self._transport, self._protocol = yield from self.loop.create_connection(
-            lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
+
+        coro = self.loop.create_connection(
+            lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params
+        )
+
+        if timeout is not None:
+            coro = asyncio.wait_for(coro, timeout)
+
+        self._transport, self._protocol = yield from coro
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))

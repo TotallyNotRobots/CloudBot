@@ -19,11 +19,12 @@ def dig(text, nick, notice):
 
     url = "http://dig.jsondns.org/IN/{}/{}".format(domain, rtype)
     r = requests.get(url)
+    r.raise_for_status()
     results = r.json()
     out = "The following records were found for {}: ".format(domain)
     if results['header']['rcode'] == "NXDOMAIN":
         return "no dns record for {} was found".format(domain)
-    notice( "The following records were found for \x02{}\x02: ".format(domain),nick)
+    notice("The following records were found for \x02{}\x02: ".format(domain), nick)
     for r in range(len(results['answer'])):
         domain = results['answer'][r]['name']
         rtype = results['answer'][r]['type']
@@ -34,5 +35,5 @@ def dig(text, nick, notice):
             rdata = results['answer'][r]['rdata'][0]
         else:
             rdata = results['answer'][r]['rdata']
-        notice( "name: \x02{}\x02 type: \x02{}\x02 ttl: \x02{}\x02 rdata: \x02{}\x02".format(
+        notice("name: \x02{}\x02 type: \x02{}\x02 ttl: \x02{}\x02 rdata: \x02{}\x02".format(
             domain, rtype, ttl, rdata), nick)

@@ -8,7 +8,6 @@ from cloudbot import hook
 from cloudbot.util import timeformat
 from cloudbot.util.formatting import pluralize
 
-
 youtube_re = re.compile(r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I)
 
 base_url = 'https://www.googleapis.com/youtube/v3/'
@@ -20,7 +19,8 @@ err_no_api = "The YouTube API is off in the Google Developers Console."
 
 
 def get_video_description(video_id):
-    json = requests.get(api_url.format(video_id, dev_key)).json()
+    request = requests.get(api_url.format(video_id, dev_key))
+    json = request.json()
 
     if json.get('error'):
         if json['error']['code'] == 403:
@@ -82,10 +82,17 @@ def youtube_url(match):
 
 
 @hook.command("youtube", "you", "yt", "y")
-def youtube(text):
+def youtube(text, reply):
     """<query> - Returns the first YouTube search result for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
+
+    try:
+        request = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"})
+        request.raise_for_status()
+    except Exception:
+        reply("Error performing search.")
+        raise
 
     json = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"}).json()
 
@@ -104,10 +111,17 @@ def youtube(text):
 
 
 @hook.command("youtime", "ytime")
-def youtime(text):
+def youtime(text, reply):
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
+
+    try:
+        request = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"})
+        request.raise_for_status()
+    except Exception:
+        reply("Error performing search.")
+        raise
 
     json = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"}).json()
 
@@ -121,7 +135,11 @@ def youtime(text):
         return 'No results found.'
 
     video_id = json['items'][0]['id']['videoId']
-    json = requests.get(api_url.format(video_id, dev_key)).json()
+
+    request = requests.get(api_url.format(video_id, dev_key))
+    request.raise_for_status()
+
+    json = request.json()
 
     if json.get('error'):
         return
@@ -150,9 +168,16 @@ ytpl_re = re.compile(r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[
 
 
 @hook.regex(ytpl_re)
-def ytplaylist_url(match):
+def ytplaylist_url(match, reply):
     location = match.group(4).split("=")[-1]
-    json = requests.get(playlist_api_url, params={"id": location, "key": dev_key}).json()
+    try:
+        request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
+        request.raise_for_status()
+    except Exception:
+        reply("Error looking up playlist.")
+        raise
+
+    json = request.json()
 
     if json.get('error'):
         if json['error']['code'] == 403:

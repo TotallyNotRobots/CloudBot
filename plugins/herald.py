@@ -7,7 +7,6 @@ from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, select
 from cloudbot import hook
 from cloudbot.util import database
 
-opt_out = []
 delay = 10
 floodcheck = {}
 
@@ -79,9 +78,6 @@ def welcome(nick, message, db, bot, chan):
     offensive_re = re.compile('卐')
 
     grab = bot.plugin_manager.find_plugin("grab")
-
-    if chan in opt_out:
-        return
 
     if chan in floodcheck:
         if time.time() - floodcheck[chan] <= delay:

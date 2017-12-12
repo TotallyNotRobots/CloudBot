@@ -4,20 +4,7 @@ from pathlib import Path
 
 from cloudbot import hook
 from cloudbot.util import web
-
-
-def gen_markdown_table(headers, rows):
-    rows = list(rows)
-    rows.insert(0, headers)
-    rotated = zip(*reversed(rows))
-
-    sizes = tuple(map(lambda l: max(map(len, l)), rotated))
-    rows.insert(1, tuple(('-' * size) for size in sizes))
-    lines = [
-        "| {} |".format(' | '.join(cell.ljust(sizes[i]) for i, cell in enumerate(row)))
-        for row in rows
-    ]
-    return '\n'.join(lines)
+from cloudbot.util.formatting import gen_markdown_table
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)

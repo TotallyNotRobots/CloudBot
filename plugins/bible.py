@@ -11,8 +11,9 @@ def bible(text, reply):
         'formatting':'plain',
         'type':'json'
     }
-    r = requests.get("https://labs.bible.org/api", params=params)
     try:
+        r = requests.get("https://labs.bible.org/api", params=params)
+        r.raise_for_status()
         response = r.json()[0]
     except Exception:
         reply("Something went wrong, either you entered an invalid passage or the API is down.")

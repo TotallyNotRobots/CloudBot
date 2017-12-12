@@ -1,40 +1,31 @@
 import requests
+from requests import HTTPError
+
 from cloudbot import hook
 
 
+def get_data(url, reply, bot, params=None):
+    try:
+        r = requests.get(url, headers={'User-Agent': bot.user_agent}, params=params)
+        r.raise_for_status()
+    except HTTPError:
+        reply("API error occurred.")
+        raise
+
+    return r
+
+
 @hook.command(autohelp=False)
-def cats(reply):
+def cats(reply, bot):
     """- gets a fucking fact about cats."""
+    r = get_data('https://catfact.ninja/fact', reply, bot, params={'max_length': 100})
+    json = r.json()
+    response = json['facts']
+    return response
 
-    attempts = 0
-    while True:
-        try:
-            r = requests.get(
-                'http://catfacts-api.appspot.com/api/facts?number=1')
-        except Exception:
-            if attempts > 2:
-                reply("There was an error contacting the API.")
-                raise
-            else:
-                attempts += 1
-                continue
-        json = r.json()
-        response = json['facts']
-        return response
 
 @hook.command(autohelp=False)
-def catgifs(reply):
+def catgifs(reply, bot):
     """- gets a fucking cat gif."""
-    attempts = 0
-    while True:
-        try:
-            r = requests.get("http://marume.herokuapp.com/random.gif")
-        except Exception:
-            if attempts > 2:
-                reply("there was an error finding a cat gif for you.")
-                raise
-            else:
-                attempts += 1
-                continue
-        response = r.url
-        return "OMG A CAT GIF: {}".format(response)
+    r = get_data("http://marume.herokuapp.com/random.gif", reply, bot)
+    return "OMG A CAT GIF: {}".format(r.url)

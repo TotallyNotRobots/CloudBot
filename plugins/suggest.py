@@ -6,7 +6,7 @@ from cloudbot.util import formatting
 
 
 @hook.command()
-def suggest(text):
+def suggest(text, reply):
     """<phrase> - Gets suggested phrases for a google search"""
     params = {'output': 'json', 'client': 'hp', 'q': text}
 
@@ -15,7 +15,8 @@ def suggest(text):
                                    params=params)
             request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get suggestions: {}".format(e)
+        reply("Could not get suggestions: {}".format(e))
+        raise
 
     page = request.text
 

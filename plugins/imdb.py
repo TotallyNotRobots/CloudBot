@@ -25,6 +25,7 @@ def imdb(text, bot):
         "https://imdb-scraper.herokuapp.com/" + endpoint,
         params=params,
         headers=headers)
+    request.raise_for_status()
     content = request.json()
 
     if content['success'] is False:

@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import colors
@@ -57,10 +58,16 @@ def moremod(text, chan, conn):
 
 
 @hook.command("subs", "moderates", singlethread=True)
-def moderates(text, chan, conn):
+def moderates(text, chan, conn, reply):
     """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
     user = text
     r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, user))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
 
@@ -78,11 +85,17 @@ def moderates(text, chan, conn):
 
 
 @hook.command("karma", "ruser", singlethread=True)
-def karma(text):
+def karma(text, reply):
     """<reddituser> - will return the information about the specified reddit username"""
     user = text
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, user))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
     data = r.json()
@@ -107,11 +120,18 @@ def karma(text):
 
 
 @hook.command("cakeday", singlethread=True)
-def cake_day(text):
+def cake_day(text, reply):
     """<reddituser> - will return the cakeday for the given reddit username."""
     user = text
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
+
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, user))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
     data = r.json()
@@ -138,7 +158,7 @@ def time_format(numdays):
 
 
 @hook.command("submods", "mods", "rmods", singlethread=True)
-def submods(text, chan, conn):
+def submods(text, chan, conn, reply):
     """<subreddit> - prints the moderators of the specified subreddit."""
     sub = text
     if sub.startswith('/r/'):
@@ -147,6 +167,13 @@ def submods(text, chan, conn):
         sub = sub[2:]
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
+
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, 'r/' + sub))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()
@@ -171,7 +198,7 @@ def submods(text, chan, conn):
 
 
 @hook.command("subinfo", "subreddit", "sub", "rinfo", singlethread=True)
-def subinfo(text):
+def subinfo(text, reply):
     """<subreddit> - fetches information about the specified subreddit."""
     sub = text
     if sub.startswith('/r/'):
@@ -180,6 +207,13 @@ def subinfo(text):
         sub = sub[2:]
     url = subreddit_url + "about.json"
     r = requests.get(url.format(sub), headers=agent)
+
+    try:
+        r.raise_for_status()
+    except HTTPError as e:
+        reply(statuscheck(e.response.status_code, 'r/' + sub))
+        raise
+
     if r.status_code != 200:
         return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()

@@ -2,6 +2,8 @@ import requests
 import re
 
 from bs4 import BeautifulSoup
+from requests import HTTPError
+
 from cloudbot import hook
 from cloudbot.util.timeparse import time_parse
 
@@ -14,7 +16,7 @@ def striphtml(data):
     return string.sub('', data)
 
 @hook.command("dragon", "ds")
-def dragonsearch(text):
+def dragonsearch(text, reply):
     """<query> - Searches the dragonvale wiki for the specified text."""
     params = {
         "query": text.strip(),
@@ -22,6 +24,13 @@ def dragonsearch(text):
     }
 
     r = requests.get(search_url, params=params)
+
+    try:
+        r.raise_for_status()
+    except HTTPError:
+        reply("The API returned error code {}.".format(r.status_code))
+        raise
+
     if not r.status_code == 200:
         return "The API returned error code {}.".format(r.status_code)
 
