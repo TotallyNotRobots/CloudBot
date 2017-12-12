@@ -31,6 +31,7 @@ def issafe(text):
         return "Check your URL (it should be a complete URI)."
 
     parsed = requests.get(API_SB, params={"url": text, "client": "cloudbot", "key": dev_key, "pver": "3.1", "appver": str(cloudbot.__version__)})
+    parsed.raise_for_status()
 
     if parsed.status_code == 204:
         condition = "\x02{}\x02 is safe.".format(text)

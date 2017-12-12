@@ -2,7 +2,7 @@ import asyncio
 import time
 
 from cloudbot import hook
-from cloudbot.util import colors, async_util
+from cloudbot.util import colors
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -21,6 +21,22 @@ def conncheck(nick, bot, notice):
 
 
 @asyncio.coroutine
+def do_reconnect(conn):
+    if conn.connected:
+        conn.quit("Reconnecting...")
+        yield from asyncio.sleep(2)
+        conn._quit = False
+
+    coro = conn.connect()
+    try:
+        yield from asyncio.wait_for(coro, 30)
+    except asyncio.TimeoutError:
+        return "Connection timed out"
+
+    return "Reconnected to '{}'".format(conn.name)
+
+
+@asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
 def reconnect(conn, text, bot):
     """[connection] - Reconnects to [connection] or the current connection if not specified"""
@@ -32,35 +48,22 @@ def reconnect(conn, text, bot):
         except KeyError:
             return "Connection '{}' not found".format(text)
 
-    if to_reconnect.connected:
-        to_reconnect.quit("Reconnecting...")
-        yield from asyncio.sleep(1)
-        to_reconnect._quit = False
-
-    coro = to_reconnect.connect()
-    try:
-        yield from asyncio.wait_for(coro, 30)
-    except asyncio.TimeoutError:
-        return "Connection timed out"
-    except Exception as e:
-        return "{}: {}".format(type(e).__name__, e)
-
-    return "Reconnected to '{}'".format(conn.name)
+    return (yield from do_reconnect(to_reconnect))
 
 
 def format_conn(conn):
-    act_time = time.time() - conn.memory.get("last_activity", 0)
-    ping_interval = conn.config.get("ping_interval", 60)
+    lag = conn.memory["lag"]
+    ping_interval = conn.config.get("ping_timeout", 60)
     if conn.connected:
-        if act_time > ping_interval:
-            out = "$(yellow){name}$(clear) (last activity: {activity} secs)"
+        if lag > (ping_interval / 2):
+            out = "$(yellow){name}$(clear) (lag: {activity} ms)"
         else:
-            out = "$(green){name}$(clear)"
+            out = "$(green){name}$(clear) (lag: {activity} ms)"
     else:
         out = "$(red){name}$(clear)"
 
     return colors.parse(out.format(
-        name=conn.name, activity=round(act_time, 3)
+        name=conn.name, activity=round(lag * 1000, 3)
     ))
 
 
@@ -73,30 +76,44 @@ def list_conns(bot):
     return "Current connections: {}".format(conns)
 
 
-@hook.periodic(5)
-def pinger(bot):
+@hook.connect
+def on_connect(conn):
+    conn.memory["lag_sent"] = 0
+    conn.memory["ping_recv"] = time.time()
+    conn.memory["lag"] = 0
+
+
+@asyncio.coroutine
+@hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
+@hook.periodic(30)
+def lag_check(bot):
+    now = time.time()
     for conn in bot.connections.values():
         if conn.connected:
-            ping_interval = conn.config.get("ping_interval", 60)
-            # This is updated by a catch-all hook, so any activity from the server will indicate a live connection
-            # This mimics most modern clients, as they will only send a ping if they have not received any data recently
-            last_act = conn.memory.get("last_activity")
-            # If the activity time isn't set, default to the current time.
-            # This avoids an issue where the bot would reconnect just after loading this plugin
-            if last_act is None:
-                conn.memory["last_activity"] = time.time()
-                continue
+            timeout = conn.config.get("ping_timeout", 60)
+            lag = now - conn.memory.get("ping_recv", 0)
 
-            diff = time.time() - last_act
-            if diff >= (ping_interval * 2):
-                conn.quit("Reconnecting due to lag...")
-                time.sleep(1)
-                conn._quit = False
-                async_util.run_coroutine_threadsafe(conn.connect(), conn.loop)
-            elif diff >= ping_interval:
-                conn.send("PING :LAGCHECK{}".format(time.time()))
+            if lag > timeout:
+                yield from do_reconnect(conn)
+            else:
+                conn.send("PING :LAGCHECK{}".format(now))
+                if not conn.memory["lag_sent"]:
+                    conn.memory["lag_sent"] = now
 
 
-@hook.irc_raw('*')
-def on_activity(conn):
-    conn.memory["last_activity"] = time.time()
+@hook.irc_raw('PONG')
+def on_pong(conn, irc_paramlist):
+    now = time.time()
+    conn.memory["ping_recv"] = now
+    timestamp = irc_paramlist[-1].lstrip(':')
+    is_lag = False
+    if timestamp.startswith('LAGCHECK'):
+        timestamp = timestamp[8:]
+        is_lag = True
+
+    t = float(timestamp)
+    dif = now - t
+
+    if is_lag:
+        conn.memory["lag_sent"] = 0
+        conn.memory["lag"] = dif

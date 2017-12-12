@@ -2,6 +2,7 @@ import locale
 import math
 import requests
 from bs4 import BeautifulSoup
+from requests import HTTPError
 
 from cloudbot import hook
 
@@ -9,9 +10,15 @@ scrape_url = "http://www.myfitnesspal.com/food/diary/{}"
 
 
 @hook.command('mfp', 'myfitnesspal')
-def mfp(text, bot):
+def mfp(text, reply):
     """<user> - returns macros from the MyFitnessPal food diary of <user>"""
     request = requests.get(scrape_url.format(text))
+
+    try:
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Failed to fetch info ({})".format(e.response.status_code))
+        raise
 
     if request.status_code != requests.codes.ok:
         return "Failed to fetch info ({})".format(request.status_code)

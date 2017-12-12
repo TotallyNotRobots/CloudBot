@@ -13,6 +13,7 @@ def metar(text):
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
 
     request = requests.get(api_url_metar + station)
+    request.raise_for_status()
     r = request.json()['reports'][0]
     out = r['name'] + ": " + r['raw_text']
     return out
@@ -23,8 +24,9 @@ def taf(text):
     station = text.split(' ')[0].upper()
     if not len(station) is 4:
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
-    
+
     request = requests.get(api_url_taf + station)
+    request.raise_for_status()
     r = request.json()['reports'][0]
     out = r['name'] + ": " + r['raw_text']
     return out

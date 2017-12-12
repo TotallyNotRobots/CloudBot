@@ -91,14 +91,15 @@ def get_data(user, currency="us"):
 
 
 @hook.command("steamcalc", "steamdb")
-def steamcalc(text):
+def steamcalc(text, reply):
     """steamcalc <username> - Gets value of steam account. Uses steamcommunity.com/id/<nickname>."""
     user = text.strip().lower()
 
     try:
         data = get_data(user)
     except SteamError as e:
-        return "{}".format(e)
+        reply("{}".format(e))
+        raise
 
     data["short_url"] = web.try_shorten(data["url"])
 

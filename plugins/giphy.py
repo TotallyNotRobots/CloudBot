@@ -23,6 +23,7 @@ def giphy(text, chan):
         'api_key':api_key
     }
     results = requests.get(search_url, params=params)
+    results.raise_for_status()
     r = results.json()
     if not r['data']:
         return "no results found."

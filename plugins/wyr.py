@@ -25,6 +25,7 @@ FILTERED_TAGS = ()
 def get_wyr(headers):
     """ Gets a entry from the RRRather API and cleans up the data """
     r = requests.get(url=API_URL, headers=headers)
+    r.raise_for_status()
     data = r.json()
 
     # clean up text
