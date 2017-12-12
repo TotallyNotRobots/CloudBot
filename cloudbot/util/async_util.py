@@ -46,3 +46,13 @@ def run_coroutine_threadsafe(coro, loop):
         loop.call_soon_threadsafe(partial(wrap_future, coro, loop=loop))
     else:
         asyncio.run_coroutine_threadsafe(coro, loop)
+
+
+def create_future(loop=None):
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    if sys.version_info < (3, 5, 2):
+        return asyncio.Future(loop=loop)
+
+    return loop.create_future()
