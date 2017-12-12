@@ -34,7 +34,7 @@ def statuscheck(status, item):
 
 @hook.command("moremod", autohelp=False)
 def moremod(text, chan, conn):
-    """if a sub or mod list has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
+    """[page] - if a sub or mod list has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
     chan_cf = chan.casefold()
     pages = search_pages[conn.name].get(chan_cf)
     if not pages:
@@ -59,7 +59,7 @@ def moremod(text, chan, conn):
 
 @hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan, conn, reply):
-    """This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
+    """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
     user = text
     r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
     try:
@@ -86,7 +86,7 @@ def moderates(text, chan, conn, reply):
 
 @hook.command("karma", "ruser", singlethread=True)
 def karma(text, reply):
-    """karma <reddituser> will return the information about the specified reddit username"""
+    """<reddituser> - will return the information about the specified reddit username"""
     user = text
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
@@ -121,7 +121,7 @@ def karma(text, reply):
 
 @hook.command("cakeday", singlethread=True)
 def cake_day(text, reply):
-    """cakeday <reddituser> will return the cakeday for the given reddit username."""
+    """<reddituser> - will return the cakeday for the given reddit username."""
     user = text
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
@@ -159,7 +159,7 @@ def time_format(numdays):
 
 @hook.command("submods", "mods", "rmods", singlethread=True)
 def submods(text, chan, conn, reply):
-    """submods <subreddit> prints the moderators of the specified subreddit."""
+    """<subreddit> - prints the moderators of the specified subreddit."""
     sub = text
     if sub.startswith('/r/'):
         sub = sub[3:]
@@ -199,7 +199,7 @@ def submods(text, chan, conn, reply):
 
 @hook.command("subinfo", "subreddit", "sub", "rinfo", singlethread=True)
 def subinfo(text, reply):
-    """subinfo <subreddit> fetches information about the specified subreddit."""
+    """<subreddit> - fetches information about the specified subreddit."""
     sub = text
     if sub.startswith('/r/'):
         sub = sub[3:]

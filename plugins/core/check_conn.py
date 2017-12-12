@@ -7,7 +7,7 @@ from cloudbot.util import colors
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def conncheck(nick, bot, notice):
-    """This command is an effort to make the bot reconnect to a network if it has been disconnected."""
+    """- This command is an effort to make the bot reconnect to a network if it has been disconnected."""
     # For each irc network return a notice on the connection state and send a message from
     # each connection to the nick that used the command.
     for conn in bot.connections:

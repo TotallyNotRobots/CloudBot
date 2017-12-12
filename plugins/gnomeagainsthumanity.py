@@ -18,14 +18,14 @@ def shuffle_deck(bot):
 
 @hook.command('cah')
 def CAHwhitecard(text, message):
-    '''Submit text to be used as a CAH whitecard'''
+    """<text> - Submit text to be used as a CAH whitecard"""
     CardText = text.strip()
     return random.choice(gnomecards['black']).format(text)
 
 
 @hook.command('cahb')
 def CAHblackcard(text, message):
-    '''Submit text with _ for the bot to fill in the rest. You can submit text with multiple _'''
+    """<text> - Submit text with _ for the bot to fill in the rest. You can submit text with multiple _"""
     CardText = text.strip()
 
     def blankfiller(matchobj):

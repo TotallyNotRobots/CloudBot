@@ -16,5 +16,5 @@ def load_fmk(bot):
 
 @hook.command("fmk", autohelp=False)
 def fmk(text, message):
-    """Fuck, Marry, Kill"""
+    """[nick] - Fuck, Marry, Kill"""
     message(" {} FMK - {}, {}, {}".format((text.strip() if text.strip() else ""), random.choice(fmklist), random.choice(fmklist), random.choice(fmklist)))

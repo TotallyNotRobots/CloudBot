@@ -16,7 +16,7 @@ def load_key(bot):
 
 @hook.command("books", "gbooks")
 def books(text, reply):
-    """books <query> -- Searches Google Books for <query>."""
+    """<query> - Searches Google Books for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

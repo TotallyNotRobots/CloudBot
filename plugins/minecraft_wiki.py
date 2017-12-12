@@ -12,7 +12,7 @@ mc_url = "http://minecraft.gamepedia.com/"
 
 @hook.command()
 def mcwiki(text, reply):
-    """mcwiki <phrase> - gets the first paragraph of the Minecraft Wiki article on <phrase>"""
+    """<phrase> - gets the first paragraph of the Minecraft Wiki article on <phrase>"""
 
     try:
         request = requests.get(api_url, params={'search': text.strip()})

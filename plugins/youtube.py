@@ -83,7 +83,7 @@ def youtube_url(match):
 
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text, reply):
-    """youtube <query> -- Returns the first YouTube search result for <query>."""
+    """<query> - Returns the first YouTube search result for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
@@ -112,7 +112,7 @@ def youtube(text, reply):
 
 @hook.command("youtime", "ytime")
 def youtime(text, reply):
-    """youtime <query> -- Gets the total run time of the first YouTube search result for <query>."""
+    """<query> - Gets the total run time of the first YouTube search result for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

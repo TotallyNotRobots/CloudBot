@@ -3,6 +3,7 @@ from requests import HTTPError
 
 from cloudbot import hook
 
+
 def statuscheck(status, item):
     """since we are doing this a lot might as well return something more meaningful"""
     out = ""
@@ -14,20 +15,22 @@ def statuscheck(status, item):
         out = "Qur'an API returned an error, response: {}".format(status)
     return out
 
+
 def smart_truncate(content, length=425, suffix='...\n'):
     if len(content) <= length:
         return content
     else:
-        return content[:length].rsplit(' ', 1)[0]+ suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(content[length:])
+        return content[:length].rsplit(' ', 1)[0] + suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(
+            content[length:])
 
 
 @hook.command("quran", "verse", singlethread=True)
 def quran(text, message, reply):
-    """Prints the specified Qur'anic verse(s) and its/their translation(s)"""
+    """<verse> - Prints the specified Qur'anic verse(s) and its/their translation(s)"""
     api_url = "http://quranapi.azurewebsites.net/api/verse/"
     chapter = text.split(':')[0]
     verse = text.split(':')[1]
-    params = {"chapter":chapter, "number": verse, "lang": "ar"}
+    params = {"chapter": chapter, "number": verse, "lang": "ar"}
     r = requests.get(api_url, params=params)
     try:
         r.raise_for_status()

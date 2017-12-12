@@ -8,7 +8,7 @@ api_url = "http://api.lyricsnmusic.com/songs"
 
 @hook.command("lyrics")
 def lyricsnmusic(text, bot, reply):
-    """lyrics <artist and/or song> will fetch the first 150 characters of a song and a link to the full lyrics."""
+    """<artist and/or song> - will fetch the first 150 characters of a song and a link to the full lyrics."""
     api_key = bot.config.get("api_keys", {}).get("lyricsnmusic")
     params = {"api_key": api_key, "q": text}
     r = requests.get(api_url, params=params)

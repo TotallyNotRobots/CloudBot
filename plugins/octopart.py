@@ -28,7 +28,7 @@ def load_key(bot):
 
 @hook.command("octopart", "octo")
 def octopart(text, reply):
-    """octopart <keyword> -- Search for any part on the Octopart database."""
+    """<keyword> - Search for any part on the Octopart database."""
     if not api_key:
         return "Octopart API key required."
 

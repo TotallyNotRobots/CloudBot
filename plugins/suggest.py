@@ -7,7 +7,7 @@ from cloudbot.util import formatting
 
 @hook.command()
 def suggest(text, reply):
-    """suggest <phrase> -- Gets suggested phrases for a google search"""
+    """<phrase> - Gets suggested phrases for a google search"""
     params = {'output': 'json', 'client': 'hp', 'q': text}
 
     try:

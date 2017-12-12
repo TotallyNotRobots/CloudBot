@@ -49,7 +49,7 @@ def twitter_url(match):
 
 @hook.command("twitter", "tw", "twatter")
 def twitter(text, reply):
-    """twitter <user> [n] -- Gets last/[n]th tweet from <user>"""
+    """<user> [n] - Gets last/[n]th tweet from <user>"""
 
     if tw_api is None:
         return "This command requires a twitter API key."
@@ -139,7 +139,7 @@ def format_tweet(tweet, user):
 
 @hook.command("twuser", "twinfo")
 def twuser(text, reply):
-    """twuser <user> -- Get info on the Twitter user <user>"""
+    """<user> - Get info on the Twitter user <user>"""
 
     if tw_api is None:
         return

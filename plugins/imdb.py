@@ -9,7 +9,7 @@ imdb_re = re.compile(r'(.*:)//(imdb.com|www.imdb.com)(:[0-9]+)?(.*)', re.I)
 
 @hook.command
 def imdb(text, bot):
-    """imdb <movie> - gets information about <movie> from IMDb"""
+    """<movie> - gets information about <movie> from IMDb"""
 
     headers = {'User-Agent': bot.user_agent}
     strip = text.strip()
