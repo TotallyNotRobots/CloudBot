@@ -12,7 +12,7 @@ import os
 
 __version__ = "1.0.9"
 
-__all__ = ["util", "bot", "connection", "config", "permissions", "plugin", "event", "hook", "log_dir"]
+__all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader", "logging_dir"]
 
 
 def _setup():
