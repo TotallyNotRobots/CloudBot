@@ -181,3 +181,12 @@ def listfactoids(notice, chan):
             reply_text.append(word)
             reply_text_length += added_length
     notice(", ".join(reply_text))
+
+
+@hook.command("listdetailedfacts", autohelp=False)
+def listdetailedfactoids(chan):
+    """- lists all available factoids with their respective data"""
+    headers = ("Command", "Output")
+    data = [(fact[0], fact[1]) for fact in factoid_cache[chan].items()]
+    table = gen_markdown_table(headers, data).encode('UTF-8')
+    return web.paste(table, "md", "hastebin")
