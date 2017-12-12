@@ -22,6 +22,5 @@ def cheer(chan, message):
     """
     :type chan: str
     """
-    if chan not in ["#yogscast"]:
-        shit = random.choice(cheers)
-        message(shit, chan)
+    shit = random.choice(cheers)
+    message(shit, chan)

@@ -32,13 +32,12 @@ def on_join(chan, conn, nick):
 
 @hook.irc_raw('324')
 def check_mode(irc_paramlist, conn, message):
-    #message(", ".join(irc_paramlist), "bloodygonzo")
+    # message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
     require_reg = conn.config.get('require_registered_channels', False)
-    if not "r" in mode and conn.name == "snoonet" and require_reg:
+    if "r" not in mode and require_reg:
         message("I do not stay in unregistered channels", irc_paramlist[1])
-        out = "PART {}".format(irc_paramlist[1])
-        conn.send(out)
+        conn.part(irc_paramlist[1])
 
 
 @hook.irc_raw('MODE')
@@ -69,7 +68,6 @@ def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
-    chans = copy(conn.channels)
     bot.logger.info("[{}|misc] Bot is sending join commands for network.".format(conn.name))
     nickserv = conn.config.get('nickserv')
     if nickserv and nickserv.get("enabled", True):
@@ -103,15 +101,21 @@ def onjoin(conn, bot):
         bot.logger.info("[{}|misc] Bot is setting mode on itself: {}".format(conn.name, mode))
         conn.cmd('MODE', conn.nick, mode)
 
+    conn.ready = True
+    bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
+
+
+@asyncio.coroutine
+@hook.irc_raw('376')
+def do_joins(logger, conn):
+    chans = copy(conn.channels)
+
     # Join config-defined channels
     join_throttle = conn.config.get('join_throttle', 0.4)
-    bot.logger.info("[{}|misc] Bot is joining channels for network.".format(conn.name))
+    logger.info("[%s|misc] Bot is joining channels for network.", conn.name)
     for channel in chans:
         conn.join(channel)
         yield from asyncio.sleep(join_throttle)
-
-    conn.ready = True
-    bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
 
 
 @asyncio.coroutine
@@ -125,3 +129,18 @@ def keep_alive(conn):
         while True:
             conn.cmd('PING', conn.nick)
             yield from asyncio.sleep(60)
+
+
+@hook.irc_raw('433')
+def on_nick_in_use(conn, irc_paramlist):
+    conn.nick = irc_paramlist[1] + '_'
+    conn.cmd("NICK", conn.nick)
+
+
+@asyncio.coroutine
+@hook.irc_raw('432', singlethread=True)
+def on_invalid_nick(conn):
+    nick = conn.config['nick']
+    conn.nick = nick
+    conn.cmd("NICK", conn.nick)
+    yield from asyncio.sleep(30)  # Just in case, we make sure to wait at least 30 seconds between sending this

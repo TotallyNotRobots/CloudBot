@@ -14,7 +14,7 @@ def test_name(s):
     return set(s) <= valid
 
 
-def twitch_lookup(location):
+def twitch_lookup(location, reply):
     locsplit = location.split("/")
     if len(locsplit) > 1 and len(locsplit) == 3:
         channel = locsplit[0]
@@ -52,7 +52,8 @@ def twitch_lookup(location):
             try:
                 data = http.get_json("https://api.twitch.tv/kraken/channels/" + channel)
             except Exception:
-                return "Unable to get channel data. Maybe channel is on justin.tv instead of twitch.tv?"
+                reply("Unable to get channel data. Maybe channel is on justin.tv instead of twitch.tv?")
+                raise
             title = data['status']
             playing = data['game']
             viewers = "\x034\x02Offline\x02\x0f"
@@ -60,7 +61,7 @@ def twitch_lookup(location):
 
 
 @hook.regex(multitwitch_re)
-def multitwitch_url(match):
+def multitwitch_url(match, reply):
     usernames = match.group(3).split("/")
     out = ""
     for i in usernames:
@@ -68,28 +69,28 @@ def multitwitch_url(match):
             print("Not a valid username")
             return None
         if out == "":
-            out = twitch_lookup(i)
+            out = twitch_lookup(i, reply)
         else:
-            out = out + " \x02|\x02 " + twitch_lookup(i)
+            out = out + " \x02|\x02 " + twitch_lookup(i, reply)
     return out
 
 
 @hook.regex(twitch_re)
-def twitch_url(match):
+def twitch_url(match, reply):
     bit = match.group(4).split("#")[0]
     location = "/".join(bit.split("/")[1:])
     if not test_name(location):
         print("Not a valid username")
         return None
-    return twitch_lookup(location)
+    return twitch_lookup(location, reply)
 
 
 @hook.command('twitch', 'twitchtv')
-def twitch(text):
+def twitch(text, reply):
     """<channel name> -- Retrieves the channel and shows it's offline/offline status"""
     text = text.split("/")[-1]
     if test_name(text):
         location = text
     else:
         return "Not a valid channel name."
-    return twitch_lookup(location).split("(")[-1].split(")")[0].replace("Online now! ", "")
+    return twitch_lookup(location, reply).split("(")[-1].split(")")[0].replace("Online now! ", "")
