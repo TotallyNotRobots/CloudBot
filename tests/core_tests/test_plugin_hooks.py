@@ -48,7 +48,7 @@ def load_plugin(plugin_path, monkeypatch):
 def pytest_generate_tests(metafunc):
     if 'plugin_path' in metafunc.fixturenames:
         paths = list(gather_plugins())
-        metafunc.parametrize('plugin_path', paths, ids=paths)
+        metafunc.parametrize('plugin_path', paths, ids=list(map(str, paths)))
 
 
 HOOK_ATTR_TYPES = {
