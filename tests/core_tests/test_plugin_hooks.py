@@ -6,7 +6,6 @@ import string
 from numbers import Number
 from pathlib import Path
 
-import pytest
 from sqlalchemy import MetaData
 
 from cloudbot.hook import Action
@@ -48,8 +47,8 @@ def load_plugin(plugin_path, monkeypatch):
 
 def pytest_generate_tests(metafunc):
     if 'plugin_path' in metafunc.fixturenames:
-        param_list = (pytest.param(path, id=path) for path in gather_plugins())
-        metafunc.parametrize('plugin_path', param_list)
+        paths = list(gather_plugins())
+        metafunc.parametrize('plugin_path', paths, ids=paths)
 
 
 HOOK_ATTR_TYPES = {
@@ -87,5 +86,5 @@ def _test_hook(hook):
                 "Unexpected type '{}' for hook attribute '{}'".format(type(attr).__name__, name)
 
     if hook.type == "command" and hook.doc:
-        assert hook.doc[:1] not in "." + string.ascii_letters,\
+        assert hook.doc[:1] not in "." + string.ascii_letters, \
             "Invalid docstring '{}' format for command hook".format(hook.doc)
