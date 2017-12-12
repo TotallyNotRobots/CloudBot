@@ -4,7 +4,10 @@ Track channel ops for permissions checks
 Requires:
 server_info.py
 """
+import gc
 import weakref
+from collections import Mapping
+from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
@@ -105,6 +108,34 @@ def get_chan_data(bot):
             update_conn_data(conn)
 
 
+def clean_user_data(user):
+    for memb in user.get("channels", {}).values():
+        status = list(set(memb.get("status", [])))
+        status.sort(key=attrgetter("level"), reverse=True)
+        memb["status"] = status
+
+
+def clean_chan_data(chan):
+    with suppress(KeyError):
+        del chan["new_users"]
+
+    with suppress(KeyError):
+        del chan["receiving_names"]
+
+
+def clean_conn_data(conn):
+    for user in conn.memory.get("users", {}).values():
+        clean_user_data(user)
+
+    for chan in conn.memory.get("chan_data", {}).values():
+        clean_chan_data(chan)
+
+
+def clean_data(bot):
+    for conn in bot.connections.values():
+        clean_conn_data(conn)
+
+
 @hook.connect
 def init_chan_data(conn, _clear=True):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
@@ -158,15 +189,16 @@ def replace_user_data(conn, chan_data):
         nick = user_data["nick"]
         new_users[nick] = memb_data
         if nick in old_users:
-            old_data = old_users[nick]
+            old_data = old_users[nick]  # Old membership object
             old_data.update(memb_data)  # New data takes priority over old data
             memb_data.update(old_data)
 
         old_user_data = users.getuser(nick)
+        user_data["channels"] = old_user_data["channels"]
+        add_user_membership(user_data, chan_data["name"], memb_data)
         old_user_data.update(user_data)
         user_data = old_user_data
         memb_data["user"] = user_data
-        add_user_membership(user_data, chan_data["name"], memb_data)
 
     old_users.clear()
     old_users.update(new_users)  # Reassigning the dict would break other references to the data, so just update instead
@@ -201,7 +233,7 @@ def dump_dict(data, indent=2, level=0, _objects=None):
         yield ((" " * (indent * level)) + "{}:".format(key))
         if id(value) in _objects:
             yield ((" " * (indent * (level + 1))) + "[...]")
-        elif isinstance(value, dict):
+        elif isinstance(value, Mapping):
             _objects.append(id(value))
             yield from dump_dict(value, indent=indent, level=level + 1, _objects=_objects)
         else:
@@ -255,6 +287,20 @@ def updateusers(bot):
     """- Forces an update of all /NAMES data for all channels"""
     get_chan_data(bot)
     return "Updating all channel data"
+
+
+@hook.command(permissions=["botcontrol"], autohelp=False)
+def cleanusers(bot):
+    clean_data(bot)
+    gc.collect()
+    return "Data cleaned."
+
+
+@hook.command(permissions=["botcontrol"], autohelp=False)
+def clearusers(bot):
+    init_chan_data(bot, True)
+    gc.collect()
+    return "Data cleared."
 
 
 @hook.irc_raw('JOIN')

@@ -75,26 +75,25 @@
             "sriracha aioli"
         ],
         "topping2": [
-           "crispy bacon strips",
-           "caramelized onions",
-           "fried onion straws",
-           "sauteed mushrooms",
-           "a fried egg",
-           "arugula",
-           "romaine lettuce"
-        ],    
+            "crispy bacon strips",
+            "caramelized onions",
+            "fried onion straws",
+            "sauteed mushrooms",
+            "a fried egg",
+            "arugula",
+            "romaine lettuce"
+        ],
         "side": [
-           "a side of fries tossed in parm and truffle oil",
-           "a side of sweet potato fries",
-           "a side of McDonald's fries",
-           "a side of curly fries",
-           "a side of thick-cut chips",
-           "a side of onion rings",
-           "side of sesame ginger coleslaw",
-           "side of macaroni and cheese",
-           "a large chilly soda",
-           "a cup of BBQ dip"
-        ]        
+            "a side of fries tossed in parm and truffle oil",
+            "a side of sweet potato fries",
+            "a side of McDonald's fries",
+            "a side of curly fries",
+            "a side of thick-cut chips",
+            "a side of onion rings",
+            "side of sesame ginger coleslaw",
+            "side of macaroni and cheese",
+            "a large chilly soda",
+            "a cup of BBQ dip"
+        ]
     }
 }
-
