@@ -4,6 +4,7 @@ import random
 import re
 import ssl
 from _ssl import PROTOCOL_SSLv23
+from functools import partial
 from ssl import SSLContext
 
 from cloudbot.client import Client
@@ -141,7 +142,7 @@ class IrcClient(Client):
             optional_params["local_addr"] = self.local_bind
 
         coro = self.loop.create_connection(
-            lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params
+            partial(_IrcProtocol, self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params
         )
 
         if timeout is not None:
@@ -292,7 +293,7 @@ class _IrcProtocol(asyncio.Protocol):
         self._transport = None
 
         # Future that waits until we are connected
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
 
     def connection_made(self, transport):
         self._transport = transport
@@ -304,7 +305,7 @@ class _IrcProtocol(asyncio.Protocol):
     def connection_lost(self, exc):
         self._connected = False
         # create a new connected_future for when we are connected.
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
         if exc is None:
             # we've been closed intentionally, so don't reconnect
             return
@@ -314,7 +315,7 @@ class _IrcProtocol(asyncio.Protocol):
     def eof_received(self):
         self._connected = False
         # create a new connected_future for when we are connected.
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
         logger.info("[{}] EOF received.".format(self.conn.name))
         async_util.wrap_future(self.conn.connect(), loop=self.loop)
         return True

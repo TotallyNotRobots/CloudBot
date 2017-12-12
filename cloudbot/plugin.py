@@ -597,7 +597,7 @@ class PluginManager:
                     self._hook_waiting_queues[key] = queue
                 assert isinstance(queue, asyncio.Queue)
                 # create a future to represent this task
-                future = asyncio.Future()
+                future = async_util.create_future(self.bot.loop)
                 queue.put_nowait(future)
                 # wait until the last task is completed
                 yield from future
