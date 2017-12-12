@@ -13,6 +13,7 @@ from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint, and
 from cloudbot import hook
 from cloudbot.hook import Priority
 from cloudbot.util import database, web
+from cloudbot.util.formatting import gen_markdown_table
 
 optout_table = Table(
     'optout',
@@ -73,20 +74,6 @@ def check_channel_permissions(event, chan, *perms):
 def get_channel_optouts(conn_name, chan=None):
     with cache_lock:
         return [opt for opt in optout_cache[conn_name] if not chan or opt.match_chan(chan)]
-
-
-def gen_markdown_table(headers, rows):
-    rows = copy.copy(rows)
-    rows.insert(0, headers)
-    rotated = zip(*reversed(rows))
-
-    sizes = tuple(map(lambda l: max(map(len, l)), rotated))
-    rows.insert(1, tuple(('-' * size) for size in sizes))
-    lines = [
-        "| {} |".format(' | '.join(cell.ljust(sizes[i]) for i, cell in enumerate(row)))
-        for row in rows
-    ]
-    return '\n'.join(lines)
 
 
 def format_optout_list(opts):

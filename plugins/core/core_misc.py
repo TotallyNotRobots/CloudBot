@@ -32,7 +32,7 @@ def on_join(chan, conn, nick):
 
 @hook.irc_raw('324')
 def check_mode(irc_paramlist, conn, message):
-    #message(", ".join(irc_paramlist), "bloodygonzo")
+    # message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
     require_reg = conn.config.get('require_registered_channels', False)
     if not "r" in mode and conn.name == "snoonet" and require_reg:
@@ -125,3 +125,18 @@ def keep_alive(conn):
         while True:
             conn.cmd('PING', conn.nick)
             yield from asyncio.sleep(60)
+
+
+@hook.irc_raw('433')
+def on_nick_in_use(conn, irc_paramlist):
+    conn.nick = irc_paramlist[1] + '_'
+    conn.cmd("NICK", conn.nick)
+
+
+@asyncio.coroutine
+@hook.irc_raw('432', singlethread=True)
+def on_invalid_nick(conn):
+    nick = conn.config['nick']
+    conn.nick = nick
+    conn.cmd("NICK", conn.nick)
+    yield from asyncio.sleep(30)  # Just in case, we make sure to wait at least 30 seconds between sending this
