@@ -1,6 +1,5 @@
 import asyncio
 import time
-from functools import partial
 
 from cloudbot import hook
 from cloudbot.util import colors, async_util
@@ -93,9 +92,7 @@ def pinger(bot):
                 conn.quit("Reconnecting due to lag...")
                 time.sleep(1)
                 conn._quit = False
-                conn.loop.call_soon_threadsafe(
-                    partial(async_util.wrap_future, conn.connect(), loop=conn.loop)
-                )
+                async_util.run_coroutine_threadsafe(conn.connect(), conn.loop)
             elif diff >= ping_interval:
                 conn.send("PING :LAGCHECK{}".format(time.time()))
 

@@ -1,6 +1,5 @@
 import asyncio
 from abc import ABC
-from functools import partial
 from pathlib import Path
 
 from watchdog.events import PatternMatchingEventHandler
@@ -47,14 +46,14 @@ class PluginReloader(Reloader):
         """
         path = Path(path).resolve()
         if path.exists():
-            self.bot.loop.call_soon_threadsafe(partial(async_util.wrap_future, self._reload(path), loop=self.bot.loop))
+            async_util.run_coroutine_threadsafe(self._reload(path), self.bot.loop)
 
     def unload(self, path):
         """
         Unloads a module, given its file path. Thread safe.
         """
         path = Path(path).resolve()
-        self.bot.loop.call_soon_threadsafe(partial(async_util.wrap_future, self._unload(path), loop=self.bot.loop))
+        async_util.run_coroutine_threadsafe(self._unload(path), self.bot.loop)
 
     @asyncio.coroutine
     def _reload(self, path):
