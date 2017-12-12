@@ -11,7 +11,7 @@ from cloudbot.event import EventType
 from cloudbot.util import database
 from cloudbot.util import web
 
-duck = [" ε=ε=ε=ε=ε=┌(；　・＿・)┘ ", " ε=ε=ε=ε=ε=ε=┌(๑ʘ∀ʘ)┘ ", " ===≡≡≡｡ﾟ┌(ﾟ´Д`ﾟ)┘ﾟ｡ ", " ・・・・・・・ᕕ(╯°□°)ᕗ " ]
+duck = [" ε=ε=ε=ε=ε=┌(；　・＿・)┘ ", " ε=ε=ε=ε=ε=ε=┌(๑ʘ∀ʘ)┘ ", " ===≡≡≡｡ﾟ┌(ﾟ´Д`ﾟ)┘ﾟ｡ ", " ・・・・・・・ᕕ(╯°□°)ᕗ "]
 duck_tail = ["[¬º-°]¬", "(▼皿▼)", "←~∋(｡Ψ▼ｰ▼)∈", "∋━━o(｀∀´oメ）～→", "(˼●̙̂ ̟ ̟̎ ̟ ̘●̂˻)", "(;´༎ຶД༎ຶ`)", "(((༼•̫͡•༽)))", "( ͡° ͜◯ ͡°)"]
 duck_noise = ["RUN!!!!!", "AHHHHHHHHHHH", "FFFFFUUUUUUU!", "THE CLOWNS ARE COMING!!!!!"]
 
@@ -23,7 +23,7 @@ table = Table(
     Column('shot', Integer),
     Column('befriend', Integer),
     Column('chan', String),
-    PrimaryKeyConstraint('name', 'chan','network')
+    PrimaryKeyConstraint('name', 'chan', 'network')
     )
 
 optout = Table(
@@ -31,7 +31,7 @@ optout = Table(
     database.metadata,
     Column('network', String),
     Column('chan', String),
-    PrimaryKeyConstraint('chan','network')
+    PrimaryKeyConstraint('chan', 'network')
     )
 
 
@@ -192,11 +192,11 @@ def hit_or_miss(deploy, shoot):
 def dbadd_entry(nick, chan, db, conn, shoot, friend):
     """Takes care of adding a new row to the database."""
     query = table.insert().values(
-        network = conn.name,
-        chan = chan.lower(),
-        name = nick.lower(),
-        shot = shoot,
-        befriend = friend)
+        network=conn.name,
+        chan=chan.lower(),
+        name=nick.lower(),
+        shot=shoot,
+        befriend=friend)
     db.execute(query)
     db.commit()
 
@@ -207,7 +207,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
             .where(table.c.name == nick.lower()) \
-            .values(shot = shoot)
+            .values(shot=shoot)
         db.execute(query)
         db.commit()
     elif friend and not shoot:
@@ -215,7 +215,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
             .where(table.c.name == nick.lower()) \
-            .values(befriend = friend)
+            .values(befriend=friend)
         db.execute(query)
         db.commit()
     elif friend and shoot:
@@ -223,8 +223,8 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
             .where(table.c.name == nick.lower()) \
-            .values(befriend = friend) \
-            .values(shot = shoot)
+            .values(befriend=friend) \
+            .values(shot=shoot)
         db.execute(query)
         db.commit()
 
@@ -237,7 +237,7 @@ def bang(nick, chan, message, db, conn, notice):
     network = conn.name
     score = ""
     out = ""
-    miss = ["WHOOSH! You totally missed the monster. Save the poor human!", "Your gun jammed!", "Better luck next time.", "Good thing this is just an IRC game cus your aim is terrible!" ]
+    miss = ["WHOOSH! You totally missed the monster. Save the poor human!", "Your gun jammed!", "Better luck next time.", "Good thing this is just an IRC game cus your aim is terrible!"]
     if not game_status[network][chan]['game_on']:
         return "There is no activehunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
@@ -337,7 +337,7 @@ def befriend(nick, chan, message, db, conn, notice):
         duck = "monster" if score == 1 else "monsters"
         timer = "{:.3f}".format(shoot - deploy)
         message("{} you befriended a monster in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
-        set_ducktime(chan,conn)
+        set_ducktime(chan, conn)
 
 def smart_truncate(content, length=320, suffix='...'):
     if len(content) <= length:
@@ -384,9 +384,9 @@ def friends(text, chan, conn, db):
         else:
             return "it appears no one has friended any monsters yet."
 
-    topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse = True)
+    topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse=True)
     url = web.paste(json.dumps(topfriends, indent=4))
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topfriends])
+    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v)) for k, v in topfriends])
     out = smart_truncate(out)
     out += " " + url
     return out
@@ -429,9 +429,9 @@ def killers(text, chan, conn, db):
         else:
             return "it appears no on has killed any monsters yet."
 
-    topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse = True)
+    topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse=True)
     url = web.paste(json.dumps(topkillers, indent=4))
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topkillers])
+    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v)) for k, v in topkillers])
     out = smart_truncate(out) + " " + url
     return out
 
@@ -465,8 +465,8 @@ def hunt_opt_out(text, chan, db, conn):
         if channel in opt_out:
             return "Monster hunt has already been disabled in {}.".format(channel)
         query = optout.insert().values(
-            network = conn.name,
-            chan = channel.lower())
+            network=conn.name,
+            chan=channel.lower())
         db.execute(query)
         db.commit()
         load_optout(db)
@@ -496,7 +496,7 @@ def duck_merge(text, conn, db, message):
     duckmerge = defaultdict(lambda: defaultdict(int))
     duckmerge["TKILLS"] = 0
     duckmerge["TFRIENDS"] = 0
-    channelkey = {"update":[], "insert":[]}
+    channelkey = {"update": [], "insert": []}
     if oldnickscore:
         if newnickscore:
             for row in newnickscore:
@@ -580,8 +580,8 @@ def duck_stats(chan, conn, db, message):
             ducks["killed"] += row["shot"]
             ducks["friend"] += row["befriend"]
         ducks["chans"] = int((len(ducks["friendchan"]) + len(ducks["killchan"])) / 2)
-        killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse = True)[0]
-        friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse =True)[0]
+        killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
+        friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         message("\x02Monster Stats:\x02 {} killed and {} befriended in \x02{}\x02. Across {} channels \x02{}\x02 monsters have been killed and \x02{}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} kills and \x02{}\x02 with {} friends".format(ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], killerchan, killscore, friendchan, friendscore))
     else:
         return "It looks like there has been no monster activity on this channel or network."

@@ -6,20 +6,22 @@ from cloudbot.util import web
 
 api_url = "https://translate.yandex.net/api/v1.5/tr.json/"
 
+
 @hook.on_start()
 def load_key(bot):
     global api_key, lang_dict, lang_dir
     api_key = bot.config.get("api_keys", {}).get("yandex_translate", None)
     url = api_url + "getLangs"
     params = {
-        'key':api_key,
-        'ui':'en'
+        'key': api_key,
+        'ui': 'en'
     }
     r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
     lang_dict = dict((v, k) for k, v in data['langs'].items())
     lang_dir = data['dirs']
+
 
 def check_code(code):
     """checks the return code for the calls to yandex"""
@@ -39,13 +41,14 @@ def check_code(code):
         out = "The API returned an undocumented error."
     return out
 
+
 @hook.command("langlist", "tlist", autohelp=False)
 def list_langs(message):
     """- List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
     url = api_url + "getLangs"
     params = {
-        'key':api_key,
-        'ui':'en'
+        'key': api_key,
+        'ui': 'en'
     }
     r = requests.get(url, params=params)
     r.raise_for_status()
@@ -57,6 +60,7 @@ def list_langs(message):
     out += ",".join("\n{}".format(code) for code in data['dirs'])
     paste = web.paste(out, ext="txt")
     return "Here is information on what I can translate as well as valid language codes. {}".format(paste)
+
 
 @hook.command("tran", "translate")
 def trans(text, reply):
@@ -70,10 +74,10 @@ def trans(text, reply):
         return "Please specify a valid language, language code, to translate to. Use .langlist for more information on language codes and valid translation directions."
     url = api_url + "translate"
     params = {
-        'key':api_key,
-        'lang':lang,
-        'text':text,
-        'options':1
+        'key': api_key,
+        'lang': lang,
+        'text': text,
+        'options': 1
     }
 
     try:

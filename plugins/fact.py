@@ -3,7 +3,8 @@ import random
 from cloudbot import hook
 from cloudbot.util import http
 
-types=['trivia', 'math', 'date', 'year']
+types = ['trivia', 'math', 'date', 'year']
+
 
 @hook.command(autohelp=False)
 def fact(reply):

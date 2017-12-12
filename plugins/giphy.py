@@ -1,15 +1,18 @@
-import requests
 import random
+
+import requests
 
 from cloudbot import hook
 
 api_url = 'http://api.giphy.com/v1/gifs'
+
 
 @hook.on_start()
 def load_api(bot):
     """Loads the API key. Check here for the public api key: https://github.com/Giphy/GiphyAPI"""
     global api_key
     api_key = bot.config.get("api_keys", {}).get("giphy", None)
+
 
 @hook.command("gif", "giphy")
 def giphy(text, chan):
@@ -20,7 +23,7 @@ def giphy(text, chan):
         'q': term,
         'limit': 10,
         'fmt': "json",
-        'api_key':api_key
+        'api_key': api_key
     }
     results = requests.get(search_url, params=params)
     results.raise_for_status()

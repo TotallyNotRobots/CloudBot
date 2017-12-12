@@ -2,14 +2,15 @@ import requests
 
 from cloudbot import hook
 
+
 @hook.command("bible", "passage", singlethread=True)
 def bible(text, reply):
     """<passage> - Prints the specified passage from the Bible"""
     passage = text.strip()
     params = {
-        'passage':passage,
-        'formatting':'plain',
-        'type':'json'
+        'passage': passage,
+        'formatting': 'plain',
+        'type': 'json'
     }
     try:
         r = requests.get("https://labs.bible.org/api", params=params)

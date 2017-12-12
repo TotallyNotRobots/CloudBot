@@ -62,13 +62,13 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
             commands.append(command)
 
         # list of lines to send to the user
-        lines = formatting.chunk_str("Here's a list of commands you can use: " + ", ". join(commands))
+        lines = formatting.chunk_str("Here's a list of commands you can use: " + ", ".join(commands))
 
         for line in lines:
             if chan[:1] == "#":
                 notice(line)
             else:
-                #This is an user in this case.
+                # This is an user in this case.
                 message(line)
         notice("For detailed help, use {}help <command>, without the brackets.".format(conn.config["command_prefix"]))
 
@@ -118,7 +118,7 @@ def generatehelp(conn, bot, notice, has_permission):
     message = "{} Command list\n".format(conn.nick)
     message += "------\n"
     for plugin in sorted(set(bot.plugin_manager.commands.values()), key=attrgetter("name")):
-    # use set to remove duplicate commands (from multiple aliases), and sorted to sort by name
+        # use set to remove duplicate commands (from multiple aliases), and sorted to sort by name
         command = plugin.name
         aliases = ""
         doc = bot.plugin_manager.commands[command].doc
@@ -133,8 +133,8 @@ def generatehelp(conn, bot, notice, has_permission):
                 aliases += alias + ", "
         aliases = aliases[:-2]
         if doc:
-            doc = doc.replace("<","&lt;").replace(">","&gt;") \
-                .replace("[", "&lt;").replace("]","&gt;")
+            doc = doc.replace("<", "&lt;").replace(">", "&gt;") \
+                .replace("[", "&lt;").replace("]", "&gt;")
             if aliases:
                 message += "**{} ({}):** {}\n\n".format(command, aliases, doc)
             else:
@@ -146,10 +146,10 @@ def generatehelp(conn, bot, notice, has_permission):
             message = message[:-2]
             message += " ( *Permission required:* {})\n\n".format(permission)
     # toss the markdown text into a paste
-    #out = web.paste(message.encode('utf-8'), ext="md")
+    # out = web.paste(message.encode('utf-8'), ext="md")
     docs = os.path.join(os.path.abspath(os.path.curdir), "docs")
     docs = os.path.join(docs, "user")
     f = open(os.path.join(docs, "commands.md"), 'w')
     f.write(message)
     f.close()
-    return #out
+    return  # out

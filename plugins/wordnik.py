@@ -1,12 +1,11 @@
-import re
 import random
+import re
+import urllib.parse
 
 import requests
-import urllib.parse
 
 from cloudbot import hook
 from cloudbot.util import web
-
 
 API_URL = 'http://api.wordnik.com/v4/'
 WEB_URL = 'https://www.wordnik.com/words/{}'
@@ -19,8 +18,10 @@ ATTRIB_NAMES = {
     'wordnet': 'Wordnet/Wordnik'
 }
 
+
 def sanitize(text):
-    return urllib.parse.quote(text.translate({ord('\\'):None, ord('/'):None}))
+    return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
+
 
 @hook.on_start()
 def load_key(bot):
