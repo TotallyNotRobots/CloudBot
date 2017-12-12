@@ -3,6 +3,7 @@ import logging
 import re
 import ssl
 from _ssl import PROTOCOL_SSLv23
+from functools import partial
 from ssl import SSLContext
 
 from cloudbot.client import Client
@@ -126,7 +127,7 @@ class IrcClient(Client):
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
         self._transport, self._protocol = yield from self.loop.create_connection(
-            lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
+            partial(_IrcProtocol, self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
