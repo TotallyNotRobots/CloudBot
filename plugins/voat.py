@@ -57,7 +57,7 @@ def format_output(item, show_url=False):
 
 @hook.regex(voat_re)
 def voat_url(match, bot):
-    headers = {'User-Agent': bot.user_agent, 'content-type':'text/json'}
+    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
     url = match.group(1)
     url = url.split('/')
     print(url)
@@ -77,7 +77,7 @@ def voat_url(match, bot):
 def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None
-    headers = {'User-Agent': bot.user_agent, 'content-type':'text/json'}
+    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
 
     if text:
         # clean and split the input
