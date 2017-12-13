@@ -65,6 +65,10 @@ def re_addpt(match, nick, chan, db, conn, notice):
 @hook.command("mm", "rmpoint")
 def rmpoint(text, nick, chan, db, conn):
     """<thing> - subtracts a point from the <thing>"""
+    if nick.casefold() == chan.casefold():
+        # This is a PM, don't set points in a PM
+        return
+
     text = text.strip()
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
