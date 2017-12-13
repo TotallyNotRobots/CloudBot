@@ -3,6 +3,7 @@ responses
 pytest-cov
 pytest-pep8
 pytest-leaks
+pytest-travis-fold
 flake8
 python-coveralls
 pylint
