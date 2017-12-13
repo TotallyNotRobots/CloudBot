@@ -21,7 +21,7 @@ http_re = re.compile(r'(open\.spotify\.com/(track|album|artist|user)/'
 
 def sprequest(bot, params, alturl=None):
     global access_token, expires_at
-    if alturl == None:
+    if alturl is None:
         alturl = api_url
     if datetime.now() >= expires_at:
         basic_auth = HTTPBasicAuth(
