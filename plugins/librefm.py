@@ -163,8 +163,6 @@ def getuserartistplaycount():
 @hook.command("libreband", "librela")
 def displaybandinfo(text, nick, bot, notice):
     """[artist] - displays information about [artist]."""
-    if not text:
-        notice(getbandinfo.__doc__)
     artist = getartistinfo(text, bot)
 
     if 'error' in artist:

@@ -87,7 +87,6 @@ def seen(text, nick, chan, db, event):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
     """
 
     if event.conn.nick.lower() == text.lower():

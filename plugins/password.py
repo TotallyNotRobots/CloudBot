@@ -8,6 +8,7 @@ try:
 
     gen = random.StrongRandom()
 except ImportError:
+    random = None
     # Just use the regular random module, not the strong one
     gen = std_random.SystemRandom()
 

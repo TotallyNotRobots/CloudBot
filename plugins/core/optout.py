@@ -257,8 +257,6 @@ def check_global_perms(event):
 def list_optout(conn, event, async_call):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to view all data for this network
     :type conn: cloudbot.clients.irc.Client
-    :type chan: str
-    :type text: str
     :type event: cloudbot.event.CommandEvent
     """
     chan, allowed = yield from check_global_perms(event)
