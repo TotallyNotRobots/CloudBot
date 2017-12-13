@@ -13,7 +13,6 @@ License:
     GPL v3
 """
 
-import asyncio
 import json
 
 import requests
@@ -26,30 +25,6 @@ DEFAULT_PASTEBIN = 'snoonet'
 HASTEBIN_SERVER = 'https://hastebin.com'
 
 SNOONET_PASTE = 'https://paste.snoonet.org'
-
-
-# Python eval
-
-@asyncio.coroutine
-def pyeval(code, pastebin=True):
-    raise ValueError("The pyeval API has been removed")
-
-    p = {'input': code}
-    r = requests.post('http://pyeval.appspot.com/exec', data=p)
-
-    p = {'id': r.text}
-    r = None
-    j = {}
-    while not r or j.get("status", "not ready").lower() == "not ready":
-        r = requests.get('http://pyeval.appspot.com/exec', params=p)
-        j = r.json()
-        yield from asyncio.sleep(0.5)
-
-    output = j['output'].rstrip('\n')
-    if '\n' in output and pastebin:
-        return paste(output)
-    else:
-        return output
 
 
 # Shortening / pasting
