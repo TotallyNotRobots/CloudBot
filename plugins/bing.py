@@ -122,14 +122,15 @@ def bingimage(text, bot, reply):
     result = random.choice(j["Image"][:10])
 
     # output stuff
-    tags = []
+    tags = [
+        # image size
+        "{}x{}px".format(result["Width"], result["Height"]),
+        # file type
+        result["ContentType"],
+        # file size
+        filesize.size(int(result["FileSize"]), system=filesize.alternative),
+    ]
 
-    # image size
-    tags.append("{}x{}px".format(result["Width"], result["Height"]))
-    # file type
-    tags.append(result["ContentType"])
-    # file size
-    tags.append(filesize.size(int(result["FileSize"]), system=filesize.alternative))
     # NSFW warning
     if "explicit" in result["Thumbnail"]["MediaUrl"]:
         tags.append("NSFW")
