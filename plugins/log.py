@@ -9,7 +9,6 @@ from cloudbot.event import EventType
 # +---------+
 # | Formats |
 # +---------+
-from cloudbot.hook import Priority
 from cloudbot.util.formatting import strip_colors
 
 base_formats = {
@@ -127,6 +126,7 @@ def format_irc_event(event, args):
 
     return irc_default.format(server=event.conn.name, irc_raw=event.irc_raw)
 
+
 # +--------------+
 # | File logging |
 # +--------------+
@@ -219,6 +219,10 @@ def log(event):
     """
     :type event: cloudbot.event.Event
     """
+    logging_config = event.bot.config.get("logging", {})
+    if not logging_config.get("file_log", False):
+        return
+
     text = format_event(event)
 
     if text is not None:
