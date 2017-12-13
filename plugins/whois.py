@@ -6,8 +6,6 @@ Provides a command to allow users to look up information on domain names.
 import sys
 from contextlib import suppress
 
-import pythonwhois
-
 from cloudbot import hook
 
 if sys.version_info < (3, 7, 0):
