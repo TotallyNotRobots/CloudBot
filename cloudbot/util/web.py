@@ -13,9 +13,9 @@ License:
     GPL v3
 """
 
+import asyncio
 import json
 
-import asyncio
 import requests
 
 # Constants
@@ -90,6 +90,7 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
 
 class ServiceError(Exception):
     def __init__(self, message, request):
+        super().__init__()
         self.message = message
         self.request = request
 
@@ -125,6 +126,7 @@ class Pastebin:
 
     def paste(self, data, ext):
         raise NotImplementedError
+
 
 # Internal Implementations
 
@@ -221,13 +223,13 @@ class Hastebin(Pastebin):
         else:
             raise ServiceError(j['message'], r)
 
+
 @_pastebin('snoonet')
 class SnoonetPaste(Pastebin):
     def paste(self, data, ext):
-
-        params={
-            'text':data,
-            'expire':'1d'
+        params = {
+            'text': data,
+            'expire': '1d'
         }
         r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
         return '{}'.format(r.url)
