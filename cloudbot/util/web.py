@@ -16,8 +16,8 @@ License:
 import json
 
 import requests
-
 # Constants
+from requests import RequestException
 
 DEFAULT_SHORTENER = 'is.gd'
 DEFAULT_PASTEBIN = 'snoonet'
@@ -206,9 +206,11 @@ class SnoonetPaste(Pastebin):
             'text': data,
             'expire': '1d'
         }
-        r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
-        return '{}'.format(r.url)
-        if r.status_code is requests.codes.ok:
-            return '{}'.format(r.url)
-        else:
+        try:
+            r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
             return ServiceError(r.status_code, r)
+        else:
+            return '{}'.format(r.url)

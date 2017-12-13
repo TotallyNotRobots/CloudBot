@@ -158,6 +158,9 @@ def size(b, system=traditional):
     for factor, suffix in system:
         if b >= factor:
             break
+    else:
+        return
+
     amount = int(b / factor)
     if isinstance(suffix, tuple):
         singular, multiple = suffix

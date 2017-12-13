@@ -57,11 +57,8 @@ def reddit_url(match, bot):
     if r.status_code != 200:
         return
     data = r.json()
-    if isinstance(data, list):
-        item = data[0]["data"]["children"][0]["data"]
-    elif isinstance(data, dict):
-        # item = data["data"]["children"][random.randint(0,9)]["data"]
-        return
+    assert isinstance(data, list), "Reddit API returned data in an unknown format"
+    item = data[0]["data"]["children"][0]["data"]
 
     return format_output(item)
 

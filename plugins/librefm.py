@@ -88,6 +88,8 @@ def librefm(text, nick, db, notice):
             # which value will be "true"
             status = 'is listening to'
             ending = '.'
+        else:
+            return
 
     elif isinstance(tracks, dict):
         track = tracks
