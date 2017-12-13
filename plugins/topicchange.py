@@ -17,6 +17,6 @@ def load_topicchange(bot):
 
 
 @hook.command("changetopic", "discuss", "question", autohelp=False)
-def topicchange(message, conn):
+def topicchange(message):
     """- generates a random question to help start a conversation or change a topic"""
     message(random.choice(topicchange))

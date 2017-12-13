@@ -198,7 +198,7 @@ def profileclear(nick, chan, text, notice, db):
             notice("Invalid confirm key")
             return
     else:
-        key = "".join(random.choice(string.ascii_letters + string.digits) for i in range(10))
+        key = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
         confirm_keys[chan.casefold()][nick.casefold()] = key
         notice("Are you sure you want to clear all of your profile data in {}? use \".profileclear {}\" to confirm"
                .format(chan, key))

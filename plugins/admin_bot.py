@@ -104,7 +104,7 @@ def get_user_groups(text, conn, mask, has_permission, notice):
 
 @asyncio.coroutine
 @hook.command("deluser", permissions=["permissions_users"])
-def remove_permission_user(text, nick, bot, message, conn, notice, reply, admin_log):
+def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log):
     """<user> [group] - removes <user> from [group], or from all groups if no group is specified
     :type text: str
     :type bot: cloudbot.bot.CloudBot
@@ -166,7 +166,7 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply, admin_
 
 @asyncio.coroutine
 @hook.command("adduser", permissions=["permissions_users"])
-def add_permissions_user(text, nick, message, conn, bot, notice, reply, admin_log):
+def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
     """<user> <group> - adds <user> to <group>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -236,7 +236,7 @@ def restart(text, bot):
 
 @asyncio.coroutine
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def join(text, conn, nick, message, notice, admin_log):
+def join(text, conn, nick, notice, admin_log):
     """<channel> - joins <channel>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -351,7 +351,7 @@ def message(text, conn, nick, admin_log):
 
 @asyncio.coroutine
 @hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
-def me(text, conn, chan, message, nick, admin_log):
+def me(text, conn, chan, nick, admin_log):
     """[#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
     :type text: str
     :type conn: cloudbot.client.Client

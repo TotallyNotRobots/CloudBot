@@ -82,7 +82,7 @@ def incrementMsgCounter(event, conn):
 
 
 # @hook.command("starthunt", autohelp=False)
-def start_hunt(bot, chan, message, conn):
+def start_hunt(chan, message, conn):
     """This command starts a spooky MONSTER hunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
@@ -156,7 +156,7 @@ def generate_duck():
 
 
 # @hook.periodic(11, initial_interval=11)
-def deploy_duck(message, bot):
+def deploy_duck(bot):
     global game_status
     for network in game_status:
         if network not in bot.connections:
@@ -245,7 +245,6 @@ def bang(nick, chan, message, db, conn, notice):
     if chan in opt_out:
         return
     network = conn.name
-    score = ""
     out = ""
     miss = ["WHOOSH! You totally missed the monster. Save the poor human!", "Your gun jammed!",
             "Better luck next time.", "Good thing this is just an IRC game cus your aim is terrible!"]
@@ -308,7 +307,6 @@ def befriend(nick, chan, message, db, conn, notice):
         return
     network = conn.name
     out = ""
-    score = ""
     miss = ["The monster didn't want to be friends, you are lucky they didn't eat you too!",
             "The monster just grunted and kept chasing his prey, maybe you should provide an offering of some kind",
             "Maybe your breath smells too sweet or your face looks too nice. Either way the monster rejected you."]
@@ -377,7 +375,6 @@ def friends(text, chan, conn, db):
         return
     friends = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Monster friend scores across the network: "
         scores = db.execute(select([table.c.name, table.c.befriend]) \
@@ -423,7 +420,6 @@ def killers(text, chan, conn, db):
         return
     killers = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Monster killer scores across the network: "
         scores = db.execute(select([table.c.name, table.c.shot]) \

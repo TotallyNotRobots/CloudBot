@@ -6,7 +6,6 @@ from cloudbot import hook
 
 def statuscheck(status, item):
     """since we are doing this a lot might as well return something more meaningful"""
-    out = ""
     if status == 404:
         out = "It appears {} does not exist.".format(item)
     elif status == 503:

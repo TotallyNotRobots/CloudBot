@@ -27,7 +27,7 @@ def load_bad(db):
         out = out + "{}|".format(word[0])
     blacklist = out[:-1]
     black_re = '(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format(blacklist)
-    badwords_re = re.compile(black_re, re.IGNORECASE)
+    badword_re = re.compile(black_re, re.IGNORECASE)
 
 
 @hook.command("addbad", permissions=["badwords"])

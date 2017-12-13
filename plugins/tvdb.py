@@ -19,7 +19,7 @@ def get_episodes_for_series(series_name, api_key):
         params = {'seriesname': series_name}
         request = requests.get(base_url + 'GetSeries.php', params=params)
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
         res["error"] = "error contacting thetvdb.com"
         return res
 

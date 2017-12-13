@@ -23,7 +23,6 @@ def drink(text, chan, action):
     if drink.endswith(' recipe'):
         drink = drink[:-7]
     contents = drinks[index]['ingredients']
-    directions = drinks[index]['directions']
     out = "grabs some"
     for x in contents:
         if x == contents[len(contents) - 1]:

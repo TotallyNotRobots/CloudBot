@@ -44,7 +44,7 @@ def get_account(nick):
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
-def librefm(text, nick, db, bot, notice):
+def librefm(text, nick, db, notice):
     """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
 
     # check if the user asked us not to save his details
@@ -105,7 +105,7 @@ def librefm(text, nick, db, bot, notice):
     album = track["album"]["#text"]
     artist = track["artist"]["#text"]
     url = web.try_shorten(track["url"])
-    tags = getartisttags(artist, bot)
+    tags = getartisttags(artist)
 
     out = '{} {} "{}"'.format(user, status, title)
     if artist:
@@ -128,7 +128,7 @@ def librefm(text, nick, db, bot, notice):
     return out
 
 
-def getartisttags(artist, bot):
+def getartisttags(artist):
     params = {'method': 'artist.getTopTags', 'artist': artist}
     request = requests.get(api_url, params=params)
     tags = request.json()
@@ -161,7 +161,7 @@ def getuserartistplaycount():
 
 
 @hook.command("libreband", "librela")
-def displaybandinfo(text, nick, bot, notice):
+def displaybandinfo(text, bot):
     """[artist] - displays information about [artist]."""
     artist = getartistinfo(text, bot)
 
@@ -169,9 +169,8 @@ def displaybandinfo(text, nick, bot, notice):
         return 'No such artist.'
 
     a = artist['artist']
-    name = a["name"]
     summary = a["bio"]["summary"]
-    tags = getartisttags(text, bot)
+    tags = getartisttags(a)
 
     url = web.try_shorten(a["url"])
 
@@ -183,7 +182,7 @@ def displaybandinfo(text, nick, bot, notice):
     return out
 
 
-def getartistinfo(artist, bot, user=''):
+def getartistinfo(artist, user=''):
     params = {'method': 'artist.getInfo', 'artist': artist,
               'autocorrect': '1'}
     if user:
@@ -194,13 +193,13 @@ def getartistinfo(artist, bot, user=''):
 
 
 @hook.command("librecompare", "librelc")
-def librefmcompare(bot, text):
+def librefmcompare():
     """- This command is not supported in the libre.fm API"""
     return unsupported_msg
 
 
 @hook.command("libretoptrack", "libretoptracks", "libretop", "librett", autohelp=False)
-def toptrack(text, nick, bot):
+def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a libre.fm username"""
 
     if text:
@@ -235,7 +234,7 @@ def toptrack(text, nick, bot):
 
 
 @hook.command("libretopartists", "libreta", autohelp=False)
-def libretopartists(text, nick, bot):
+def libretopartists(text, nick):
     """[username] - Grabs a list of the top artists for a libre.fm username. You can set your libre.fm username with .librefm username"""
     if text:
         username = get_account(text)
@@ -269,27 +268,27 @@ def libretopartists(text, nick, bot):
 
 
 @hook.command("libreltw", "libretopweek", autohelp=False)
-def topweek(text, nick, db, bot, notice):
+def topweek(text, nick):
     """[username] - Grabs a list of the top artists in the last week for a libre.fm username. You can set your librefm username with .l username"""
-    topweek = topartists(text, nick, db, bot, notice, '7day')
+    topweek = topartists(text, nick, '7day')
     return topweek
 
 
 @hook.command("libreltm", "libretopmonth", autohelp=False)
-def topmonth(text, nick, db, bot, notice):
+def topmonth(text, nick):
     """[username] - Grabs a list of the top artists in the last month for a libre.fm username. You can set your librefm username with .l username"""
-    topmonth = topartists(text, nick, db, bot, notice, '1month')
+    topmonth = topartists(text, nick, '1month')
     return topmonth
 
 
 @hook.command("librelibrelta", "libretopall", autohelp=False)
-def topall(text, nick, db, bot, notice):
+def topall(text, nick):
     """[username] - Grabs a list of the top artists in the last year for a libre.fm username. You can set your librefm username with .l username"""
-    topall = topartists(text, nick, db, bot, notice, '12month')
+    topall = topartists(text, nick, '12month')
     return topall
 
 
-def topartists(text, nick, db, bot, notice, period):
+def topartists(text, nick, period):
     if text:
         username = get_account(text)
         if not username:

@@ -116,6 +116,7 @@ def pympler_diff():
 if os.name == "posix":
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
+    # noinspection PyUnusedLocal
     def debug(sig, frame):
         print(get_thread_dump())
 

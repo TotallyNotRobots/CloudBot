@@ -6,7 +6,7 @@ from cloudbot.util import web
 
 @asyncio.coroutine
 @hook.command("python", "py")
-def python(text):
+def python():
     """<python code> - executes <python code> using eval.appspot.com"""
     return "This API has been deprecated and removed."
 

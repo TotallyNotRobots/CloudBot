@@ -122,7 +122,6 @@ def spotify_url(bot, match):
     api_method = {'track': 'tracks', 'album': 'albums', 'artist': 'artists'}
     _type = match.group(2)
     spotify_id = match.group(3)
-    url = spuri.format(_type, spotify_id)
     # no error catching here, if the API is down fail silently
     request = sprequest(bot, {}, 'http://api.spotify.com/v1/{}/{}'.format(
         api_method[_type], spotify_id))

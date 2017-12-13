@@ -147,7 +147,7 @@ def base64_encode(text):
 
 
 @hook.command("debase64", "unbase64")
-def base64_decode(text, notice, message):
+def base64_decode(text, notice):
     """<string> -- Decode <string> with base64."""
     try:
         return " ".join(base64.b64decode(text.encode()).decode().splitlines())
@@ -167,7 +167,7 @@ def base64_check(text):
 
 
 @hook.command
-def unescape(text, message):
+def unescape(text):
     """<string> -- Unicode unescapes <string>."""
     decoder = codecs.getdecoder("unicode_escape")
     return " ".join(decoder(text)[0].splitlines())

@@ -138,7 +138,7 @@ factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)
-def factoid(content, match, chan, event, message, action):
+def factoid(content, match, chan, message, action):
     """<word> - shows what data is associated with <word>"""
     arg1 = ""
     if len(content.split()) >= 2:
@@ -146,11 +146,6 @@ def factoid(content, match, chan, event, message, action):
     # split up the input
     split = match.group(1).strip().split(" ")
     factoid_id = split[0].lower()
-
-    if len(split) >= 1:
-        arguments = " ".join(split[1:])
-    else:
-        arguments = ""
 
     if factoid_id in factoid_cache[chan]:
         data = factoid_cache[chan][factoid_id]

@@ -22,7 +22,7 @@ karma_table = Table(
 
 
 @hook.command("pp", "addpoint")
-def addpoint(text, nick, chan, db, conn):
+def addpoint(text, nick, chan, db):
     """<thing> - adds a point to the <thing>"""
     text = text.strip()
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
@@ -53,7 +53,7 @@ def re_addpt(match, nick, chan, db, conn, notice):
 
 
 @hook.command("mm", "rmpoint")
-def rmpoint(text, nick, chan, db, conn):
+def rmpoint(text, nick, chan, db):
     """<thing> - subtracts a point from the <thing>"""
     text = text.strip()
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
@@ -73,7 +73,7 @@ def rmpoint(text, nick, chan, db, conn):
 
 
 @hook.command("pluspts", autohelp=False)
-def pluspts(nick, chan, db, conn):
+def pluspts(nick, chan, db):
     """- prints the things you have liked and their scores"""
     output = ""
     likes = db.execute(
@@ -85,7 +85,7 @@ def pluspts(nick, chan, db, conn):
 
 
 @hook.command("minuspts", autohelp=False)
-def minuspts(nick, chan, db, conn):
+def minuspts(nick, chan, db):
     """- prints the things you have disliked and their scores"""
     output = ""
     likes = db.execute(
@@ -108,10 +108,9 @@ def re_rmpt(match, nick, chan, db, conn, notice):
 
 
 @hook.command("points", autohelp=False)
-def points(text, chan, db, conn):
+def points(text, chan, db):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0
-    karma = ""
     thing = ""
     if text.endswith("-global") or text.endswith(" global"):
         thing = text[:-7].strip()
@@ -138,12 +137,9 @@ def points(text, chan, db, conn):
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)
-def pointstop(text, chan, db, message, conn, notice):
+def pointstop(text, chan, db):
     """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
-    scores = []
     points = defaultdict(int)
-    items = ""
-    out = ""
     if text == "global" or text == "-global":
         items = db.execute("select thing, score from karma").fetchall()
         out = "The top {} favorite things in all channels are: "
@@ -168,12 +164,9 @@ def pointstop(text, chan, db, message, conn, notice):
 
 
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
-def pointsbottom(text, chan, db, message, conn, notice):
+def pointsbottom(text, chan, db):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
-    scores = []
     points = defaultdict(int)
-    items = ""
-    out = ""
     if text == "global" or text == "-global":
         items = db.execute("select thing, score from karma").fetchall()
         out = "The {} most hated things in all channels are: "

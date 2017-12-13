@@ -17,6 +17,6 @@ def load_kenm(bot):
 
 
 @hook.command("kenm", autohelp=False)
-def kenm(message, conn):
+def kenm(message):
     """- Wisdom from Ken M."""
     message(random.choice(kenm))
