@@ -26,7 +26,9 @@ def gather_plugins():
 
 
 def load_plugin(plugin_path, monkeypatch):
-    monkeypatch.setattr('cloudbot.plugin.Hook.original_init', Hook.__init__, raising=False)
+    if not hasattr(Hook, "original_init"):
+        monkeypatch.setattr('cloudbot.plugin.Hook.original_init', Hook.__init__, raising=False)
+
     monkeypatch.setattr('cloudbot.plugin.Hook.__init__', patch_hook_init)
 
     monkeypatch.setattr('cloudbot.util.database.metadata', MetaData())

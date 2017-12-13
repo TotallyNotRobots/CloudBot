@@ -2,6 +2,7 @@ pytest
 responses
 pytest-cov
 pytest-pep8
+pytest-leaks
 flake8
 python-coveralls
 pylint
