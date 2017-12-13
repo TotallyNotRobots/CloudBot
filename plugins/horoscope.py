@@ -16,7 +16,7 @@ table = Table(
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, nick, notice, notice_doc, reply):
+def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
     """[sign] - get your horoscope"""
     signs = {
         'aries': '1',
@@ -77,4 +77,4 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply):
                    {'nick': nick.lower(), 'sign': sign})
         db.commit()
 
-    return result
+    message(result)
