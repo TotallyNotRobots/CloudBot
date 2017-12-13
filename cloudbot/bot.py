@@ -20,7 +20,7 @@ from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import PluginReloader, ConfigReloader
-from cloudbot.util import database, formatting
+from cloudbot.util import database, formatting, async_util
 
 try:
     from cloudbot.web.main import WebInterface
@@ -65,7 +65,7 @@ class CloudBot:
         self.start_time = time.time()
         self.running = True
         # future which will be called when the bot stopsIf you
-        self.stopped_future = asyncio.Future(loop=self.loop)
+        self.stopped_future = async_util.create_future(self.loop)
 
         # stores each bot server connection
         self.connections = {}
@@ -221,7 +221,7 @@ class CloudBot:
         self.observer.start()
 
         # Connect to servers
-        yield from asyncio.gather(*[conn.connect() for conn in self.connections.values()], loop=self.loop)
+        yield from asyncio.gather(*[conn.try_connect() for conn in self.connections.values()], loop=self.loop)
 
         # Activate web interface.
         if self.config.get("web", {}).get("enabled", False) and web_installed:

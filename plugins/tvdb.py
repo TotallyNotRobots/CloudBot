@@ -42,12 +42,12 @@ def get_episodes_for_series(series_name, api_key):
     series = etree.fromstring(_request.content, parser=parser)
     try:
         series_name = series.xpath('//SeriesName/text()')[0]
-    except:
+    except LookupError:
         series_name = series.xpath('//SeriesName/text()')
     try:
         if series.xpath('//Status/text()')[0] == 'Ended':
             res["ended"] = True
-    except:
+    except LookupError:
         if series.xpath('//Status/text()') == 'Ended':
             res["ended"] = True
 
@@ -82,7 +82,7 @@ def get_episode_info(episode):
 @hook.command()
 @hook.command('tv')
 def tv_next(text, bot=None):
-    """tv <series> -- Get the next episode of <series>."""
+    """<series> - Get the next episode of <series>."""
 
     api_key = bot.config.get("api_keys", {}).get("tvdb", None)
     if api_key is None:
@@ -132,7 +132,7 @@ def tv_next(text, bot=None):
 @hook.command()
 @hook.command('tv_prev')
 def tv_last(text, bot=None):
-    """tv_last <series> -- Gets the most recently aired episode of <series>."""
+    """<series> - Gets the most recently aired episode of <series>."""
 
     api_key = bot.config.get("api_keys", {}).get("tvdb", None)
     if api_key is None:

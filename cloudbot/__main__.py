@@ -3,8 +3,8 @@ import os
 import signal
 import sys
 import time
+
 # store the original working directory, for use when restarting
-from functools import partial
 
 original_wd = os.path.realpath(".")
 
@@ -47,9 +47,7 @@ def main():
             # we are currently in the process of restarting
             stopped_while_restarting = True
         else:
-            _bot.loop.call_soon_threadsafe(
-                partial(async_util.wrap_future, _bot.stop("Killed (Received SIGINT {})".format(signum)), loop=_bot.loop)
-            )
+            async_util.run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
 
         logger.warning("Bot received Signal Interrupt ({})".format(signum))
 

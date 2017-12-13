@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import random
 import re
 import ssl
 from _ssl import PROTOCOL_SSLv23
+from functools import partial
 from ssl import SSLContext
 
 from cloudbot.client import Client
@@ -106,7 +108,20 @@ class IrcClient(Client):
             return "{}:{}".format(self.server, self.port)
 
     @asyncio.coroutine
-    def connect(self):
+    def try_connect(self):
+        timeout = self.config["connection"].get("timeout", 30)
+        while True:
+            try:
+                yield from self.connect(timeout)
+            except (asyncio.TimeoutError, OSError):
+                logger.exception("[%s] Error occurred while connecting", self.name)
+            else:
+                break
+
+            yield from asyncio.sleep(random.randrange(timeout))
+
+    @asyncio.coroutine
+    def connect(self, timeout=None):
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -125,8 +140,15 @@ class IrcClient(Client):
         optional_params = {}
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
-        self._transport, self._protocol = yield from self.loop.create_connection(
-            lambda: _IrcProtocol(self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params)
+
+        coro = self.loop.create_connection(
+            partial(_IrcProtocol, self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params
+        )
+
+        if timeout is not None:
+            coro = asyncio.wait_for(coro, timeout)
+
+        self._transport, self._protocol = yield from coro
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
@@ -157,6 +179,14 @@ class IrcClient(Client):
         for text in messages:
             text = "".join(text.splitlines())
             self.cmd("PRIVMSG", target, text)
+
+    def admin_log(self, text, console=True):
+        log_chan = self.config.get("log_channel")
+        if log_chan:
+            self.message(log_chan, text)
+
+        if console:
+            logger.info("[%s|admin] %s", self.name, text)
 
     def action(self, target, text):
         text = "".join(text.splitlines())
@@ -263,7 +293,7 @@ class _IrcProtocol(asyncio.Protocol):
         self._transport = None
 
         # Future that waits until we are connected
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
 
     def connection_made(self, transport):
         self._transport = transport
@@ -275,7 +305,7 @@ class _IrcProtocol(asyncio.Protocol):
     def connection_lost(self, exc):
         self._connected = False
         # create a new connected_future for when we are connected.
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
         if exc is None:
             # we've been closed intentionally, so don't reconnect
             return
@@ -285,7 +315,7 @@ class _IrcProtocol(asyncio.Protocol):
     def eof_received(self):
         self._connected = False
         # create a new connected_future for when we are connected.
-        self._connected_future = asyncio.Future(loop=self.loop)
+        self._connected_future = async_util.create_future(self.loop)
         logger.info("[{}] EOF received.".format(self.conn.name))
         async_util.wrap_future(self.conn.connect(), loop=self.loop)
         return True

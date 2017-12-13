@@ -45,7 +45,7 @@ def load_cache(db):
 
 @hook.command("moregrab", autohelp=False)
 def moregrab(text, chan, conn):
-    """if a grab search has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
+    """[page] - if a grab search has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
     pages = search_pages[conn.name].get(chan)
     if not pages:
         return "There are no grabsearch pages to show."
@@ -96,8 +96,7 @@ def get_latest_line(conn, chan, nick):
 
 @hook.command()
 def grab(text, nick, chan, db, conn):
-    """grab <nick> grabs the last message from the
-    specified nick and adds it to the quote database"""
+    """<nick> - grabs the last message from the specified nick and adds it to the quote database"""
     if text.lower() == nick.lower():
         return "Didn't your mother teach you not to grab yourself?"
 
@@ -138,10 +137,11 @@ def format_grab(name, quote):
 
 @hook.command("lastgrab", "lgrab")
 def lastgrab(text, chan, message):
-    """prints the last grabbed quote from <nick>."""
+    """<nick> - prints the last grabbed quote from <nick>."""
     lgrab = ""
     try:
-        lgrab = grab_cache[chan][text.lower()][-1]
+        with cache_lock:
+            lgrab = grab_cache[chan][text.lower()][-1]
     except (KeyError, IndexError):
         return "<{}> has never been grabbed.".format(text)
     if lgrab:
@@ -151,24 +151,26 @@ def lastgrab(text, chan, message):
 
 @hook.command("grabrandom", "grabr", autohelp=False)
 def grabrandom(text, chan, message):
-    """grabs a random quote from the grab database"""
+    """[nick] - grabs a random quote from the grab database"""
     grab = ""
     name = ""
-    if text:
-        tokens = text.split(' ')
-        if len(tokens) > 1:
-            name = random.choice(tokens)
+    with cache_lock:
+        if text:
+            tokens = text.split(' ')
+            if len(tokens) > 1:
+                name = random.choice(tokens)
+            else:
+                name = tokens[0]
         else:
-            name = tokens[0]
-    else:
+            try:
+                name = random.choice(list(grab_cache[chan].keys()))
+            except KeyError:
+                return "I couldn't find any grabs in {}.".format(chan)
         try:
-            name = random.choice(list(grab_cache[chan].keys()))
+            grab = random.choice(grab_cache[chan][name.lower()])
         except KeyError:
-            return "I couldn't find any grabs in {}.".format(chan)
-    try:
-        grab = random.choice(grab_cache[chan][name.lower()])
-    except KeyError:
-        return "it appears {} has never been grabbed in {}".format(name, chan)
+            return "it appears {} has never been grabbed in {}".format(name, chan)
+
     if grab:
         message(format_grab(name, grab), chan)
     else:
@@ -177,19 +179,21 @@ def grabrandom(text, chan, message):
 
 @hook.command("grabsearch", "grabs", autohelp=False)
 def grabsearch(text, chan, conn):
-    """.grabsearch <text> matches "text" against nicks or grab strings in the database"""
+    """[text] - matches "text" against nicks or grab strings in the database"""
     result = []
-    try:
-        quotes = grab_cache[chan][text.lower()]
-        for grab in quotes:
-            result.append((text, grab))
-    except KeyError:
-        pass
-    for name in grab_cache[chan]:
-        for grab in grab_cache[chan][name]:
-            if name != text.lower():
-                if text.lower() in grab.lower():
-                    result.append((name, grab))
+    with cache_lock:
+        try:
+            quotes = grab_cache[chan][text.lower()]
+            for grab in quotes:
+                result.append((text, grab))
+        except KeyError:
+            pass
+        for name in grab_cache[chan]:
+            for grab in grab_cache[chan][name]:
+                if name != text.lower():
+                    if text.lower() in grab.lower():
+                        result.append((name, grab))
+
     if result:
         grabs = []
         for name, quote in result:

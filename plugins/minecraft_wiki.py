@@ -11,17 +11,19 @@ mc_url = "http://minecraft.gamepedia.com/"
 
 
 @hook.command()
-def mcwiki(text):
-    """mcwiki <phrase> - gets the first paragraph of the Minecraft Wiki article on <phrase>"""
+def mcwiki(text, reply):
+    """<phrase> - gets the first paragraph of the Minecraft Wiki article on <phrase>"""
 
     try:
         request = requests.get(api_url, params={'search': text.strip()})
         request.raise_for_status()
         j = request.json()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Error fetching search results: {}".format(e)
+        reply("Error fetching search results: {}".format(e))
+        raise
     except ValueError as e:
-        return "Error reading search results: {}".format(e)
+        reply("Error reading search results: {}".format(e))
+        raise
 
     if not j[1]:
         return "No results found."
@@ -43,7 +45,8 @@ def mcwiki(text):
         request_ = requests.get(url)
         request_.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Error fetching wiki page: {}".format(e)
+        reply("Error fetching wiki page: {}".format(e))
+        raise
 
     page = html.fromstring(request_.text)
 

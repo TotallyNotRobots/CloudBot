@@ -27,6 +27,7 @@ def format_url(fucker, fuckee=None):
 def get_fuck_off(fucker, fuckee):
     url = format_url(fucker, fuckee)
     r = requests.get(url, headers=headers)
+    r.raise_for_status()
     return r.text
 
 
@@ -40,6 +41,6 @@ def load_fuck_offs(bot):
 
 @hook.command('fos', 'fuckoff', 'foaas', autohelp=False)
 def foaas(text, nick, message):
-    """fos [name] to tell some one to fuck off or just .fos for a generic fuckoff"""
+    """[name] - tell some one to fuck off or just .fos for a generic fuckoff"""
     out = get_fuck_off(nick, text)
     message(out)

@@ -236,11 +236,7 @@ def lastfm(event, db, text, nick, bot):
     title = track["name"]
     album = track["album"]["#text"]
     artist = track["artist"]["#text"]
-    try:
-        url = web.try_shorten(track["url"])
-    except:
-        url = track["url"]
-        pass
+    url = web.try_shorten(track["url"])
 
     tags = gettracktags(api_key, artist, title)
     if tags == "no tags":
@@ -329,17 +325,21 @@ def displaybandinfo(bot, text):
 
 @hook.command("lastfmcompare", "compare", "lc")
 def lastfmcompare(bot, text, nick):
-    """[user] ([user] optional) - displays the now playing (or last played) track of LastFM user [user]"""
+    """<user1> [user2] - displays the now playing (or last played) track of LastFM user [user]"""
     api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
     if not text:
         return "please specify a lastfm username to compare"
-    try:
-        user1, user2 = text.split()
-    except:
-        user2 = text
+
+    users = text.split(None, 2)
+    user1 = users.pop(0)
+
+    if users:
+        user2 = users.pop(0)
+    else:
+        user2 = user1
         user1 = nick
 
     user2_check = get_account(user2)
@@ -389,7 +389,7 @@ def lastfmcompare(bot, text, nick):
 
 @hook.command("ltop", "ltt", autohelp=False)
 def toptrack(bot, text, nick):
-    """Grabs a list of the top tracks for a last.fm username"""
+    """[username] - Grabs a list of the top tracks for a last.fm username"""
     api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
@@ -419,23 +419,23 @@ def toptrack(bot, text, nick):
 
 @hook.command("lta", "topartist", autohelp=False)
 def topartists(bot, text, nick):
-    """Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick)
 
 
 @hook.command("ltw", "topweek", autohelp=False)
 def topweek(bot, text, nick):
-    """Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '7day')
 
 
 @hook.command("ltm", "topmonth", autohelp=False)
 def topmonth(bot, text, nick):
-    """Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '1month')
 
 
 @hook.command("lty", "topyear", autohelp=False)
 def topall(bot, text, nick):
-    """Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(bot, text, nick, '1year')

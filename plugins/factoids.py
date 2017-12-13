@@ -85,10 +85,9 @@ def remember(text, nick, db, chan, notice):
 
     word = word.lower()
     try:
-        old_data = factoid_cache[chan].get(word)
-    except:
-        old_data = ""
-        pass
+        old_data = factoid_cache[chan][word]
+    except LookupError:
+        old_data = None
 
     if data.startswith('+') and old_data:
         # remove + symbol
@@ -182,3 +181,12 @@ def listfactoids(notice, chan):
             reply_text.append(word)
             reply_text_length += added_length
     notice(", ".join(reply_text))
+
+
+@hook.command("listdetailedfacts", autohelp=False)
+def listdetailedfactoids(chan):
+    """- lists all available factoids with their respective data"""
+    headers = ("Command", "Output")
+    data = [(fact[0], fact[1]) for fact in factoid_cache[chan].items()]
+    table = gen_markdown_table(headers, data).encode('UTF-8')
+    return web.paste(table, "md", "hastebin")

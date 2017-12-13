@@ -55,7 +55,7 @@ def format_profile(nick, category, text):
 # modified from grab.py
 @hook.command("moreprofile", autohelp=False)
 def moreprofile(text, chan, nick, notice):
-    """If a category search has lots of results the results are paginated. If the most recent search is paginated the pages are stored for retrieval. If no argument is given the next page will be returned else a page number can be specified."""
+    """[page] - If a category search has lots of results the results are paginated. If the most recent search is paginated the pages are stored for retrieval. If no argument is given the next page will be returned else a page number can be specified."""
     chan_pages = cat_pages[chan.casefold()]
     pages = chan_pages.get(nick.casefold())
     if not pages:
@@ -185,7 +185,7 @@ def profiledel(nick, chan, text, notice, db):
 
 @hook.command(autohelp=False)
 def profileclear(nick, chan, text, notice, db):
-    """Clears all of your profile data in the current channel"""
+    """[key] - Clears all of your profile data in the current channel"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
 

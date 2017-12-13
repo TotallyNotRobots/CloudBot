@@ -1,4 +1,5 @@
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
@@ -14,12 +15,20 @@ def load_key(bot):
 
 
 @hook.command("books", "gbooks")
-def books(text):
-    """books <query> -- Searches Google Books for <query>."""
+def books(text, reply):
+    """<query> - Searches Google Books for <query>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
-    json = requests.get(book_search_api, params={"q": text, "key": dev_key, "country": "US"}).json()
+    request = requests.get(book_search_api, params={"q": text, "key": dev_key, "country": "US"})
+
+    try:
+        request.raise_for_status()
+    except HTTPError:
+        reply("Bing API error occurred.")
+        raise
+
+    json = request.json()
 
     if json.get('error'):
         if json['error']['code'] == 403:

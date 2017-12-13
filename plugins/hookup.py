@@ -19,7 +19,7 @@ def load_data(bot):
 
 @hook.command(autohelp=False)
 def hookup(db, chan):
-    """matches two users from the channel in a sultry scene."""
+    """- matches two users from the channel in a sultry scene."""
     times = time.time() - 86400
     results = db.execute("select name from seen_user where chan = :chan and time > :time", {"chan": chan, "time": times}).fetchall()
     if not results or len(results) < 2:

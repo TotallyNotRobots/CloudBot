@@ -19,14 +19,16 @@ paren_re = re.compile('\s*\(.*\)$')
 
 
 @hook.command("wiki", "wikipedia", "w")
-def wiki(text):
-    """wiki <phrase> -- Gets first sentence of Wikipedia article on <phrase>."""
+def wiki(text, reply):
+    """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
     try:
         request = requests.get(search_url, params={'search': text.strip()})
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get Wikipedia page: {}".format(e)
+        reply("Could not get Wikipedia page: {}".format(e))
+        raise
+
     x = etree.fromstring(request.text, parser=parser)
 
     ns = '{http://opensearch.org/searchsuggest2}'

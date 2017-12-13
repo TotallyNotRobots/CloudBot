@@ -12,7 +12,7 @@ search_url = "http://search.atomz.com/search/?sp_a=00062d45-sp00000000"
 
 @hook.command
 def snopes(text):
-    """snopes <topic> -- Searches snopes for an urban legend about <topic>."""
+    """<topic> - Searches snopes for an urban legend about <topic>."""
 
     try:
         params = {'sp_q': text, 'sp_c': "1"}

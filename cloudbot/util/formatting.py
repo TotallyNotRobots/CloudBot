@@ -44,7 +44,7 @@ License for final section (all code after the "DJANGO LICENCE" comment):
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
+import copy
 import re
 import html.entities
 
@@ -318,3 +318,20 @@ def get_text_list(list_, last_word='or'):
         # Translators: This string is used as a separator between list elements
         ', '.join([i for i in list_][:-1]),
         last_word, list_[-1])
+
+
+def gen_markdown_table(headers, rows):
+    """
+    Generates a Markdown formatted table from the data
+    """
+    rows = copy.copy(rows)
+    rows.insert(0, headers)
+    rotated = zip(*reversed(rows))
+
+    sizes = tuple(map(lambda l: max(max(map(len, l)), 3), rotated))
+    rows.insert(1, tuple(('-' * size) for size in sizes))
+    lines = [
+        "| {} |".format(' | '.join(cell.ljust(sizes[i]) for i, cell in enumerate(row)))
+        for row in rows
+    ]
+    return '\n'.join(lines)

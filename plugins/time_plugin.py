@@ -43,11 +43,11 @@ def load_key(bot):
 
 
 @hook.command("time")
-def time_command(text):
+def time_command(text, reply):
     """<location> -- Gets the current time in <location>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
-    
+
     if text.lower().startswith("utc") or text.lower().startswith("gmt"):
         timezone = text.strip()
         pattern = re.compile(r"utc|gmt|[:+]")
@@ -59,13 +59,14 @@ def time_command(text):
         if len(utcoffset) == 2:
            try:
                offset = datetime.timedelta(hours=int(utcoffset[0]), minutes=int(utcoffset[1]))
-           except:
-               return "Sorry I could not parse the UTC format you entered. Example UTC7 or UTC-4"
+           except Exception:
+               reply("Sorry I could not parse the UTC format you entered. Example UTC7 or UTC-4")
+               raise
            curtime = datetime.datetime.utcnow()
            tztime = curtime + offset
            formatted_time = datetime.datetime.strftime(tztime, '%I:%M %p, %A, %B %d, %Y')
            return "\x02{}\x02 ({})".format(formatted_time, timezone)
-           
+
     # Use the Geocoding API to get co-ordinates from the input
     params = {"address": text, "key": dev_key}
     if bias:

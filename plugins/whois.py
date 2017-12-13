@@ -10,14 +10,16 @@ from cloudbot import hook
 
 
 @hook.command
-def whois(text):
+def whois(text, reply):
     """<domain> -- Does a whois query on <domain>."""
     domain = text.strip().lower()
 
     try:
         data = pythonwhois.get_whois(domain, normalized=True)
     except pythonwhois.shared.WhoisException:
-        return "Invalid input."
+        reply("Invalid input.")
+        raise
+
     info = []
 
     # We suppress errors here because different domains provide different data fields

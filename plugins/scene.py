@@ -23,14 +23,15 @@ from cloudbot.util import timeformat
 
 
 @hook.command("pre", "scene")
-def pre(text):
-    """pre <query> -- searches scene releases using orlydb.com"""
+def pre(text, reply):
+    """<query> - searches scene releases using orlydb.com"""
 
     try:
         request = requests.get("http://orlydb.com/", params={"q": text})
         request.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        return 'Unable to fetch results: {}'.format(e)
+        reply('Unable to fetch results: {}'.format(e))
+        raise
 
     h = html.fromstring(request.text)
 

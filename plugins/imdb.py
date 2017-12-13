@@ -9,7 +9,7 @@ imdb_re = re.compile(r'(.*:)//(imdb.com|www.imdb.com)(:[0-9]+)?(.*)', re.I)
 
 @hook.command
 def imdb(text, bot):
-    """imdb <movie> - gets information about <movie> from IMDb"""
+    """<movie> - gets information about <movie> from IMDb"""
 
     headers = {'User-Agent': bot.user_agent}
     strip = text.strip()
@@ -25,6 +25,7 @@ def imdb(text, bot):
         "https://imdb-scraper.herokuapp.com/" + endpoint,
         params=params,
         headers=headers)
+    request.raise_for_status()
     content = request.json()
 
     if content['success'] is False:

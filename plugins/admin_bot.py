@@ -4,7 +4,6 @@ import re
 from cloudbot import hook
 from cloudbot.util import formatting
 
-logchannel = ""
 
 @asyncio.coroutine
 @hook.command("groups", "listgroups", "permgroups", permissions=["permissions_users"], autohelp=False)
@@ -105,7 +104,7 @@ def get_user_groups(text, conn, mask, has_permission, notice):
 
 @asyncio.coroutine
 @hook.command("deluser", permissions=["permissions_users"])
-def remove_permission_user(text, nick, bot, message, conn, notice, reply):
+def remove_permission_user(text, nick, bot, message, conn, notice, reply, admin_log):
     """<user> [group] - removes <user> from [group], or from all groups if no group is specified
     :type text: str
     :type bot: cloudbot.bot.CloudBot
@@ -137,12 +136,10 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply):
             changed = True
         if len(changed_masks) > 1:
             reply("Removed {} and {} from {}".format(", ".join(changed_masks[:-1]), changed_masks[-1], group))
-            if logchannel:
-                message("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]), changed_masks[-1], group), logchannel)
+            admin_log("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]), changed_masks[-1], group))
         elif changed_masks:
             reply("Removed {} from {}".format(changed_masks[0], group))
-            if logchannel:
-                message("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group), logchannel)
+            admin_log("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group))
         else:
             reply("No masks in {} matched {}".format(group, user))
     else:
@@ -153,12 +150,10 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply):
                 changed = True
             if len(changed_masks) > 1:
                 reply("Removed {} and {} from {}".format(", ".join(changed_masks[:-1]), changed_masks[-1], group))
-                if logchannel:
-                    message("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]), changed_masks[-1], group), logchannel)
+                admin_log("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]), changed_masks[-1], group))
             elif changed_masks:
                 reply("Removed {} from {}".format(changed_masks[0], group))
-                if logchannel:
-                    message("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group), logchannel)
+                admin_log("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group))
         if not changed:
             reply("No masks with elevated permissions matched {}".format(group, user))
 
@@ -169,7 +164,7 @@ def remove_permission_user(text, nick, bot, message, conn, notice, reply):
 
 @asyncio.coroutine
 @hook.command("adduser", permissions=["permissions_users"])
-def add_permissions_user(text, nick, message, conn, bot, notice, reply):
+def add_permissions_user(text, nick, message, conn, bot, notice, reply, admin_log):
     """<user> <group> - adds <user> to <group>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -201,12 +196,10 @@ def add_permissions_user(text, nick, message, conn, bot, notice, reply):
         reply("User {} is already matched in group {}".format(user, group))
     elif group_exists:
         reply("User {} added to group {}".format(user, group))
-        if logchannel:
-                message("{} used adduser to add {} to {}.".format(nick, user, group), logchannel)
+        admin_log("{} used adduser to add {} to {}.".format(nick, user, group))
     else:
         reply("Group {} created with user {}".format(group, user))
-        if logchannel:
-                message("{} used adduser to create group {} and add {} to it.".format(nick, group, user), logchannel)
+        admin_log("{} used adduser to create group {} and add {} to it.".format(nick, group, user))
 
     if changed:
         bot.config.save_config()
@@ -241,7 +234,7 @@ def restart(text, bot):
 
 @asyncio.coroutine
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def join(text, conn, nick, message, notice):
+def join(text, conn, nick, message, notice, admin_log):
     """<channel> - joins <channel>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -249,15 +242,14 @@ def join(text, conn, nick, message, notice):
     for target in text.split():
         if not target.startswith("#"):
             target = "#{}".format(target)
-        if logchannel:
-            message("{} used JOIN to make me join {}.".format(nick, target), logchannel)
+        admin_log("{} used JOIN to make me join {}.".format(nick, target))
         notice("Attempting to join {}...".format(target))
         conn.join(target)
 
 
 @asyncio.coroutine
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
-def part(text, conn, nick, message, chan, notice):
+def part(text, conn, nick, chan, notice, admin_log):
     """[#channel] - parts [#channel], or the caller's channel if no channel is specified
     :type text: str
     :type conn: cloudbot.client.Client
@@ -270,8 +262,7 @@ def part(text, conn, nick, message, chan, notice):
     for target in targets.split():
         if not target.startswith("#"):
             target = "#{}".format(target)
-        if logchannel:
-            message("{} used PART to make me leave {}.".format(nick, target), logchannel)
+        admin_log("{} used PART to make me leave {}.".format(nick, target))
         notice("Attempting to leave {}...".format(target))
         conn.part(target)
 
@@ -324,7 +315,7 @@ def raw(text, conn, notice):
 
 @asyncio.coroutine
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def say(text, conn, chan, nick, message):
+def say(text, conn, chan, nick, admin_log):
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified
     :type text: str
     :type conn: cloudbot.client.Client
@@ -338,14 +329,13 @@ def say(text, conn, chan, nick, message):
     else:
         channel = chan
         text = text
-    if logchannel:
-            message("{} used SAY to make me SAY \"{}\" in {}.".format(nick, text, channel), logchannel)
+    admin_log("{} used SAY to make me SAY \"{}\" in {}.".format(nick, text, channel))
     conn.message(channel, text)
 
 
 @asyncio.coroutine
 @hook.command("message", "sayto", permissions=["botcontrol", "snoonetstaff"])
-def message(text, conn, nick, message):
+def message(text, conn, nick, admin_log):
     """<name> <message> - says <message> to <name>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -353,14 +343,13 @@ def message(text, conn, nick, message):
     split = text.split(None, 1)
     channel = split[0]
     text = split[1]
-    if logchannel:
-            message("{} used MESSAGE to make me SAY \"{}\" in {}.".format(nick, text, channel), logchannel)
+    admin_log("{} used MESSAGE to make me SAY \"{}\" in {}.".format(nick, text, channel))
     conn.message(channel, text)
 
 
 @asyncio.coroutine
 @hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
-def me(text, conn, chan, message, nick):
+def me(text, conn, chan, message, nick, admin_log):
     """[#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
     :type text: str
     :type conn: cloudbot.client.Client
@@ -374,8 +363,7 @@ def me(text, conn, chan, message, nick):
     else:
         channel = chan
         text = text
-    if logchannel:
-            message("{} used ME to make me ACT \"{}\" in {}.".format(nick, text, channel), logchannel)
+    admin_log("{} used ME to make me ACT \"{}\" in {}.".format(nick, text, channel))
     conn.ctcp(channel, "ACTION", text)
 
 @asyncio.coroutine

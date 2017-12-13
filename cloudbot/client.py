@@ -1,6 +1,7 @@
 import asyncio
-import logging
 import collections
+import logging
+import random
 
 from cloudbot.permissions import PermissionManager
 
@@ -59,7 +60,20 @@ class Client:
         raise NotImplementedError
 
     @asyncio.coroutine
-    def connect(self):
+    def try_connect(self):
+        timeout = 30
+        while True:
+            try:
+                yield from self.connect(timeout)
+            except Exception:
+                logger.exception("[%s] Error occurred while connecting.")
+            else:
+                break
+
+            yield from asyncio.sleep(random.randrange(timeout))
+
+    @asyncio.coroutine
+    def connect(self, timeout=None):
         """
         Connects to the server, or reconnects if already connected.
         """
@@ -82,6 +96,14 @@ class Client:
         Sends a message to the given target
         :type target: str
         :type text: str
+        """
+        raise NotImplementedError
+
+    def admin_log(self, text, console=True):
+        """
+        Log a message to the configured admin channel
+        :type text: str
+        :type console: bool
         """
         raise NotImplementedError
 

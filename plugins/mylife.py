@@ -16,35 +16,29 @@ mlia_cache = []
 def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
     url = 'http://www.fmylife.com/random/'
-    try:
-        _func = functools.partial(requests.get, url, timeout=6)
-        request = yield from loop.run_in_executor(None, _func)
-        soup = BeautifulSoup(request.text)
+    _func = functools.partial(requests.get, url, timeout=6)
+    request = yield from loop.run_in_executor(None, _func)
+    soup = BeautifulSoup(request.text)
 
-        for e in soup.find_all('article', {'class': 'art-panel'}):
-            fml_id = int(e.find('div', {'id': re.compile('card')})['id'].split('-')[-1])
-            text = ''.join(e.find('p').find_all(text=True))
-            fml_cache.append((fml_id, text))
-    except:
-        pass
+    for e in soup.find_all('article', {'class': 'art-panel'}):
+        fml_id = int(e.find('div', {'id': re.compile('card')})['id'].split('-')[-1])
+        text = ''.join(e.find('p').find_all(text=True))
+        fml_cache.append((fml_id, text))
 
 
 @asyncio.coroutine
 def refresh_mlia_cache(loop):
     """ gets a page of random MLIAs and puts them into a dictionary """
     url = 'http://mylifeisaverage.com/{}'.format(random.randint(1, 11000))
-    try:
-        _func = functools.partial(requests.get, url, timeout=6)
-        request = yield from loop.run_in_executor(None, _func)
-        soup = BeautifulSoup(request.text)
+    _func = functools.partial(requests.get, url, timeout=6)
+    request = yield from loop.run_in_executor(None, _func)
+    soup = BeautifulSoup(request.text)
 
-        for story in soup.find_all('div', {'class': 'story '}):
-            mlia_id = story.find('span', {'class': 'left'}).a.text
-            mlia_text = story.find('div', {'class': 'sc'}).text
-            mlia_text = " ".join(mlia_text.split())
-            mlia_cache.append((mlia_id, mlia_text))
-    except:
-        pass
+    for story in soup.find_all('div', {'class': 'story '}):
+        mlia_id = story.find('span', {'class': 'left'}).a.text
+        mlia_text = story.find('div', {'class': 'sc'}).text
+        mlia_text = " ".join(mlia_text.split())
+        mlia_cache.append((mlia_id, mlia_text))
 
 
 @asyncio.coroutine

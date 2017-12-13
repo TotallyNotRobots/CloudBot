@@ -20,7 +20,7 @@ table = Table(
 @hook.on_start()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
 def load_bad(db):
-    """Should run on start of bot to load the existing words into the regex"""
+    """- Should run on start of bot to load the existing words into the regex"""
     global badword_re, blacklist, black_re
     words = db.execute("select word from badwords").fetchall()
     out = ""
@@ -31,9 +31,9 @@ def load_bad(db):
     badwords_re = re.compile(black_re, re.IGNORECASE)
 
 
-@hook.command("addbad", permissions=["badwords"], autohelp=False)
+@hook.command("addbad", permissions=["badwords"])
 def add_bad(text, nick, db, conn):
-    """adds a bad word to the auto kick list must specify a channel with each word"""
+    """<word> <channel> - adds a bad word to the auto kick list must specify a channel with each word"""
     global blacklist, black_re, blacklist
     word = text.split(' ')[0].lower()
     channel = text.split(' ')[1].lower()
@@ -62,9 +62,9 @@ def add_bad(text, nick, db, conn):
                 channel)
 
 
-@hook.command("rmbad", "delbad", permissions=["badwords"], autohelp=False)
+@hook.command("rmbad", "delbad", permissions=["badwords"])
 def del_bad(text, db, conn):
-    """removes the specified word from the specified channels bad word list"""
+    """<word> <channel> - removes the specified word from the specified channels bad word list"""
     global blacklist, black_re, blacklist
     word = text.split(' ')[0].lower()
     if not (text.split(' ')[1] or text.split(' ')[1]('#')):
@@ -82,9 +82,9 @@ def del_bad(text, db, conn):
         newlist)
 
 
-@hook.command("listbad", permissions=["badwords"], autohelp=False)
+@hook.command("listbad", permissions=["badwords"])
 def list_bad(text, db):
-    """Returns a list of bad words specify a channel to see words for a particular channel"""
+    """<channel> - Returns a list of bad words specify a channel to see words for a particular channel"""
     text = text.split(' ')[0].lower()
     out = ""
     if not text.startswith('#'):

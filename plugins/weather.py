@@ -1,12 +1,13 @@
 import requests
-
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
+
 from cloudbot import hook
 from cloudbot.util import web, database
 
 
 class APIError(Exception):
     pass
+
 
 # Define database table
 
@@ -58,13 +59,16 @@ def find_location(location):
     if bias:
         params['region'] = bias
 
-    json = requests.get(geocode_api, params=params).json()
+    request = requests.get(geocode_api, params=params)
+    request.raise_for_status()
 
+    json = request.json()
     error = check_status(json['status'])
     if error:
         raise APIError(error)
 
     return json['results'][0]['geometry']['location']
+
 
 def load_cache(db):
     global location_cache
@@ -72,7 +76,8 @@ def load_cache(db):
     for row in db.execute(table.select()):
         nick = row["nick"]
         location = row["loc"]
-        location_cache.append((nick,location))
+        location_cache.append((nick, location))
+
 
 def add_location(nick, location, db):
     test = dict(location_cache)
@@ -85,6 +90,7 @@ def add_location(nick, location, db):
         db.execute(table.insert().values(nick=nick.lower(), loc=location.lower()))
         db.commit()
         load_cache(db)
+
 
 @hook.on_start
 def on_start(bot, db):
@@ -104,9 +110,10 @@ def get_location(nick):
         location = location[0]
     return location
 
+
 @hook.command("weather", "we", autohelp=False)
 def weather(text, reply, db, nick, notice):
-    """weather <location> -- Gets weather data for <location>."""
+    """<location> - Gets weather data for <location>."""
     if not wunder_key:
         return "This command requires a Weather Underground API key."
     if not dev_key:
@@ -130,7 +137,10 @@ def weather(text, reply, db, nick, notice):
     formatted_location = "{lat},{lng}".format(**location_data)
 
     url = wunder_api.format(wunder_key, formatted_location)
-    response = requests.get(url).json()
+    request = requests.get(url)
+    request.raise_for_status()
+
+    response = request.json()
 
     if response['response'].get('error'):
         return "{}".format(response['response']['error']['description'])
@@ -162,17 +172,9 @@ def weather(text, reply, db, nick, notice):
 
     # Get the more accurate URL if available, if not, get the generic one.
     if "?query=," in response["current_observation"]['ob_url']:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["forcast_url"]
-            pass
+        weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
     else:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["ob_url"]
-            pass
+        weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
 
     reply("{place} - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, {humidity}, "
           "Wind: {wind_mph}MPH/{wind_kph}KPH {wind_direction}, \x02Today:\x02 {today_conditions}, "

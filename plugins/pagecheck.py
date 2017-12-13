@@ -19,7 +19,8 @@ def down(text):
     text = 'http://' + urllib.parse.urlparse(text).netloc
 
     try:
-        requests.get(text)
+        r = requests.get(text)
+        r.raise_for_status()
     except requests.exceptions.ConnectionError:
         return '{} seems to be down'.format(text)
     else:
@@ -40,6 +41,7 @@ def isup(text):
 
     try:
         response = requests.get('http://isup.me/' + domain)
+        response.raise_for_status()
     except requests.exceptions.ConnectionError:
         return "Failed to get status."
     if response.status_code != requests.codes.ok:

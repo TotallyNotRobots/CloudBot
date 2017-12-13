@@ -123,7 +123,7 @@ def incrementMsgCounter(event, conn):
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def start_hunt(bot, chan, message, conn):
-    """This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
+    """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
         return
@@ -153,7 +153,7 @@ def set_ducktime(chan, conn):
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def stop_hunt(chan, conn):
-    """This command stops the duck hunt in your channel. Scores will be preserved"""
+    """- This command stops the duck hunt in your channel. Scores will be preserved"""
     global game_status
     if chan in opt_out:
         return
@@ -166,7 +166,7 @@ def stop_hunt(chan, conn):
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(text, chan, conn, notice):
-    """If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
+    """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
     global game_status
     if chan in opt_out:
         return
@@ -278,7 +278,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
 
 @hook.command("bang", autohelp=False)
 def bang(nick, chan, message, db, conn, notice):
-    """when there is a duck on the loose use this command to shoot it."""
+    """- when there is a duck on the loose use this command to shoot it."""
     global game_status, scripters
     if chan in opt_out:
         return
@@ -337,7 +337,7 @@ def bang(nick, chan, message, db, conn, notice):
 
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice):
-    """when there is a duck on the loose use this command to befriend it before someone else shoots it."""
+    """- when there is a duck on the loose use this command to befriend it before someone else shoots it."""
     global game_status, scripters
     if chan in opt_out:
         return
@@ -408,7 +408,7 @@ def smart_truncate(content, length=320, suffix='...'):
 
 @hook.command("friends", autohelp=False)
 def friends(text, chan, conn, db):
-    """Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included."""
+    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included."""
     if chan in opt_out:
         return
     friends = defaultdict(int)
@@ -452,7 +452,7 @@ def friends(text, chan, conn, db):
 
 @hook.command("killers", autohelp=False)
 def killers(text, chan, conn, db):
-    """Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included."""
+    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included."""
     if chan in opt_out:
         return
     killers = defaultdict(int)
@@ -496,7 +496,7 @@ def killers(text, chan, conn, db):
 
 @hook.command("duckforgive", permissions=["op", "ignore"])
 def duckforgive(text):
-    """Allows people to be removed from the mandatory cooldown period."""
+    """<nick> - Allows people to be removed from the mandatory cooldown period."""
     global scripters
     if text.lower() in scripters and scripters[text.lower()] > time():
         scripters[text.lower()] = 0
@@ -507,7 +507,7 @@ def duckforgive(text):
 
 @hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
-    """Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
+    """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
     if not text:
         if chan in opt_out:
             return "Duck hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(chan)
@@ -542,7 +542,7 @@ def hunt_opt_out(text, chan, db, conn):
 
 @hook.command("duckmerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
-    """Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
+    """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
     oldnick, newnick = text.lower().split()
     if not oldnick or not newnick:
         return "Please specify two nicks for this command."
@@ -598,7 +598,7 @@ def duck_merge(text, conn, db, message):
 
 @hook.command("ducks", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
-    """Prints a users duck stats. If no nick is input it will check the calling username."""
+    """<nick> - Prints a users duck stats. If no nick is input it will check the calling username."""
     name = nick.lower()
     if text:
         name = text.split()[0].lower()
@@ -637,7 +637,7 @@ def ducks_user(text, nick, chan, conn, db, message):
 
 @hook.command("duckstats", autohelp=False)
 def duck_stats(chan, conn, db, message):
-    """Prints duck statistics for the entire channel and totals for the network."""
+    """- Prints duck statistics for the entire channel and totals for the network."""
     ducks = defaultdict(int)
     scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
                         .where(table.c.network == conn.name)).fetchall()
