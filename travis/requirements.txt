@@ -4,6 +4,7 @@ pytest-cov
 pytest-pep8
 pytest-leaks
 pytest-travis-fold
+pytest-pylint
 flake8
 python-coveralls
 pylint
