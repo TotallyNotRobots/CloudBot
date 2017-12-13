@@ -1,9 +1,8 @@
-import re
 import html
+import re
 
 from cloudbot import hook
 from cloudbot.util import http
-
 
 twitch_re = re.compile(r'(.*:)//(twitch.tv|www.twitch.tv)(:[0-9]+)?(.*)', re.I)
 multitwitch_re = re.compile(r'(.*:)//(www.multitwitch.tv|multitwitch.tv)/(.*)', re.I)

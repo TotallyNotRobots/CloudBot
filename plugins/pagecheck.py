@@ -1,8 +1,8 @@
 import urllib.parse
 
-from bs4 import BeautifulSoup
 import requests
 import requests.exceptions
+from bs4 import BeautifulSoup
 
 from cloudbot import hook
 

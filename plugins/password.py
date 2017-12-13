@@ -1,11 +1,11 @@
-import string
 import random as std_random
+import string
 
 from cloudbot import hook
 
-
 try:
     from Crypto.Random import random
+
     gen = random.StrongRandom()
 except ImportError:
     # Just use the regular random module, not the strong one

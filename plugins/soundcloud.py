@@ -1,4 +1,5 @@
 import re
+
 import requests
 
 from cloudbot import hook
@@ -119,12 +120,13 @@ def format_playlist(playlist, show_url=True):
     else:
         out += " - {} items,".format(len(playlist['tracks']))
 
-        seconds = round(int(playlist['duration'])/1000)
+        seconds = round(int(playlist['duration']) / 1000)
         out += " {}".format(timeformat.format_time(seconds, simple=True))
 
     if show_url:
         out += " - {}".format(web.try_shorten(playlist['permalink_url']))
     return out
+
 
 def format_group(group, show_url=True):
     """
@@ -193,7 +195,7 @@ def soundcloud_url(match):
         return
 
     url = match.group(1).split(' ')[-1] + "//" + (match.group(2) if match.group(2) else "") + match.group(3) + \
-        match.group(4).split(' ')[0]
+          match.group(4).split(' ')[0]
 
     item = get_with_url(url)
     if not item:

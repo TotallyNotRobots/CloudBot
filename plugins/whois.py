@@ -3,8 +3,9 @@ whois.py
 Provides a command to allow users to look up information on domain names.
 """
 
-import pythonwhois
 from contextlib import suppress
+
+import pythonwhois
 
 from cloudbot import hook
 

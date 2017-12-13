@@ -1,10 +1,12 @@
 import urllib.parse
+
 import requests
 
 from cloudbot import hook
 from cloudbot.util import web
 
 api_url = "https://validator.w3.org/check"
+
 
 @hook.command("validate", "w3c")
 def validate(text, reply):

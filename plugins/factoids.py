@@ -54,7 +54,8 @@ def add_factoid(db, word, chan, data, nick):
     """
     if word in factoid_cache[chan]:
         # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(table.c.word == word))
+        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
+            table.c.word == word))
         db.commit()
     else:
         # otherwise, insert

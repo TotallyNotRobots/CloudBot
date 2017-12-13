@@ -2,7 +2,6 @@
 Bot wide hook opt-out for channels
 """
 import asyncio
-import copy
 from collections import defaultdict
 from fnmatch import fnmatch
 from functools import total_ordering

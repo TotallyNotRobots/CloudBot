@@ -41,10 +41,9 @@ License:
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import re
-import random
-
 import copy
+import random
+import re
 
 TEMPLATE_RE = re.compile(r"\{(.+?)\}")
 

@@ -19,18 +19,18 @@ table = Table(
 def horoscope(text, db, bot, notice, nick, reply):
     """<sign> - get your horoscope"""
     signs = {
-            'aries': '1',
-            'taurus': '2',
-            'gemini': '3',
-            'cancer': '4',
-            'leo': '5',
-            'virgo': '6',
-            'libra': '7',
-            'scorpio': '8',
-            'sagittarius': '9',
-            'capricorn': '10',
-            'aquarius': '11',
-            'pisces': '12'
+        'aries': '1',
+        'taurus': '2',
+        'gemini': '3',
+        'cancer': '4',
+        'leo': '5',
+        'virgo': '6',
+        'libra': '7',
+        'scorpio': '8',
+        'sagittarius': '9',
+        'capricorn': '10',
+        'aquarius': '11',
+        'pisces': '12'
     }
 
     headers = {'User-Agent': bot.user_agent}
@@ -43,7 +43,7 @@ def horoscope(text, db, bot, notice, nick, reply):
         sign = text.strip().lower()
 
     if not sign:
-        sign = db.execute("select sign from horoscope where "
+        sign = db.execute("SELECT sign FROM horoscope WHERE "
                           "nick=lower(:nick)", {'nick': nick}).fetchone()
         if not sign:
             notice("horoscope <sign> -- Get your horoscope")
@@ -51,7 +51,7 @@ def horoscope(text, db, bot, notice, nick, reply):
         sign = sign[0].strip().lower()
 
     params = {
-            "sign": signs[sign]
+        "sign": signs[sign]
     }
 
     url = "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx"

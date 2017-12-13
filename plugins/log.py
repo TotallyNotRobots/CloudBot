@@ -9,7 +9,6 @@ from cloudbot.event import EventType
 # +---------+
 # | Formats |
 # +---------+
-from cloudbot.hook import Priority
 from cloudbot.util.formatting import strip_colors
 
 base_formats = {
@@ -118,7 +117,7 @@ def format_irc_event(event, args):
     if not logging_config.get("show_motd", True) and event.irc_command in ("375", "372", "376"):
         return None
     elif not logging_config.get("show_server_info", True) and event.irc_command in (
-            "003", "005", "250", "251", "252", "253", "254", "255", "256"):
+        "003", "005", "250", "251", "252", "253", "254", "255", "256"):
         return None
     elif event.irc_command == "PING":
         return None
@@ -126,6 +125,7 @@ def format_irc_event(event, args):
     # Format using the default raw format
 
     return irc_default.format(server=event.conn.name, irc_raw=event.irc_raw)
+
 
 # +--------------+
 # | File logging |

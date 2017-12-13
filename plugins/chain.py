@@ -1,7 +1,7 @@
 import asyncio
+import itertools
 from operator import attrgetter
 
-import itertools
 from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint
 
 from cloudbot import hook

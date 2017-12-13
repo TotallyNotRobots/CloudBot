@@ -1,8 +1,9 @@
 import re
+from datetime import datetime
+
 import requests
 from requests import HTTPError
 from requests.auth import HTTPBasicAuth
-from datetime import datetime
 
 from cloudbot import hook
 

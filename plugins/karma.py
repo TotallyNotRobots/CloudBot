@@ -1,6 +1,5 @@
-import re
 import operator
-
+import re
 from collections import defaultdict
 
 from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint
@@ -26,15 +25,18 @@ karma_table = Table(
 def addpoint(text, nick, chan, db, conn):
     """<thing> - adds a point to the <thing>"""
     text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
+    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
+                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
         score = score + 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
         # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
     else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': 1})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': 1})
         db.commit()
         # return "{} is now worth 1 in {}'s eyes.".format(text, nick)
 
@@ -54,15 +56,18 @@ def re_addpt(match, nick, chan, db, conn, notice):
 def rmpoint(text, nick, chan, db, conn):
     """<thing> - subtracts a point from the <thing>"""
     text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
+    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
+                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
         score = score - 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
         # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
     else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': -1})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': -1})
         db.commit()
         # return "{} is now worth -1 in {}'s eyes.".format(text, nick)
 
@@ -71,7 +76,9 @@ def rmpoint(text, nick, chan, db, conn):
 def pluspts(nick, chan, db, conn):
     """- prints the things you have liked and their scores"""
     output = ""
-    likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc", {'name': nick, 'chan': chan}).fetchall()
+    likes = db.execute(
+        "select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc",
+        {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
         output = output + str(like[0]) + " has " + str(like[1]) + " points "
     return output
@@ -81,7 +88,9 @@ def pluspts(nick, chan, db, conn):
 def minuspts(nick, chan, db, conn):
     """- prints the things you have disliked and their scores"""
     output = ""
-    likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score", {'name': nick, 'chan': chan}).fetchall()
+    likes = db.execute(
+        "select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score",
+        {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
         output = output + str(like[0]) + " has " + str(like[1]) + " points "
     return output
@@ -109,7 +118,8 @@ def points(text, chan, db, conn):
         karma = db.execute("select score from karma where thing = :thing", {'thing': thing.lower()}).fetchall()
     else:
         text = text.strip()
-        karma = db.execute("select score from karma where thing = :thing and chan = :chan", {'thing': text.lower(), 'chan': chan}).fetchall()
+        karma = db.execute("select score from karma where thing = :thing and chan = :chan",
+                           {'thing': text.lower(), 'chan': chan}).fetchall()
     if karma:
         pos = 0
         neg = 0
@@ -120,7 +130,8 @@ def points(text, chan, db, conn):
                 pos += int(k[0])
             score += int(k[0])
         if thing:
-            return "{} has a total score of {} (+{}/{}) across all channels I know about.".format(thing, score, pos, neg)
+            return "{} has a total score of {} (+{}/{}) across all channels I know about.".format(thing, score, pos,
+                                                                                                  neg)
         return "{} has a total score of {} (+{}/{}) in {}.".format(text, score, pos, neg, chan)
     else:
         return "I couldn't find {} in the database.".format(text)

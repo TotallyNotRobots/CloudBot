@@ -2,21 +2,20 @@
 
 import http.cookiejar
 import json
-import urllib.request
-import urllib.parse
 import urllib.error
-import urllib.request
 import urllib.error
 import urllib.parse
 import urllib.parse
+import urllib.parse
+import urllib.request
+import urllib.request
+# noinspection PyUnresolvedReferences
+from urllib.error import URLError, HTTPError
 # noinspection PyUnresolvedReferences
 from urllib.parse import quote, quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
 from lxml import etree, html
-
-# noinspection PyUnresolvedReferences
-from urllib.error import URLError, HTTPError
 
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)

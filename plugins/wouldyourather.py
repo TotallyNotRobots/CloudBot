@@ -1,5 +1,5 @@
 from cloudbot import hook
-from cloudbot.util import http, web
+from cloudbot.util import http
 
 
 @hook.command("wouldyou", autohelp=False)

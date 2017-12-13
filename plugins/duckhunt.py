@@ -209,7 +209,8 @@ def deploy_duck(message, bot):
             next_duck = game_status[network][chan]['next_duck_time']
             chan_messages = game_status[network][chan]['messages']
             chan_masks = game_status[network][chan]['masks']
-            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(chan_masks) >= MASK_REQ:
+            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(
+                chan_masks) >= MASK_REQ:
                 # deploy a duck to channel
                 game_status[network][chan]['duck_status'] = 1
                 game_status[network][chan]['duck_time'] = time()

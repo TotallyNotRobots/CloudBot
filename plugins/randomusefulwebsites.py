@@ -1,8 +1,10 @@
-from cloudbot import hook
 import requests
+
+from cloudbot import hook
 
 url = 'http://www.discuvver.com/jump2.php'
 headers = {'Referer': 'http://www.discuvver.com'}
+
 
 @hook.command('randomusefulsite', 'randomwebsite', 'randomsite', 'discuvver')
 def randomusefulwebsite():

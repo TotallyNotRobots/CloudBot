@@ -1,6 +1,6 @@
 import datetime
-import requests
 
+import requests
 from lxml import etree
 
 from cloudbot import hook

@@ -1,12 +1,11 @@
-import re
 import random
+import re
+from contextlib import suppress
 
 from imgurpython import ImgurClient
-from contextlib import suppress
 
 from cloudbot import hook
 from cloudbot.util import web
-
 
 # imgurpython has an issue where it does not allow anonymous album creation
 # to fix this we monkeypatch logged_in to disable login checking

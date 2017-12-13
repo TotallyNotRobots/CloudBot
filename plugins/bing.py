@@ -7,7 +7,6 @@ from requests import HTTPError
 from cloudbot import hook
 from cloudbot.util import formatting, filesize, colors
 
-
 API_URL = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
 
 # filters for SafeSearch
@@ -75,7 +74,9 @@ def bing(text, bot, reply):
     desc = formatting.truncate(unescape(result["Description"]), 150)
     url = unescape(result["Url"])
 
-    return colors.parse('\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02  {} -- $(b){}$(b): "{}"'.format(url, title, desc))
+    return colors.parse(
+        '\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02  {} -- $(b){}$(b): "{}"'.format(
+            url, title, desc))
 
 
 @hook.command("bingimage", "bis")
@@ -136,4 +137,5 @@ def bingimage(text, bot, reply):
     # join all the tags together in a comma separated string ("tag1, tag2, tag3")
     tag_text = ", ".join(tags)
 
-    return '\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02 {} ({})'.format(unescape(result["MediaUrl"]), tag_text)
+    return '\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02 {} ({})'.format(
+        unescape(result["MediaUrl"]), tag_text)

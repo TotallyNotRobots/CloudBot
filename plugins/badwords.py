@@ -1,10 +1,9 @@
 import re
-import random
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
-from cloudbot.event import EventType
 from cloudbot import hook
+from cloudbot.event import EventType
 from cloudbot.util import database
 
 table = Table(
@@ -49,7 +48,7 @@ def add_bad(text, nick, db, conn):
         if len(
             db.execute(
                 "select word from badwords where chan = :chan", {
-                "chan": channel}).fetchall()) < 10:
+                    "chan": channel}).fetchall()) < 10:
             db.execute(
                 "insert into badwords ( word, nick, chan ) values ( :word, :nick, :chan)", {
                     "word": word, "nick": nick, "chan": channel})

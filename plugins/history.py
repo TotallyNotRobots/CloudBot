@@ -1,13 +1,13 @@
-from collections import deque
-import time
 import asyncio
 import re
+import time
+from collections import deque
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
 from cloudbot import hook
-from cloudbot.util import timeformat, database
 from cloudbot.event import EventType
+from cloudbot.util import timeformat, database
 
 table = Table(
     'seen_user',
@@ -103,7 +103,7 @@ def seen(text, nick, chan, db, event):
         text = text.replace("_", "/_")
 
     last_seen = db.execute("select name, time, quote from seen_user where name like :name escape '/' and chan = :chan",
-                            {'name': text, 'chan': chan}).fetchone()
+                           {'name': text, 'chan': chan}).fetchone()
 
     text = text.replace("/", "")
 

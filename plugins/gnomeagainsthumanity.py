@@ -1,19 +1,17 @@
-import os
 import codecs
 import json
-import asyncio
+import os
 import random
-from cloudbot import hook
 import re
+
+from cloudbot import hook
 
 
 @hook.on_start()
 def shuffle_deck(bot):
-
     global gnomecards
     with codecs.open(os.path.join(bot.data_dir, "gnomecards.json"), encoding="utf-8") as f:
         gnomecards = json.load(f)
-
 
 
 @hook.command('cah')

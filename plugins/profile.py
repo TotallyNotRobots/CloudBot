@@ -3,10 +3,7 @@ import re
 import string
 from collections import defaultdict
 
-from sqlalchemy import Column
-from sqlalchemy import String
-from sqlalchemy import Table
-from sqlalchemy import and_
+from sqlalchemy import Column, String, Table, and_
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -206,4 +203,3 @@ def profileclear(nick, chan, text, notice, db):
         notice("Are you sure you want to clear all of your profile data in {}? use \".profileclear {}\" to confirm"
                .format(chan, key))
         return
-

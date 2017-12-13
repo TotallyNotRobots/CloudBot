@@ -58,4 +58,3 @@ def pre(text, reply):
         size = ''
 
     return '{} - {}{} - {} ({} ago)'.format(section, name, size, date_string, since)
-

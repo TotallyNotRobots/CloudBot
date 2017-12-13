@@ -1,15 +1,14 @@
-from datetime import datetime
-import re
-import random
 import asyncio
 import functools
+import random
+import re
 import urllib.parse
+from datetime import datetime
 
 import requests
 
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
-
 
 reddit_re = re.compile(r'.*(((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
 
@@ -61,7 +60,7 @@ def reddit_url(match, bot):
     if isinstance(data, list):
         item = data[0]["data"]["children"][0]["data"]
     elif isinstance(data, dict):
-        #item = data["data"]["children"][random.randint(0,9)]["data"]
+        # item = data["data"]["children"][random.randint(0,9)]["data"]
         return
 
     return format_output(item)

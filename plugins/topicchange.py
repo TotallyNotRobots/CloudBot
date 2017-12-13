@@ -4,6 +4,7 @@ import random
 
 from cloudbot import hook
 
+
 @hook.on_start()
 def load_topicchange(bot):
     """
@@ -13,6 +14,7 @@ def load_topicchange(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "topicchange.txt"), encoding="utf-8") as f:
         topicchange = [line.strip() for line in f.readlines() if not line.startswith("//")]
+
 
 @hook.command("changetopic", "discuss", "question", autohelp=False)
 def topicchange(message, conn):
