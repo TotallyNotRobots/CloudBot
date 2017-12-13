@@ -231,7 +231,7 @@ def toptrack(text, nick):
         track_name = data["toptracks"]["track"][r]["name"]
         artist_name = data["toptracks"]["track"][r]["artist"]["name"]
         play_count = data["toptracks"]["track"][r]["playcount"]
-        out = out + "{} by {} listened to {:,} times. ".format(track_name, artist_name, int(play_count))
+        out += "{} by {} listened to {:,} times. ".format(track_name, artist_name, int(play_count))
     return out
 
 
@@ -265,7 +265,7 @@ def libretopartists(text, nick):
     for r in range(5):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
-        out = out + "{} listened to {:,} times. ".format(artist_name, int(play_count))
+        out += "{} listened to {:,} times. ".format(artist_name, int(play_count))
     return out
 
 
@@ -324,5 +324,5 @@ def topartists(text, nick, period):
     for r in range(range_count):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
-        out = out + "{} [{:,}] ".format(artist_name, int(play_count))
+        out += "{} [{:,}] ".format(artist_name, int(play_count))
     return out

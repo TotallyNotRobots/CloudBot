@@ -24,7 +24,7 @@ def load_bad(db):
     words = db.execute("select word from badwords").fetchall()
     out = ""
     for word in words:
-        out = out + "{}|".format(word[0])
+        out += "{}|".format(word[0])
     blacklist = out[:-1]
     black_re = '(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format(blacklist)
     badword_re = re.compile(black_re, re.IGNORECASE)
@@ -92,7 +92,7 @@ def list_bad(text, db):
         "select word from badwords where chan = :chan", {
             "chan": text}).fetchall()
     for word in words:
-        out = out + "{}|".format(word[0])
+        out += "{}|".format(word[0])
     return out[:-1]
 
 

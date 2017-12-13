@@ -29,7 +29,7 @@ def addpoint(text, nick, chan, db):
                        {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
-        score = score + 1
+        score += 1
         db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
                    {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
@@ -60,7 +60,7 @@ def rmpoint(text, nick, chan, db):
                        {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
-        score = score - 1
+        score -= 1
         db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
                    {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
