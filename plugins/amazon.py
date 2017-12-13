@@ -93,7 +93,7 @@ def amazon(text, reply, _parsed=False):
     try:
         # get the rating
         rating = item.find('i', {'class': 'a-icon-star'}).find('span', {'class': 'a-icon-alt'}).text
-        rating = re.search(r"([0-9]+(?:(?:\.|,)[0-9])?).*5", rating).group(1).replace(",", ".")
+        rating = re.search(r"([0-9]+(?:[.,][0-9])?).*5", rating).group(1).replace(",", ".")
         # get the rating count
         pattern = re.compile(r'(product-reviews|#customerReviews)')
         num_ratings = item.find('a', {'href': pattern}).text.replace(".", ",")

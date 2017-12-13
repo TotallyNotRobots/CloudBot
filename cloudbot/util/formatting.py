@@ -266,7 +266,7 @@ def dict_format(args, formats):
             # Check if values can be mapped
             m = f.format(**args)
             # Insert match and number of matched values (max matched values if already in dict)
-            matches[m] = max([matches.get(m, 0), len(re.findall(r'(\{.*?\})', f))])
+            matches[m] = max([matches.get(m, 0), len(re.findall(r'({.*?\})', f))])
         except Exception:
             continue
 

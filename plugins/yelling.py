@@ -5,7 +5,7 @@ from cloudbot.event import EventType
 
 OPT_IN = ["#yelling"]
 YELL_RE = re.compile('[^a-zA-Z]')
-URL_RE = re.compile('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+URL_RE = re.compile('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 
 
 @hook.event([EventType.message, EventType.action])

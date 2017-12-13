@@ -8,7 +8,7 @@ from cloudbot import hook
 from cloudbot.hook import Priority, Action
 
 # This will match any URL, blacklist removed and abstracted to a priority/halting system
-url_re = re.compile(r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', re.I)
+url_re = re.compile(r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', re.I)
 
 HEADERS = {
     'Accept-Language': 'en-US,en;q=0.5',

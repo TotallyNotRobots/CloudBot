@@ -8,7 +8,7 @@ from cloudbot import hook
 from cloudbot.util import database
 
 karmaplus_re = re.compile('^.*\+\+$')
-karmaminus_re = re.compile('^.*\-\-$')
+karmaminus_re = re.compile('^.*--$')
 
 karma_table = Table(
     'karma',

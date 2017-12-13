@@ -45,7 +45,7 @@ import copy
 import random
 import re
 
-TEMPLATE_RE = re.compile(r"\{(.+?)\}")
+TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
 class TextGenerator(object):
