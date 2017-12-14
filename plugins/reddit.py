@@ -66,7 +66,7 @@ def reddit_url(match, bot):
 
 @hook.command(autohelp=False, singlethread=True)
 def reddit(text, bot, reply):
-    """<subreddit> [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
+    """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
 
     if text:
