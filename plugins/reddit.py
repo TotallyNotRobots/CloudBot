@@ -1,15 +1,14 @@
-from datetime import datetime
-import re
-import random
 import asyncio
 import functools
+import random
+import re
 import urllib.parse
+from datetime import datetime
 
 import requests
 
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
-
 
 reddit_re = re.compile(r'.*(((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
 
@@ -44,12 +43,16 @@ def format_output(item, show_url=False):
 @hook.regex(reddit_re)
 def reddit_url(match, bot):
     url = match.group(1)
+    url = url.rstrip('/')  # Remove any trailing '/'
+
     if "redd.it" in url:
-        url = "http://" + url
+        url = "https://" + url
         response = requests.get(url)
-        url = response.url + "/.json"
+        response.raise_for_status()
+        url = response.url.rstrip('/') + "/.json"
+
     if not urllib.parse.urlparse(url).scheme:
-        url = "http://" + url + "/.json"
+        url = "https://" + url + "/.json"
 
     # the reddit API gets grumpy if we don't include headers
     headers = {'User-Agent': bot.user_agent}
@@ -61,7 +64,7 @@ def reddit_url(match, bot):
     if isinstance(data, list):
         item = data[0]["data"]["children"][0]["data"]
     elif isinstance(data, dict):
-        #item = data["data"]["children"][random.randint(0,9)]["data"]
+        # item = data["data"]["children"][random.randint(0,9)]["data"]
         return
 
     return format_output(item)
