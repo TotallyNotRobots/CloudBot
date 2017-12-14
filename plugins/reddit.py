@@ -1,5 +1,3 @@
-import asyncio
-import functools
 import random
 import re
 import urllib.parse
@@ -12,8 +10,15 @@ from cloudbot.util import timeformat, formatting
 
 reddit_re = re.compile(r'.*(((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
 
-base_url = "http://reddit.com/r/{}/.json"
+base_url = "http://reddit.com/r/{}"
 short_url = "http://redd.it/{}"
+
+
+def api_request(url, bot):
+    url = url.rstrip('/') + "/.json"
+    r = requests.get(url, headers={'User-Agent': bot.user_agent})
+    r.raise_for_status()
+    return r.json()
 
 
 def format_output(item, show_url=False):
@@ -40,74 +45,60 @@ def format_output(item, show_url=False):
                " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
 
 
-@hook.regex(reddit_re)
+@hook.regex(reddit_re, singlethread=True)
 def reddit_url(match, bot):
     url = match.group(1)
-    url = url.rstrip('/')  # Remove any trailing '/'
 
     if "redd.it" in url:
         url = "https://" + url
         response = requests.get(url)
         response.raise_for_status()
-        url = response.url.rstrip('/') + "/.json"
+        url = response.url
 
     if not urllib.parse.urlparse(url).scheme:
-        url = "https://" + url + "/.json"
+        url = "https://" + url
 
-    # the reddit API gets grumpy if we don't include headers
-    headers = {'User-Agent': bot.user_agent}
-    r = requests.get(url, headers=headers)
-    r.raise_for_status()
-
-    data = r.json()
+    data = api_request(url, bot)
     item = data[0]["data"]["children"][0]["data"]
 
     return format_output(item)
 
 
-@asyncio.coroutine
-@hook.command(autohelp=False)
-def reddit(text, bot, loop, reply):
+@hook.command(autohelp=False, singlethread=True)
+def reddit(text, bot, reply):
     """<subreddit> [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
-    headers = {'User-Agent': bot.user_agent}
 
     if text:
         # clean and split the input
         parts = text.lower().strip().split()
+        url = base_url.format(parts.pop(0).strip())
 
         # find the requested post number (if any)
-        if len(parts) > 1:
-            url = base_url.format(parts[0].strip())
+        if parts:
             try:
                 id_num = int(parts[1]) - 1
             except ValueError:
                 return "Invalid post number."
-        else:
-            url = base_url.format(parts[0].strip())
     else:
-        url = "http://reddit.com/.json"
+        url = "http://reddit.com"
 
     try:
-        # Again, identify with Reddit using an User Agent, otherwise get a 429
-        inquiry = yield from loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
-        inquiry.raise_for_status()
-        if inquiry.status_code != 200:
-            return "r/{} either does not exist or is private.".format(text)
-        data = inquiry.json()
+        data = api_request(url, bot)
     except Exception as e:
         reply("Error: " + str(e))
         raise
+
     data = data["data"]["children"]
 
     # get the requested/random post
     if id_num is not None:
         try:
-            item = data[id_num]["data"]
+            item = data[id_num]
         except IndexError:
             length = len(data)
             return "Invalid post number. Number must be between 1 and {}.".format(length)
     else:
-        item = random.choice(data)["data"]
+        item = random.choice(data)
 
-    return format_output(item, show_url=True)
+    return format_output(item["data"], show_url=True)
