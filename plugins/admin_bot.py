@@ -369,7 +369,7 @@ def me(text, conn, chan, message, nick, admin_log):
 @asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def listchans(conn, chan, message, notice):
-    """-- Lists the current channels the bot is in"""
+    """- Lists the current channels the bot is in"""
     chans = ', '.join(sorted(conn.channels, key=lambda x: x.strip('#').lower()))
     lines = formatting.chunk_str("I am currently in: {}".format(chans))
     for line in lines:
