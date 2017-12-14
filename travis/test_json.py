@@ -3,33 +3,21 @@ Travis Test file:
 Test JSON files for errors.
 """
 
-import codecs
-import fnmatch
 import json
-import os
-import sys
 from collections import OrderedDict
+from pathlib import Path
 
-exit_code = 0
-print("Travis: Testing all JSON files in source")
 
-for root, dirs, files in os.walk('.'):
-    for filename in fnmatch.filter(files, '*.json'):
-        file = os.path.join(root, filename)
-        with codecs.open(file, encoding="utf-8") as f:
-            text = f.read()
+def pytest_generate_tests(metafunc):
+    if 'json_file' in metafunc.fixturenames:
+        paths = list(Path().rglob("*.json"))
+        metafunc.parametrize('json_file', paths, ids=list(map(str, paths)))
 
-        try:
-            data = json.loads(text, object_pairs_hook=OrderedDict)
-        except Exception as e:
-            exit_code |= 1
-            print("Travis: {} is not a valid JSON file, json.load threw exception:\n{}".format(file, e))
-        else:
-            formatted_text = json.dumps(data, indent=4) + '\n'
 
-            if text != formatted_text:
-                exit_code |= 2
-                print("Travis: {} is not a properly formatted JSON file".format(file))
+def test_json(json_file):
+    with json_file.open(encoding="utf-8") as f:
+        text = f.read()
 
-if exit_code != 0:
-    sys.exit(exit_code)
+    data = json.loads(text, object_pairs_hook=OrderedDict)
+    formatted_text = json.dumps(data, indent=4) + '\n'
+    assert formatted_text == text, "Improperly formatted JSON file"
