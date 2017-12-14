@@ -77,7 +77,7 @@ def reddit(text, bot, reply):
         # find the requested post number (if any)
         if parts:
             try:
-                id_num = int(parts[1]) - 1
+                id_num = int(parts[0]) - 1
             except ValueError:
                 return "Invalid post number."
     else:
