@@ -2,7 +2,7 @@
 Validates all hook registrations in all plugins
 """
 import importlib
-import string
+import re
 from numbers import Number
 from pathlib import Path
 
@@ -16,6 +16,7 @@ from cloudbot.util import database
 database.metadata = MetaData()
 Hook.original_init = Hook.__init__
 
+DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
 PLUGINS = []
 
 
@@ -106,7 +107,7 @@ def test_hook_kwargs(hook):
 
 def test_hook_doc(hook):
     if hook.type == "command" and hook.doc:
-        assert hook.doc[:1] not in "." + string.ascii_letters, \
+        assert DOC_RE.match(hook.doc), \
             "Invalid docstring '{}' format for command hook".format(hook.doc)
 
 
