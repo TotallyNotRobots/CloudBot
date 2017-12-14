@@ -2,14 +2,11 @@
 
 import asyncio
 import logging
-import re
 from collections import deque
 
 from cloudbot import hook
 
 logger = logging.getLogger("cloudbot")
-
-nick_re = re.compile(":(.+?)!")
 
 
 # functions called for bot state tracking
@@ -36,7 +33,6 @@ def on_kick(conn, chan, target, loop):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
-    :type nick: str
     """
     # if the bot has been kicked, remove from the channel list
     if target == conn.nick:
@@ -49,13 +45,13 @@ def on_kick(conn, chan, target, loop):
 
 @asyncio.coroutine
 @hook.irc_raw("NICK")
-def on_nick(irc_paramlist, conn, irc_raw):
+def on_nick(irc_paramlist, conn, nick):
     """
     :type irc_paramlist: list[str]
     :type conn: cloudbot.client.Client
-    :type irc_raw: str
+    :type nick: str
     """
-    old_nick = nick_re.search(irc_raw).group(1)
+    old_nick = nick
     new_nick = str(irc_paramlist[0])
 
     # get rid of :
