@@ -58,14 +58,9 @@ def reddit_url(match, bot):
     headers = {'User-Agent': bot.user_agent}
     r = requests.get(url, headers=headers)
     r.raise_for_status()
-    if r.status_code != 200:
-        return
+
     data = r.json()
-    if isinstance(data, list):
-        item = data[0]["data"]["children"][0]["data"]
-    elif isinstance(data, dict):
-        # item = data["data"]["children"][random.randint(0,9)]["data"]
-        return
+    item = data[0]["data"]["children"][0]["data"]
 
     return format_output(item)
 
