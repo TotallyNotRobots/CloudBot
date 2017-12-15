@@ -3,7 +3,7 @@ import time
 import asyncio
 import re
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float
 
 from cloudbot import hook
 from cloudbot.util import timeformat, database
@@ -13,7 +13,7 @@ table = Table(
     'seen_user',
     database.metadata,
     Column('name', String),
-    Column('time', String),
+    Column('time', Float),
     Column('quote', String),
     Column('chan', String),
     Column('host', String),
