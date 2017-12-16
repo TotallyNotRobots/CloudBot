@@ -171,7 +171,7 @@ def listfactoids(notice, chan):
     """- lists all available factoids"""
     reply_text = []
     reply_text_length = 0
-    for word in factoid_cache[chan].keys():
+    for word in sorted(factoid_cache[chan].keys()):
         added_length = len(word) + 2
         if reply_text_length + added_length > 400:
             notice(", ".join(reply_text))
@@ -187,6 +187,6 @@ def listfactoids(notice, chan):
 def listdetailedfactoids(chan):
     """- lists all available factoids with their respective data"""
     headers = ("Command", "Output")
-    data = [(fact[0], fact[1]) for fact in factoid_cache[chan].items()]
+    data = [(fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
     table = gen_markdown_table(headers, data).encode('UTF-8')
     return web.paste(table, "md", "hastebin")
