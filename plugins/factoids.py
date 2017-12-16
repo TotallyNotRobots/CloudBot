@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web
-
+from cloudbot.util.formatting import gen_markdown_table
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
