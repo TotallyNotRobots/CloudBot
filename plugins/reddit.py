@@ -1,22 +1,26 @@
 import random
 import re
-import urllib.parse
 from datetime import datetime
 
 import requests
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
 
-reddit_re = re.compile(r'.*(((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
+reddit_re = re.compile(r'.*(//((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
 
-base_url = "http://reddit.com/r/{}"
-short_url = "http://redd.it/{}"
+base_url = "https://reddit.com/r/{}"
+short_url = "https://redd.it/{}"
 
 
 def api_request(url, bot):
-    url = url.rstrip('/') + "/.json"
-    r = requests.get(url, headers={'User-Agent': bot.user_agent})
+    """
+    :type url: yarl.URL
+    :type bot: cloudbot.bot.CloudBot
+    """
+    url = url.with_query("").with_scheme("https") / ".json"
+    r = requests.get(str(url), headers={'User-Agent': bot.user_agent})
     r.raise_for_status()
     return r.json()
 
@@ -48,15 +52,12 @@ def format_output(item, show_url=False):
 @hook.regex(reddit_re, singlethread=True)
 def reddit_url(match, bot):
     url = match.group(1)
+    url = URL(url).with_scheme("https")
 
-    if "redd.it" in url:
-        url = "https://" + url
+    if url.host.endswith("redd.it"):
         response = requests.get(url)
         response.raise_for_status()
-        url = response.url
-
-    if not urllib.parse.urlparse(url).scheme:
-        url = "https://" + url
+        url = URL(response.url).with_scheme("https")
 
     data = api_request(url, bot)
     item = data[0]["data"]["children"][0]["data"]
@@ -81,10 +82,10 @@ def reddit(text, bot, reply):
             except ValueError:
                 return "Invalid post number."
     else:
-        url = "http://reddit.com"
+        url = "https://reddit.com"
 
     try:
-        data = api_request(url, bot)
+        data = api_request(URL(url), bot)
     except Exception as e:
         reply("Error: " + str(e))
         raise
