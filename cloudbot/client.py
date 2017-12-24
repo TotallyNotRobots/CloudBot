@@ -7,6 +7,17 @@ from cloudbot.permissions import PermissionManager
 
 logger = logging.getLogger("cloudbot")
 
+CLIENTS = {}
+
+
+def client(_type):
+    def _decorate(cls):
+        CLIENTS[_type] = cls
+        cls._type = _type
+        return cls
+
+    return lambda cls: _decorate(cls)
+
 
 class Client:
     """
@@ -21,6 +32,8 @@ class Client:
     :type history: dict[str, list[tuple]]
     :type permissions: PermissionManager
     """
+
+    _type = None
 
     def __init__(self, bot, name, nick, *, channels=None, config=None):
         """
@@ -155,3 +168,7 @@ class Client:
     @property
     def connected(self):
         raise NotImplementedError
+
+    @property
+    def type(self):
+        return self._type

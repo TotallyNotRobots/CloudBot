@@ -7,7 +7,7 @@ from _ssl import PROTOCOL_SSLv23
 from functools import partial
 from ssl import SSLContext
 
-from cloudbot.client import Client
+from cloudbot.client import Client, client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 from cloudbot.util.parsers.irc import Message
@@ -50,6 +50,7 @@ def decode(bytestring):
     return bytestring.decode('utf-8', errors='ignore')
 
 
+@client("irc")
 class IrcClient(Client):
     """
     An implementation of Client for IRC.
