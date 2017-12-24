@@ -239,6 +239,9 @@ class CloudBot:
             if halted:
                 return False
 
+            if hook.clients and _event.conn.type not in hook.clients:
+                return True
+
             coro = self.plugin_manager.launch(hook, _event)
             if _run_before:
                 run_before_tasks.append(coro)

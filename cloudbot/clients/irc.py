@@ -104,16 +104,15 @@ class IrcClient(Client):
 
     @asyncio.coroutine
     def try_connect(self):
-        timeout = self.config["connection"].get("timeout", 30)
         while True:
             try:
-                yield from self.connect(timeout)
+                yield from self.connect(self.timeout)
             except (asyncio.TimeoutError, OSError):
                 logger.exception("[%s] Error occurred while connecting", self.name)
             else:
                 break
 
-            yield from asyncio.sleep(random.randrange(timeout))
+            yield from asyncio.sleep(random.randrange(self.timeout))
 
     @asyncio.coroutine
     def connect(self, timeout=None):
@@ -148,6 +147,7 @@ class IrcClient(Client):
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
             for hook in self.bot.plugin_manager.connect_hooks
+            if not hook.clients or self.type in hook.clients
         ]
         # TODO stop connecting if a connect hook fails?
         yield from asyncio.gather(*tasks)
