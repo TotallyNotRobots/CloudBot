@@ -68,7 +68,7 @@ class IrcClient(Client):
 
         self.use_ssl = config['connection'].get('ssl', False)
         self._ignore_cert_errors = config['connection']['ignore_cert']
-        self._timeout = config['connection']['timeout']
+        self._timeout = config['connection'].get('timeout', 300)
         self.server = config['connection']['server']
         self.port = config['connection'].get('port', 6667)
 
@@ -106,13 +106,13 @@ class IrcClient(Client):
     def try_connect(self):
         while True:
             try:
-                yield from self.connect(self.timeout)
+                yield from self.connect(self._timeout)
             except (asyncio.TimeoutError, OSError):
                 logger.exception("[%s] Error occurred while connecting", self.name)
             else:
                 break
 
-            yield from asyncio.sleep(random.randrange(self.timeout))
+            yield from asyncio.sleep(random.randrange(self._timeout))
 
     @asyncio.coroutine
     def connect(self, timeout=None):
@@ -380,7 +380,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Reply to pings immediately
 
             if command == "PING":
-                async_util.wrap_future(self.conn.send("PONG " + command_params[-1], log=False), loop=self.loop)
+                self.conn.send("PONG " + command_params[-1], log=False)
 
             # Parse the command and params
 
