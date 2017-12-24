@@ -234,22 +234,23 @@ class IrcClient(Client):
         else:
             self.send(command)
 
-    def send(self, line):
+    def send(self, line, log=True):
         """
         Sends a raw IRC line
         :type line: str
+        :type log: bool
         """
         if not self._connected:
             raise ValueError("Client must be connected to irc server to use send")
-        self.loop.call_soon_threadsafe(self._send, line)
+        self.loop.call_soon_threadsafe(self._send, line, log)
 
-    def _send(self, line):
+    def _send(self, line, log=True):
         """
         Sends a raw IRC line unchecked. Doesn't do connected check, and is *not* threadsafe
         :type line: str
+        :type log: bool
         """
-        logger.info("[{}] >> {}".format(self.name, line))
-        async_util.wrap_future(self._protocol.send(line), loop=self.loop)
+        async_util.wrap_future(self._protocol.send(line, log=log), loop=self.loop)
 
     @property
     def connected(self):
@@ -316,7 +317,7 @@ class _IrcProtocol(asyncio.Protocol):
         return True
 
     @asyncio.coroutine
-    def send(self, line):
+    def send(self, line, log=True):
         # make sure we are connected before sending
         if not self._connected:
             yield from self._connected_future
@@ -352,6 +353,9 @@ class _IrcProtocol(asyncio.Protocol):
             # the line must be encoded before we send it, one of the sieves didn't encode it, fall back to the default
             line = line.encode("utf-8", "replace")
 
+        if log:
+            logger.info("[{}|out] >> {!r}".format(self.conn.name, line))
+
         self._transport.write(line)
 
     def data_received(self, data):
@@ -376,7 +380,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Reply to pings immediately
 
             if command == "PING":
-                async_util.wrap_future(self.send("PONG " + command_params[-1]), loop=self.loop)
+                async_util.wrap_future(self.conn.send("PONG " + command_params[-1], log=False), loop=self.loop)
 
             # Parse the command and params
 
