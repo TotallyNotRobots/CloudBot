@@ -14,11 +14,6 @@ from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
 
-irc_prefix_re = re.compile(r":([^ ]*) ([^ ]*) (.*)")
-irc_noprefix_re = re.compile(r"([^ ]*) (.*)")
-irc_netmask_re = re.compile(r"([^!@]*)!([^@]*)@(.*)")
-irc_param_re = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)")
-
 irc_nick_re = re.compile(r'[A-Za-z0-9^{\}\[\]\-`_|\\]+')
 
 irc_bad_chars = ''.join([chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))])
@@ -61,27 +56,26 @@ class IrcClient(Client):
     :type _ignore_cert_errors: bool
     """
 
-    def __init__(self, bot, name, nick, *, channels=None, config=None,
-                 server, port=6667, use_ssl=False, ignore_cert_errors=True, timeout=300, local_bind=False):
+    def __init__(self, bot, name, nick, *, channels=None, config=None):
         """
         :type bot: cloudbot.bot.CloudBot
         :type name: str
         :type nick: str
         :type channels: list[str]
         :type config: dict[str, unknown]
-        :type server: str
-        :type port: int
-        :type use_ssl: bool
-        :type ignore_cert_errors: bool
-        :type timeout: int
         """
         super().__init__(bot, name, nick, channels=channels, config=config)
 
-        self.use_ssl = use_ssl
-        self._ignore_cert_errors = ignore_cert_errors
-        self._timeout = timeout
-        self.server = server
-        self.port = port
+        self.use_ssl = config['connection'].get('ssl', False)
+        self._ignore_cert_errors = config['connection']['ignore_cert']
+        self._timeout = config['connection']['timeout']
+        self.server = config['connection']['server']
+        self.port = config['connection'].get('port', 6667)
+
+        local_bind = (config['connection'].get('bind_addr', False), config['connection'].get('bind_port', 0))
+        if local_bind[0] is False:
+            local_bind = False
+
         self.local_bind = local_bind
         # create SSL context
         if self.use_ssl:
