@@ -4,6 +4,7 @@ from collections import defaultdict
 from time import time
 
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -318,17 +319,22 @@ def bang(nick, chan, message, db, conn, notice):
             else:
                 message(out)
         game_status[network][chan]['duck_status'] = 2
-        score = db.execute(select([table.c.shot]) \
-                           .where(table.c.network == conn.name) \
-                           .where(table.c.chan == chan.lower()) \
-                           .where(table.c.name == nick.lower())).fetchone()
-        if score:
-            score = score[0]
-            score += 1
-            dbupdate(nick, chan, db, conn, score, 0)
-        else:
-            score = 1
-            dbadd_entry(nick, chan, db, conn, score, 0)
+        try:
+            score = db.execute(select([table.c.shot])
+                               .where(table.c.network == conn.name)
+                               .where(table.c.chan == chan.lower())
+                               .where(table.c.name == nick.lower())).fetchone()
+            if score:
+                score = score[0]
+                score += 1
+                dbupdate(nick, chan, db, conn, score, 0)
+            else:
+                score = 1
+                dbadd_entry(nick, chan, db, conn, score, 0)
+        except DatabaseError:
+            game_status[network][chan]['duck_status'] = 1
+            raise
+
         timer = "{:.3f}".format(shoot - deploy)
         duck = "duck" if score == 1 else "ducks"
         message("{} you shot a duck in {} seconds! You have killed {} {} in {}.".format(nick, timer, score, duck, chan))
@@ -380,17 +386,22 @@ def befriend(nick, chan, message, db, conn, notice):
                 message(out)
 
         game_status[network][chan]['duck_status'] = 2
-        score = db.execute(select([table.c.befriend]) \
-                           .where(table.c.network == conn.name) \
-                           .where(table.c.chan == chan.lower()) \
-                           .where(table.c.name == nick.lower())).fetchone()
-        if score:
-            score = score[0]
-            score += 1
-            dbupdate(nick, chan, db, conn, 0, score)
-        else:
-            score = 1
-            dbadd_entry(nick, chan, db, conn, 0, score)
+        try:
+            score = db.execute(select([table.c.befriend])
+                               .where(table.c.network == conn.name)
+                               .where(table.c.chan == chan.lower())
+                               .where(table.c.name == nick.lower())).fetchone()
+            if score:
+                score = score[0]
+                score += 1
+                dbupdate(nick, chan, db, conn, 0, score)
+            else:
+                score = 1
+                dbadd_entry(nick, chan, db, conn, 0, score)
+        except DatabaseError:
+            game_status[network][chan]['duck_status'] = 1
+            raise
+
         duck = "duck" if score == 1 else "ducks"
         timer = "{:.3f}".format(shoot - deploy)
         message(
