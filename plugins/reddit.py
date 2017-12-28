@@ -8,7 +8,23 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
 
-reddit_re = re.compile(r'.*(//((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
+reddit_re = re.compile(
+    r"""
+    https? # Scheme
+    ://
+
+    # Domain
+    (?:
+        redd\.it|
+        (?:www\.)?reddit\.com/r
+    )
+
+    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)*  # Path
+
+    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
+    """,
+    re.IGNORECASE | re.VERBOSE
+)
 
 base_url = "https://reddit.com/r/{}"
 short_url = "https://redd.it/{}"
@@ -51,11 +67,11 @@ def format_output(item, show_url=False):
 
 @hook.regex(reddit_re, singlethread=True)
 def reddit_url(match, bot):
-    url = match.group(1)
+    url = match.group()
     url = URL(url).with_scheme("https")
 
     if url.host.endswith("redd.it"):
-        response = requests.get(url)
+        response = requests.get(url, headers={'User-Agent': bot.user_agent})
         response.raise_for_status()
         url = URL(response.url).with_scheme("https")
 
