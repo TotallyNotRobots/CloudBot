@@ -10,6 +10,7 @@ from sqlalchemy.sql import select
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
+from cloudbot.util.formatting import pluralize
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
@@ -123,7 +124,7 @@ def incrementMsgCounter(event, conn):
 
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
-def start_hunt(bot, chan, message, conn):
+def start_hunt(chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
@@ -166,7 +167,7 @@ def stop_hunt(chan, conn):
 
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
-def no_duck_kick(text, chan, conn, notice):
+def no_duck_kick(text, chan, conn, notice_doc):
     """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
     global game_status
     if chan in opt_out:
@@ -178,7 +179,7 @@ def no_duck_kick(text, chan, conn, notice):
         game_status[conn.name][chan]['no_duck_kick'] = 0
         return "kicking for non-existent ducks has been disabled."
     else:
-        notice(no_duck_kick.__doc__)
+        notice_doc()
         return
 
 
@@ -192,11 +193,11 @@ def generate_duck():
     dnoise = random.choice(duck_noise)
     rn = random.randint(1, len(dnoise) - 1)
     dnoise = dnoise[:rn] + u'\u200b' + dnoise[rn:]
-    return (dtail, dbody, dnoise)
+    return dtail, dbody, dnoise
 
 
 @hook.periodic(11, initial_interval=11)
-def deploy_duck(message, bot):
+def deploy_duck(bot):
     global game_status
     for network in game_status:
         if network not in bot.connections:
@@ -210,17 +211,13 @@ def deploy_duck(message, bot):
             next_duck = game_status[network][chan]['next_duck_time']
             chan_messages = game_status[network][chan]['messages']
             chan_masks = game_status[network][chan]['masks']
-            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(chan_masks) >= MASK_REQ:
+            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(
+                chan_masks) >= MASK_REQ:
                 # deploy a duck to channel
                 game_status[network][chan]['duck_status'] = 1
                 game_status[network][chan]['duck_time'] = time()
                 dtail, dbody, dnoise = generate_duck()
                 conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
-            # Leave this commented out for now. I haven't decided how to make ducks leave.
-            # if active == 1 and duck_status == 1 and game_status[network][chan]['flyaway'] <= int(time()):
-            #    conn.message(chan, "The duck flew away.")
-            #    game_status[network][chan]['duck_status'] = 2
-            #    set_ducktime(chan, conn)
             continue
         continue
 
@@ -277,137 +274,111 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
         db.commit()
 
 
-@hook.command("bang", autohelp=False)
-def bang(nick, chan, message, db, conn, notice):
-    """- when there is a duck on the loose use this command to shoot it."""
+def update_score(nick, chan, db, conn, shoot=0, friend=0):
+    score = db.execute(select([table.c.shot, table.c.befriend])
+                       .where(table.c.network == conn.name)
+                       .where(table.c.chan == chan.lower())
+                       .where(table.c.name == nick.lower())).fetchone()
+    if score:
+        score = score[0]
+        score += 1
+        dbupdate(nick, chan, db, conn, score[0] + shoot, score[1] + friend)
+    else:
+        dbadd_entry(nick, chan, db, conn, shoot, friend)
+
+
+def attack(nick, chan, message, db, conn, notice, attack):
     global game_status, scripters
     if chan in opt_out:
         return
+
     network = conn.name
-    score = ""
+    status = game_status[network][chan]
+
     out = ""
-    miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.",
-            "WTF?! Who are you, Kim Jong Un firing missiles? You missed."]
-    if not game_status[network][chan]['game_on']:
-        return "There is no activehunt right now. Use .starthunt to start a game."
-    elif game_status[network][chan]['duck_status'] != 1:
-        if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} :There is no duck! What are you shooting at?".format(chan, nick)
-            conn.send(out)
-            return
-        return "There is no duck. What are you shooting at?"
+    if attack == "shoot":
+        miss = [
+            "WHOOSH! You missed the duck completely!", "Your gun jammed!",
+            "Better luck next time.",
+            "WTF?! Who are you, Kim Jong Un firing missiles? You missed."
+        ]
+        no_duck = "There is no duck! What are you shooting at?"
+        msg = "{} you shot a duck in {:.3f} seconds! You have killed {} in {}."
+        scripter_msg = "You pulled the trigger in {:.3f} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down."
+        attack_type = "shoot"
     else:
-        game_status[network][chan]['shoot_time'] = time()
-        deploy = game_status[network][chan]['duck_time']
-        shoot = game_status[network][chan]['shoot_time']
+        miss = [
+            "The duck didn't want to be friends, maybe next time.",
+            "Well this is awkward, the duck needs to think about it.",
+            "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?",
+            "Who knew ducks could be so picky?"
+        ]
+        no_duck = "You tried befriending a non-existent duck. That's freaking creepy."
+        msg = "{} you befriended a duck in {:.3f} seconds! You have made friends with {} in {}."
+        scripter_msg = "You tried friending that duck in {:.3f} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down."
+        attack_type = "friend"
+
+    if not status['game_on']:
+        return "There is no hunt right now. Use .starthunt to start a game."
+    elif status['duck_status'] != 1:
+        if status['no_duck_kick'] == 1:
+            conn.cmd("KICK", chan, nick, no_duck)
+            return
+
+        return no_duck
+    else:
+        status['shoot_time'] = time()
+        deploy = status['duck_time']
+        shoot = status['shoot_time']
         if nick.lower() in scripters:
             if scripters[nick.lower()] > shoot:
-                notice("You are in a cool down period, you can try again in {} seconds.".format(
-                    str(scripters[nick.lower()] - shoot)))
+                notice(
+                    "You are in a cool down period, you can try again in {:.3f} seconds.".format(
+                        scripters[nick.lower()] - shoot
+                    )
+                )
                 return
+
         chance = hit_or_miss(deploy, shoot)
         if not random.random() <= chance and chance > .05:
             out = random.choice(miss) + " You can try again in 7 seconds."
             scripters[nick.lower()] = shoot + 7
             return out
+
         if chance == .05:
-            out += "You pulled the trigger in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(
-                str(shoot - deploy))
+            out += scripter_msg.format(shoot - deploy)
             scripters[nick.lower()] = shoot + 7200
             if not random.random() <= chance:
                 return random.choice(miss) + " " + out
             else:
                 message(out)
-        game_status[network][chan]['duck_status'] = 2
+
+        status['duck_status'] = 2
         try:
-            score = db.execute(select([table.c.shot])
-                               .where(table.c.network == conn.name)
-                               .where(table.c.chan == chan.lower())
-                               .where(table.c.name == nick.lower())).fetchone()
-            if score:
-                score = score[0]
-                score += 1
-                dbupdate(nick, chan, db, conn, score, 0)
-            else:
-                score = 1
-                dbadd_entry(nick, chan, db, conn, score, 0)
+            score = 1
+            args = {
+                attack_type: score
+            }
+
+            update_score(nick, chan, db, conn, **args)
         except DatabaseError:
-            game_status[network][chan]['duck_status'] = 1
+            status['duck_status'] = 1
             raise
 
-        timer = "{:.3f}".format(shoot - deploy)
-        duck = "duck" if score == 1 else "ducks"
-        message("{} you shot a duck in {} seconds! You have killed {} {} in {}.".format(nick, timer, score, duck, chan))
+        message(msg.format(nick, shoot - deploy, pluralize(score, "duck"), chan))
         set_ducktime(chan, conn.name)
+
+
+@hook.command("bang", autohelp=False)
+def bang(nick, chan, message, db, conn, notice):
+    """- when there is a duck on the loose use this command to shoot it."""
+    return attack(nick, chan, message, db, conn, notice, "shoot")
 
 
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice):
     """- when there is a duck on the loose use this command to befriend it before someone else shoots it."""
-    global game_status, scripters
-    if chan in opt_out:
-        return
-    network = conn.name
-    out = ""
-    score = ""
-    miss = ["The duck didn't want to be friends, maybe next time.",
-            "Well this is awkward, the duck needs to think about it.",
-            "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?",
-            "Who knew ducks could be so picky?"]
-    if not game_status[network][chan]['game_on']:
-        return "There is no hunt right now. Use .starthunt to start a game."
-    elif game_status[network][chan]['duck_status'] != 1:
-        if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} :You tried befriending a non-existent duck. That's fucking creepy.".format(chan, nick)
-            conn.send(out)
-            return
-        return "You tried befriending a non-existent duck. That's freaking creepy."
-    else:
-        game_status[network][chan]['shoot_time'] = time()
-        deploy = game_status[network][chan]['duck_time']
-        shoot = game_status[network][chan]['shoot_time']
-        if nick.lower() in scripters:
-            if scripters[nick.lower()] > shoot:
-                notice("You are in a cool down period, you can try again in {} seconds.".format(
-                    str(scripters[nick.lower()] - shoot)))
-                return
-        chance = hit_or_miss(deploy, shoot)
-        if not random.random() <= chance and chance > .05:
-            out = random.choice(miss) + " You can try again in 7 seconds."
-            scripters[nick.lower()] = shoot + 7
-            return out
-        if chance == .05:
-            out += "You tried friending that duck in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(
-                str(shoot - deploy))
-            scripters[nick.lower()] = shoot + 7200
-            if not random.random() <= chance:
-                return random.choice(miss) + " " + out
-            else:
-                message(out)
-
-        game_status[network][chan]['duck_status'] = 2
-        try:
-            score = db.execute(select([table.c.befriend])
-                               .where(table.c.network == conn.name)
-                               .where(table.c.chan == chan.lower())
-                               .where(table.c.name == nick.lower())).fetchone()
-            if score:
-                score = score[0]
-                score += 1
-                dbupdate(nick, chan, db, conn, 0, score)
-            else:
-                score = 1
-                dbadd_entry(nick, chan, db, conn, 0, score)
-        except DatabaseError:
-            game_status[network][chan]['duck_status'] = 1
-            raise
-
-        duck = "duck" if score == 1 else "ducks"
-        timer = "{:.3f}".format(shoot - deploy)
-        message(
-            "{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score,
-                                                                                                     duck, chan))
-        set_ducktime(chan, conn.name)
+    return attack(nick, chan, message, db, conn, notice, "befriend")
 
 
 def smart_truncate(content, length=320, suffix='...'):
