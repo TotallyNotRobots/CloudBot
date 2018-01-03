@@ -11,8 +11,6 @@ License:
     GNU General Public License (Version 3)
 """
 
-
-
 import requests
 
 from cloudbot import hook
@@ -28,6 +26,7 @@ def load_api(bot):
 
     dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
     cx = bot.config.get("api_keys", {}).get("google_cse_id", None)
+
 
 @hook.command('gse')
 def gse(text):
@@ -53,6 +52,7 @@ def gse(text):
         content = formatting.truncate_str(content.replace('\n', ''), 150)
 
     return u'{} -- \x02{}\x02: "{}"'.format(result['link'], title, content)
+
 
 @hook.command('gseis', 'image')
 def gse_gis(text):

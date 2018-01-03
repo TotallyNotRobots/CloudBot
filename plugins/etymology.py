@@ -1,11 +1,11 @@
 # Plugin by GhettoWizard and Scaevolus
 
-from lxml import html
-
 import requests
+from lxml import html
 from requests import HTTPError
 
 from cloudbot import hook
+
 
 @hook.command("e", "etymology")
 def etymology(text, reply):

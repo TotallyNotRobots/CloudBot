@@ -28,7 +28,6 @@ def check_status(status):
         return None
 
 
-
 @hook.on_start
 def load_key(bot):
     """ Loads the API key for Google APIs """

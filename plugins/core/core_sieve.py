@@ -1,10 +1,8 @@
 import asyncio
 import logging
-
 from time import time
 
 from cloudbot import hook
-from cloudbot.util import async_util
 from cloudbot.util.tokenbucket import TokenBucket
 
 ready = False

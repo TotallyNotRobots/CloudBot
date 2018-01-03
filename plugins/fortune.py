@@ -1,7 +1,7 @@
-import os
-import codecs
-import random
 import asyncio
+import codecs
+import os
+import random
 
 from cloudbot import hook
 

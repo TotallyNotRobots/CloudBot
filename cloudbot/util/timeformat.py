@@ -94,6 +94,7 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
     # pass the number in seconds on to format_time to make the output string
     return format_time(since, count, accuracy, simple)
 
+
 # compatibility
 timesince = time_since
 

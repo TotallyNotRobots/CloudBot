@@ -1,10 +1,10 @@
 import asyncio
+import functools
 import random
 import re
-import functools
 
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
 
 from cloudbot import hook
 

@@ -13,7 +13,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
-from cloudbot.client import Client
+from cloudbot.client import Client, CLIENTS
 from cloudbot.clients.irc import IrcClient, irc_clean
 from cloudbot.config import Config
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
@@ -27,6 +27,7 @@ try:
 
     web_installed = True
 except ImportError:
+    WebInterface = None
     web_installed = False
 
 logger = logging.getLogger("cloudbot")
@@ -44,7 +45,7 @@ class CloudBot:
     """
     :type start_time: float
     :type running: bool
-    :type connections: list[Client | IrcClient]
+    :type connections: dict[str, Client]
     :type data_dir: bytes
     :type config: core.config.Config
     :type plugin_manager: PluginManager
@@ -150,15 +151,9 @@ class CloudBot:
             # strip all spaces and capitalization from the connection name
             name = clean_name(config['name'])
             nick = config['nick']
-            server = config['connection']['server']
-            port = config['connection'].get('port', 6667)
-            local_bind = (config['connection'].get('bind_addr', False), config['connection'].get('bind_port', 0))
-            if local_bind[0] is False:
-                local_bind = False
+            _type = config.get("type", "irc")
 
-            self.connections[name] = IrcClient(self, name, nick, config=config, channels=config['channels'],
-                                               server=server, port=port, use_ssl=config['connection'].get('ssl', False),
-                                               local_bind=local_bind)
+            self.connections[name] = CLIENTS[_type](self, name, nick, config=config, channels=config['channels'])
             logger.debug("[{}] Created connection.".format(name))
 
     @asyncio.coroutine
@@ -244,6 +239,9 @@ class CloudBot:
             nonlocal halted
             if halted:
                 return False
+
+            if hook.clients and _event.conn.type not in hook.clients:
+                return True
 
             coro = self.plugin_manager.launch(hook, _event)
             if _run_before:

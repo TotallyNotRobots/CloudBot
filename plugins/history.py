@@ -1,19 +1,19 @@
-from collections import deque
-import time
 import asyncio
 import re
+import time
+from collections import deque
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float
 
 from cloudbot import hook
-from cloudbot.util import timeformat, database
 from cloudbot.event import EventType
+from cloudbot.util import timeformat, database
 
 table = Table(
     'seen_user',
     database.metadata,
     Column('name', String),
-    Column('time', String),
+    Column('time', Float),
     Column('quote', String),
     Column('chan', String),
     Column('host', String),
@@ -87,7 +87,6 @@ def seen(text, nick, chan, db, event):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
     """
 
     if event.conn.nick.lower() == text.lower():
@@ -96,14 +95,14 @@ def seen(text, nick, chan, db, event):
     if text.lower() == nick.lower():
         return "Have you looked in a mirror lately?"
 
-    if not re.match("^[A-Za-z0-9_|\^\*\`.\-\]\[\{\}\\\\]*$", text.lower()):
+    if not re.match("^[A-Za-z0-9_|^*`.\-\]\[{\}\\\\]*$", text.lower()):
         return "I can't look up that name, its impossible to use!"
 
     if '_' in text:
         text = text.replace("_", "/_")
 
     last_seen = db.execute("select name, time, quote from seen_user where name like :name escape '/' and chan = :chan",
-                            {'name': text, 'chan': chan}).fetchone()
+                           {'name': text, 'chan': chan}).fetchone()
 
     text = text.replace("/", "")
 

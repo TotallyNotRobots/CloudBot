@@ -25,7 +25,9 @@ def dogpileimage(text):
     data = soup.find_all("script")[6].string
     link_re = re.compile('"url":"(.*?)",')
     linklist = link_re.findall(data)
-    # linklist = soup.find('div', id="webResults").find_all('a', {'class':'resultThumbnailLink'})
+    if not linklist:
+        return "No results returned."
+
     image = parse.unquote(parse.unquote(random.choice(linklist)).split('ru=')[1].split('&')[0])
     return image
 
@@ -38,8 +40,12 @@ def dogpile(text):
     r = requests.get(web_url, params=params, headers=HEADERS)
     r.raise_for_status()
     soup = BeautifulSoup(r.content)
+    results = soup.find('div', id="webResults")
+    if not results:
+        return "No results found."
+
     result_url = parse.unquote(
-        parse.unquote(soup.find('div', id="webResults").find_all('a', {'class': 'resultDisplayUrl'})[0]['href']).split(
+        parse.unquote(results.find_all('a', {'class': 'resultDisplayUrl'})[0]['href']).split(
             'ru=')[1].split('&')[0])
-    result_description = soup.find('div', id="webResults").find_all('div', {'class': 'resultDescription'})[0].text
+    result_description = results.find_all('div', {'class': 'resultDescription'})[0].text
     return "{} -- \x02{}\x02".format(result_url, result_description)
