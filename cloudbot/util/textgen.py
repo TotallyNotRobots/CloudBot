@@ -41,12 +41,11 @@ License:
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import re
-import random
-
 import copy
+import random
+import re
 
-TEMPLATE_RE = re.compile(r"\{(.+?)\}")
+TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
 class TextGenerator(object):
@@ -69,7 +68,7 @@ class TextGenerator(object):
                 __part = _part
                 _weighted_parts.append((__part, 5))
 
-        population = [val for val, cnt in _weighted_parts for i in range(cnt)]
+        population = [val for val, cnt in _weighted_parts for _ in range(cnt)]
         return random.choice(population)
 
     def generate_string(self, template=None):

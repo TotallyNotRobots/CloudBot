@@ -445,7 +445,7 @@ def on_away(conn, nick, irc_paramlist):
 
 @hook.irc_raw('352')
 def on_who(conn, irc_paramlist):
-    _, ident, host, server, nick, status, realname = irc_paramlist
+    _, _, ident, host, server, nick, status, realname = irc_paramlist
     realname = realname.split(None, 1)[1]
     user = conn.memory["users"][nick]
     status = list(status)

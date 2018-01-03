@@ -1,10 +1,9 @@
 import re
-import random
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
-from cloudbot.event import EventType
 from cloudbot import hook
+from cloudbot.event import EventType
 from cloudbot.util import database
 
 table = Table(
@@ -25,10 +24,10 @@ def load_bad(db):
     words = db.execute("select word from badwords").fetchall()
     out = ""
     for word in words:
-        out = out + "{}|".format(word[0])
+        out += "{}|".format(word[0])
     blacklist = out[:-1]
     black_re = '(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format(blacklist)
-    badwords_re = re.compile(black_re, re.IGNORECASE)
+    badword_re = re.compile(black_re, re.IGNORECASE)
 
 
 @hook.command("addbad", permissions=["badwords"])
@@ -49,7 +48,7 @@ def add_bad(text, nick, db, conn):
         if len(
             db.execute(
                 "select word from badwords where chan = :chan", {
-                "chan": channel}).fetchall()) < 10:
+                    "chan": channel}).fetchall()) < 10:
             db.execute(
                 "insert into badwords ( word, nick, chan ) values ( :word, :nick, :chan)", {
                     "word": word, "nick": nick, "chan": channel})
@@ -93,7 +92,7 @@ def list_bad(text, db):
         "select word from badwords where chan = :chan", {
             "chan": text}).fetchall()
     for word in words:
-        out = out + "{}|".format(word[0])
+        out += "{}|".format(word[0])
     return out[:-1]
 
 

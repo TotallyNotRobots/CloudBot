@@ -1,12 +1,12 @@
-import string
 import re
+import string
+from collections import defaultdict
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
-from collections import defaultdict
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web
-
+from cloudbot.util.formatting import gen_markdown_table
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
@@ -39,9 +39,9 @@ def load_cache(db):
         word = row["word"]
         data = row["data"]
         if chan not in factoid_cache:
-            factoid_cache.update({chan:{word:data}})
+            factoid_cache.update({chan: {word: data}})
         elif word not in factoid_cache[chan]:
-            factoid_cache[chan].update({word:data})
+            factoid_cache[chan].update({word: data})
         else:
             factoid_cache[chan][word] = data
 
@@ -55,7 +55,8 @@ def add_factoid(db, word, chan, data, nick):
     """
     if word in factoid_cache[chan]:
         # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(table.c.word == word))
+        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
+            table.c.word == word))
         db.commit()
     else:
         # otherwise, insert
@@ -74,7 +75,7 @@ def del_factoid(db, chan, word):
     load_cache(db)
 
 
-@hook.command("r","remember", permissions=["op", "chanop"])
+@hook.command("r", "remember", permissions=["op", "chanop"])
 def remember(text, nick, db, chan, notice):
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
@@ -106,7 +107,7 @@ def remember(text, nick, db, chan, notice):
     add_factoid(db, word, chan, data, nick)
 
 
-@hook.command("f","forget", permissions=["op", "chanop"])
+@hook.command("f", "forget", permissions=["op", "chanop"])
 def forget(text, chan, db, notice):
     """<word> - forgets previously remembered <word>"""
     global factoid_cache
@@ -137,7 +138,7 @@ factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)
-def factoid( content, match, chan, event, message, action):
+def factoid(content, match, chan, message, action):
     """<word> - shows what data is associated with <word>"""
     arg1 = ""
     if len(content.split()) >= 2:
@@ -145,11 +146,6 @@ def factoid( content, match, chan, event, message, action):
     # split up the input
     split = match.group(1).strip().split(" ")
     factoid_id = split[0].lower()
-
-    if len(split) >= 1:
-        arguments = " ".join(split[1:])
-    else:
-        arguments = ""
 
     if factoid_id in factoid_cache[chan]:
         data = factoid_cache[chan][factoid_id]

@@ -20,7 +20,7 @@ def cats(reply, bot):
     """- gets a fucking fact about cats."""
     r = get_data('https://catfact.ninja/fact', reply, bot, params={'max_length': 100})
     json = r.json()
-    response = json['facts']
+    response = json['fact']
     return response
 
 

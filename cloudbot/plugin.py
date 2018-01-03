@@ -730,6 +730,13 @@ class Hook:
         self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
         self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
 
+        clients = func_hook.kwargs.pop("clients", [])
+
+        if isinstance(clients, str):
+            clients = [clients]
+
+        self.clients = clients
+
         if func_hook.kwargs:
             # we should have popped all the args, so warn if there are any left
             logger.warning("Ignoring extra args {} from {}".format(func_hook.kwargs, self.description))

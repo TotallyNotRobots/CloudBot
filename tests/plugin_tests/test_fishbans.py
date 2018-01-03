@@ -1,5 +1,4 @@
 import responses
-import pytest
 
 from plugins.fishbans import fishbans, bancount
 
