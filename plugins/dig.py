@@ -21,7 +21,6 @@ def dig(text, nick, notice):
     r = requests.get(url)
     r.raise_for_status()
     results = r.json()
-    out = "The following records were found for {}: ".format(domain)
     if results['header']['rcode'] == "NXDOMAIN":
         return "no dns record for {} was found".format(domain)
     notice("The following records were found for \x02{}\x02: ".format(domain), nick)

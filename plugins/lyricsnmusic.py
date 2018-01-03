@@ -3,8 +3,10 @@ from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web
+
 #
 api_url = "http://api.lyricsnmusic.com/songs"
+
 
 @hook.command("lyrics")
 def lyricsnmusic(text, bot, reply):

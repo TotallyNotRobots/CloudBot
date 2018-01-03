@@ -1,5 +1,6 @@
 import locale
 import math
+
 import requests
 from bs4 import BeautifulSoup
 from requests import HTTPError
@@ -42,15 +43,15 @@ def mfp(text, reply):
 
         for idx, val in enumerate(headers['captions']):
             kwargs = {
-                'caption':  val,
-                'total':    totals[idx],
-                'remain':   remaining[idx],
-                'units':    headers['units'][idx],
-                'pct':      math.floor((totals[idx]/remaining[idx])*100)
-                }
+                'caption': val,
+                'total': totals[idx],
+                'remain': remaining[idx],
+                'units': headers['units'][idx],
+                'pct': math.floor((totals[idx] / remaining[idx]) * 100)
+            }
 
             output += ("{caption}: {total}/{remain}{units} ({pct}%) "
-                       .format(**kwargs))
+                .format(**kwargs))
 
         output += " ({})".format(scrape_url.format(text))
 

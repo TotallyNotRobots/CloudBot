@@ -1,5 +1,5 @@
-from fnmatch import fnmatch
 import logging
+from fnmatch import fnmatch
 
 logger = logging.getLogger("cloudbot")
 

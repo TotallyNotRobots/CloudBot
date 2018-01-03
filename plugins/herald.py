@@ -72,7 +72,7 @@ def deleteherald(text, chan, db):
 
 @hook.irc_raw("JOIN", singlethread=True)
 def welcome(nick, message, db, bot, chan):
-    decoy = re.compile('[o○O0öøóóȯôőŏᴏōο](<|>|＜)')
+    decoy = re.compile('[Òo○O0öøóȯôőŏᴏōο][<>＜]')
     colors_re = re.compile("\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
     bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
     offensive_re = re.compile('卐')
