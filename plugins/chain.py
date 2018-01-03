@@ -7,7 +7,7 @@ from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint
 from cloudbot import hook
 from cloudbot.event import CommandEvent
 from cloudbot.util import database
-from cloudbot.util.formatting import chunk_str
+from cloudbot.util.formatting import chunk_str, pluralize
 
 commands = Table(
     'chain_commands',
@@ -84,15 +84,26 @@ def chainallow(text, db, notice_doc, bot):
 
             values['allowed'] = allow
 
-        db.execute(commands.insert().values(**values))
+        updated = True
+        res = db.execute(commands.update().values(**values).where(commands.c.hook == hook_name))
+        if res.rowcount == 0:
+            updated = False
+            db.execute(commands.insert().values(**values))
+
         db.commit()
         load_cache(db)
-        return "Add '{}' as an allowed command".format(hook_name)
+        if updated:
+            return "Updated state of '{}' in chainallow to allowed={}".format(hook_name, allow_cache.get(hook_name))
+
+        if allow_cache.get(hook_name):
+            return "Added '{}' as an allowed command".format(hook_name)
+
+        return "Added '{}' as a denied command".format(hook_name)
     elif subcmd == "del":
         res = db.execute(commands.delete().where(commands.c.hook == hook_name))
         db.commit()
         load_cache(db)
-        return "Deleted {} rows.".format(res.rowcount)
+        return "Deleted {}.".format(pluralize(res.rowcount, "row"))
     else:
         return notice_doc()
 
