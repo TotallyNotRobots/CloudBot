@@ -222,4 +222,4 @@ def _convert(string):
         elif formatting in IRC_FORMATTING_DICT:
             ret += get_format(formatting)
 
-    return ret.strip()
+    return ret
