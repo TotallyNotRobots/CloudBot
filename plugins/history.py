@@ -83,7 +83,7 @@ def resethistory(event, conn):
 
 
 @hook.command()
-def seen(text, nick, chan, db, event, is_valid_nick):
+def seen(text, nick, chan, db, event, is_nick_valid):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
@@ -95,7 +95,7 @@ def seen(text, nick, chan, db, event, is_valid_nick):
     if text.lower() == nick.lower():
         return "Have you looked in a mirror lately?"
 
-    if not is_valid_nick(text):
+    if not is_nick_valid(text):
         return "I can't look up that name, its impossible to use!"
 
     if '_' in text:
