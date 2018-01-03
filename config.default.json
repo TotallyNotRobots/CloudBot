@@ -2,12 +2,14 @@
     "connections": [
         {
             "name": "esper",
+            "type": "irc",
             "connection": {
                 "server": "irc.esper.net",
                 "port": 6667,
                 "ssl": false,
                 "ignore_cert": true,
-                "password": ""
+                "password": "",
+                "timeout": 300
             },
             "nick": "MyCloudBot",
             "user": "cloudbot",

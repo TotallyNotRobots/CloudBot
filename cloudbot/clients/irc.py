@@ -7,17 +7,12 @@ from _ssl import PROTOCOL_SSLv23
 from functools import partial
 from ssl import SSLContext
 
-from cloudbot.client import Client
+from cloudbot.client import Client, client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
-
-irc_prefix_re = re.compile(r":([^ ]*) ([^ ]*) (.*)")
-irc_noprefix_re = re.compile(r"([^ ]*) (.*)")
-irc_netmask_re = re.compile(r"([^!@]*)!([^@]*)@(.*)")
-irc_param_re = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)")
 
 irc_nick_re = re.compile(r'[A-Za-z0-9^{\}\[\]\-`_|\\]+')
 
@@ -50,6 +45,7 @@ def decode(bytestring):
     return bytestring.decode('utf-8', errors='ignore')
 
 
+@client("irc")
 class IrcClient(Client):
     """
     An implementation of Client for IRC.
@@ -60,27 +56,26 @@ class IrcClient(Client):
     :type _ignore_cert_errors: bool
     """
 
-    def __init__(self, bot, name, nick, *, channels=None, config=None,
-                 server, port=6667, use_ssl=False, ignore_cert_errors=True, timeout=300, local_bind=False):
+    def __init__(self, bot, name, nick, *, channels=None, config=None):
         """
         :type bot: cloudbot.bot.CloudBot
         :type name: str
         :type nick: str
         :type channels: list[str]
         :type config: dict[str, unknown]
-        :type server: str
-        :type port: int
-        :type use_ssl: bool
-        :type ignore_cert_errors: bool
-        :type timeout: int
         """
         super().__init__(bot, name, nick, channels=channels, config=config)
 
-        self.use_ssl = use_ssl
-        self._ignore_cert_errors = ignore_cert_errors
-        self._timeout = timeout
-        self.server = server
-        self.port = port
+        self.use_ssl = config['connection'].get('ssl', False)
+        self._ignore_cert_errors = config['connection']['ignore_cert']
+        self._timeout = config['connection'].get('timeout', 300)
+        self.server = config['connection']['server']
+        self.port = config['connection'].get('port', 6667)
+
+        local_bind = (config['connection'].get('bind_addr', False), config['connection'].get('bind_port', 0))
+        if local_bind[0] is False:
+            local_bind = False
+
         self.local_bind = local_bind
         # create SSL context
         if self.use_ssl:
@@ -109,16 +104,15 @@ class IrcClient(Client):
 
     @asyncio.coroutine
     def try_connect(self):
-        timeout = self.config["connection"].get("timeout", 30)
         while True:
             try:
-                yield from self.connect(timeout)
+                yield from self.connect(self._timeout)
             except (asyncio.TimeoutError, OSError):
                 logger.exception("[%s] Error occurred while connecting", self.name)
             else:
                 break
 
-            yield from asyncio.sleep(random.randrange(timeout))
+            yield from asyncio.sleep(random.randrange(self._timeout))
 
     @asyncio.coroutine
     def connect(self, timeout=None):
@@ -153,6 +147,7 @@ class IrcClient(Client):
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
             for hook in self.bot.plugin_manager.connect_hooks
+            if not hook.clients or self.type in hook.clients
         ]
         # TODO stop connecting if a connect hook fails?
         yield from asyncio.gather(*tasks)
@@ -236,22 +231,23 @@ class IrcClient(Client):
         else:
             self.send(command)
 
-    def send(self, line):
+    def send(self, line, log=True):
         """
         Sends a raw IRC line
         :type line: str
+        :type log: bool
         """
         if not self._connected:
             raise ValueError("Client must be connected to irc server to use send")
-        self.loop.call_soon_threadsafe(self._send, line)
+        self.loop.call_soon_threadsafe(self._send, line, log)
 
-    def _send(self, line):
+    def _send(self, line, log=True):
         """
         Sends a raw IRC line unchecked. Doesn't do connected check, and is *not* threadsafe
         :type line: str
+        :type log: bool
         """
-        logger.info("[{}] >> {}".format(self.name, line))
-        async_util.wrap_future(self._protocol.send(line), loop=self.loop)
+        async_util.wrap_future(self._protocol.send(line, log=log), loop=self.loop)
 
     @property
     def connected(self):
@@ -318,7 +314,7 @@ class _IrcProtocol(asyncio.Protocol):
         return True
 
     @asyncio.coroutine
-    def send(self, line):
+    def send(self, line, log=True):
         # make sure we are connected before sending
         if not self._connected:
             yield from self._connected_future
@@ -354,6 +350,9 @@ class _IrcProtocol(asyncio.Protocol):
             # the line must be encoded before we send it, one of the sieves didn't encode it, fall back to the default
             line = line.encode("utf-8", "replace")
 
+        if log:
+            logger.info("[{}|out] >> {!r}".format(self.conn.name, line))
+
         self._transport.write(line)
 
     def data_received(self, data):
@@ -378,7 +377,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Reply to pings immediately
 
             if command == "PING":
-                async_util.wrap_future(self.send("PONG " + command_params[-1]), loop=self.loop)
+                self.conn.send("PONG " + command_params[-1], log=False)
 
             # Parse the command and params
 
