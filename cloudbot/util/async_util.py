@@ -21,7 +21,7 @@ def wrap_future(fut, *, loop=None):
     else:
         func = asyncio.ensure_future
 
-    return func(fut, loop=loop)
+    return func(fut, loop=loop)  # pylint: disable=locally-disabled, deprecated-method
 
 
 @asyncio.coroutine
