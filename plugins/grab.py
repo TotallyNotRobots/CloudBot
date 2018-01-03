@@ -79,7 +79,7 @@ def check_grabs(name, quote, chan):
         return False
 
 
-def grab_add(nick, time, msg, chan, db, conn):
+def grab_add(nick, time, msg, chan, db):
     # Adds a quote to the grab table
     db.execute(table.insert().values(name=nick, time=time, quote=msg, chan=chan))
     db.commit()
@@ -112,7 +112,7 @@ def grab(text, nick, chan, db, conn):
             return "I already have that quote from {} in the database".format(text)
 
         try:
-            grab_add(name.casefold(), timestamp, msg, chan, db, conn)
+            grab_add(name.casefold(), timestamp, msg, chan, db)
         except SQLAlchemyError:
             logger.exception("Error occurred when grabbing %s in %s", name, chan)
             return "Error occurred."
@@ -138,7 +138,6 @@ def format_grab(name, quote):
 @hook.command("lastgrab", "lgrab")
 def lastgrab(text, chan, message):
     """<nick> - prints the last grabbed quote from <nick>."""
-    lgrab = ""
     try:
         with cache_lock:
             lgrab = grab_cache[chan][text.lower()][-1]
@@ -152,8 +151,6 @@ def lastgrab(text, chan, message):
 @hook.command("grabrandom", "grabr", autohelp=False)
 def grabrandom(text, chan, message):
     """[nick] - grabs a random quote from the grab database"""
-    grab = ""
-    name = ""
     with cache_lock:
         if text:
             tokens = text.split(' ')

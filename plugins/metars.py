@@ -5,6 +5,7 @@ from cloudbot import hook
 api_url_metar = "http://api.av-wx.com/metar/"
 api_url_taf = "http://api.av-wx.com/taf/"
 
+
 @hook.command()
 def metar(text):
     """[ICAO station code] - returns the metars information for the specified station. A list of station codes can be found here: http://weather.rap.ucar.edu/surface/stations.txt"""
@@ -17,6 +18,7 @@ def metar(text):
     r = request.json()['reports'][0]
     out = r['name'] + ": " + r['raw_text']
     return out
+
 
 @hook.command()
 def taf(text):

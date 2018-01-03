@@ -21,7 +21,8 @@ def load_data(bot):
 def hookup(db, chan):
     """- matches two users from the channel in a sultry scene."""
     times = time.time() - 86400
-    results = db.execute("select name from seen_user where chan = :chan and time > :time", {"chan": chan, "time": times}).fetchall()
+    results = db.execute("select name from seen_user where chan = :chan and time > :time",
+                         {"chan": chan, "time": times}).fetchall()
     if not results or len(results) < 2:
         return "something went wrong"
     # Make sure the list of people is unique

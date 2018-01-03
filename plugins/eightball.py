@@ -1,6 +1,6 @@
-import os
 import asyncio
 import codecs
+import os
 import random
 
 from cloudbot import hook

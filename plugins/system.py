@@ -1,6 +1,6 @@
 import os
-import time
 import platform
+import time
 from datetime import timedelta
 
 try:
@@ -39,7 +39,7 @@ def system(reply, message):
         "OS: \x02{}\x02, "
         "Python: \x02{} {}\x02, "
         "Architecture: \x02{}\x02 (\x02{}\x02)"
-        .format(
+            .format(
             sys_os,
             python_implementation,
             python_version,
@@ -61,7 +61,7 @@ def system(reply, message):
             "Threads: \x02{}\x02, "
             "CPU Usage: \x02{}\x02, "
             "Memory Usage: \x02{}\x02"
-            .format(
+                .format(
                 uptime,
                 thread_count,
                 cpu_usage,

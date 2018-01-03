@@ -1,6 +1,6 @@
 import re
-import requests
 
+import requests
 from bs4 import BeautifulSoup
 
 from cloudbot import hook

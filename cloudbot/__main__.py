@@ -41,6 +41,7 @@ def main():
     # define closure for signal handling
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
+    # noinspection PyUnusedLocal
     def exit_gracefully(signum, frame):
         nonlocal stopped_while_restarting
         if not _bot:

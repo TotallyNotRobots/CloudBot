@@ -1,8 +1,7 @@
-from urllib.parse import unquote
 import re
+from urllib.parse import unquote
 
 from cloudbot import hook
-
 
 spamurl = re.compile(r'.*(((www\.)?google\.com/url\?)[^ ]+)', re.I)
 
@@ -14,5 +13,5 @@ def google_url(match):
 
     url = "http://{}".format(url)
     out = "".join([(unquote(a[4:]) if a[:4] == "url=" else "") for a in url.split("&")]) \
-            .replace(", ,", "").strip()
+        .replace(", ,", "").strip()
     return out

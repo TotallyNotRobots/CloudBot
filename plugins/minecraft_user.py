@@ -1,9 +1,9 @@
 import re
-import requests
 import uuid
 
-from cloudbot import hook
+import requests
 
+from cloudbot import hook
 
 HIST_API = "http://api.fishbans.com/history/{}"
 UUID_API = "http://api.goender.net/api/uuids/{}/"

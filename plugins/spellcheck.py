@@ -1,6 +1,6 @@
+from enchant import Dict
 from enchant.checker import SpellChecker
 from enchant.tokenize import EmailFilter, URLFilter
-from enchant import Dict
 
 from cloudbot import hook
 

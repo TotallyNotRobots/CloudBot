@@ -10,8 +10,8 @@ License:
     GPL v3
 """
 
-import json
 import codecs
+import json
 import os
 
 from cloudbot import hook
