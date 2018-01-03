@@ -16,7 +16,7 @@ def load_drinks(bot):
 
 @hook.command()
 def drink(text, chan, action):
-    """<nick>, makes the user a random cocktail."""
+    """<nick> - makes the user a random cocktail."""
     index = random.randint(0, len(drinks) - 1)
     drink = drinks[index]['title']
     url = web.try_shorten(drinks[index]['url'])

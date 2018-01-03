@@ -58,10 +58,10 @@ def re_addpt(match, nick, chan, db, conn, notice):
     """no useful help txt"""
     thing = match.group().split('++')[0]
     if thing:
-        addpoint(thing, nick, chan, db, conn)
+        addpoint(thing, nick, chan, db)
         # return out
     else:
-        notice(pluspts(nick, chan, db, conn))
+        notice(pluspts(nick, chan, db))
 
 
 @hook.command("mm", "rmpoint")
@@ -117,10 +117,10 @@ def re_rmpt(match, nick, chan, db, conn, notice):
     """no useful help txt"""
     thing = match.group().split('--')[0]
     if thing:
-        rmpoint(thing, nick, chan, db, conn)
+        rmpoint(thing, nick, chan, db)
         # return out
     else:
-        notice(minuspts(nick, chan, db, conn))
+        notice(minuspts(nick, chan, db))
 
 
 @hook.command("points", autohelp=False)

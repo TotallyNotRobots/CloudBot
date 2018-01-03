@@ -1,19 +1,44 @@
-import asyncio
-import functools
 import random
 import re
-import urllib.parse
 from datetime import datetime
 
 import requests
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
 
-reddit_re = re.compile(r'.*(((www\.)?reddit\.com/r|redd\.it)[^ ]+)', re.I)
+reddit_re = re.compile(
+    r"""
+    https? # Scheme
+    ://
 
-base_url = "http://reddit.com/r/{}/.json"
-short_url = "http://redd.it/{}"
+    # Domain
+    (?:
+        redd\.it|
+        (?:www\.)?reddit\.com/r
+    )
+
+    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)*  # Path
+
+    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
+    """,
+    re.IGNORECASE | re.VERBOSE
+)
+
+base_url = "https://reddit.com/r/{}"
+short_url = "https://redd.it/{}"
+
+
+def api_request(url, bot):
+    """
+    :type url: yarl.URL
+    :type bot: cloudbot.bot.CloudBot
+    """
+    url = url.with_query("").with_scheme("https") / ".json"
+    r = requests.get(str(url), headers={'User-Agent': bot.user_agent})
+    r.raise_for_status()
+    return r.json()
 
 
 def format_output(item, show_url=False):
@@ -40,72 +65,57 @@ def format_output(item, show_url=False):
                " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
 
 
-@hook.regex(reddit_re)
+@hook.regex(reddit_re, singlethread=True)
 def reddit_url(match, bot):
-    url = match.group(1)
-    if "redd.it" in url:
-        url = "http://" + url
-        response = requests.get(url)
-        url = response.url + "/.json"
-    if not urllib.parse.urlparse(url).scheme:
-        url = "http://" + url + "/.json"
+    url = match.group()
+    url = URL(url).with_scheme("https")
 
-    # the reddit API gets grumpy if we don't include headers
-    headers = {'User-Agent': bot.user_agent}
-    r = requests.get(url, headers=headers)
-    r.raise_for_status()
-    if r.status_code != 200:
-        return
-    data = r.json()
-    assert isinstance(data, list), "Reddit API returned data in an unknown format"
+    if url.host.endswith("redd.it"):
+        response = requests.get(url, headers={'User-Agent': bot.user_agent})
+        response.raise_for_status()
+        url = URL(response.url).with_scheme("https")
+
+    data = api_request(url, bot)
     item = data[0]["data"]["children"][0]["data"]
 
     return format_output(item)
 
 
-@asyncio.coroutine
-@hook.command(autohelp=False)
-def reddit(text, bot, loop, reply):
-    """<subreddit> [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
+@hook.command(autohelp=False, singlethread=True)
+def reddit(text, bot, reply):
+    """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
-    headers = {'User-Agent': bot.user_agent}
 
     if text:
         # clean and split the input
         parts = text.lower().strip().split()
+        url = base_url.format(parts.pop(0).strip())
 
         # find the requested post number (if any)
-        if len(parts) > 1:
-            url = base_url.format(parts[0].strip())
+        if parts:
             try:
-                id_num = int(parts[1]) - 1
+                id_num = int(parts[0]) - 1
             except ValueError:
                 return "Invalid post number."
-        else:
-            url = base_url.format(parts[0].strip())
     else:
-        url = "http://reddit.com/.json"
+        url = "https://reddit.com"
 
     try:
-        # Again, identify with Reddit using an User Agent, otherwise get a 429
-        inquiry = yield from loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
-        inquiry.raise_for_status()
-        if inquiry.status_code != 200:
-            return "r/{} either does not exist or is private.".format(text)
-        data = inquiry.json()
+        data = api_request(URL(url), bot)
     except Exception as e:
         reply("Error: " + str(e))
         raise
+
     data = data["data"]["children"]
 
     # get the requested/random post
     if id_num is not None:
         try:
-            item = data[id_num]["data"]
+            item = data[id_num]
         except IndexError:
             length = len(data)
             return "Invalid post number. Number must be between 1 and {}.".format(length)
     else:
-        item = random.choice(data)["data"]
+        item = random.choice(data)
 
-    return format_output(item, show_url=True)
+    return format_output(item["data"], show_url=True)

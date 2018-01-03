@@ -1,7 +1,15 @@
-# Plugin by GhettoWizard and Scaevolus
+"""
+Etymology plugin
+
+Authors:
+    - GhettoWizard
+    - Scaevolus
+    - linuxdaemon <linuxdaemon@snoonet.org>
+"""
+import re
 
 import requests
-from lxml import html
+from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
@@ -26,14 +34,16 @@ def etymology(text, reply):
     if response.status_code != requests.codes.ok:
         return "Error reaching etymonline.com: {}".format(response.status_code)
 
-    h = html.fromstring(response.text)
+    soup = BeautifulSoup(response.text, "lxml")
 
-    etym = h.xpath('//dl')
+    block = soup.find('div', class_=re.compile("word--.+"))
 
-    if not etym:
+    if not block:
         return 'No etymology found for {} :('.format(text)
 
-    etym = etym[0].text_content()
+    etym = ' '.join(e.text for e in block.div)
+
+    etym = ' '.join(etym.splitlines())
 
     etym = ' '.join(etym.split())
 

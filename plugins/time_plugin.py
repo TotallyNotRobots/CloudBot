@@ -45,7 +45,7 @@ def load_key(bot):
 
 @hook.command("time")
 def time_command(text, reply):
-    """<location> -- Gets the current time in <location>."""
+    """<location> - Gets the current time in <location>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
@@ -111,7 +111,7 @@ def time_command(text, reply):
 
 @hook.command(autohelp=False)
 def beats(text):
-    """ -- Gets the current time in .beats (Swatch Internet Time). """
+    """- Gets the current time in .beats (Swatch Internet Time)."""
 
     if text.lower() == "wut":
         return "Instead of hours and minutes, the mean solar day is divided " \
