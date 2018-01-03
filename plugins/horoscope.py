@@ -16,21 +16,21 @@ table = Table(
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, notice, nick, reply):
-    """<sign> - get your horoscope"""
+def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
+    """[sign] - get your horoscope"""
     signs = {
-            'aries': '1',
-            'taurus': '2',
-            'gemini': '3',
-            'cancer': '4',
-            'leo': '5',
-            'virgo': '6',
-            'libra': '7',
-            'scorpio': '8',
-            'sagittarius': '9',
-            'capricorn': '10',
-            'aquarius': '11',
-            'pisces': '12'
+        'aries': '1',
+        'taurus': '2',
+        'gemini': '3',
+        'cancer': '4',
+        'leo': '5',
+        'virgo': '6',
+        'libra': '7',
+        'scorpio': '8',
+        'sagittarius': '9',
+        'capricorn': '10',
+        'aquarius': '11',
+        'pisces': '12'
     }
 
     headers = {'User-Agent': bot.user_agent}
@@ -43,15 +43,19 @@ def horoscope(text, db, bot, notice, nick, reply):
         sign = text.strip().lower()
 
     if not sign:
-        sign = db.execute("select sign from horoscope where "
+        sign = db.execute("SELECT sign FROM horoscope WHERE "
                           "nick=lower(:nick)", {'nick': nick}).fetchone()
         if not sign:
-            notice("horoscope <sign> -- Get your horoscope")
+            notice_doc()
             return
         sign = sign[0].strip().lower()
 
+    if sign not in signs:
+        notice("Unknown sign: {}".format(sign))
+        return
+
     params = {
-            "sign": signs[sign]
+        "sign": signs[sign]
     }
 
     url = "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx"
@@ -66,12 +70,6 @@ def horoscope(text, db, bot, notice, nick, reply):
     soup = BeautifulSoup(request.text)
 
     horoscope_text = soup.find("div", class_="horoscope-content").find("p").text
-    '''
-    if not horoscope_text:
-        return "Could not get the horoscope for {}. Hororscope text error".format(sign)
-    else:
-        horoscope_text = horoscope_text[0].text.strip()
-    '''
     result = "\x02{}\x02 {}".format(text, horoscope_text)
 
     if text and not dontsave:
@@ -79,4 +77,4 @@ def horoscope(text, db, bot, notice, nick, reply):
                    {'nick': nick.lower(), 'sign': sign})
         db.commit()
 
-    return result
+    message(result)
