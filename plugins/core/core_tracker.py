@@ -36,7 +36,6 @@ def on_kick(conn, chan, target, loop):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
-    :type nick: str
     """
     # if the bot has been kicked, remove from the channel list
     if target == conn.nick:

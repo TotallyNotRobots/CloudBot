@@ -115,7 +115,7 @@ def cap_nak(conn, caplist, event, bot):
 
 
 @_subcmd_handler("LIST")
-def cap_list(logger, caplist):
+def cap_list(logger, caplist, conn):
     logger.info("[%s|cap] Enabled Capabilities: %s", conn.name, caplist)
 
 

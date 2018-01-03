@@ -1,8 +1,8 @@
 import re
 from urllib import parse
-from lxml import html
 
 import requests
+from lxml import html
 from requests import HTTPError
 
 from cloudbot import hook

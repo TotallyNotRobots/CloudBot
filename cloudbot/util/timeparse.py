@@ -94,21 +94,17 @@ def _interpret_as_minutes(string, mdict):
     Times like "1:22" are ambiguous; do they represent minutes and seconds
     or hours and minutes?  By default, timeparse assumes the latter.  Call
     this function after parsing out a dictionary to change that assumption.
-    
+
     >>> import pprint
     >>> pprint.pprint(_interpret_as_minutes('1:24', {'secs': '24', 'mins': '1'}))
     {'hours': '1', 'mins': '24'}
     """
-    if (    string.count(':') == 1
-            and '.' not in string
-            and (('hours' not in mdict) or (mdict['hours'] is None))
-            and (('days' not in mdict) or (mdict['days'] is None))
-            and (('weeks' not in mdict) or (mdict['weeks'] is None))
-    ):
+    has_keys = mdict.get('hours') is None and mdict.get('days') is None and mdict.get('weeks') is None
+    if string.count(':') == 1 and '.' not in string and has_keys:
         mdict['hours'] = mdict['mins']
         mdict['mins'] = mdict['secs']
         mdict.pop('secs')
-        pass
+
     return mdict
 
 
@@ -141,10 +137,10 @@ def time_parse(string, granularity='seconds'):
     -60
     >>> time_parse('+ 1 minute')
     60
-    
+
     If granularity is specified as ``minutes``, then ambiguous digits following
     a colon will be interpreted as minutes; otherwise they are considered seconds.
-    
+
     >>> time_parse('1:30')
     90
     >>> time_parse('1:30', granularity='minutes')
@@ -165,8 +161,8 @@ def time_parse(string, granularity='seconds'):
                                    list(mdict.items()) if v is not None])
             # if SECS is an integer number
             elif ('secs' not in mdict or
-                          mdict['secs'] is None or
-                      mdict['secs'].isdigit()):
+                  mdict['secs'] is None or
+                  mdict['secs'].isdigit()):
                 # we will return an integer
                 return (
                     sign * int(sum([MULTIPLIERS[k] * float(v) for (k, v) in

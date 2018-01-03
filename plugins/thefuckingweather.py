@@ -14,9 +14,11 @@
 
 """Scrapes data from www.thefuckingweather.com for a given location."""
 
-from cloudbot import hook
-from bs4 import BeautifulSoup
 import urllib.parse
+
+from bs4 import BeautifulSoup
+
+from cloudbot import hook
 
 DEGREE_SYMBOL = "F"
 
@@ -30,7 +32,7 @@ class LocationError(Exception):
 
     def __init__(self):
         Exception.__init__(self, ("I CAN'T FIND THAT SHIT returned "
-                                      "from website"))
+                                  "from website"))
 
 
 class ParseError(Exception):
@@ -75,8 +77,8 @@ def get_weather(text, reply):
     """
     # Generate query string
     query = {"where": text}
-#    if celsius:
-#        query["unit"] = "c"
+    #    if celsius:
+    #        query["unit"] = "c"
     query_string = urllib.parse.urlencode(query)
 
     # Fetch HTML
@@ -151,7 +153,8 @@ def get_weather(text, reply):
                                        "low": lows[i],
                                        "weather": forecasts[i]})
 
-    tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + ("{0}{1}?! {2}".format(return_val["current"]["temperature"],
-                                    DEGREE_SYMBOL,
-                                    return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])
+    tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + (
+    "{0}{1}?! {2}".format(return_val["current"]["temperature"],
+                          DEGREE_SYMBOL,
+                          return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])
     return tfw

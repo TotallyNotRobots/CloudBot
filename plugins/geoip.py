@@ -1,13 +1,14 @@
-import socket
-import time
-import requests
-import gzip
 import asyncio
-import shutil
+import gzip
 import logging
 import os.path
+import shutil
+import socket
+import time
+
 import geoip2.database
 import geoip2.errors
+import requests
 
 from cloudbot import hook
 from cloudbot.util import async_util

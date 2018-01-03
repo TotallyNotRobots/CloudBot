@@ -75,7 +75,7 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
 
 @asyncio.coroutine
 @hook.command
-def cmdinfo(text, bot, notice, event):
+def cmdinfo(text, bot, notice):
     """<command> - Gets various information about a command"""
     cmd = text.split()[0].lower().strip()
 
@@ -113,7 +113,7 @@ def cmdinfo(text, bot, notice, event):
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
-def generatehelp(conn, bot, notice, has_permission):
+def generatehelp(conn, bot):
     """- Dumps a list of commands with their help text to the docs directory formatted using markdown."""
     message = "{} Command list\n".format(conn.nick)
     message += "------\n"

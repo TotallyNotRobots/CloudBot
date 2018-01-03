@@ -115,3 +115,6 @@ def crypto_command(text, reply):
         data['symbol'], currency_sign, float(converted_value), currency.upper(),
         float(data['price_btc']), change_str
     ))
+
+
+init_aliases()

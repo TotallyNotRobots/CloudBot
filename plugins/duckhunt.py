@@ -122,7 +122,7 @@ def incrementMsgCounter(event, conn):
 
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
-def start_hunt(bot, chan, message, conn):
+def start_hunt(chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
@@ -195,7 +195,7 @@ def generate_duck():
 
 
 @hook.periodic(11, initial_interval=11)
-def deploy_duck(message, bot):
+def deploy_duck(bot):
     global game_status
     for network in game_status:
         if network not in bot.connections:
@@ -209,7 +209,8 @@ def deploy_duck(message, bot):
             next_duck = game_status[network][chan]['next_duck_time']
             chan_messages = game_status[network][chan]['messages']
             chan_masks = game_status[network][chan]['masks']
-            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(chan_masks) >= MASK_REQ:
+            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(
+                chan_masks) >= MASK_REQ:
                 # deploy a duck to channel
                 game_status[network][chan]['duck_status'] = 1
                 game_status[network][chan]['duck_time'] = time()
@@ -283,7 +284,6 @@ def bang(nick, chan, message, db, conn, notice):
     if chan in opt_out:
         return
     network = conn.name
-    score = ""
     out = ""
     miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.",
             "WTF?! Who are you, Kim Jong Un firing missiles? You missed."]
@@ -343,7 +343,6 @@ def befriend(nick, chan, message, db, conn, notice):
         return
     network = conn.name
     out = ""
-    score = ""
     miss = ["The duck didn't want to be friends, maybe next time.",
             "Well this is awkward, the duck needs to think about it.",
             "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?",
@@ -413,7 +412,6 @@ def friends(text, chan, conn, db):
         return
     friends = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck friend scores across the network: "
         scores = db.execute(select([table.c.name, table.c.befriend]) \
@@ -457,7 +455,6 @@ def killers(text, chan, conn, db):
         return
     killers = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck killer scores across the network: "
         scores = db.execute(select([table.c.name, table.c.shot]) \

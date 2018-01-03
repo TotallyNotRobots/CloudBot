@@ -119,7 +119,6 @@ def weather(text, reply, db, nick, notice):
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
-    location = ""
     # If no input try the db
     if not text:
         location = get_location(nick)
