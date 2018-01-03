@@ -8,7 +8,7 @@ from cloudbot.util import async_util
 from cloudbot.util.parsers.irc import CapList
 
 
-@hook.connect(priority=-10)
+@hook.connect(priority=-10, clients="irc")
 def send_cap_ls(conn):
     conn.cmd("CAP", "LS", "302")
     conn.memory.setdefault("available_caps", set()).clear()

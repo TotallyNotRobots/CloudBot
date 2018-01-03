@@ -21,4 +21,4 @@ def do_reply(result, error, launched_event, launched_hook):
             # if there are multiple items in the response, return them on multiple lines
             launched_event.reply(*result)
         else:
-            launched_event.reply(*str(result).split('\n'))
+            launched_event.reply(result)

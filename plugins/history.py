@@ -3,7 +3,7 @@ import re
 import time
 from collections import deque
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float
 
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -13,7 +13,7 @@ table = Table(
     'seen_user',
     database.metadata,
     Column('name', String),
-    Column('time', String),
+    Column('time', Float),
     Column('quote', String),
     Column('chan', String),
     Column('host', String),
@@ -83,7 +83,7 @@ def resethistory(event, conn):
 
 
 @hook.command()
-def seen(text, nick, chan, db, event):
+def seen(text, nick, chan, db, event, is_valid_nick):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
@@ -95,13 +95,13 @@ def seen(text, nick, chan, db, event):
     if text.lower() == nick.lower():
         return "Have you looked in a mirror lately?"
 
-    if not re.match("^[A-Za-z0-9_|^*`.\-\]\[{\}\\\\]*$", text.lower()):
+    if not is_valid_nick(text):
         return "I can't look up that name, its impossible to use!"
 
     if '_' in text:
         text = text.replace("_", "/_")
 
-    last_seen = db.execute("select name, time, quote from seen_user where name like :name escape '/' and chan = :chan",
+    last_seen = db.execute("SELECT name, time, quote FROM seen_user WHERE name LIKE :name ESCAPE '/' AND chan = :chan",
                            {'name': text, 'chan': chan}).fetchone()
 
     text = text.replace("/", "")
