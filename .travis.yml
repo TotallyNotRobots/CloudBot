@@ -11,7 +11,6 @@ install:
   - "pip install -r ./travis/requirements.txt"
 
 script:
-  - "python ./travis/test_json.py"
   - "git diff --diff-filter=d --name-only ${TRAVIS_COMMIT_RANGE} | grep -i '\\.py$' | xargs -r pylint --rcfile=travis/pylintrc"
   - "py.test . -v --cov . --cov-report term-missing"
 

@@ -83,7 +83,7 @@ def fix(text, reply, message, chan):
     """<text> - fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
     global table_status
     if text in ['table', 'tables']:
-        if table_status[chan] == True:
+        if table_status[chan] is True:
             message("┬─┬ノ(ಠ_ಠノ)")
             table_status[chan] = False
         else:

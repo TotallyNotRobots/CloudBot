@@ -40,4 +40,3 @@ def issue(text):
             return 'Repository has no open issues.'
         else:
             return 'Repository has {} open issues.'.format(count)
-

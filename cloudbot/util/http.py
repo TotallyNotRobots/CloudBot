@@ -2,21 +2,20 @@
 
 import http.cookiejar
 import json
-import urllib.request
-import urllib.parse
 import urllib.error
-import urllib.request
 import urllib.error
 import urllib.parse
 import urllib.parse
+import urllib.parse
+import urllib.request
+import urllib.request
+# noinspection PyUnresolvedReferences
+import warnings
 # noinspection PyUnresolvedReferences
 from urllib.parse import quote, quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
 from lxml import etree, html
-
-# noinspection PyUnresolvedReferences
-from urllib.error import URLError, HTTPError
 
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)
@@ -36,13 +35,13 @@ jar = http.cookiejar.CookieJar()
 
 def get(*args, **kwargs):
     if kwargs.get("decode", True):
-        return open(*args, **kwargs).read().decode()
+        return open_request(*args, **kwargs).read().decode()
     else:
-        return open(*args, **kwargs).read()
+        return open_request(*args, **kwargs).read()
 
 
 def get_url(*args, **kwargs):
-    return open(*args, **kwargs).geturl()
+    return open_request(*args, **kwargs).geturl()
 
 
 def get_html(*args, **kwargs):
@@ -62,8 +61,8 @@ def get_json(*args, **kwargs):
     return json.loads(get(*args, **kwargs))
 
 
-def open(url, query_params=None, user_agent=None, post_data=None,
-         referer=None, get_method=None, cookies=False, timeout=None, headers=None, **kwargs):
+def open_request(url, query_params=None, user_agent=None, post_data=None, referer=None, get_method=None, cookies=False,
+                 timeout=None, headers=None, **kwargs):
     if query_params is None:
         query_params = {}
 
@@ -97,6 +96,21 @@ def open(url, query_params=None, user_agent=None, post_data=None,
         return opener.open(request, timeout=timeout)
     else:
         return opener.open(request)
+
+
+# noinspection PyShadowingBuiltins
+def open(url, query_params=None, user_agent=None, post_data=None,
+         referer=None, get_method=None, cookies=False, timeout=None, headers=None,
+         **kwargs):  # pylint: disable=locally-disabled, redefined-builtin
+    warnings.warn(
+        "http.open() is deprecated, use http.open_request() instead.",
+        DeprecationWarning
+    )
+
+    return open_request(
+        url, query_params=query_params, user_agent=user_agent, post_data=post_data, referer=referer,
+        get_method=get_method, cookies=cookies, timeout=timeout, headers=headers, **kwargs
+    )
 
 
 def prepare_url(url, queries):

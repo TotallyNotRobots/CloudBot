@@ -1,4 +1,5 @@
 import re
+
 import requests
 
 from cloudbot import hook
@@ -66,5 +67,5 @@ def movie_str(movie):
         out += ' \x02%(runtime)s\x02.'
     if movie['rating'] != 'N/A' and movie['votes'] != 'N/A':
         out += ' \x02%(rating)s/10\x02 with \x02%(votes)s\x02' \
-                ' votes.'
+               ' votes.'
     return out % movie

@@ -395,7 +395,6 @@ def friends(text, chan, conn, db):
         return
     friends = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck friend scores across the network: "
         scores = db.execute(select([table.c.name, table.c.befriend]) \
@@ -439,7 +438,6 @@ def killers(text, chan, conn, db):
         return
     killers = defaultdict(int)
     chancount = defaultdict(int)
-    out = ""
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck killer scores across the network: "
         scores = db.execute(select([table.c.name, table.c.shot]) \
