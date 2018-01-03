@@ -67,7 +67,7 @@ def init_aliases():
 # main command
 @hook.command("crypto", "cryptocurrency")
 def crypto_command(text, reply):
-    """ <ticker> [currency] -- Returns current value of a cryptocurrency """
+    """<ticker> [currency] - Returns current value of a cryptocurrency"""
     args = text.split()
     ticker = args.pop(0)
 

@@ -84,7 +84,7 @@ def moreprofile(text, chan, nick, notice):
 
 @hook.command()
 def profile(text, chan, notice, nick):
-    """<nick> [category] Returns a user's saved profile data from \"<category>\", or lists all available profile categories for the user if no category specified"""
+    """<nick> [category] - Returns a user's saved profile data from \"<category>\", or lists all available profile categories for the user if no category specified"""
     chan_cf = chan.casefold()
     nick_cf = nick.casefold()
 
@@ -130,7 +130,7 @@ def profile(text, chan, notice, nick):
 
 @hook.command()
 def profileadd(text, chan, nick, notice, db):
-    """<category> <content> Adds data to your profile in the current channel under \"<category>\""""
+    """<category> <content> - Adds data to your profile in the current channel under \"<category>\""""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
 
@@ -160,7 +160,7 @@ def profileadd(text, chan, nick, notice, db):
 
 @hook.command()
 def profiledel(nick, chan, text, notice, db):
-    """<category> Deletes \"<category>\" from a user's profile"""
+    """<category> - Deletes \"<category>\" from a user's profile"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
 
