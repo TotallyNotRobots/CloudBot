@@ -2,6 +2,7 @@ import operator
 import re
 from collections import defaultdict
 
+import sqlalchemy
 from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint
 
 from cloudbot import hook
@@ -21,9 +22,20 @@ karma_table = Table(
 )
 
 
+@hook.on_start
+def remove_non_channel_points(db):
+    """Temporary on_start hook to remove non-channel points"""
+    db.execute(karma_table.delete().where(sqlalchemy.not_(karma_table.c.chan.startswith('#'))))
+    db.commit()
+
+
 @hook.command("pp", "addpoint")
 def addpoint(text, nick, chan, db):
     """<thing> - adds a point to the <thing>"""
+    if nick.casefold() == chan.casefold():
+        # This is a PM, don't set points in a PM
+        return
+
     text = text.strip()
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
                        {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
@@ -55,6 +67,10 @@ def re_addpt(match, nick, chan, db, conn, notice):
 @hook.command("mm", "rmpoint")
 def rmpoint(text, nick, chan, db):
     """<thing> - subtracts a point from the <thing>"""
+    if nick.casefold() == chan.casefold():
+        # This is a PM, don't set points in a PM
+        return
+
     text = text.strip()
     karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
                        {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
