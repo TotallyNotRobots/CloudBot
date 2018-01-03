@@ -13,9 +13,9 @@ License:
     GPL v3
 """
 
-import subprocess
-import re
 import os
+import re
+import subprocess
 
 from cloudbot import hook
 

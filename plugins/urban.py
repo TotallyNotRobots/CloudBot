@@ -5,7 +5,6 @@ import requests
 from cloudbot import hook
 from cloudbot.util import formatting
 
-
 base_url = 'http://api.urbandictionary.com/v0'
 define_url = base_url + "/define"
 random_url = base_url + "/random"

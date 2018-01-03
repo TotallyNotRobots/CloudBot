@@ -1,8 +1,9 @@
 import re
+from datetime import datetime
+
 import requests
 from requests import HTTPError
 from requests.auth import HTTPBasicAuth
-from datetime import datetime
 
 from cloudbot import hook
 
@@ -20,7 +21,7 @@ http_re = re.compile(r'(open\.spotify\.com/(track|album|artist|user)/'
 
 def sprequest(bot, params, alturl=None):
     global access_token, expires_at
-    if alturl == None:
+    if alturl is None:
         alturl = api_url
     if datetime.now() >= expires_at:
         basic_auth = HTTPBasicAuth(
@@ -121,7 +122,6 @@ def spotify_url(bot, match):
     api_method = {'track': 'tracks', 'album': 'albums', 'artist': 'artists'}
     _type = match.group(2)
     spotify_id = match.group(3)
-    url = spuri.format(_type, spotify_id)
     # no error catching here, if the API is down fail silently
     request = sprequest(bot, {}, 'http://api.spotify.com/v1/{}/{}'.format(
         api_method[_type], spotify_id))

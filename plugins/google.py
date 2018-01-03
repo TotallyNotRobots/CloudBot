@@ -1,6 +1,5 @@
 import random
 
-from cloudbot import hook
 from cloudbot.util import http, formatting
 
 
@@ -11,7 +10,7 @@ def api_get(kind, query):
     return http.get_json(url % kind, q=query)
 
 
-#@hook.command("googleimage", "gis", "image")
+# @hook.command("googleimage", "gis", "image")
 def googleimage(text):
     """<query> - returns the first google image result for <query>"""
 
@@ -23,7 +22,7 @@ def googleimage(text):
     return random.choice(parsed['responseData']['results'][:10])['unescapedUrl']
 
 
-#@hook.command("google", "g", "search")
+# @hook.command("google", "g", "search")
 def google(text):
     """<query> - returns the first google search result for <query>"""
 
