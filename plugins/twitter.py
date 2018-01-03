@@ -1,12 +1,11 @@
-import re
+import html
 import random
+import re
 from datetime import datetime
 
 import tweepy
+
 from cloudbot import hook
-
-import html
-
 from cloudbot.util import timeformat
 
 TWITTER_RE = re.compile(r"(?:(?:www.twitter.com|twitter.com)/(?:[-_a-zA-Z0-9]+)/status/)([0-9]+)", re.I)

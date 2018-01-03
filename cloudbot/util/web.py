@@ -15,10 +15,9 @@ License:
 
 import json
 
-import asyncio
 import requests
-
 # Constants
+from requests import RequestException
 
 DEFAULT_SHORTENER = 'is.gd'
 DEFAULT_PASTEBIN = 'snoonet'
@@ -26,30 +25,6 @@ DEFAULT_PASTEBIN = 'snoonet'
 HASTEBIN_SERVER = 'https://hastebin.com'
 
 SNOONET_PASTE = 'https://paste.snoonet.org'
-
-
-# Python eval
-
-@asyncio.coroutine
-def pyeval(code, pastebin=True):
-    raise ValueError("The pyeval API has been removed")
-
-    p = {'input': code}
-    r = requests.post('http://pyeval.appspot.com/exec', data=p)
-
-    p = {'id': r.text}
-    r = None
-    j = {}
-    while not r or j.get("status", "not ready").lower() == "not ready":
-        r = requests.get('http://pyeval.appspot.com/exec', params=p)
-        j = r.json()
-        yield from asyncio.sleep(0.5)
-
-    output = j['output'].rstrip('\n')
-    if '\n' in output and pastebin:
-        return paste(output)
-    else:
-        return output
 
 
 # Shortening / pasting
@@ -90,6 +65,7 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
 
 class ServiceError(Exception):
     def __init__(self, message, request):
+        super().__init__()
         self.message = message
         self.request = request
 
@@ -125,6 +101,7 @@ class Pastebin:
 
     def paste(self, data, ext):
         raise NotImplementedError
+
 
 # Internal Implementations
 
@@ -221,17 +198,19 @@ class Hastebin(Pastebin):
         else:
             raise ServiceError(j['message'], r)
 
+
 @_pastebin('snoonet')
 class SnoonetPaste(Pastebin):
     def paste(self, data, ext):
-
-        params={
-            'text':data,
-            'expire':'1d'
+        params = {
+            'text': data,
+            'expire': '1d'
         }
-        r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
-        return '{}'.format(r.url)
-        if r.status_code is requests.codes.ok:
-            return '{}'.format(r.url)
-        else:
+        try:
+            r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
             return ServiceError(r.status_code, r)
+        else:
+            return '{}'.format(r.url)

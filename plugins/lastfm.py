@@ -180,7 +180,7 @@ def _topartists(bot, text, nick, period=None, limit=10):
     for artist in artists:
         artist_name = artist["name"]
         play_count = artist["playcount"]
-        out = out + "{} [{:,}] ".format(artist_name, int(play_count))
+        out += "{} [{:,}] ".format(artist_name, int(play_count))
     return out
 
 
@@ -413,7 +413,7 @@ def toptrack(bot, text, nick):
         track_name = song["name"]
         artist_name = song["artist"]["name"]
         play_count = song["playcount"]
-        out = out + "{} by {} listened to {:,} times. ".format(track_name, artist_name, int(play_count))
+        out += "{} by {} listened to {:,} times. ".format(track_name, artist_name, int(play_count))
     return out
 
 

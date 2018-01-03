@@ -2,6 +2,7 @@
 whois.py
 Provides a command to allow users to look up information on domain names.
 """
+
 import sys
 from contextlib import suppress
 

@@ -27,6 +27,7 @@ try:
 
     web_installed = True
 except ImportError:
+    WebInterface = None
     web_installed = False
 
 logger = logging.getLogger("cloudbot")
@@ -44,7 +45,7 @@ class CloudBot:
     """
     :type start_time: float
     :type running: bool
-    :type connections: list[Client | IrcClient]
+    :type connections: dict[str, Client]
     :type data_dir: bytes
     :type config: core.config.Config
     :type plugin_manager: PluginManager
