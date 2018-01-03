@@ -54,7 +54,7 @@ def addpoint(text, nick, chan, db):
 
 
 @hook.regex(karmaplus_re)
-def re_addpt(match, nick, chan, db, conn, notice):
+def re_addpt(match, nick, chan, db, notice):
     """no useful help txt"""
     thing = match.group().split('++')[0]
     if thing:
@@ -113,7 +113,7 @@ def minuspts(nick, chan, db):
 
 
 @hook.regex(karmaminus_re)
-def re_rmpt(match, nick, chan, db, conn, notice):
+def re_rmpt(match, nick, chan, db, notice):
     """no useful help txt"""
     thing = match.group().split('--')[0]
     if thing:
