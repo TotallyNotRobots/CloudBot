@@ -1,11 +1,11 @@
-import requests
 import re
+
+import requests
 from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web, formatting, colors
-
 
 SEARCH_URL = "http://www.amazon.{}/s/"
 REGION = "com"
@@ -93,7 +93,7 @@ def amazon(text, reply, _parsed=False):
     try:
         # get the rating
         rating = item.find('i', {'class': 'a-icon-star'}).find('span', {'class': 'a-icon-alt'}).text
-        rating = re.search(r"([0-9]+(?:(?:\.|,)[0-9])?).*5", rating).group(1).replace(",", ".")
+        rating = re.search(r"([0-9]+(?:[.,][0-9])?).*5", rating).group(1).replace(",", ".")
         # get the rating count
         pattern = re.compile(r'(product-reviews|#customerReviews)')
         num_ratings = item.find('a', {'href': pattern}).text.replace(".", ",")
@@ -114,6 +114,8 @@ def amazon(text, reply, _parsed=False):
 
     # finally, assemble everything into the final string, and return it!
     if not _parsed:
-        return colors.parse("".join("$(b){}$(b) ({}) - {}{} - {}".format(title, price, rating_str, tag_str, url).splitlines()))
+        return colors.parse(
+            "".join("$(b){}$(b) ({}) - {}{} - {}".format(title, price, rating_str, tag_str, url).splitlines())
+        )
     else:
         return colors.parse("".join("$(b){}$(b) ({}) - {}{}".format(title, price, rating_str, tag_str).splitlines()))

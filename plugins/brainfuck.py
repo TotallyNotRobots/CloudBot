@@ -1,9 +1,9 @@
 """brainfuck interpreter adapted from (public domain) code at
 http://brainfuck.sourceforge.net/brain.py"""
 
-import re
 import asyncio
 import random
+import re
 
 from cloudbot import hook
 

@@ -34,7 +34,6 @@ def check_code(code):
         422: 'The text could not be translated',
         501: 'The specified translation direction is not supported'
     }
-    out = ""
     try:
         out = codes[code]
     except LookupError:
@@ -43,7 +42,7 @@ def check_code(code):
 
 
 @hook.command("langlist", "tlist", autohelp=False)
-def list_langs(message):
+def list_langs():
     """- List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
     url = api_url + "getLangs"
     params = {

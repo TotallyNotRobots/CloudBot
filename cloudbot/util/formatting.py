@@ -45,13 +45,11 @@ License for final section (all code after the "DJANGO LICENCE" comment):
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import copy
-import re
 import html.entities
-
+import re
 from html.parser import HTMLParser
 
 from cloudbot.util.colors import strip_irc
-
 
 # Constants
 
@@ -119,6 +117,7 @@ class HTMLTextExtractor(HTMLParser):
     """
     Takes HTML and provides cleaned and stripped text.
     """
+
     def __init__(self):
         HTMLParser.__init__(self)
         self.result = []
@@ -166,6 +165,7 @@ def munge(text, count=0):
                 break
     return text
 
+
 def ireplace(text, old, new, count=None):
     """
     A case-insensitive replace() clone. Return a copy of text with all occurrences of substring
@@ -192,6 +192,7 @@ def multi_replace(text, word_dic):
         return word_dic[match.group(0)]
 
     return rc.sub(translate, text)
+
 
 # compatibility
 multiword_replace = multi_replace
@@ -220,6 +221,7 @@ def truncate(content, length=100, suffix='...'):
     else:
         return content[:length].rsplit(' ', 1)[0] + suffix
 
+
 # compatibility
 truncate_str = truncate
 strip_colors = strip_irc
@@ -230,11 +232,13 @@ def chunk_str(content, length=420):
     Chunks a string into smaller strings of given length. Returns chunks.
     :rtype list
     """
+
     def chunk(c, l):
         while c:
-            out = (c+' ')[:l].rsplit(' ', 1)[0]
+            out = (c + ' ')[:l].rsplit(' ', 1)[0]
             c = c[len(out):].strip()
             yield out
+
     return list(chunk(content, length))
 
 
@@ -244,6 +248,7 @@ def pluralize(num=0, text=''):
     :rtype: str
     """
     return "{:,} {}{}".format(num, text, "s"[num == 1:])
+
 
 # alternate form
 pluralise = pluralize
@@ -261,7 +266,7 @@ def dict_format(args, formats):
             # Check if values can be mapped
             m = f.format(**args)
             # Insert match and number of matched values (max matched values if already in dict)
-            matches[m] = max([matches.get(m, 0), len(re.findall(r'(\{.*?\})', f))])
+            matches[m] = max([matches.get(m, 0), len(re.findall(r'({.*?\})', f))])
         except Exception:
             continue
 

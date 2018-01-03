@@ -2,7 +2,6 @@ import requests
 
 from cloudbot import hook
 
-
 max_length = 100
 
 

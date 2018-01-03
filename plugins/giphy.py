@@ -15,7 +15,7 @@ def load_api(bot):
 
 
 @hook.command("gif", "giphy")
-def giphy(text, chan):
+def giphy(text):
     """<query> - Searches giphy.com for a gif using the provided search term."""
     term = text.strip()
     search_url = api_url + '/search'

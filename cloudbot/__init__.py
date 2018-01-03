@@ -12,7 +12,8 @@ import os
 
 __version__ = "1.0.9"
 
-__all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader", "logging_dir"]
+__all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
+           "logging_dir"]
 
 
 def _setup():
@@ -88,5 +89,6 @@ def _setup():
         dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
 
     logging.config.dictConfig(dict_config)
+
 
 _setup()

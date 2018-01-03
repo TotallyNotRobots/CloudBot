@@ -1,6 +1,5 @@
-import re
 import operator
-
+import re
 from collections import defaultdict
 
 from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint
@@ -9,7 +8,7 @@ from cloudbot import hook
 from cloudbot.util import database
 
 karmaplus_re = re.compile('^.*\+\+$')
-karmaminus_re = re.compile('^.*\-\-$')
+karmaminus_re = re.compile('^.*--$')
 
 karma_table = Table(
     'karma',
@@ -23,18 +22,21 @@ karma_table = Table(
 
 
 @hook.command("pp", "addpoint")
-def addpoint(text, nick, chan, db, conn):
+def addpoint(text, nick, chan, db):
     """<thing> - adds a point to the <thing>"""
     text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
+    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
+                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
-        score = score + 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
+        score += 1
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
         # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
     else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': 1})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': 1})
         db.commit()
         # return "{} is now worth 1 in {}'s eyes.".format(text, nick)
 
@@ -51,37 +53,44 @@ def re_addpt(match, nick, chan, db, conn, notice):
 
 
 @hook.command("mm", "rmpoint")
-def rmpoint(text, nick, chan, db, conn):
+def rmpoint(text, nick, chan, db):
     """<thing> - subtracts a point from the <thing>"""
     text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing", {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
+    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
+                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
     if karma:
         score = int(karma[0])
-        score = score - 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
+        score -= 1
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
         db.commit()
         # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
     else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)", {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': -1})
+        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
+                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': -1})
         db.commit()
         # return "{} is now worth -1 in {}'s eyes.".format(text, nick)
 
 
 @hook.command("pluspts", autohelp=False)
-def pluspts(nick, chan, db, conn):
+def pluspts(nick, chan, db):
     """- prints the things you have liked and their scores"""
     output = ""
-    likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc", {'name': nick, 'chan': chan}).fetchall()
+    likes = db.execute(
+        "select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc",
+        {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
         output = output + str(like[0]) + " has " + str(like[1]) + " points "
     return output
 
 
 @hook.command("minuspts", autohelp=False)
-def minuspts(nick, chan, db, conn):
+def minuspts(nick, chan, db):
     """- prints the things you have disliked and their scores"""
     output = ""
-    likes = db.execute("select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score", {'name': nick, 'chan': chan}).fetchall()
+    likes = db.execute(
+        "select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score",
+        {'name': nick, 'chan': chan}).fetchall()
     for like in likes:
         output = output + str(like[0]) + " has " + str(like[1]) + " points "
     return output
@@ -99,17 +108,17 @@ def re_rmpt(match, nick, chan, db, conn, notice):
 
 
 @hook.command("points", autohelp=False)
-def points(text, chan, db, conn):
+def points(text, chan, db):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0
-    karma = ""
     thing = ""
     if text.endswith("-global") or text.endswith(" global"):
         thing = text[:-7].strip()
         karma = db.execute("select score from karma where thing = :thing", {'thing': thing.lower()}).fetchall()
     else:
         text = text.strip()
-        karma = db.execute("select score from karma where thing = :thing and chan = :chan", {'thing': text.lower(), 'chan': chan}).fetchall()
+        karma = db.execute("select score from karma where thing = :thing and chan = :chan",
+                           {'thing': text.lower(), 'chan': chan}).fetchall()
     if karma:
         pos = 0
         neg = 0
@@ -120,19 +129,17 @@ def points(text, chan, db, conn):
                 pos += int(k[0])
             score += int(k[0])
         if thing:
-            return "{} has a total score of {} (+{}/{}) across all channels I know about.".format(thing, score, pos, neg)
+            return "{} has a total score of {} (+{}/{}) across all channels I know about.".format(thing, score, pos,
+                                                                                                  neg)
         return "{} has a total score of {} (+{}/{}) in {}.".format(text, score, pos, neg, chan)
     else:
         return "I couldn't find {} in the database.".format(text)
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)
-def pointstop(text, chan, db, message, conn, notice):
+def pointstop(text, chan, db):
     """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
-    scores = []
     points = defaultdict(int)
-    items = ""
-    out = ""
     if text == "global" or text == "-global":
         items = db.execute("select thing, score from karma").fetchall()
         out = "The top {} favorite things in all channels are: "
@@ -157,12 +164,9 @@ def pointstop(text, chan, db, message, conn, notice):
 
 
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
-def pointsbottom(text, chan, db, message, conn, notice):
+def pointsbottom(text, chan, db):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
-    scores = []
     points = defaultdict(int)
-    items = ""
-    out = ""
     if text == "global" or text == "-global":
         items = db.execute("select thing, score from karma").fetchall()
         out = "The {} most hated things in all channels are: "

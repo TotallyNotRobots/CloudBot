@@ -2,13 +2,15 @@ import codecs
 import json
 import os
 import random
+
 from cloudbot import hook
 
-
-deal_with_it_phrases = [ 'Stop complaining, \x02{}\x02, and',
-               'Jesus fuck \x02{}\x02, just',
-               'Looks like \x02{}\x02 needs to',
-               'Ever think that \x02{}\x02 just needs to']
+deal_with_it_phrases = [
+    'Stop complaining, \x02{}\x02, and',
+    'Jesus fuck \x02{}\x02, just',
+    'Looks like \x02{}\x02 needs to',
+    'Ever think that \x02{}\x02 just needs to'
+]
 
 
 @hook.on_start()
