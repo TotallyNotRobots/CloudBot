@@ -280,8 +280,6 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
                        .where(table.c.chan == chan.lower())
                        .where(table.c.name == nick.lower())).fetchone()
     if score:
-        score = score[0]
-        score += 1
         dbupdate(nick, chan, db, conn, score[0] + shoot, score[1] + friend)
     else:
         dbadd_entry(nick, chan, db, conn, shoot, friend)
