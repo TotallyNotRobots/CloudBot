@@ -281,8 +281,10 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
                        .where(table.c.name == nick.lower())).fetchone()
     if score:
         dbupdate(nick, chan, db, conn, score[0] + shoot, score[1] + friend)
+        return {'shoot': score[0] + shoot, 'friend': score[1] + friend}
     else:
         dbadd_entry(nick, chan, db, conn, shoot, friend)
+        return {'shoot': shoot, 'friend': friend}
 
 
 def attack(nick, chan, message, db, conn, notice, attack):
@@ -353,13 +355,12 @@ def attack(nick, chan, message, db, conn, notice, attack):
 
         status['duck_status'] = 2
         try:
-            score = 1
             args = {
-                attack_type: score
+                attack_type: 1
             }
 
-            update_score(nick, chan, db, conn, **args)
-        except DatabaseError:
+            score = update_score(nick, chan, db, conn, **args)[attack_type]
+        except Exception:
             status['duck_status'] = 1
             raise
 
