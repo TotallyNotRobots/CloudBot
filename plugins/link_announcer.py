@@ -17,6 +17,7 @@ url_re = re.compile(
     
     # Domain
     (?:
+        # TODO Add support for IDNA hostnames as specified by RFC5891
         [\-.0-9A-Za-z]+|  # host
         \d{1,3}(?:\.\d{1,3}){3}|  # IPv4
         \[[A-F0-9]{0,4}(?::[A-F0-9]{0,4}){2,7}\]  # IPv6
