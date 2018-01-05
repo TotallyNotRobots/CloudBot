@@ -13,6 +13,8 @@ url_re = re.compile(
     https? # Scheme
     ://
     
+    (?:[\0-\x7F]+(?::(?:[\0-\x7F]+)?)?)?  # Username and Password
+    
     # Domain
     (?:
         [\-.0-9A-Za-z]+|  # host
@@ -22,11 +24,11 @@ url_re = re.compile(
     
     (?::\d*)?  # port
     
-    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)*  # Path segment
+    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)*  # Path segment
     
-    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
+    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Query
     
-    (?:\#(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Fragment
+    (?:\#(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Fragment
     """,
     re.IGNORECASE | re.VERBOSE
 )
