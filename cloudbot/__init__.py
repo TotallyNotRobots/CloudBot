@@ -82,7 +82,7 @@ def _setup():
             "handlers": ["console", "file"]
         }
 
-    if logging_config.get("file_debug", True):
+    if logging_config.get("file_debug", False):
         dict_config["handlers"]["debug_file"] = {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1000000,

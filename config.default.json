@@ -118,7 +118,7 @@
     },
     "logging": {
         "console_debug": false,
-        "file_debug": true,
+        "file_debug": false,
         "show_plugin_loading": true,
         "show_motd": true,
         "show_server_info": true,
