@@ -49,8 +49,8 @@ def get_request(ticker, currency):
 
 
 def alias_wrapper(alias):
-    def func(text):
-        return crypto_command(" ".join((alias.name, text)))
+    def func(text, reply):
+        return crypto_command(" ".join((alias.name, text)), reply)
 
     func.__doc__ = """- Returns the current {} value""".format(alias.name)
     func.__name__ = alias.name + "_alias"
