@@ -4,7 +4,6 @@ from collections import defaultdict
 from time import time
 
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
-from sqlalchemy.exc import DatabaseError
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -108,7 +107,7 @@ def save_status(db):
             if not res.rowcount:
                 db.execute(status_table.insert().values(network=network, chan=chan, active=active, duck_kick=duck_kick))
 
-    db.commit()
+            db.commit()
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
