@@ -14,7 +14,7 @@ from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
 from cloudbot.client import Client, CLIENTS
-from cloudbot.clients.irc import IrcClient, irc_clean
+from cloudbot.clients.irc import irc_clean
 from cloudbot.config import Config
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.hook import Action
@@ -277,6 +277,8 @@ class CloudBot:
                     # The hook has an action of Action.HALT* so stop adding new tasks
                     break
 
+        matched_command = False
+
         if event.type is EventType.message:
             # Commands
             if event.chan.lower() == event.nick.lower():  # private message, no command prefix
@@ -297,12 +299,14 @@ class CloudBot:
                     command_event = CommandEvent(hook=command_hook, text=text,
                                                  triggered_command=command, base_event=event)
                     add_hook(command_hook, command_event)
+                    matched_command = True
                 else:
                     potential_matches = []
                     for potential_match, plugin in self.plugin_manager.commands.items():
                         if potential_match.startswith(command):
                             potential_matches.append((potential_match, plugin))
                     if potential_matches:
+                        matched_command = True
                         if len(potential_matches) == 1:
                             command_hook = potential_matches[0][1]
                             command_event = CommandEvent(hook=command_hook, text=text,
@@ -312,10 +316,11 @@ class CloudBot:
                             event.notice("Possible matches: {}".format(
                                 formatting.get_text_list([command for command, plugin in potential_matches])))
 
+        if event.type in (EventType.message, EventType.action):
             # Regex hooks
             regex_matched = False
             for regex, regex_hook in self.plugin_manager.regex_hooks:
-                if not regex_hook.run_on_cmd and cmd_match:
+                if not regex_hook.run_on_cmd and matched_command:
                     continue
 
                 if regex_hook.only_no_match and regex_matched:
