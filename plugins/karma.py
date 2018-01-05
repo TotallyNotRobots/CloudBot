@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 
 import sqlalchemy
-from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint
+from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint, select, and_
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -29,28 +29,28 @@ def remove_non_channel_points(db):
     db.commit()
 
 
-@hook.command("pp", "addpoint")
-def addpoint(text, nick, chan, db):
-    """<thing> - adds a point to the <thing>"""
+def update_score(nick, chan, thing, score, db):
     if nick.casefold() == chan.casefold():
         # This is a PM, don't set points in a PM
         return
 
-    text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
-                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
+    thing = thing.strip()
+    clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.thing == thing.lower())
+    karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
     if karma:
-        score = int(karma[0])
-        score += 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
-                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
-        db.commit()
-        # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
+        score += int(karma[0])
+        query = karma_table.update().values(score=score).where(clause)
     else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
-                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': 1})
-        db.commit()
-        # return "{} is now worth 1 in {}'s eyes.".format(text, nick)
+        query = karma_table.insert().values(name=nick, chan=chan, thing=thing.lower(), score=score)
+
+    db.execute(query)
+    db.commit()
+
+
+@hook.command("pp", "addpoint")
+def addpoint(text, nick, chan, db):
+    """<thing> - adds a point to the <thing>"""
+    update_score(nick, chan, text, 1, db)
 
 
 @hook.regex(karmaplus_re)
@@ -59,7 +59,6 @@ def re_addpt(match, nick, chan, db, notice):
     thing = match.group().split('++')[0]
     if thing:
         addpoint(thing, nick, chan, db)
-        # return out
     else:
         notice(pluspts(nick, chan, db))
 
@@ -67,36 +66,20 @@ def re_addpt(match, nick, chan, db, notice):
 @hook.command("mm", "rmpoint")
 def rmpoint(text, nick, chan, db):
     """<thing> - subtracts a point from the <thing>"""
-    if nick.casefold() == chan.casefold():
-        # This is a PM, don't set points in a PM
-        return
-
-    text = text.strip()
-    karma = db.execute("select score from karma where name = :name and chan = :chan and thing = :thing",
-                       {'name': nick, 'chan': chan, 'thing': text.lower()}).fetchone()
-    if karma:
-        score = int(karma[0])
-        score -= 1
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
-                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': score})
-        db.commit()
-        # return "{} is now worth {} in {}'s eyes.".format(text, score, nick)
-    else:
-        db.execute("insert or replace into karma(name, chan, thing, score) values (:name, :chan, :thing, :score)",
-                   {'name': nick, 'chan': chan, 'thing': text.lower(), 'score': -1})
-        db.commit()
-        # return "{} is now worth -1 in {}'s eyes.".format(text, nick)
+    update_score(nick, chan, text, -1, db)
 
 
 @hook.command("pluspts", autohelp=False)
 def pluspts(nick, chan, db):
     """- prints the things you have liked and their scores"""
     output = ""
-    likes = db.execute(
-        "select thing, score from karma where name = :name and chan = :chan and score >= 0 order by score desc",
-        {'name': nick, 'chan': chan}).fetchall()
+    clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.score >= 0)
+    query = select([karma_table.c.thing, karma_table.c.score]).where(clause).order_by(karma_table.c.score.desc())
+    likes = db.execute(query).fetchall()
+
     for like in likes:
-        output = output + str(like[0]) + " has " + str(like[1]) + " points "
+        output += "{} has {} points ".format(like[0], like[1])
+
     return output
 
 
@@ -104,11 +87,13 @@ def pluspts(nick, chan, db):
 def minuspts(nick, chan, db):
     """- prints the things you have disliked and their scores"""
     output = ""
-    likes = db.execute(
-        "select thing, score from karma where name = :name and chan = :chan and score <= 0 order by score",
-        {'name': nick, 'chan': chan}).fetchall()
+    clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.score <= 0)
+    query = select([karma_table.c.thing, karma_table.c.score]).where(clause).order_by(karma_table.c.score)
+    likes = db.execute(query).fetchall()
+
     for like in likes:
-        output = output + str(like[0]) + " has " + str(like[1]) + " points "
+        output += "{} has {} points ".format(like[0], like[1])
+
     return output
 
 
@@ -118,7 +103,6 @@ def re_rmpt(match, nick, chan, db, notice):
     thing = match.group().split('--')[0]
     if thing:
         rmpoint(thing, nick, chan, db)
-        # return out
     else:
         notice(minuspts(nick, chan, db))
 
@@ -128,13 +112,15 @@ def points(text, chan, db):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0
     thing = ""
-    if text.endswith("-global") or text.endswith(" global"):
+    if text.endswith(("-global", " global")):
         thing = text[:-7].strip()
-        karma = db.execute("select score from karma where thing = :thing", {'thing': thing.lower()}).fetchall()
+        query = select([karma_table.c.score]).where(karma_table.c.thing == thing.lower())
     else:
         text = text.strip()
-        karma = db.execute("select score from karma where thing = :thing and chan = :chan",
-                           {'thing': text.lower(), 'chan': chan}).fetchall()
+        query = select([karma_table.c.score]).where(karma_table.c.thing == thing.lower()).where(
+            karma_table.c.chan == chan)
+
+    karma = db.execute(query).fetchall()
     if karma:
         pos = 0
         neg = 0
@@ -157,11 +143,14 @@ def pointstop(text, chan, db):
     """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
     points = defaultdict(int)
     if text == "global" or text == "-global":
-        items = db.execute("select thing, score from karma").fetchall()
+        items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
         out = "The top {} favorite things in all channels are: "
     else:
-        items = db.execute("select thing, score from karma where chan = :chan", {'chan': chan}).fetchall()
+        items = db.execute(
+            select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
+        ).fetchall()
         out = "The top {} favorite things in {} are: "
+
     if items:
         for item in items:
             thing = item[0]
@@ -184,10 +173,12 @@ def pointsbottom(text, chan, db):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
     points = defaultdict(int)
     if text == "global" or text == "-global":
-        items = db.execute("select thing, score from karma").fetchall()
+        items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
         out = "The {} most hated things in all channels are: "
     else:
-        items = db.execute("select thing, score from karma where chan = :chan", {'chan': chan}).fetchall()
+        items = db.execute(
+            select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
+        ).fetchall()
         out = "The {} most hated things in {} are: "
     if items:
         for item in items:

@@ -2,7 +2,7 @@
 
 import requests
 from bs4 import BeautifulSoup
-from sqlalchemy import Table, String, Column
+from sqlalchemy import Table, String, Column, select
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -13,6 +13,22 @@ table = Table(
     Column('nick', String, primary_key=True),
     Column('sign', String)
 )
+
+
+def get_sign(db, nick):
+    row = db.execute(select([table.c.sign]).where(table.c.nick == nick.lower())).fetchone()
+    if not row:
+        return None
+
+    return row[0]
+
+
+def set_sign(db, nick, sign):
+    res = db.execute(table.update().values(sign=sign.lower()).where(table.c.nick == nick.lower()))
+    if res.rowcount == 0:
+        db.execute(table.insert().values(nick=nick.lower(), sign=sign.lower()))
+
+    db.commit()
 
 
 @hook.command(autohelp=False)
@@ -43,11 +59,11 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
         sign = text.strip().lower()
 
     if not sign:
-        sign = db.execute("SELECT sign FROM horoscope WHERE "
-                          "nick=lower(:nick)", {'nick': nick}).fetchone()
+        sign = get_sign(db, nick)
         if not sign:
             notice_doc()
             return
+
         sign = sign[0].strip().lower()
 
     if sign not in signs:
@@ -70,11 +86,9 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
     soup = BeautifulSoup(request.text)
 
     horoscope_text = soup.find("div", class_="horoscope-content").find("p").text
-    result = "\x02{}\x02 {}".format(text, horoscope_text)
+    result = "\x02{}\x02 {}".format(sign, horoscope_text)
 
     if text and not dontsave:
-        db.execute("insert or replace into horoscope(nick, sign) values (:nick, :sign)",
-                   {'nick': nick.lower(), 'sign': sign})
-        db.commit()
+        set_sign(db, nick, sign)
 
     message(result)

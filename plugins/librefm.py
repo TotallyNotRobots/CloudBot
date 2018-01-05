@@ -123,8 +123,10 @@ def librefm(text, nick, db, notice):
     out += ending
 
     if text and not dontsave:
-        db.execute("insert or replace into librefm(nick, acc) values (:nick, :account)",
-                   {'nick': nick.lower(), 'account': user})
+        res = db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
+        if res.rowcount <= 0:
+            db.execute(table.insert().values(nick=nick.lower(), acc=user))
+
         db.commit()
         load_cache(db)
     return out

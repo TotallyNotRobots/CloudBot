@@ -3,7 +3,7 @@ import re
 import time
 from collections import deque
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select
 
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -27,11 +27,19 @@ def track_seen(event, db):
     :type db: sqlalchemy.orm.Session
     """
     # keep private messages private
+    now = time.time()
     if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
-        db.execute(
-            "insert or replace into seen_user(name, time, quote, chan, host) values(:name,:time,:quote,:chan,:host)",
-            {'name': event.nick.lower(), 'time': time.time(), 'quote': event.content, 'chan': event.chan,
-             'host': event.mask})
+        res = db.execute(
+            table.update().values(time=now, quote=event.content, host=str(event.mask))
+                .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
+        )
+        if res.rowcount == 0:
+            db.execute(
+                table.insert().values(
+                    name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
+                )
+            )
+
         db.commit()
 
 
@@ -98,18 +106,13 @@ def seen(text, nick, chan, db, event, is_nick_valid):
     if not is_nick_valid(text):
         return "I can't look up that name, its impossible to use!"
 
-    if '_' in text:
-        text = text.replace("_", "/_")
-
-    last_seen = db.execute("SELECT name, time, quote FROM seen_user WHERE name LIKE :name ESCAPE '/' AND chan = :chan",
-                           {'name': text, 'chan': chan}).fetchone()
-
-    text = text.replace("/", "")
+    last_seen = db.execute(
+        select([table.c.name, table.c.time, table.c.quote])
+            .where(table.c.name == text.lower()).where(table.c.chan == chan)
+    ).fetchone()
 
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
-        if last_seen[0] != text.lower():  # for glob matching
-            text = last_seen[0]
         if last_seen[2][0:1] == "\x01":
             return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
         else:
