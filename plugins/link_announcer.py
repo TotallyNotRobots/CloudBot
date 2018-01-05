@@ -13,7 +13,7 @@ url_re = re.compile(
     https? # Scheme
     ://
     
-    (?:[\0-\x7F]+(?::(?:[\0-\x7F]+)?)?)?  # Username and Password
+    (?:[\0-\x7F]+(?::(?:[\0-\x7F]+)?)?@)?  # Username and Password
     
     # Domain
     (?:
