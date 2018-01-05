@@ -57,6 +57,6 @@ def print_url_title(message, match):
     html = BeautifulSoup(content, "lxml", from_encoding=encoding)
 
     if html.title:
-        title = " ".join(html.title.text.strip().splitlines())
+        title = html.title.text
         out = "Title: \x02{}\x02".format(title)
         message(out)
