@@ -1,7 +1,9 @@
 """
 Validates all hook registrations in all plugins
 """
+import asyncio
 import importlib
+import inspect
 import re
 from numbers import Number
 from pathlib import Path
@@ -134,3 +136,9 @@ def test_hook_args(hook):
 
     for arg in hook.required_args:
         assert hasattr(event, arg), "Undefined parameter '{}' for hook function".format(arg)
+
+
+def test_coroutine_hooks(hook):
+    if inspect.isgeneratorfunction(hook.function):
+        assert asyncio.iscoroutinefunction(hook.function), \
+            "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the hook/coroutine decorators."
