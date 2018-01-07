@@ -1,6 +1,7 @@
 import operator
 import random
 from collections import defaultdict
+from threading import Lock
 from time import time
 
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
@@ -65,6 +66,7 @@ game_status structure
 MSG_DELAY = 10
 MASK_REQ = 3
 scripters = defaultdict(int)
+chan_locks = defaultdict(lambda: defaultdict(Lock))
 game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
 
@@ -370,13 +372,15 @@ def attack(nick, chan, message, db, conn, notice, attack):
 @hook.command("bang", autohelp=False)
 def bang(nick, chan, message, db, conn, notice):
     """- when there is a duck on the loose use this command to shoot it."""
-    return attack(nick, chan, message, db, conn, notice, "shoot")
+    with chan_locks[conn.name][chan.casefold()]:
+        return attack(nick, chan, message, db, conn, notice, "shoot")
 
 
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice):
     """- when there is a duck on the loose use this command to befriend it before someone else shoots it."""
-    return attack(nick, chan, message, db, conn, notice, "befriend")
+    with chan_locks[conn.name][chan.casefold()]:
+        return attack(nick, chan, message, db, conn, notice, "befriend")
 
 
 def smart_truncate(content, length=320, suffix='...'):
