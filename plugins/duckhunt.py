@@ -567,7 +567,7 @@ def duck_merge(text, conn, db, message):
             .where(table.c.name == oldnick)
         db.execute(query)
         db.commit()
-        message("Migrated {} duck kills and {} duck friends from {} to {}".format(
+        message("Migrated {} and {} from {} to {}".format(
             pluralize(duckmerge["TKILLS"], "duck kill"), pluralize(duckmerge["TFRIENDS"], "duck friend"),
             oldnick, newnick
         ))
