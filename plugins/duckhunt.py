@@ -2,7 +2,7 @@ import operator
 import random
 from collections import defaultdict
 from threading import Lock
-from time import time
+from time import time, sleep
 
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
 from sqlalchemy.sql import select
@@ -95,21 +95,46 @@ def load_status(db):
         set_ducktime(chan, net)
 
 
+def save_channel_state(db, network, chan, status=None):
+    if status is None:
+        status = game_status[network][chan.casefold()]
+
+    active = bool(status['game_on'])
+    duck_kick = bool(status['no_duck_kick'])
+    res = db.execute(status_table.update().where(status_table.c.network == network).where(
+        status_table.c.chan == chan).values(
+        active=active, duck_kick=duck_kick
+    ))
+    if not res.rowcount:
+        db.execute(status_table.insert().values(network=network, chan=chan, active=active, duck_kick=duck_kick))
+
+    db.commit()
+
+
 @hook.on_unload
-@hook.periodic(5 * 60, initial_interval=10 * 60)
-def save_status(db):
+def save_on_exit(db):
+    return save_status(db, False)
+
+
+@hook.periodic(8 * 3600, singlethread=True)  # Run every 8 hours
+def save_status(db, _sleep=True):
     for network in game_status:
         for chan, status in game_status[network].items():
-            active = bool(status['game_on'])
-            duck_kick = bool(status['no_duck_kick'])
-            res = db.execute(status_table.update().where(status_table.c.network == network).where(
-                status_table.c.chan == chan).values(
-                active=active, duck_kick=duck_kick
-            ))
-            if not res.rowcount:
-                db.execute(status_table.insert().values(network=network, chan=chan, active=active, duck_kick=duck_kick))
+            save_channel_state(db, network, chan, status)
 
-            db.commit()
+            if _sleep:
+                sleep(5)
+
+
+def set_game_state(db, conn, chan, active=None, duck_kick=None):
+    status = game_status[conn.name][chan]
+    if active is not None:
+        status['game_on'] = int(active)
+
+    if duck_kick is not None:
+        status['no_duck_kick'] = int(duck_kick)
+
+    save_channel_state(db, conn.name, chan, status)
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
@@ -125,7 +150,7 @@ def incrementMsgCounter(event, conn):
 
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
-def start_hunt(chan, message, conn):
+def start_hunt(db, chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
@@ -136,7 +161,8 @@ def start_hunt(chan, message, conn):
     if check:
         return "there is already a game running in {}.".format(chan)
     else:
-        game_status[conn.name][chan]['game_on'] = 1
+        set_game_state(db, conn, chan, active=True)
+
     set_ducktime(chan, conn.name)
     message(
         "Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.",
@@ -155,29 +181,29 @@ def set_ducktime(chan, conn):
 
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
-def stop_hunt(chan, conn):
+def stop_hunt(db, chan, conn):
     """- This command stops the duck hunt in your channel. Scores will be preserved"""
     global game_status
     if chan in opt_out:
         return
     if game_status[conn.name][chan]['game_on']:
-        game_status[conn.name][chan]['game_on'] = 0
+        set_game_state(db, conn, chan, active=False)
         return "the game has been stopped."
     else:
         return "There is no game running in {}.".format(chan)
 
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
-def no_duck_kick(text, chan, conn, notice_doc):
+def no_duck_kick(db, text, chan, conn, notice_doc):
     """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
     global game_status
     if chan in opt_out:
         return
     if text.lower() == 'enable':
-        game_status[conn.name][chan]['no_duck_kick'] = 1
+        set_game_state(db, conn, chan, duck_kick=True)
         return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
     elif text.lower() == 'disable':
-        game_status[conn.name][chan]['no_duck_kick'] = 0
+        set_game_state(db, conn, chan, duck_kick=False)
         return "kicking for non-existent ducks has been disabled."
     else:
         notice_doc()
