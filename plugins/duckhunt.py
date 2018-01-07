@@ -314,7 +314,7 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
         return {'shoot': shoot, 'friend': friend}
 
 
-def attack(nick, chan, message, db, conn, notice, attack):
+def attack(event, nick, chan, message, db, conn, notice, attack):
     global game_status, scripters
     if chan in opt_out:
         return
@@ -389,6 +389,7 @@ def attack(nick, chan, message, db, conn, notice, attack):
             score = update_score(nick, chan, db, conn, **args)[attack_type]
         except Exception:
             status['duck_status'] = 1
+            event.reply("An unknown error has occurred.")
             raise
 
         message(msg.format(nick, shoot - deploy, pluralize(score, "duck"), chan))
@@ -396,17 +397,17 @@ def attack(nick, chan, message, db, conn, notice, attack):
 
 
 @hook.command("bang", autohelp=False)
-def bang(nick, chan, message, db, conn, notice):
+def bang(nick, chan, message, db, conn, notice, event):
     """- when there is a duck on the loose use this command to shoot it."""
     with chan_locks[conn.name][chan.casefold()]:
-        return attack(nick, chan, message, db, conn, notice, "shoot")
+        return attack(event, nick, chan, message, db, conn, notice, "shoot")
 
 
 @hook.command("befriend", autohelp=False)
-def befriend(nick, chan, message, db, conn, notice):
+def befriend(nick, chan, message, db, conn, notice, event):
     """- when there is a duck on the loose use this command to befriend it before someone else shoots it."""
     with chan_locks[conn.name][chan.casefold()]:
-        return attack(nick, chan, message, db, conn, notice, "befriend")
+        return attack(event, nick, chan, message, db, conn, notice, "befriend")
 
 
 def smart_truncate(content, length=320, suffix='...'):
