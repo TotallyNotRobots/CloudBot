@@ -23,6 +23,7 @@ table = Table(
 herald_cache = defaultdict(dict)
 
 
+@hook.on_start
 def load_cache(db):
     herald_cache.clear()
     for row in db.execute(table.select()):
