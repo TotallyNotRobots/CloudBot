@@ -17,5 +17,4 @@ after_success:
   - "coveralls"
 
 env:
-  - PYTHONPATH=.
-  - PYTHONASYNCIODEBUG=1
+  - PYTHONPATH=. PYTHONASYNCIODEBUG=1
