@@ -64,7 +64,7 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
             notice_doc()
             return
 
-        sign = sign[0].strip().lower()
+        sign = sign.strip().lower()
 
     if sign not in signs:
         notice("Unknown sign: {}".format(sign))
