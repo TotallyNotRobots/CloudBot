@@ -19,8 +19,8 @@ def get_channels(db, conn):
     return db.execute(table.select().where(table.c.conn == conn.name.casefold())).fetchall()
 
 
-@asyncio.coroutine
 @hook.irc_raw('376')
+@asyncio.coroutine
 def do_joins(db, conn, async_call):
     chans = yield from async_call(get_channels, db, conn)
     join_throttle = conn.config.get("join_throttle", 0.4)

@@ -11,8 +11,8 @@ BUFFER_SIZE = 5000
 MAX_STEPS = 1000000
 
 
-@asyncio.coroutine
 @hook.command("brainfuck", "bf")
+@asyncio.coroutine
 def bf(text):
     """<prog> - executes <prog> as Brainfuck code
     :type text: str

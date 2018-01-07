@@ -72,8 +72,8 @@ def voat_url(match, bot):
     return format_output(data)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None

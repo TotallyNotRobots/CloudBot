@@ -169,8 +169,8 @@ def optout_sieve(bot, event, _hook):
     return event
 
 
-@asyncio.coroutine
 @hook.command
+@asyncio.coroutine
 def optout(text, event, chan, db, conn):
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current channel if not specified
     :type text: str
@@ -205,8 +205,8 @@ def optout(text, event, chan, db, conn):
     )
 
 
-@asyncio.coroutine
 @hook.command
+@asyncio.coroutine
 def deloptout(text, event, chan, db, conn):
     """[chan] <pattern> - Delete global optout hooks matching <pattern> in [chan], or the current channel if not specified"""
     args = text.split()
@@ -252,8 +252,8 @@ def check_global_perms(event):
     return chan, allowed
 
 
-@asyncio.coroutine
 @hook.command("listoptout", autohelp=False)
+@asyncio.coroutine
 def list_optout(conn, event, async_call):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to view all data for this network
     :type conn: cloudbot.clients.irc.Client
@@ -270,8 +270,8 @@ def list_optout(conn, event, async_call):
     return web.paste(table, "md", "hastebin")
 
 
-@asyncio.coroutine
 @hook.command("clearoptout", autohelp=False)
+@asyncio.coroutine
 def clear(conn, event, db, async_call):
     """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = yield from check_global_perms(event)

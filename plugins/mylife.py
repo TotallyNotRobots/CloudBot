@@ -41,16 +41,16 @@ def refresh_mlia_cache(loop):
         mlia_cache.append((mlia_id, mlia_text))
 
 
-@asyncio.coroutine
 @hook.on_start()
+@asyncio.coroutine
 def initial_refresh(loop):
     # do an initial refresh of the caches
     yield from refresh_fml_cache(loop)
     yield from refresh_mlia_cache(loop)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def fml(reply, loop):
     """- gets a random quote from fmylife.com"""
 
@@ -67,8 +67,8 @@ def fml(reply, loop):
         yield from refresh_fml_cache(loop)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def mlia(reply, loop):
     """- gets a random quote from MyLifeIsAverage.com"""
 

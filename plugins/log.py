@@ -233,8 +233,8 @@ def log(event):
 
 
 # Log console separately to prevent lag
-@asyncio.coroutine
 @hook.irc_raw("*")
+@asyncio.coroutine
 def console_log(bot, event):
     """
     :type bot: cloudbot.bot.CloudBot
