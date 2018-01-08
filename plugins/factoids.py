@@ -187,6 +187,6 @@ def listfactoids(notice, chan):
 def listdetailedfactoids(chan):
     """- lists all available factoids with their respective data"""
     headers = ("Command", "Output")
-    data = [(fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
+    data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
     table = gen_markdown_table(headers, data).encode('UTF-8')
     return web.paste(table, "md", "hastebin")
