@@ -126,11 +126,13 @@ class IrcClient(Client):
             return
 
         if self._connected:
+            self._connected = False
             logger.info("[{}] Reconnecting".format(self.name))
-            self._transport.close()
+            if self._transport:
+                self._transport.close()
         else:
-            self._connected = True
             logger.info("[{}] Connecting".format(self.name))
+
         optional_params = {}
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
@@ -143,6 +145,8 @@ class IrcClient(Client):
             coro = asyncio.wait_for(coro, timeout)
 
         self._transport, self._protocol = yield from coro
+
+        self._connected = True
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
