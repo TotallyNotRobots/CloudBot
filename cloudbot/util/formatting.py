@@ -289,7 +289,7 @@ def pluralize_auto(count, thing):
     if thing.endswith(('s', 'ss', 'sh', 'ch', 'x', 'z')):
         return pluralize_suffix(count, thing, 'es')
     elif thing.endswith(('f', 'fe')):
-        return pluralize_select(count, thing, thing.rsplit('f', 1) + 'ves')
+        return pluralize_select(count, thing, thing.rsplit('f', 1)[0] + 'ves')
     elif thing.endswith('y') and thing[-2:-1].lower() not in "aeiou":
         return pluralize_select(count, thing, thing[:-1] + 'ies')
     elif thing.endswith('y') and thing[-2:-1].lower() in "aeiou":
