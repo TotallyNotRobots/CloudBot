@@ -9,7 +9,7 @@ from sqlalchemy.sql import select
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
-from cloudbot.util.formatting import pluralize
+from cloudbot.util.formatting import pluralize_auto
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
@@ -363,7 +363,7 @@ def attack(nick, chan, message, db, conn, notice, attack):
             status['duck_status'] = 1
             raise
 
-        message(msg.format(nick, shoot - deploy, pluralize(score, "duck"), chan))
+        message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
         set_ducktime(chan, conn.name)
 
 

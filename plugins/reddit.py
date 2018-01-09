@@ -49,8 +49,8 @@ def format_output(item, show_url=False):
     raw_time = datetime.fromtimestamp(int(item["created_utc"]))
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize(item["num_comments"], 'comment')
-    item["points"] = formatting.pluralize(item["score"], 'point')
+    item["comments"] = formatting.pluralize_auto(item["num_comments"], 'comment')
+    item["points"] = formatting.pluralize_auto(item["score"], 'point')
 
     if item["over_18"]:
         item["warning"] = " \x02NSFW\x02"

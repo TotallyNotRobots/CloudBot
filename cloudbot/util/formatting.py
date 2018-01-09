@@ -47,6 +47,7 @@ License for final section (all code after the "DJANGO LICENCE" comment):
 import copy
 import html.entities
 import re
+import warnings
 from html.parser import HTMLParser
 
 from cloudbot.util.colors import strip_irc
@@ -247,11 +248,65 @@ def pluralize(num=0, text=''):
     Takes a number and a string, and pluralizes that string using the number and combines the results.
     :rtype: str
     """
-    return "{:,} {}{}".format(num, text, "s"[num == 1:])
+    warnings.warn(
+        "formatting.pluralize() is deprecated, please use one of the other formatting.pluralize_*() functions",
+        DeprecationWarning
+    )
+    return pluralize_suffix(num, text)
 
 
-# alternate form
-pluralise = pluralize
+def pluralise(num=0, text=''):
+    """
+    Takes a number and a string, and pluralizes that string using the number and combines the results.
+    :rtype: str
+    """
+    warnings.warn(
+        "formatting.pluralise() is deprecated, please use one of the other formatting.pluralise_*() functions",
+        DeprecationWarning
+    )
+    return pluralise_suffix(num, text)
+
+
+def pluralize_suffix(num=0, text='', suffix='s'):
+    """
+    Takes a number and a string, and pluralizes that string using the number and combines the results.
+    :rtype: str
+    """
+    return pluralize_select(num, text, text + suffix)
+
+
+pluralise_suffix = pluralize_suffix
+
+
+def pluralize_select(count, single, plural):
+    return "{:,} {}".format(count, single if count == 1 else plural)
+
+
+pluralise_select = pluralize_select
+
+
+def pluralize_auto(count, thing):
+    if thing.endswith(('s', 'ss', 'sh', 'ch', 'x', 'z')):
+        return pluralize_suffix(count, thing, 'es')
+    elif thing.endswith(('f', 'fe')):
+        return pluralize_select(count, thing, thing.rsplit('f', 1) + 'ves')
+    elif thing.endswith('y') and thing[-2:-1].lower() not in "aeiou":
+        return pluralize_select(count, thing, thing[:-1] + 'ies')
+    elif thing.endswith('y') and thing[-2:-1].lower() in "aeiou":
+        return pluralize_suffix(count, thing)
+    elif thing.endswith('o'):
+        return pluralize_suffix(count, thing, 'es')
+    elif thing.endswith('us'):
+        return pluralize_select(count, thing, thing[:-2] + 'i')
+    elif thing.endswith('is'):
+        return pluralize_select(count, thing, thing[:-2] + 'es')
+    elif thing.endswith('on'):
+        return pluralize_select(count, thing, thing[:-2] + 'a')
+    else:
+        return pluralize_suffix(count, thing)
+
+
+pluralise_auto = pluralize_auto
 
 
 def dict_format(args, formats):
