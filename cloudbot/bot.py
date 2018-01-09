@@ -314,7 +314,7 @@ class CloudBot:
                             add_hook(command_hook, command_event)
                         else:
                             event.notice("Possible matches: {}".format(
-                                formatting.get_text_list([command for command, plugin in potential_matches])))
+                                formatting.get_text_list(sorted([command for command, plugin in potential_matches]))))
 
         if event.type in (EventType.message, EventType.action):
             # Regex hooks
