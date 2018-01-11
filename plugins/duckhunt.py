@@ -116,7 +116,7 @@ def save_on_exit(db):
     return save_status(db, False)
 
 
-@hook.periodic(8 * 3600, singlethread=True)  # Run every 8 hours
+# @hook.periodic(8 * 3600, singlethread=True)  # Run every 8 hours
 def save_status(db, _sleep=True):
     for network in game_status:
         for chan, status in game_status[network].items():
