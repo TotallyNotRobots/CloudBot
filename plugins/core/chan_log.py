@@ -26,12 +26,12 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
             messages.append(last_line.strip())
         except Exception as e:
             messages.append("Error occurred while formatting error {}: {}".format(type(e), e))
-
-        try:
-            url = web.paste('\n'.join(lines))
-            messages.append("Traceback: " + url)
-        except Exception as e:
-            messages.append("Error occurred while gathering traceback {}: {}".format(type(e), e))
+        else:
+            try:
+                url = web.paste('\n'.join(lines))
+                messages.append("Traceback: " + url)
+            except Exception as e:
+                messages.append("Error occurred while gathering traceback {}: {}".format(type(e), e))
 
         try:
             lines = ["{} = {}".format(k, v) for k, v in _dump_attrs(launched_event)]
