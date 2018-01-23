@@ -3,9 +3,10 @@ Wraps various asyncio functions
 """
 
 import asyncio
-
 import sys
 from functools import partial
+
+from cloudbot.util.func_utils import call_with_args
 
 
 def wrap_future(fut, *, loop=None):
@@ -31,6 +32,19 @@ def run_func(loop, func, *args, **kwargs):
         return (yield from part())
     else:
         return (yield from loop.run_in_executor(None, part))
+
+
+@asyncio.coroutine
+def run_func_with_args(loop, func, arg_data, executor=None):
+    if asyncio.iscoroutine(func):
+        raise TypeError('A coroutine function or a normal, non-async callable are required')
+
+    if asyncio.iscoroutinefunction(func):
+        coro = call_with_args(func, arg_data)
+    else:
+        coro = loop.run_in_executor(executor, call_with_args, func, arg_data)
+
+    return (yield from coro)
 
 
 def run_coroutine_threadsafe(coro, loop):
