@@ -372,6 +372,12 @@ class Event:
         """
         return self.conn.is_nick_valid(nick)
 
+    def __getitem__(self, item):
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            raise KeyError(item)
+
     if sys.version_info < (3, 7, 0):
         # noinspection PyCompatibility
         @asyncio.coroutine
