@@ -131,16 +131,11 @@ def spotify_url(bot, match):
         name = data["name"]
         artist = data["artists"][0]["name"]
         album = data["album"]["name"]
-        url = data['external_urls']['spotify']
-        uri = data['uri']
 
-        return "Spotify Track: \x02{}\x02 by \x02{}\x02 from the album \x02{}\x02 {} [{}]".format(
-            name, artist, album, url, uri)
+        return "Spotify Track: \x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
     elif _type == "artist":
         return "Spotify Artist: \x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
             data["name"], data["followers"]["total"],
             ', '.join(data["genres"]))
     elif _type == "album":
-        return "Spotify Album: \x02{}\x02 - \x02{}\x02 {} [{}]".format(
-            data["artists"][0]["name"], data["name"],
-            data['external_urls']['spotify'], data['uri'])
+        return "Spotify Album: \x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], data["name"])
