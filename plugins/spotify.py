@@ -74,6 +74,49 @@ def _search(text, _type, reply):
     return request.json()[TYPE_MAP[_type]]["items"][0]
 
 
+def _do_format(data, _type):
+    name = data["name"]
+    if _type == "track":
+        artist = data["artists"][0]["name"]
+        album = data["album"]["name"]
+
+        return "Spotify Track", "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
+    elif _type == "artist":
+        return "Spotify Artist", "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
+            name, data["followers"]["total"], ', '.join(data["genres"])
+        )
+    elif _type == "album":
+        return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
+    else:
+        raise ValueError("Attempt to format unknown Spotify API type: " + _type)
+
+
+def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False):
+    pre, text = _do_format(data, _type)
+    if show_pre:
+        out = pre + ": "
+    else:
+        out = ""
+
+    out += text
+
+    if show_uri or show_url:
+        out += ' -'
+
+    if show_url:
+        out += ' ' + data["external_urls"]["spotify"]
+
+    if show_uri:
+        out += ' ' + "[{}]".format(data["uri"])
+
+    return out
+
+
+def _format_search(text, _type, reply):
+    data = _search(text, _type, reply)
+    return _format_response(data, _type, show_url=True, show_uri=True)
+
+
 @hook.onload
 def create_api(bot):
     keys = bot.config['api_keys']
@@ -86,39 +129,19 @@ def create_api(bot):
 @hook.command('spotify', 'sptrack')
 def spotify(text, reply):
     """<song> - Search Spotify for <song>"""
-    data = _search(text, "track", reply)
-
-    try:
-        return "\x02{}\x02 by \x02{}\x02 - {} / {}".format(
-            data["name"], data["artists"][0]["name"],
-            data["external_urls"]["spotify"], data["uri"])
-    except IndexError:
-        return "Unable to find any tracks!"
+    return _format_search(text, "track", reply)
 
 
 @hook.command("spalbum")
 def spalbum(text, reply):
     """<album> - Search Spotify for <album>"""
-    data = _search(text, "album", reply)
-
-    try:
-        return "\x02{}\x02 by \x02{}\x02 - {} / {}".format(
-            data["artists"][0]["name"], data["name"],
-            data["external_urls"]["spotify"], data["uri"])
-    except IndexError:
-        return "Unable to find any albums!"
+    return _format_search(text, "album", reply)
 
 
 @hook.command("spartist", "artist")
 def spartist(text, reply):
     """<artist> - Search Spotify for <artist>"""
-    data = _search(text, "artist", reply)
-
-    try:
-        return "\x02{}\x02 - {} / {}".format(
-            data["name"], data["external_urls"]["spotify"], data["uri"])
-    except IndexError:
-        return "Unable to find any artists!"
+    return _format_search(text, "artist", reply)
 
 
 @hook.regex(http_re)
@@ -131,15 +154,4 @@ def spotify_url(match):
 
     data = request.json()
 
-    if _type == "track":
-        name = data["name"]
-        artist = data["artists"][0]["name"]
-        album = data["album"]["name"]
-
-        return "Spotify Track: \x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
-    elif _type == "artist":
-        return "Spotify Artist: \x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
-            data["name"], data["followers"]["total"],
-            ', '.join(data["genres"]))
-    elif _type == "album":
-        return "Spotify Album: \x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], data["name"])
+    return _format_response(data, _type, show_pre=True)
