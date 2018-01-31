@@ -79,7 +79,7 @@ class Client:
             try:
                 yield from self.connect(timeout)
             except Exception:
-                logger.exception("[%s] Error occurred while connecting.")
+                logger.exception("[%s] Error occurred while connecting.", self.name)
             else:
                 break
 
