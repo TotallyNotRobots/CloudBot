@@ -6,7 +6,7 @@ import requests
 
 from cloudbot import hook
 from cloudbot.util import timeformat
-from cloudbot.util.formatting import pluralize
+from cloudbot.util.formatting import pluralize_auto
 
 youtube_re = re.compile(r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I)
 
@@ -47,8 +47,8 @@ def get_video_description(video_id):
 
     if total_votes != 0:
         # format
-        likes = pluralize(int(statistics['likeCount']), "like")
-        dislikes = pluralize(int(statistics['dislikeCount']), "dislike")
+        likes = pluralize_auto(int(statistics['likeCount']), "like")
+        dislikes = pluralize_auto(int(statistics['dislikeCount']), "dislike")
 
         percent = 100 * float(statistics['likeCount']) / total_votes
         out += ' - {}, {} (\x02{:.1f}\x02%)'.format(likes,
