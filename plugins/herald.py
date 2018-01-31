@@ -3,7 +3,7 @@ import re
 import time
 from collections import defaultdict
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, select
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -48,7 +48,7 @@ def herald(text, nick, chan, db, reply):
         db.execute(query)
         db.commit()
 
-        reply("greeting \'{}\' for {} has been removed".format(greeting[0], nick))
+        reply("greeting \'{}\' for {} has been removed".format(greeting, nick))
 
         load_cache(db)
     else:
