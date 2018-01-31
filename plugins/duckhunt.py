@@ -455,7 +455,7 @@ def friends(text, chan, conn, db):
             return "it appears no on has friended any ducks yet."
 
     topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse=True)
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v)) for k, v in topfriends])
+    out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topfriends])
     out = smart_truncate(out)
     return out
 
@@ -498,7 +498,7 @@ def killers(text, chan, conn, db):
             return "it appears no on has killed any ducks yet."
 
     topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse=True)
-    out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v)) for k, v in topkillers])
+    out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topkillers])
     out = smart_truncate(out)
     return out
 
@@ -598,9 +598,10 @@ def duck_merge(text, conn, db, message):
             .where(table.c.name == oldnick)
         db.execute(query)
         db.commit()
-        message("Migrated {} duck kills and {} duck friends from {} to {}".format(duckmerge["TKILLS"],
-                                                                                  duckmerge["TFRIENDS"], oldnick,
-                                                                                  newnick))
+        message("Migrated {} and {} from {} to {}".format(
+            pluralize(duckmerge["TKILLS"], "duck kill"), pluralize(duckmerge["TFRIENDS"], "duck friend"),
+            oldnick, newnick
+        ))
     else:
         return "There are no duck scores to migrate from {}".format(oldnick)
 
@@ -631,15 +632,20 @@ def ducks_user(text, nick, chan, conn, db, message):
             ducks["chans"] += 1
         # Check if the user has only participated in the hunt in this channel
         if ducks["chans"] == 1 and has_hunted_in_chan:
-            message("{} has killed {} and befriended {} ducks in {}.".format(name, ducks["chankilled"],
-                                                                             ducks["chanfriends"], chan))
+            message("{} has killed {} and befriended {} in {}.".format(
+                name, pluralize(ducks["chankilled"], "duck"), pluralize(ducks["chanfriends"], "duck"), chan
+            ))
             return
         kill_average = int(ducks["killed"] / ducks["chans"])
         friend_average = int(ducks["friend"] / ducks["chans"])
         message(
-            "\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. Across {} channels: \x02{}\x02 killed and \x02{}\x02 befriended. Averaging \x02{}\x02 kills and \x02{}\x02 friends per channel.".format(
-                name, ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"],
-                kill_average, friend_average))
+            "\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. Across {} channels: \x02{}\x02 killed and \x02{}\x02 befriended. Averaging \x02{}\x02 and \x02{}\x02 per channel.".format(
+                name, pluralize(ducks["chankilled"], "duck"), pluralize(ducks["chanfriends"], "duck"),
+                chan, pluralize(ducks["chans"], "channel"),
+                pluralize(ducks["killed"], "duck"), pluralize(ducks["friend"], "duck"),
+                pluralize(kill_average, "kill"), pluralize(friend_average, "friend")
+            )
+        )
     else:
         return "It appears {} has not participated in the duck hunt.".format(name)
 
@@ -666,8 +672,11 @@ def duck_stats(chan, conn, db, message):
         killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         message(
-            "\x02Duck Stats:\x02 {} killed and {} befriended in \x02{}\x02. Across {} channels \x02{}\x02 ducks have been killed and \x02{}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} kills and \x02{}\x02 with {} friends".format(
-                ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"],
-                killerchan, killscore, friendchan, friendscore))
+            "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. Across {} \x02{:,}\x02 ducks have been killed and \x02{:,}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} and \x02{}\x02 with {}".format(
+                ducks["chankilled"], ducks["chanfriends"], chan, pluralize(ducks["chans"], "channel"),
+                ducks["killed"], ducks["friend"],
+                killerchan, pluralize(killscore, "kill"),
+                friendchan, pluralize(friendscore, "friend")
+            ))
     else:
         return "It looks like there has been no duck activity on this channel or network."
