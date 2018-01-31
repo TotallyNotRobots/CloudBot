@@ -7,7 +7,7 @@ from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint
 from cloudbot import hook
 from cloudbot.event import CommandEvent
 from cloudbot.util import database
-from cloudbot.util.formatting import chunk_str, pluralize
+from cloudbot.util.formatting import chunk_str, pluralize_auto
 
 commands = Table(
     'chain_commands',
@@ -103,7 +103,7 @@ def chainallow(text, db, notice_doc, bot):
         res = db.execute(commands.delete().where(commands.c.hook == hook_name))
         db.commit()
         load_cache(db)
-        return "Deleted {}.".format(pluralize(res.rowcount, "row"))
+        return "Deleted {}.".format(pluralize_auto(res.rowcount, "row"))
     else:
         return notice_doc()
 

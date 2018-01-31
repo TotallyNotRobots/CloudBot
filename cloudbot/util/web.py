@@ -207,7 +207,7 @@ class SnoonetPaste(Pastebin):
             'expire': '1d'
         }
         try:
-            r = requests.post(SNOONET_PASTE + '/paste/new', params=params)
+            r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
             r.raise_for_status()
         except RequestException as e:
             r = e.response

@@ -126,11 +126,13 @@ class IrcClient(Client):
             return
 
         if self._connected:
+            self._connected = False
             logger.info("[{}] Reconnecting".format(self.name))
-            self._transport.close()
+            if self._transport:
+                self._transport.close()
         else:
-            self._connected = True
             logger.info("[{}] Connecting".format(self.name))
+
         optional_params = {}
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
@@ -143,6 +145,8 @@ class IrcClient(Client):
             coro = asyncio.wait_for(coro, timeout)
 
         self._transport, self._protocol = yield from coro
+
+        self._connected = True
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
@@ -303,14 +307,14 @@ class _IrcProtocol(asyncio.Protocol):
             # we've been closed intentionally, so don't reconnect
             return
         logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
-        async_util.wrap_future(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.try_connect(), loop=self.loop)
 
     def eof_received(self):
         self._connected = False
         # create a new connected_future for when we are connected.
         self._connected_future = async_util.create_future(self.loop)
         logger.info("[{}] EOF received.".format(self.conn.name))
-        async_util.wrap_future(self.conn.connect(), loop=self.loop)
+        async_util.wrap_future(self.conn.try_connect(), loop=self.loop)
         return True
 
     @asyncio.coroutine

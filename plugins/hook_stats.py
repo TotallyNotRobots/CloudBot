@@ -74,7 +74,7 @@ def do_channel_stats(data, network, channel):
 
 def do_hook_stats(data, hook_name):
     table = [
-        (net, chan, hooks[hook_name]) for net, chans in data['network'].items() for chan, hooks in chans.items()
+        (net, chan, hooks[hook_name]) for net, chans in data['channel'].items() for chan, hooks in chans.items()
     ]
     return ("Network", "Channel", "Uses - Success", "Uses - Errored"), \
            [

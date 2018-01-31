@@ -39,8 +39,8 @@ def format_output(item, show_url=False):
     raw_time = isodate.parse_date(item['Date'])
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize(item["CommentCount"], 'comment')
-    item["points"] = formatting.pluralize(item["Likes"], 'point')
+    item["comments"] = formatting.pluralize_auto(item["CommentCount"], 'comment')
+    item["points"] = formatting.pluralize_auto(item["Likes"], 'point')
 
     if item["Type"] == 2:
         item["warning"] = " \x02Link\x02"

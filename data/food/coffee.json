@@ -1,6 +1,6 @@
 {
     "templates": [
-        "hands {user} a {size} {temperature} {flavor} {coffee} with {shots} shots of espresso!"
+        "hands {user} a {size} {temperature} {flavor} {coffee} with {shots} of espresso!"
     ],
     "parts": {
         "temperature": [
@@ -35,9 +35,9 @@
             "breve"
         ],
         "shots": [
-            "one",
-            "two",
-            "three"
+            "one shot",
+            "two shots",
+            "three shots"
         ]
     }
 }
