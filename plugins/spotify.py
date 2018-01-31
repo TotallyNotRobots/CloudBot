@@ -1,146 +1,157 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+from threading import RLock
 
 import requests
 from requests import HTTPError
 from requests.auth import HTTPBasicAuth
+from yarl import URL
 
 from cloudbot import hook
 
-api_url = "https://api.spotify.com/v1/search?"
-token_url = "https://accounts.spotify.com/api/token"
-spuri = 'spotify:{}:{}'
-access_token = ""
-expires_at = datetime.min
+api = None
 
-spotify_re = re.compile(r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))',
-                        re.I)
-http_re = re.compile(r'(open\.spotify\.com/(track|album|artist|user)/'
-                     '([a-zA-Z0-9]+))', re.I)
+spotify_re = re.compile(
+    r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))', re.I
+)
+http_re = re.compile(
+    r'(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))', re.I
+)
 
-
-def sprequest(bot, params, alturl=None):
-    global access_token, expires_at
-    if alturl is None:
-        alturl = api_url
-    if datetime.now() >= expires_at:
-        basic_auth = HTTPBasicAuth(
-            bot.config.get("api_keys", {}).get("spotify_client_id"),
-            bot.config.get("api_keys", {}).get("spotify_client_secret"))
-        gtcc = {"grant_type": "client_credentials"}
-        auth = requests.post(token_url, data=gtcc, auth=basic_auth).json()
-        if 'access_token' in auth.keys():
-            access_token = auth["access_token"]
-            expires_at = datetime.fromtimestamp(datetime.now().timestamp() +
-                                                auth["expires_in"])
-    headers = {'Authorization': 'Bearer ' + access_token}
-    return requests.get(alturl, params=params, headers=headers)
+TYPE_MAP = {
+    'artist': 'artists',
+    'album': 'albums',
+    'track': 'tracks',
+}
 
 
-@hook.command('spotify', 'sptrack')
-def spotify(bot, text, reply):
-    """<song> - Search Spotify for <song>"""
-    params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "track"}
+class SpotifyAPI:
+    api_url = URL("https://api.spotify.com/v1")
+    token_refresh_url = URL("https://accounts.spotify.com/api/token")
 
-    request = sprequest(bot, params)
+    def __init__(self, client_id=None, client_secret=None):
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._access_token = None
+        self._token_expires = datetime.min
+        self._lock = RLock()  # Make sure only one requests is parsed at a time
+
+    def request(self, endpoint, params=None):
+        with self._lock:
+            if datetime.now() >= self._token_expires:
+                self._refresh_token()
+
+            r = requests.get(
+                self.api_url / endpoint, params=params, headers={'Authorization': 'Bearer ' + self._access_token}
+            )
+            r.raise_for_status()
+
+            return r
+
+    def search(self, params):
+        return self.request('search', params)
+
+    def _refresh_token(self):
+        with self._lock:
+            basic_auth = HTTPBasicAuth(self._client_id, self._client_secret)
+            gtcc = {"grant_type": "client_credentials"}
+            r = requests.post(self.token_refresh_url, data=gtcc, auth=basic_auth)
+            r.raise_for_status()
+            auth = r.json()
+            self._access_token = auth["access_token"]
+            self._token_expires = datetime.now() + timedelta(seconds=auth["expires_in"])
+
+
+def _search(text, _type, reply):
+    params = {"q": text.strip(), "offset": 0, "limit": 1, "type": _type}
 
     try:
-        request.raise_for_status()
+        request = api.search(params)
     except HTTPError as e:
         reply("Could not get track information: {}".format(e.request.status_code))
         raise
 
-    if request.status_code != requests.codes.ok:
-        return "Could not get track information: {}".format(
-            request.status_code)
+    return request.json()[TYPE_MAP[_type]]["items"][0]
 
-    data = request.json()["tracks"]["items"][0]
 
-    try:
-        return "\x02{}\x02 by \x02{}\x02 - {} / {}".format(
-            data["artists"][0]["name"], data["external_urls"]["spotify"],
-            data["name"], data["uri"])
-    except IndexError:
-        return "Unable to find any tracks!"
+def _do_format(data, _type):
+    name = data["name"]
+    if _type == "track":
+        artist = data["artists"][0]["name"]
+        album = data["album"]["name"]
+
+        return "Spotify Track", "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
+    elif _type == "artist":
+        return "Spotify Artist", "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
+            name, data["followers"]["total"], ', '.join(data["genres"])
+        )
+    elif _type == "album":
+        return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
+    else:
+        raise ValueError("Attempt to format unknown Spotify API type: " + _type)
+
+
+def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False):
+    pre, text = _do_format(data, _type)
+    if show_pre:
+        out = pre + ": "
+    else:
+        out = ""
+
+    out += text
+
+    if show_uri or show_url:
+        out += ' -'
+
+    if show_url:
+        out += ' ' + data["external_urls"]["spotify"]
+
+    if show_uri:
+        out += ' ' + "[{}]".format(data["uri"])
+
+    return out
+
+
+def _format_search(text, _type, reply):
+    data = _search(text, _type, reply)
+    return _format_response(data, _type, show_url=True, show_uri=True)
+
+
+@hook.onload
+def create_api(bot):
+    keys = bot.config['api_keys']
+    client_id = keys['spotify_client_id']
+    client_secret = keys['spotify_client_secret']
+    global api
+    api = SpotifyAPI(client_id, client_secret)
+
+
+@hook.command('spotify', 'sptrack')
+def spotify(text, reply):
+    """<song> - Search Spotify for <song>"""
+    return _format_search(text, "track", reply)
 
 
 @hook.command("spalbum")
-def spalbum(bot, text, reply):
+def spalbum(text, reply):
     """<album> - Search Spotify for <album>"""
-    params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "album"}
-
-    request = sprequest(bot, params)
-
-    try:
-        request.raise_for_status()
-    except HTTPError as e:
-        reply("Could not get album information: {}".format(e.request.status_code))
-        raise
-
-    if request.status_code != requests.codes.ok:
-        return "Could not get album information: {}".format(
-            request.status_code)
-
-    data = request.json()["albums"]["items"][0]
-
-    try:
-        return "\x02{}\x02 by \x02{}\x02 - {} / {}".format(
-            data["artists"][0]["name"], data["name"],
-            data["external_urls"]["spotify"], data["uri"])
-    except IndexError:
-        return "Unable to find any albums!"
+    return _format_search(text, "album", reply)
 
 
 @hook.command("spartist", "artist")
-def spartist(bot, text, reply):
+def spartist(text, reply):
     """<artist> - Search Spotify for <artist>"""
-    params = {"q": text.strip(), "offset": 0, "limit": 1, "type": "artist"}
-
-    request = sprequest(bot, params)
-    try:
-        request.raise_for_status()
-    except HTTPError as e:
-        reply("Could not get artist information: {}".format(e.request.status_code))
-        raise
-
-    if request.status_code != requests.codes.ok:
-        return "Could not get artist information: {}".format(
-            request.status_code)
-
-    data = request.json()["artists"]["items"][0]
-
-    try:
-        return "\x02{}\x02 - {} / {}".format(
-            data["name"], data["external_urls"]["spotify"], data["uri"])
-    except IndexError:
-        return "Unable to find any artists!"
+    return _format_search(text, "artist", reply)
 
 
 @hook.regex(http_re)
 @hook.regex(spotify_re)
-def spotify_url(bot, match):
-    api_method = {'track': 'tracks', 'album': 'albums', 'artist': 'artists'}
+def spotify_url(match):
     _type = match.group(2)
     spotify_id = match.group(3)
-    # no error catching here, if the API is down fail silently
-    request = sprequest(bot, {}, 'http://api.spotify.com/v1/{}/{}'.format(
-        api_method[_type], spotify_id))
-    request.raise_for_status()
-    data = request.json()
-    if _type == "track":
-        name = data["name"]
-        artist = data["artists"][0]["name"]
-        album = data["album"]["name"]
-        url = data['external_urls']['spotify']
-        uri = data['uri']
 
-        return "Spotify Track: \x02{}\x02 by \x02{}\x02 from the album \x02{}\x02 {} [{}]".format(
-            name, artist, album, url, uri)
-    elif _type == "artist":
-        return "Spotify Artist: \x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
-            data["name"], data["followers"]["total"],
-            ', '.join(data["genres"]))
-    elif _type == "album":
-        return "Spotify Album: \x02{}\x02 - \x02{}\x02 {} [{}]".format(
-            data["artists"][0]["name"], data["name"],
-            data['external_urls']['spotify'], data['uri'])
+    request = api.request("{}/{}".format(TYPE_MAP[_type], spotify_id))
+
+    data = request.json()
+
+    return _format_response(data, _type, show_pre=True)
