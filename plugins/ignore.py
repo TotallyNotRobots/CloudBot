@@ -66,8 +66,8 @@ def is_ignored(conn, chan, mask):
 
 
 # noinspection PyUnusedLocal
-@asyncio.coroutine
 @hook.sieve(priority=50)
+@asyncio.coroutine
 def ignore_sieve(bot, event, _hook):
     """
     :type bot: cloudbot.bot.CloudBot

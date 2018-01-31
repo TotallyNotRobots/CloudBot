@@ -20,8 +20,8 @@ def pluginlist(bot):
     return web.paste(table, service="hastebin")
 
 
-@asyncio.coroutine
 @hook.command(permissions=["botcontrol"])
+@asyncio.coroutine
 def pluginload(bot, text, reply):
     """<plugin path> - (Re)load <plugin> manually"""
     manager = bot.plugin_manager
@@ -38,8 +38,8 @@ def pluginload(bot, text, reply):
         return "Plugin {}loaded successfully.".format("re" if was_loaded else "")
 
 
-@asyncio.coroutine
 @hook.command(permissions=["botcontrol"])
+@asyncio.coroutine
 def pluginunload(bot, text):
     """<plugin path> - Unload <plugin> manually"""
     manager = bot.plugin_manager

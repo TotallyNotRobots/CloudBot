@@ -36,8 +36,8 @@ def do_reconnect(conn):
     return "Reconnected to '{}'".format(conn.name)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
+@asyncio.coroutine
 def reconnect(conn, text, bot):
     """[connection] - Reconnects to [connection] or the current connection if not specified"""
     if not text:
@@ -83,9 +83,9 @@ def on_connect(conn):
     conn.memory["lag"] = 0
 
 
-@asyncio.coroutine
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
 @hook.periodic(30)
+@asyncio.coroutine
 def lag_check(bot):
     now = time.time()
     for conn in bot.connections.values():

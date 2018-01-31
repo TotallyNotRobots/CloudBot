@@ -5,6 +5,8 @@ python:
   - "3.6"
   - "3.7-dev"
 
+cache: pip
+
 install:
   - "sudo apt-get update -q"
   - "sudo apt-get install -y python3-lxml libenchant-dev"
@@ -18,3 +20,4 @@ after_success:
 
 env:
   - PYTHONPATH=.
+  - PYTHONPATH=. PYTHONASYNCIODEBUG=1

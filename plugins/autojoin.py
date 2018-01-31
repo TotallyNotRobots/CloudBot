@@ -31,8 +31,8 @@ def load_cache(db):
             chan_cache[row['conn']].add(row['chan'])
 
 
-@asyncio.coroutine
 @hook.irc_raw('376')
+@asyncio.coroutine
 def do_joins(conn):
     join_throttle = conn.config.get("join_throttle", 0.4)
     for chan in chan_cache[conn.name]:
