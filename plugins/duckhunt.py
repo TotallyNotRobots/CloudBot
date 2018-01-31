@@ -599,7 +599,7 @@ def duck_merge(text, conn, db, message):
         db.execute(query)
         db.commit()
         message("Migrated {} and {} from {} to {}".format(
-            pluralize(duckmerge["TKILLS"], "duck kill"), pluralize(duckmerge["TFRIENDS"], "duck friend"),
+            pluralize_auto(duckmerge["TKILLS"], "duck kill"), pluralize_auto(duckmerge["TFRIENDS"], "duck friend"),
             oldnick, newnick
         ))
     else:
@@ -633,17 +633,17 @@ def ducks_user(text, nick, chan, conn, db, message):
         # Check if the user has only participated in the hunt in this channel
         if ducks["chans"] == 1 and has_hunted_in_chan:
             message("{} has killed {} and befriended {} in {}.".format(
-                name, pluralize(ducks["chankilled"], "duck"), pluralize(ducks["chanfriends"], "duck"), chan
+                name, pluralize_auto(ducks["chankilled"], "duck"), pluralize_auto(ducks["chanfriends"], "duck"), chan
             ))
             return
         kill_average = int(ducks["killed"] / ducks["chans"])
         friend_average = int(ducks["friend"] / ducks["chans"])
         message(
             "\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. Across {} channels: \x02{}\x02 killed and \x02{}\x02 befriended. Averaging \x02{}\x02 and \x02{}\x02 per channel.".format(
-                name, pluralize(ducks["chankilled"], "duck"), pluralize(ducks["chanfriends"], "duck"),
-                chan, pluralize(ducks["chans"], "channel"),
-                pluralize(ducks["killed"], "duck"), pluralize(ducks["friend"], "duck"),
-                pluralize(kill_average, "kill"), pluralize(friend_average, "friend")
+                name, pluralize_auto(ducks["chankilled"], "duck"), pluralize_auto(ducks["chanfriends"], "duck"),
+                chan, pluralize_auto(ducks["chans"], "channel"),
+                pluralize_auto(ducks["killed"], "duck"), pluralize_auto(ducks["friend"], "duck"),
+                pluralize_auto(kill_average, "kill"), pluralize_auto(friend_average, "friend")
             )
         )
     else:
@@ -673,10 +673,10 @@ def duck_stats(chan, conn, db, message):
         friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         message(
             "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. Across {} \x02{:,}\x02 ducks have been killed and \x02{:,}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} and \x02{}\x02 with {}".format(
-                ducks["chankilled"], ducks["chanfriends"], chan, pluralize(ducks["chans"], "channel"),
+                ducks["chankilled"], ducks["chanfriends"], chan, pluralize_auto(ducks["chans"], "channel"),
                 ducks["killed"], ducks["friend"],
-                killerchan, pluralize(killscore, "kill"),
-                friendchan, pluralize(friendscore, "friend")
+                killerchan, pluralize_auto(killscore, "kill"),
+                friendchan, pluralize_auto(friendscore, "friend")
             ))
     else:
         return "It looks like there has been no duck activity on this channel or network."
