@@ -1,15 +1,22 @@
 from cloudbot import hook
 
 
-def check_for_chan_mode(char, conn):
+def check_for_chan_mode(char, conn, notice, mode_warn):
     serv_info = conn.memory["server_info"]
     modes = serv_info.get("channel_modes", "")
-    return bool(char in modes)
+    status = serv_info.get("statuses", [])
+    if char in modes or char in status:
+        return True
+
+    if mode_warn:
+        notice("Mode character '{}' does not seem to exist on this network.".format(char))
+
+    return False
 
 
-def mode_cmd(mode, text, text_inp, chan, conn, notice, nick, admin_log):
+def mode_cmd(mode, text, text_inp, chan, conn, notice, nick, admin_log, mode_warn=True):
     """ generic mode setting function """
-    if not check_for_chan_mode(mode[1], conn):
+    if not check_for_chan_mode(mode[1], conn, notice, mode_warn):
         return False
 
     split = text_inp.split(" ")
@@ -27,9 +34,9 @@ def mode_cmd(mode, text, text_inp, chan, conn, notice, nick, admin_log):
     return True
 
 
-def mode_cmd_no_target(mode, text, text_inp, chan, conn, notice, nick, admin_log):
+def mode_cmd_no_target(mode, text, text_inp, chan, conn, notice, nick, admin_log, mode_warn=True):
     """ generic mode setting function without a target"""
-    if not check_for_chan_mode(mode[1], conn):
+    if not check_for_chan_mode(mode[1], conn, notice, mode_warn):
         return False
 
     split = text_inp.split(" ")
@@ -79,7 +86,7 @@ def unban(text, conn, chan, notice, nick, admin_log):
 @hook.command(permissions=["op_quiet", "op", "chanop"])
 def quiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - quiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log):
+    if mode_cmd("+q", "quiet", text, chan, conn, notice, nick, admin_log, False):
         return
 
     if not do_extban('m', "quiet", text, chan, conn, notice, nick, admin_log, True):
@@ -89,7 +96,7 @@ def quiet(text, conn, chan, notice, nick, admin_log):
 @hook.command(permissions=["op_quiet", "op", "chanop"])
 def unquiet(text, conn, chan, notice, nick, admin_log):
     """[channel] <user> - unquiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log):
+    if mode_cmd("-q", "unquiet", text, chan, conn, notice, nick, admin_log, False):
         return
 
     if not do_extban('m', "unquiet", text, chan, conn, notice, nick, admin_log, False):
