@@ -101,7 +101,7 @@ def welcome(nick, message, bot, chan):
 
     welcome = herald_cache[chan.casefold()].get(nick.casefold())
     if welcome:
-        greet = welcome[0]
+        greet = welcome
         stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
         stripped = colors_re.sub("", stripped)
         greet = re.sub(bino_re, 'flenny', greet)
