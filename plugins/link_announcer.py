@@ -8,7 +8,36 @@ from cloudbot import hook
 from cloudbot.hook import Priority, Action
 
 # This will match any URL, blacklist removed and abstracted to a priority/halting system
-url_re = re.compile(r'https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+~]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', re.I)
+url_re = re.compile(
+    r"""
+    https? # Scheme
+    ://
+    
+    # Username and Password
+    (?:
+        (?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*
+        (?::(?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*)?
+        @
+    )?
+    
+    # Domain
+    (?:
+        # TODO Add support for IDNA hostnames as specified by RFC5891
+        [\-.0-9A-Za-z]+|  # host
+        \d{1,3}(?:\.\d{1,3}){3}|  # IPv4
+        \[[A-F0-9]{0,4}(?::[A-F0-9]{0,4}){2,7}\]  # IPv6
+    )
+    
+    (?::\d*)?  # port
+    
+    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)*  # Path segment
+    
+    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Query
+    
+    (?:\#(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Fragment
+    """,
+    re.IGNORECASE | re.VERBOSE
+)
 
 HEADERS = {
     'Accept-Language': 'en-US,en;q=0.5',
@@ -32,6 +61,8 @@ def print_url_title(message, match):
         return
 
     html = BeautifulSoup(content, "lxml", from_encoding=encoding)
-    title = " ".join(html.title.text.strip().splitlines())
-    out = "Title: \x02{}\x02".format(title)
-    message(out)
+
+    if html.title:
+        title = html.title.text
+        out = "Title: \x02{}\x02".format(title)
+        message(out)
