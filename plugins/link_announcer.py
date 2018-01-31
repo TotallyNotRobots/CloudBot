@@ -64,5 +64,5 @@ def print_url_title(message, match):
 
     if html.title:
         title = html.title.text
-        out = "Title: \x02{}\x02".format(title)
+        out = "Title: \x02{}\x02".format(title.strip())
         message(out)
