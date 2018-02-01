@@ -3,6 +3,7 @@ from collections import defaultdict
 from threading import RLock
 
 from sqlalchemy import PrimaryKeyConstraint, Column, String, Table, and_
+from sqlalchemy.exc import IntegrityError
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -46,10 +47,14 @@ def add_chan(db, conn, chan, nick):
     chan = chan.casefold()
     if nick.casefold() == conn.nick.casefold() and chan not in chans:
         with db_lock:
-            db.execute(table.insert().values(conn=conn.name.casefold(), chan=chan.casefold()))
-            db.commit()
+            try:
+                db.execute(table.insert().values(conn=conn.name.casefold(), chan=chan.casefold()))
+            except IntegrityError:
+                db.rollback()
+            else:
+                db.commit()
 
-        load_cache(db)
+                load_cache(db)
 
 
 @hook.irc_raw('PART', singlethread=True)
