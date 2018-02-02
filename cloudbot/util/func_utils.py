@@ -1,7 +1,20 @@
 import inspect
 
 
+class ParameterError(Exception):
+    def __init__(self, name, valid_args):
+        self.name = name
+        self.valid_args = list(valid_args)
+
+    def __str__(self):
+        return "'{}' is not a valid parameter, valid parameters are: {}".format(self.name, self.valid_args)
+
+
 def call_with_args(func, arg_data):
     sig = inspect.signature(func)
-    args = [arg_data[key] for key in sig.parameters.keys() if not key.startswith('_')]
+    try:
+        args = [arg_data[key] for key in sig.parameters.keys() if not key.startswith('_')]
+    except KeyError as e:
+        raise ParameterError(e.args[0], arg_data.keys()) from e
+
     return func(*args)

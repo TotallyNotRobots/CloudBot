@@ -1,5 +1,5 @@
 import asyncio
-import inspect
+from collections import ChainMap
 from functools import partial
 
 from cloudbot import hook
@@ -56,24 +56,12 @@ def _subcmd_handler(*types):
 def _launch_handler(subcmd, event, **kwargs):
     subcmd = subcmd.upper()
     kwargs["subcmd"] = subcmd
-    handler = HANDLERS.get(subcmd)
-    if handler:
-        sig = inspect.signature(handler)
-        args = []
+    try:
+        handler = HANDLERS[subcmd]
+    except LookupError:
+        return
 
-        for arg in sig.parameters.keys():
-            if arg in kwargs:
-                args.append(kwargs[arg])
-            else:
-                try:
-                    value = getattr(event, arg)
-                except AttributeError:
-                    event.logger.warning("CAP subcommand handler requested unknown argument: %s", arg)
-                    return
-                else:
-                    args.append(value)
-
-        yield from async_util.run_func(event.loop, handler, *args)
+    yield from async_util.run_func_with_args(event.loop, handler, ChainMap(event, kwargs))
 
 
 @_subcmd_handler("LS")
