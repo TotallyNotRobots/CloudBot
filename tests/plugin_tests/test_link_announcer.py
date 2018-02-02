@@ -27,6 +27,8 @@ MATCHES = (
     "http://1337.net",
     "http://a.b-c.de",
     "http://223.255.255.254",
+    "https://foo.bar/baz?#",
+    "https://foo.bar/baz?",
 )
 
 FAILS = (
@@ -55,6 +57,8 @@ FAILS = (
     "https://foo.bar/baz.ext)",
     "https://foo.bar/test.",
     "https://foo.bar/test(test",
+    "https://foo.bar.",
+    "https://foo.bar./",
 )
 
 SEARCH = (
