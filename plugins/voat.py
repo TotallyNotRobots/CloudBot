@@ -39,8 +39,8 @@ def format_output(item, show_url=False):
     raw_time = isodate.parse_date(item['Date'])
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize(item["CommentCount"], 'comment')
-    item["points"] = formatting.pluralize(item["Likes"], 'point')
+    item["comments"] = formatting.pluralize_auto(item["CommentCount"], 'comment')
+    item["points"] = formatting.pluralize_auto(item["Likes"], 'point')
 
     if item["Type"] == 2:
         item["warning"] = " \x02Link\x02"
@@ -72,8 +72,8 @@ def voat_url(match, bot):
     return format_output(data)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None

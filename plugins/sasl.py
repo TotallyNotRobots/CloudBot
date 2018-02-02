@@ -11,8 +11,8 @@ def sasl_available(conn):
     return bool(sasl_conf and sasl_conf.get('enabled', True))
 
 
-@asyncio.coroutine
 @hook.on_cap_ack("sasl")
+@asyncio.coroutine
 def sasl_ack(conn, logger):
     sasl_auth = conn.config.get('sasl')
     if sasl_auth and sasl_auth.get('enabled', True):
@@ -50,16 +50,16 @@ def sasl_ack(conn, logger):
                 )
 
 
-@asyncio.coroutine
 @hook.irc_raw(["AUTHENTICATE", "908"])
+@asyncio.coroutine
 def auth(irc_command, conn, irc_paramlist):
     future = conn.memory.get("sasl_auth_future")
     if future and not future.done():
         future.set_result((irc_command, irc_paramlist))
 
 
-@asyncio.coroutine
 @hook.irc_raw(["902", "903", "904", "905", "906", "907"])
+@asyncio.coroutine
 def sasl_numerics(irc_command, conn):
     future = conn.memory.get("sasl_numeric_future")
     if future and not future.done():

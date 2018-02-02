@@ -178,31 +178,38 @@ def grabrandom(text, chan, message):
 def grabsearch(text, chan, conn):
     """[text] - matches "text" against nicks or grab strings in the database"""
     result = []
+    lower_text = text.lower()
     with cache_lock:
         try:
-            quotes = grab_cache[chan][text.lower()]
-            for grab in quotes:
-                result.append((text, grab))
+            chan_grabs = grab_cache[chan]
+        except LookupError:
+            return "I couldn't find any grabs in {}.".format(chan)
+
+        try:
+            quotes = chan_grabs[lower_text]
         except KeyError:
             pass
-        for name in grab_cache[chan]:
-            for grab in grab_cache[chan][name]:
-                if name != text.lower():
-                    if text.lower() in grab.lower():
-                        result.append((name, grab))
+        else:
+            result.extend((text, quote) for quote in quotes)
 
-    if result:
-        grabs = []
-        for name, quote in result:
-            if text.lower() == name:
-                name = text
-            grabs.append(format_grab(name, quote))
-        pager = paginated_list(grabs)
-        search_pages[conn.name][chan] = pager
-        page = pager.next()
-        if len(pager) > 1:
-            page[-1] += " .moregrab"
+        for name, quotes in chan_grabs.items():
+            if name != lower_text:
+                result.extend((name, quote) for quote in quotes if lower_text in quote.lower())
 
-        return page
-    else:
+    if not result:
         return "I couldn't find any matches for {}.".format(text)
+
+    grabs = []
+    for name, quote in result:
+        if lower_text == name:
+            name = text
+
+        grabs.append(format_grab(name, quote))
+
+    pager = paginated_list(grabs)
+    search_pages[conn.name][chan] = pager
+    page = pager.next()
+    if len(pager) > 1:
+        page[-1] += " .moregrab"
+
+    return page

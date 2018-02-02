@@ -117,7 +117,7 @@ def points(text, chan, db):
         query = select([karma_table.c.score]).where(karma_table.c.thing == thing.lower())
     else:
         text = text.strip()
-        query = select([karma_table.c.score]).where(karma_table.c.thing == thing.lower()).where(
+        query = select([karma_table.c.score]).where(karma_table.c.thing == text.lower()).where(
             karma_table.c.chan == chan)
 
     karma = db.execute(query).fetchall()

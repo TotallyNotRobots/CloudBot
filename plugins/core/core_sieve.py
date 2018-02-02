@@ -18,8 +18,8 @@ def task_clear(loop):
     loop.call_later(600, task_clear, loop)
 
 
-@asyncio.coroutine
 @hook.irc_raw('004')
+@asyncio.coroutine
 def init_tasks(loop, conn):
     global ready
     if ready:
@@ -31,8 +31,8 @@ def init_tasks(loop, conn):
     ready = True
 
 
-@asyncio.coroutine
 @hook.sieve(priority=100)
+@asyncio.coroutine
 def sieve_suite(bot, event, _hook):
     global buckets
 

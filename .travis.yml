@@ -4,6 +4,10 @@ python:
   - "3.5"
   - "3.6"
   - "3.7-dev"
+  - "nightly"
+  - "pypy3"
+
+cache: pip
 
 install:
   - "sudo apt-get update -q"
@@ -18,3 +22,9 @@ after_success:
 
 env:
   - PYTHONPATH=.
+  - PYTHONPATH=. PYTHONASYNCIODEBUG=1
+
+matrix:
+  allow_failures:
+    - python: "3.7-dev"
+    - python: "nightly"

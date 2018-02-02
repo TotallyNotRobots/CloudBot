@@ -50,22 +50,24 @@ def remove_ignore(db, conn, chan, mask):
 
 
 def is_ignored(conn, chan, mask):
+    mask_cf = mask.casefold()
     for _conn, _chan, _mask in ignore_cache:
+        _mask_cf = _mask.casefold()
         if _chan == "*":
             # this is a global ignore
-            if fnmatch(mask, _mask):
+            if fnmatch(mask_cf, _mask_cf):
                 return True
         else:
             # this is a channel-specific ignore
             if not (conn, chan) == (_conn, _chan):
                 continue
-            if fnmatch(mask, _mask):
+            if fnmatch(mask_cf, _mask_cf):
                 return True
 
 
 # noinspection PyUnusedLocal
-@asyncio.coroutine
 @hook.sieve(priority=50)
+@asyncio.coroutine
 def ignore_sieve(bot, event, _hook):
     """
     :type bot: cloudbot.bot.CloudBot
@@ -84,8 +86,7 @@ def ignore_sieve(bot, event, _hook):
         # this is a server message, we don't need to check it
         return event
 
-    mask = event.mask.lower()
-    if is_ignored(event.conn.name, event.chan, mask):
+    if is_ignored(event.conn.name, event.chan, event.mask):
         return None
 
     return event

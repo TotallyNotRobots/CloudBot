@@ -42,7 +42,8 @@ replacements = {
     '[': ']',
     '{': '}',
     '\'': ',',
-    '_': '‾'}
+    '_': '‾',
+}
 
 # append an inverted form of replacements to itself, so flipping works both ways
 replacements.update(dict((v, k) for k, v in replacements.items()))
@@ -54,8 +55,6 @@ table_flipper = "┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻"
 @hook.command
 def flip(text, reply, message, chan):
     """<text> - Flips <text> over."""
-    global table_status
-    # table_status = defaultdict(False)
     if USE_FLIPPERS:
         if text in ['table', 'tables']:
             message(random.choice([random.choice(flippers) + " ︵ " + "\u253B\u2501\u253B", table_flipper]))
@@ -72,7 +71,7 @@ def flip(text, reply, message, chan):
         reply(formatting.multi_replace(text[::-1], replacements))
 
 
-@hook.command(autohelp=False)
+@hook.command
 def table(text, message):
     """<text> - (╯°□°）╯︵ <ʇxǝʇ>"""
     message(random.choice(flippers) + " ︵ " + formatting.multi_replace(text[::-1].lower(), replacements))
@@ -83,10 +82,9 @@ def fix(text, reply, message, chan):
     """<text> - fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
     global table_status
     if text in ['table', 'tables']:
-        if table_status[chan] is True:
+        if table_status.pop(chan, False) is True:
             message("┬─┬ノ(ಠ_ಠノ)")
-            table_status[chan] = False
         else:
             message("no tables have been turned over in {}, thanks for checking!".format(chan))
     else:
-        message(flip(text, reply, message, chan))
+        flip(text, reply, message, chan)

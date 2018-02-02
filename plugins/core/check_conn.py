@@ -15,7 +15,7 @@ def conncheck(nick, bot, notice):
         notice("{}, {}".format(conn, bot.connections[conn].connected))
         # if the value is in fact false try to connect
         if not bot.connections[conn].connected:
-            bot.connections[conn].connect()
+            bot.connections[conn].try_connect()
         # Send a message from each irc network connection to the nick that issued the command
         bot.connections[conn].message(nick, "just letting you know I am here. {}".format(conn))
 
@@ -27,7 +27,7 @@ def do_reconnect(conn):
         yield from asyncio.sleep(2)
         conn._quit = False
 
-    coro = conn.connect()
+    coro = conn.try_connect()
     try:
         yield from asyncio.wait_for(coro, 30)
     except asyncio.TimeoutError:
@@ -36,8 +36,8 @@ def do_reconnect(conn):
     return "Reconnected to '{}'".format(conn.name)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
+@asyncio.coroutine
 def reconnect(conn, text, bot):
     """[connection] - Reconnects to [connection] or the current connection if not specified"""
     if not text:
@@ -83,9 +83,9 @@ def on_connect(conn):
     conn.memory["lag"] = 0
 
 
-@asyncio.coroutine
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
 @hook.periodic(30)
+@asyncio.coroutine
 def lag_check(bot):
     now = time.time()
     for conn in bot.connections.values():

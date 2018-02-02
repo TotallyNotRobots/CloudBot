@@ -8,8 +8,8 @@ socket.setdefaulttimeout(10)
 
 
 # Auto-join on Invite (Configurable, defaults to True)
-@asyncio.coroutine
 @hook.irc_raw('INVITE')
+@asyncio.coroutine
 def invite(irc_paramlist, conn):
     """
     :type irc_paramlist: list[str]
@@ -61,8 +61,8 @@ def on_mode_change(conn, irc_paramlist, message):
 
 
 # Identify to NickServ (or other service)
-@asyncio.coroutine
 @hook.irc_raw('004')
+@asyncio.coroutine
 def onjoin(conn, bot):
     """
     :type conn: cloudbot.clients.clients.IrcClient
@@ -105,8 +105,8 @@ def onjoin(conn, bot):
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
 
 
-@asyncio.coroutine
 @hook.irc_raw('376')
+@asyncio.coroutine
 def do_joins(logger, conn):
     chans = copy(conn.channels)
 
@@ -118,8 +118,8 @@ def do_joins(logger, conn):
         yield from asyncio.sleep(join_throttle)
 
 
-@asyncio.coroutine
 @hook.irc_raw('004')
+@asyncio.coroutine
 def keep_alive(conn):
     """
     :type conn: cloudbot.clients.clients.IrcClient
@@ -137,8 +137,8 @@ def on_nick_in_use(conn, irc_paramlist):
     conn.cmd("NICK", conn.nick)
 
 
-@asyncio.coroutine
 @hook.irc_raw('432', singlethread=True)
+@asyncio.coroutine
 def on_invalid_nick(conn):
     nick = conn.config['nick']
     conn.nick = nick

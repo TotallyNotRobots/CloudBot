@@ -7,8 +7,8 @@ from cloudbot import hook
 from cloudbot.util import formatting
 
 
-@asyncio.coroutine
 @hook.command("help", autohelp=False)
+@asyncio.coroutine
 def help_command(text, chan, conn, bot, notice, message, has_permission):
     """[command] - gives help for [command], or lists all available commands if no command is specified
     :type text: str
@@ -73,8 +73,8 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
         notice("For detailed help, use {}help <command>, without the brackets.".format(conn.config["command_prefix"]))
 
 
-@asyncio.coroutine
 @hook.command
+@asyncio.coroutine
 def cmdinfo(text, bot, notice):
     """<command> - Gets various information about a command"""
     cmd = text.split()[0].lower().strip()
@@ -92,7 +92,7 @@ def cmdinfo(text, bot, notice):
                 cmd_hook = potentials[0][1]
             else:
                 notice("Possible matches: {}".format(
-                    formatting.get_text_list([command for command, plugin in potentials])))
+                    formatting.get_text_list(sorted([command for command, plugin in potentials]))))
                 return
         else:
             cmd_hook = None
