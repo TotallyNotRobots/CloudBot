@@ -31,6 +31,8 @@ MATCHES = (
 
 FAILS = (
     "http://",
+    "http://.",
+    "http://..",
     "http://?",
     "http://??",
     "http://??/",
@@ -50,6 +52,9 @@ FAILS = (
     ":// should fail",
     "http://foo.bar/foo(bar)baz quux",
     "ftps://foo.bar/",
+    "https://foo.bar/baz.ext)",
+    "https://foo.bar/test.",
+    "https://foo.bar/test(test",
 )
 
 SEARCH = (

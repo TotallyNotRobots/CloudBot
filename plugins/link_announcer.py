@@ -7,6 +7,16 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 from cloudbot.hook import Priority, Action
 
+ENCODED_CHAR = r"%[A-F0-9]{2}"
+PATH_SEG_CHARS = r"[A-Za-z0-9!$&'*-.:;=@_~\u00A0-\U0010FFFD]|" + ENCODED_CHAR
+QUERY_CHARS = PATH_SEG_CHARS + r"|/"
+FRAG_CHARS = QUERY_CHARS
+
+
+def no_parens(pattern):
+    return r"{0}|\(({0}|[\(\)])*\)".format(pattern)
+
+
 # This will match any URL, blacklist removed and abstracted to a priority/halting system
 url_re = re.compile(
     r"""
@@ -30,11 +40,11 @@ url_re = re.compile(
     
     (?::\d*)?  # port
     
-    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)*  # Path segment
+    (?:/(?:""" + no_parens(PATH_SEG_CHARS) + r""")*)*(?<![.,?!\]])  # Path segment
     
-    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Query
+    (?:\?(?:""" + no_parens(QUERY_CHARS) + r""")*(?<![.,?!\]]))?  # Query
     
-    (?:\#(?:[A-Za-z0-9!$&-;=@_~\u00A0-\U0010FFFD]|%[A-F0-9]{2})*)?  # Fragment
+    (?:\#(?:""" + no_parens(FRAG_CHARS) + r""")*(?<![.,?!\]]))?  # Fragment
     """,
     re.IGNORECASE | re.VERBOSE
 )
