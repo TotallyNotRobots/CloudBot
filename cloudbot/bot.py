@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import gc
+import importlib
 import logging
 import os
 import re
@@ -140,6 +141,8 @@ class CloudBot:
         # Bot initialisation complete
         logger.debug("Bot setup completed.")
 
+        self.load_clients()
+
         # create bot connections
         self.create_connections()
 
@@ -248,6 +251,16 @@ class CloudBot:
         # Run a manual garbage collection cycle, to clean up any unused objects created during initialization
         gc.collect()
 
+    def load_clients(self):
+        """
+        Load all clients from the "clients" directory
+        """
+        client_dir = self.base_dir / "cloudbot" / "clients"
+        for path in client_dir.rglob('*.py'):
+            rel_path = path.relative_to(self.base_dir)
+            mod_path = '.'.join(rel_path.parts).rsplit('.', 1)[0]
+            importlib.import_module(mod_path)
+
     @asyncio.coroutine
     def process(self, event):
         """
@@ -255,7 +268,6 @@ class CloudBot:
         """
         run_before_tasks = []
         tasks = []
-        command_prefix = event.conn.config.get('command_prefix', '.')
         halted = False
 
         def add_hook(hook, _event, _run_before=False):
