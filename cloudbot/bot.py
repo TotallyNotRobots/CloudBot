@@ -319,7 +319,8 @@ class CloudBot:
             cmd_match = get_cmd_regex(event).match(event.content)
 
             if cmd_match:
-                prefix = cmd_match.group('prefix')
+                command_prefix = event.conn.config.get('command_prefix', '.')
+                prefix = cmd_match.group('prefix') or command_prefix
                 command = cmd_match.group('command').lower()
                 text = cmd_match.group('text').strip()
                 cmd_event = partial(
