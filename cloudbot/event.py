@@ -398,9 +398,9 @@ class CommandEvent(Event):
     :type triggered_command: str
     """
 
-    def __init__(self, *, bot=None, hook, text, triggered_command, conn=None, base_event=None, event_type=None,
-                 content=None, content_raw=None, target=None, channel=None, nick=None, user=None, host=None, mask=None,
-                 irc_raw=None, irc_prefix=None, irc_command=None, irc_paramlist=None):
+    def __init__(self, *, bot=None, hook, text, triggered_command, cmd_prefix, conn=None, base_event=None,
+                 event_type=None, content=None, content_raw=None, target=None, channel=None, nick=None, user=None,
+                 host=None, mask=None, irc_raw=None, irc_prefix=None, irc_command=None, irc_paramlist=None):
         """
         :param text: The arguments for the command
         :param triggered_command: The command that was triggered
@@ -408,12 +408,14 @@ class CommandEvent(Event):
         :type triggered_command: str
         """
         super().__init__(bot=bot, hook=hook, conn=conn, base_event=base_event, event_type=event_type, content=content,
-                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
-                         irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host,
+                         mask=mask, irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command,
+                         irc_paramlist=irc_paramlist)
         self.hook = hook
         self.text = text
         self.doc = self.hook.doc
         self.triggered_command = triggered_command
+        self.triggered_prefix = cmd_prefix
 
     def notice_doc(self, target=None):
         """sends a notice containing this command's docstring to the current channel/user or a specific channel/user

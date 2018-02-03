@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import time
+from functools import partial
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -14,7 +15,6 @@ from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
 from cloudbot.client import Client, CLIENTS
-from cloudbot.clients.irc import irc_clean
 from cloudbot.config import Config
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.hook import Action
@@ -39,6 +39,29 @@ def clean_name(n):
     :rtype: str
     """
     return re.sub('[^A-Za-z0-9_]+', '', n.replace(" ", "_"))
+
+
+def get_cmd_regex(event):
+    conn = event.conn
+    is_pm = event.chan.lower() == event.nick.lower()
+    command_prefix = re.escape(conn.config.get('command_prefix', '.'))
+    conn_nick = re.escape(event.conn.nick)
+    cmd_re = re.compile(
+        r"""
+        ^
+        # Prefix or nick
+        (?:
+            (?P<prefix>[""" + command_prefix + r"""])""" + ('?' if is_pm else '') + r"""
+            |
+            """ + conn_nick + r"""[,;:]+\s+
+        )
+        (?P<command>\w+)  # Command
+        (?:$|\s+)
+        (?P<text>.*)     # Text
+        """,
+        re.IGNORECASE | re.VERBOSE
+    )
+    return cmd_re
 
 
 class CloudBot:
@@ -281,23 +304,18 @@ class CloudBot:
 
         if event.type is EventType.message:
             # Commands
-            if event.chan.lower() == event.nick.lower():  # private message, no command prefix
-                command_re = r'(?i)^(?:[{}]?|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
-            else:
-                command_re = r'(?i)^(?:[{}]|{}[,;:]+\s+)(\w+)(?:$|\s+)(.*)'
-
-            cmd_match = re.match(
-                command_re.format(command_prefix, event.conn.nick),
-                event.content_raw
-            )
+            cmd_match = get_cmd_regex(event).match(event.content)
 
             if cmd_match:
-                command = cmd_match.group(1).lower()
-                text = irc_clean(cmd_match.group(2).strip())
+                prefix = cmd_match.group('prefix')
+                command = cmd_match.group('command').lower()
+                text = cmd_match.group('text').strip()
+                cmd_event = partial(
+                    CommandEvent, text=text, triggered_command=command, base_event=event, cmd_prefix=prefix
+                )
                 if command in self.plugin_manager.commands:
                     command_hook = self.plugin_manager.commands[command]
-                    command_event = CommandEvent(hook=command_hook, text=text,
-                                                 triggered_command=command, base_event=event)
+                    command_event = cmd_event(hook=command_hook)
                     add_hook(command_hook, command_event)
                     matched_command = True
                 else:
@@ -305,16 +323,17 @@ class CloudBot:
                     for potential_match, plugin in self.plugin_manager.commands.items():
                         if potential_match.startswith(command):
                             potential_matches.append((potential_match, plugin))
+
                     if potential_matches:
                         matched_command = True
                         if len(potential_matches) == 1:
                             command_hook = potential_matches[0][1]
-                            command_event = CommandEvent(hook=command_hook, text=text,
-                                                         triggered_command=command, base_event=event)
+                            command_event = cmd_event(hook=command_hook)
                             add_hook(command_hook, command_event)
                         else:
-                            event.notice("Possible matches: {}".format(
-                                formatting.get_text_list(sorted([command for command, plugin in potential_matches]))))
+                            commands = sorted(command for command, plugin in potential_matches)
+                            txt_list = formatting.get_text_list(commands)
+                            event.notice("Possible matches: {}".format(txt_list))
 
         if event.type in (EventType.message, EventType.action):
             # Regex hooks
