@@ -21,13 +21,16 @@ def conncheck(nick, bot, notice):
 
 
 @asyncio.coroutine
-def do_reconnect(conn):
+def do_reconnect(conn, auto=True):
     if conn.connected:
         conn.quit("Reconnecting...")
-        yield from asyncio.sleep(2)
-        conn._quit = False
+        yield from asyncio.sleep(5)
 
-    coro = conn.try_connect()
+    if auto:
+        coro = conn.auto_reconnect()
+    else:
+        coro = conn.try_connect()
+
     try:
         yield from asyncio.wait_for(coro, 30)
     except asyncio.TimeoutError:
@@ -48,7 +51,18 @@ def reconnect(conn, text, bot):
         except KeyError:
             return "Connection '{}' not found".format(text)
 
-    return (yield from do_reconnect(to_reconnect))
+    return (yield from do_reconnect(to_reconnect, False))
+
+
+@hook.periodic(120, singlethread=True)
+@asyncio.coroutine
+def check_conns(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
+    for conn in bot.connections.values():
+        if conn.active and not conn.connected:
+            yield from do_reconnect(conn)
 
 
 def format_conn(conn):

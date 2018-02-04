@@ -69,13 +69,22 @@ class Client:
         # set when on_load in core_misc is done
         self.ready = False
 
+        self._active = False
+
     def describe_server(self):
         raise NotImplementedError
 
     @asyncio.coroutine
+    def auto_reconnect(self):
+        if not self._active:
+            return
+
+        yield from self.try_connect()
+
+    @asyncio.coroutine
     def try_connect(self):
         timeout = 30
-        while True:
+        while not self.connected:
             try:
                 yield from self.connect(timeout)
             except Exception:
@@ -172,3 +181,7 @@ class Client:
     @property
     def type(self):
         return self._type
+
+    @property
+    def active(self):
+        return self._active
