@@ -182,9 +182,6 @@ class CloudBot:
         yield from asyncio.sleep(1.0)  # wait for 'QUIT' calls to take affect
 
         for connection in self.connections.values():
-            if not connection.connected:
-                # Don't close a connection that hasn't connected
-                continue
             connection.close()
 
         self.running = False

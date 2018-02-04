@@ -312,14 +312,9 @@ class _IrcProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc):
         self._connected = False
-        # create a new connected_future for when we are connected.
-        logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
-        async_util.wrap_future(self.conn.auto_reconnect(), loop=self.loop)
+        if exc:
+            logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
 
-    def eof_received(self):
-        self._connected = False
-        # create a new connected_future for when we are connected.
-        logger.info("[{}] EOF received.".format(self.conn.name))
         async_util.wrap_future(self.conn.auto_reconnect(), loop=self.loop)
 
     def close(self):
