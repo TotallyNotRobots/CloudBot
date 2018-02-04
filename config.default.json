@@ -11,6 +11,11 @@
                 "password": "",
                 "timeout": 300
             },
+            "ping_settings": {
+                "interval": 60,
+                "warn": 120,
+                "timeout": 300
+            },
             "nick": "MyCloudBot",
             "user": "cloudbot",
             "avoid_notices": false,
