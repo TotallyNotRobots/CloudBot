@@ -14,13 +14,12 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 from threading import RLock
 
+import requests
 from requests import Session
 from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import colors, web
-
-API_BASE = URL("https://api.coinmarketcap.com/v1")
 
 CURRENCY_SYMBOLS = {
     'USD': '$',
@@ -49,7 +48,7 @@ class CurrencyConversionError(APIError):
 
 
 class CMCApi:
-    def __init__(self, url="https://api.coinmarketcap.com/v1"):
+    def __init__(self, user_agent=None, url="https://api.coinmarketcap.com/v1"):
         self.url = URL(url)
         self._request_times = []
 
@@ -58,6 +57,15 @@ class CMCApi:
         self._now = datetime.now()
 
         self._session = Session()
+
+        self.set_user_agent(user_agent)
+
+    def set_user_agent(self, user_agent=None):
+        if user_agent is None:
+            user_agent = requests.utils.default_user_agent()
+
+        with self._lock:
+            self._session.headers['User-Agent'] = user_agent
 
     def close(self):
         self._session.close()
@@ -162,7 +170,8 @@ def init_aliases():
 
 @hook.onload
 @hook.periodic(3600)
-def update_cache():
+def update_cache(bot):
+    api.set_user_agent(bot.user_agent)
     api.update_cache()
 
 
