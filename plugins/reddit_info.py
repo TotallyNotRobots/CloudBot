@@ -98,25 +98,36 @@ def karma(text, reply):
 
     if r.status_code != 200:
         return statuscheck(r.status_code, user)
+
     data = r.json()
+    data = data['data']
+
     out = "$(b){}$(b) ".format(user)
-    out += "$(b){:,}$(b) link karma and ".format(data['data']['link_karma'])
-    out += "$(b){:,}$(b) comment karma | ".format(data['data']['comment_karma'])
-    if data['data']['is_gold']:
-        out += "has reddit gold | "
-    if data['data']['is_mod']:
-        out += "is a moderator | "
-    if data['data']['has_verified_email']:
-        out += "email has been verified | "
-    out += "cake day is {} | ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d'))
-    account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
+
+    parts = [
+        "$(b){:,}$(b) link karma and $(b){:,}$(b) comment karma".format(data['link_karma'], data['comment_karma'])
+    ]
+
+    if data['is_gold']:
+        parts.append("has reddit gold")
+
+    if data['is_mod']:
+        parts.append("moderates a subreddit")
+
+    if data['has_verified_email']:
+        parts.append("email has been verified")
+
+    parts.append("cake day is {}".format(datetime.fromtimestamp(data['created_utc']).strftime('%B %d')))
+
+    account_age = datetime.now() - datetime.fromtimestamp(data['created'])
     age = account_age.days
     age_unit = "day"
     if age > 365:
         age //= 365
         age_unit = "year"
-    out += "redditor for {}.".format(pluralize_auto(age, age_unit))
-    return colors.parse(out)
+
+    parts.append("redditor for {}.".format(pluralize_auto(age, age_unit)))
+    return colors.parse(out + ' | '.join(parts))
 
 
 @hook.command("cakeday", singlethread=True)
