@@ -87,12 +87,12 @@ class Shortener:
             return url
 
     def expand(self, url):
+        r = requests.get(url, allow_redirects=False)
         try:
-            r = requests.get(url, allow_redirects=False)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         if 'location' in r.headers:
             return r.headers['location']
@@ -132,12 +132,12 @@ def _pastebin(name):
 class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'shorturl': custom, 'format': 'json'}
+        r = requests.get('http://is.gd/create.php', params=p)
         try:
-            r = requests.get('http://is.gd/create.php', params=p)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         j = r.json()
 
@@ -148,12 +148,12 @@ class Isgd(Shortener):
 
     def expand(self, url):
         p = {'shorturl': url, 'format': 'json'}
+        r = requests.get('http://is.gd/forward.php', params=p)
         try:
-            r = requests.get('http://is.gd/forward.php', params=p)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         j = r.json()
 
@@ -169,12 +169,12 @@ class Googl(Shortener):
         h = {'content-type': 'application/json'}
         k = {'key': key}
         p = {'longUrl': url}
+        r = requests.post('https://www.googleapis.com/urlshortener/v1/url', params=k, data=json.dumps(p), headers=h)
         try:
-            r = requests.post('https://www.googleapis.com/urlshortener/v1/url', params=k, data=json.dumps(p), headers=h)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         j = r.json()
 
@@ -185,12 +185,12 @@ class Googl(Shortener):
 
     def expand(self, url):
         p = {'shortUrl': url}
+        r = requests.get('https://www.googleapis.com/urlshortener/v1/url', params=p)
         try:
-            r = requests.get('https://www.googleapis.com/urlshortener/v1/url', params=p)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         j = r.json()
 
@@ -204,12 +204,12 @@ class Googl(Shortener):
 class Gitio(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'code': custom}
+        r = requests.post('http://git.io', data=p)
         try:
-            r = requests.post('http://git.io', data=p)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
 
         if r.status_code == requests.codes.created:
             s = r.headers['location']
@@ -224,12 +224,12 @@ class Gitio(Shortener):
 @_pastebin('hastebin')
 class Hastebin(Pastebin):
     def paste(self, data, ext):
+        r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
         try:
-            r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
         else:
             j = r.json()
 
@@ -246,11 +246,11 @@ class SnoonetPaste(Pastebin):
             'text': data,
             'expire': '1d'
         }
+        r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
         try:
-            r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.status_code, r)
+            raise ServiceError(r.reason, r)
         else:
             return '{}'.format(r.url)

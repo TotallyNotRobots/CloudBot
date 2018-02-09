@@ -101,7 +101,7 @@ class Client:
         """
         raise NotImplementedError
 
-    def quit(self, reason=None):
+    def quit(self, reason=None, set_inactive=True):
         """
         Gracefully disconnects from the server with reason <reason>, close() should be called shortly after.
         """

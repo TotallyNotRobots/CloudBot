@@ -9,6 +9,7 @@ Created By:
 License:
     GPL v3
 """
+import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
@@ -19,7 +20,9 @@ from requests import Session
 from yarl import URL
 
 from cloudbot import hook
+from cloudbot.event import CommandEvent
 from cloudbot.util import colors, web
+from cloudbot.util.func_utils import call_with_args
 
 CURRENCY_SYMBOLS = {
     'USD': '$',
@@ -153,8 +156,9 @@ ALIASES = (
 
 
 def alias_wrapper(alias):
-    def func(text, reply):
-        return crypto_command(" ".join((alias.name, text)), reply)
+    def func(text, event):
+        event.text = alias.name + " " + text
+        return call_with_args(crypto_command, event)
 
     func.__doc__ = """- Returns the current {} value""".format(alias.name)
     func.__name__ = alias.name + "_alias"
