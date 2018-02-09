@@ -18,6 +18,7 @@ import sqlalchemy
 from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database, async_util
+from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
 
@@ -411,26 +412,6 @@ class PluginManager:
             logger.info("Loaded {}".format(hook))
             logger.debug("Loaded {}".format(repr(hook)))
 
-    def _prepare_parameters(self, hook, event):
-        """
-        Prepares arguments for the given hook
-
-        :type hook: cloudbot.plugin.Hook
-        :type event: cloudbot.event.Event
-        :rtype: list
-        """
-        parameters = []
-        for required_arg in hook.required_args:
-            if hasattr(event, required_arg):
-                value = getattr(event, required_arg)
-                parameters.append(value)
-            else:
-                logger.error("Plugin {} asked for invalid argument '{}', cancelling execution!"
-                             .format(hook.description, required_arg))
-                logger.debug("Valid arguments are: {} ({})".format(dir(event), event))
-                return None
-        return parameters
-
     def _execute_hook_threaded(self, hook, event):
         """
         :type hook: Hook
@@ -438,12 +419,8 @@ class PluginManager:
         """
         event.prepare_threaded()
 
-        parameters = self._prepare_parameters(hook, event)
-        if parameters is None:
-            return None
-
         try:
-            return hook.function(*parameters)
+            return call_with_args(hook.function, event)
         finally:
             event.close_threaded()
 
@@ -455,12 +432,8 @@ class PluginManager:
         """
         yield from event.prepare()
 
-        parameters = self._prepare_parameters(hook, event)
-        if parameters is None:
-            return None
-
         try:
-            return (yield from hook.function(*parameters))
+            return (yield from call_with_args(hook.function, event))
         finally:
             yield from event.close()
 
