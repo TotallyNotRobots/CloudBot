@@ -9,7 +9,7 @@ from cloudbot.util import formatting
 
 @hook.command("help", autohelp=False)
 @asyncio.coroutine
-def help_command(text, chan, conn, bot, notice, message, has_permission):
+def help_command(text, chan, conn, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
     :type text: str
     :type conn: cloudbot.client.Client
@@ -29,10 +29,10 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
             if doc:
                 if doc.split()[0].isalpha():
                     # this is using the old format of `name <args> - doc`
-                    message = "{}{}".format(conn.config["command_prefix"][0], doc)
+                    message = "{}{}".format(triggered_prefix, doc)
                 else:
                     # this is using the new format of `<args> - doc`
-                    message = "{}{} {}".format(conn.config["command_prefix"][0], searching_for, doc)
+                    message = "{}{} {}".format(triggered_prefix, searching_for, doc)
                 notice(message)
             else:
                 notice("Command {} has no additional documentation.".format(searching_for))
@@ -70,7 +70,8 @@ def help_command(text, chan, conn, bot, notice, message, has_permission):
             else:
                 # This is an user in this case.
                 message(line)
-        notice("For detailed help, use {}help <command>, without the brackets.".format(conn.config["command_prefix"]))
+
+        notice("For detailed help, use {}help <command>, without the brackets.".format(triggered_prefix))
 
 
 @hook.command
