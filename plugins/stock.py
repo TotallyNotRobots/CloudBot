@@ -19,6 +19,7 @@ class APIError(Exception):
 
 class StockSymbolNotFoundError(APIError):
     def __init__(self, symbol):
+        super().__init__(symbol)
         self.symbol = symbol
 
 

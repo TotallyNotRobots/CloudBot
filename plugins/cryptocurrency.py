@@ -41,11 +41,13 @@ class APIRateLimitError(APIError):
 
 class TickerNotFound(APIError):
     def __init__(self, name):
+        super().__init__(name)
         self.currency = name
 
 
 class CurrencyConversionError(APIError):
     def __init__(self, in_name, out_name):
+        super().__init__(in_name, out_name)
         self.in_name = in_name
         self.out_name = out_name
 
