@@ -120,7 +120,7 @@ def test_hook_args(hook):
     if hook.type in ("irc_raw", "perm_check", "periodic", "on_start", "on_stop", "event", "on_connect"):
         event = Event(bot=bot)
     elif hook.type == "command":
-        event = CommandEvent(bot=bot, hook=hook, text="", triggered_command="")
+        event = CommandEvent(bot=bot, hook=hook, text="", triggered_command="", cmd_prefix='.')
     elif hook.type == "regex":
         event = RegexEvent(bot=bot, hook=hook, match=None)
     elif hook.type.startswith("on_cap"):
