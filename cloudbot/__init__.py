@@ -10,7 +10,7 @@ import logging.config
 import logging
 import os
 
-__version__ = "1.0.9"
+__version__ = (2, 0, 0, 'alpha', 0)
 
 __all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
            "logging_dir"]
