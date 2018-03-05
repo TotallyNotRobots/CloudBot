@@ -44,7 +44,7 @@ def help_command(text, chan, bot, notice, message, has_permission, triggered_pre
                 formatting.get_text_list(sorted([command for command, plugin in cmds]))))
             return
 
-        doc = cmds[0].doc
+        doc = cmds[0][1].doc
 
         if doc:
             if doc.split()[0].isalpha():
