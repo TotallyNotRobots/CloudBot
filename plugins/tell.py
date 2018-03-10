@@ -1,11 +1,13 @@
+from collections import defaultdict
 from datetime import datetime
 
-from sqlalchemy import Table, Column, String, Boolean, DateTime
+from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint
 from sqlalchemy.sql import select
 
 from cloudbot import hook
 from cloudbot.event import EventType
-from cloudbot.util import timeformat, database
+from cloudbot.util import timeformat, database, web
+from cloudbot.util.formatting import gen_markdown_table
 
 table = Table(
     'tells',
@@ -19,6 +21,18 @@ table = Table(
     Column('time_read', DateTime)
 )
 
+ignore_table = Table(
+    'tell_ignores',
+    database.metadata,
+    Column('conn', String),
+    Column('target', String),
+    Column('setter', String),
+    Column('set_at', DateTime),
+    PrimaryKeyConstraint('conn', 'target'),
+)
+
+ignore_cache = defaultdict(set)
+
 
 @hook.on_start
 def load_cache(db):
@@ -31,6 +45,43 @@ def load_cache(db):
         conn = row["connection"]
         target = row["target"]
         tell_cache.append((conn, target))
+
+
+@hook.on_start
+def load_ignores(db):
+    """
+    :type db: sqlalchemy.orm.Session
+    """
+    ignore_cache.clear()
+    for row in db.execute(ignore_table.select()):
+        ignore_cache[row['conn']].add(row['target'].lower())
+
+
+def is_ignored(conn, target):
+    return target.lower() in ignore_cache[conn.name.lower()]
+
+
+def add_ignore(db, conn, setter, target, now=None):
+    if now is None:
+        now = datetime.now()
+
+    db.execute(ignore_table.insert().values(conn=conn.name.lower(), setter=setter, set_at=now, target=target.lower()))
+    db.commit()
+    load_ignores(db)
+
+
+def del_ignore(db, conn, target):
+    db.execute(
+        ignore_table.delete().where(ignore_table.c.conn == conn.name.lower())
+            .where(ignore_table.c.target == target.lower())
+    )
+    db.commit()
+    load_ignores(db)
+
+
+def list_ignores(db, conn):
+    for row in db.execute(ignore_table.select().where(ignore_table.c.conn == conn.name.lower())):
+        yield (row['conn'], row['target'], row['setter'], row['set_at'].ctime())
 
 
 def get_unread(db, server, target):
@@ -148,8 +199,7 @@ def showtells(nick, notice, db, conn):
 def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
-    if query[0].lower() == "paradox":
-        return "Paradox doesn't want to hear from me. Just send him a fucking message."
+
     if len(query) != 2:
         notice_doc()
         return
@@ -157,6 +207,10 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     target = query[0]
     message = query[1].strip()
     sender = nick
+
+    if is_ignored(conn, target):
+        notice("You may not send a tell to that user.")
+        return
 
     if target.lower() == sender.lower():
         notice("Have you looked in a mirror lately?")
@@ -172,3 +226,31 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
 
     add_tell(db, conn.name, sender, target.lower(), message)
     notice("Your message has been saved, and {} will be notified once they are active.".format(target))
+
+
+@hook.command("tellignore", permissions=["botcontrol", "ignore"])
+def tell_ignore(conn, db, text, nick):
+    """<nick> - Disallow tells being sent to [nick]"""
+    target = text.split()[0]
+    if is_ignored(conn, target):
+        return "{!r} is already ignored.".format(target)
+
+    add_ignore(db, conn, nick, target)
+    return "{!r} can no longer be sent tells.".format(target)
+
+
+@hook.command("tellunignore", permissions=["botcontrol", "ignore"])
+def tell_unignore(conn, db, text):
+    target = text.split()[0]
+    if not is_ignored(conn, target):
+        return "{!r} is not currently ignored.".format(target)
+
+    del_ignore(db, conn, target)
+    return "{!r} can now be sent tells.".format(target)
+
+
+@hook.command("listtellignores", permissions=["botcontrol", "ignore"])
+def tell_list_ignores(conn, db):
+    ignores = list(list_ignores(db, conn))
+    md = gen_markdown_table(["Connection", "Target", "Setter", "Set At"], ignores)
+    return web.paste(md, 'md', 'hastebin')
