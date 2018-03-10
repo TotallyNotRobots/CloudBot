@@ -94,7 +94,7 @@ def tell_check(conn, nick):
             return True
 
 
-@hook.event(EventType.message, singlethread=True)
+@hook.event([EventType.message, EventType.action], singlethread=True)
 def tellinput(event, conn, db, nick, notice):
     """
     :type event: cloudbot.event.Event
