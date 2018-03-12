@@ -170,8 +170,9 @@ class IrcClient(Client):
         # TODO stop connecting if a connect hook fails?
         yield from asyncio.gather(*tasks)
 
-    def quit(self, reason=None):
-        self._active = False
+    def quit(self, reason=None, set_inactive=True):
+        if set_inactive:
+            self._active = False
 
         if self.connected:
             if reason:

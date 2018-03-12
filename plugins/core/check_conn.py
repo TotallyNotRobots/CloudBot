@@ -10,8 +10,11 @@ def do_reconnect(conn, auto=True):
     if conn.connected:
         conn.quit("Reconnecting...")
         yield from asyncio.sleep(5)
+        did_quit = True
+    else:
+        did_quit = False
 
-    if auto:
+    if auto and not did_quit:
         coro = conn.auto_reconnect()
     else:
         coro = conn.connect(30)
@@ -19,6 +22,9 @@ def do_reconnect(conn, auto=True):
     try:
         yield from coro
     except asyncio.TimeoutError:
+        if auto:
+            raise
+
         return "Connection timed out"
 
     return "Reconnected to '{}'".format(conn.name)
@@ -87,6 +93,7 @@ def on_connect(conn):
     conn.memory["last_activity"] = now
     conn.memory["lag"] = 0
     conn.memory["needs_reconnect"] = False
+    conn.memory['last_ping_rpl'] = now
 
 
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])

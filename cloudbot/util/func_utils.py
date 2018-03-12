@@ -3,7 +3,7 @@ import inspect
 
 class ParameterError(Exception):
     def __init__(self, name, valid_args):
-        self.__init__(name, list(valid_args))
+        super().__init__(name, list(valid_args))
 
     def __str__(self):
         return "'{}' is not a valid parameter, valid parameters are: {}".format(self.args[0], self.args[1])
