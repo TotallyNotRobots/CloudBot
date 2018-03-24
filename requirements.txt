@@ -6,7 +6,7 @@ future
 microdata
 sqlalchemy
 watchdog
-lxml
+lxml==4.2.1
 beautifulsoup4
 feedparser
 requests
