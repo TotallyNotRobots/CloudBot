@@ -58,10 +58,22 @@ def load_ignores(db):
 
 
 def is_ignored(conn, target):
+    """
+    :type conn: cloudbot.client.Client
+    :type target: str
+    :rtype: bool
+    """
     return target.lower() in ignore_cache[conn.name.lower()]
 
 
 def add_ignore(db, conn, setter, target, now=None):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type setter: str
+    :type target: str
+    :type now: datetime
+    """
     if now is None:
         now = datetime.now()
 
@@ -71,6 +83,11 @@ def add_ignore(db, conn, setter, target, now=None):
 
 
 def del_ignore(db, conn, target):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type target: str
+    """
     db.execute(
         ignore_table.delete().where(ignore_table.c.conn == conn.name.lower())
             .where(ignore_table.c.target == target.lower())
@@ -80,11 +97,20 @@ def del_ignore(db, conn, target):
 
 
 def list_ignores(db, conn):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    """
     for row in db.execute(ignore_table.select().where(ignore_table.c.conn == conn.name.lower())):
         yield (row['conn'], row['target'], row['setter'], row['set_at'].ctime())
 
 
 def get_unread(db, server, target):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type server: str
+    :type target: str
+    """
     query = select([table.c.sender, table.c.message, table.c.time_sent]) \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
@@ -241,6 +267,7 @@ def tell_ignore(conn, db, text, nick):
 
 @hook.command("tellunignore", permissions=["botcontrol", "ignore"])
 def tell_unignore(conn, db, text):
+    """<nick> - Removes [nick] from the tellignore list"""
     target = text.split()[0]
     if not is_ignored(conn, target):
         return "{!r} is not currently ignored.".format(target)
@@ -251,6 +278,7 @@ def tell_unignore(conn, db, text):
 
 @hook.command("listtellignores", permissions=["botcontrol", "ignore"])
 def tell_list_ignores(conn, db):
+    """- Returns the current list of people who are not able to recieve tells"""
     ignores = list(list_ignores(db, conn))
     md = gen_markdown_table(["Connection", "Target", "Setter", "Set At"], ignores)
     return web.paste(md, 'md', 'hastebin')
