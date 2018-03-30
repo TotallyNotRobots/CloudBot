@@ -4,7 +4,7 @@ from cloudbot import hook
 from cloudbot.util import formatting
 
 
-@hook.command("stopthebot", permissions=["botcontrol"])
+@hook.command("stop", "stopthebot", "shutdown", permissions=["botcontrol"], autohelp=False)
 @asyncio.coroutine
 def stop(text, bot):
     """[reason] - stops me with [reason] as its quit message.
@@ -24,7 +24,7 @@ def reload(bot, notice):
     notice("Config reloaded.")
 
 
-@hook.command(permissions=["botcontrol"])
+@hook.command(permissions=["botcontrol"], autohelp=False)
 @asyncio.coroutine
 def restart(text, bot):
     """[reason] - restarts me with [reason] as its quit message.
