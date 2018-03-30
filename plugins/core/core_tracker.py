@@ -5,6 +5,7 @@ import logging
 from collections import deque
 
 from cloudbot import hook
+from cloudbot.event import EventType
 
 logger = logging.getLogger("cloudbot")
 
@@ -65,7 +66,7 @@ def on_nick(irc_paramlist, conn, nick):
 
 # for channels the host tells us we're joining without us joining it ourselves
 # mostly when using a BNC which saves channels
-@hook.irc_raw("JOIN")
+@hook.event(EventType.join)
 @asyncio.coroutine
 def on_join(conn, chan, nick):
     """
@@ -77,7 +78,7 @@ def on_join(conn, chan, nick):
         bot_joined_channel(conn, chan)
 
 
-@hook.irc_raw("PART")
+@hook.event(EventType.part)
 @asyncio.coroutine
 def on_part(conn, chan, nick):
     """

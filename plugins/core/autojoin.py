@@ -6,6 +6,7 @@ from sqlalchemy import PrimaryKeyConstraint, Column, String, Table, and_
 from sqlalchemy.exc import IntegrityError
 
 from cloudbot import hook
+from cloudbot.event import EventType
 from cloudbot.util import database
 
 table = Table(
@@ -41,7 +42,7 @@ def do_joins(conn):
         yield from asyncio.sleep(join_throttle)
 
 
-@hook.irc_raw('JOIN', singlethread=True)
+@hook.event(EventType.join, singlethread=True)
 def add_chan(db, conn, chan, nick):
     chans = chan_cache[conn.name]
     chan = chan.casefold()
@@ -57,7 +58,7 @@ def add_chan(db, conn, chan, nick):
                 load_cache(db)
 
 
-@hook.irc_raw('PART', singlethread=True)
+@hook.event(EventType.part, singlethread=True)
 def on_part(db, conn, chan, nick):
     if nick.casefold() == conn.nick.casefold():
         with db_lock:

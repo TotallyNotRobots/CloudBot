@@ -17,12 +17,12 @@ DEFAULT_STATUS = (
 @hook.on_start
 def do_isupport(bot):
     for conn in bot.connections.values():
-        if conn.connected:
+        if conn.connected and conn.type == 'irc':
             clear_isupport(conn)
             conn.send("VERSION")
 
 
-@hook.connect
+@hook.connect(clients='irc')
 def clear_isupport(conn):
     serv_info = conn.memory.setdefault("server_info", {})
     statuses = {s.prefix: s for s in DEFAULT_STATUS}
