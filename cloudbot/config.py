@@ -43,10 +43,3 @@ class Config(OrderedDict):
 
         self.update(data)
         logger.debug("Config loaded from file.")
-
-    def save_config(self):
-        """saves the contents of the config dict to the config file"""
-        with open(self.path, 'w') as f:
-            json.dump(self, f, indent=4)
-
-        logger.info("Config saved to file.")
