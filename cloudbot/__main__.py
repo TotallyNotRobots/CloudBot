@@ -11,7 +11,7 @@ from cloudbot.config import Config
 from cloudbot.util import async_util
 
 
-def setup_logger(log_dir=None):
+def setup_default_logger(log_dir=None):
     if log_dir is None:
         log_dir = Path("logs").resolve()
 
@@ -101,7 +101,7 @@ def main():
 
     logger = logging.getLogger("cloudbot")
 
-    setup_logger()
+    setup_default_logger()
 
     logger.info("Starting CloudBot.")
 
@@ -164,4 +164,5 @@ def main():
     logging.shutdown()
 
 
-main()
+if __name__ == '__main__':
+    main()
