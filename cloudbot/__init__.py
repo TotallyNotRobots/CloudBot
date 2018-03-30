@@ -2,8 +2,7 @@ import sys
 
 # check python version
 if sys.version_info < (3, 4, 0):
-    print("CloudBot requires Python 3.4 or newer.")
-    sys.exit(1)
+    sys.exit("CloudBot requires Python 3.4 or newer.")
 
 __version__ = (2, 0, 0, 'alpha', 0)
 
