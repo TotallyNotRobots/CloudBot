@@ -115,19 +115,6 @@ def do_joins(logger, conn):
         yield from asyncio.sleep(join_throttle)
 
 
-@hook.irc_raw('004')
-@asyncio.coroutine
-def keep_alive(conn):
-    """
-    :type conn: cloudbot.clients.clients.IrcClient
-    """
-    keepalive = conn.config.get('keep_alive', False)
-    if keepalive:
-        while True:
-            conn.cmd('PING', conn.nick)
-            yield from asyncio.sleep(60)
-
-
 @hook.irc_raw('433')
 def on_nick_in_use(conn, irc_paramlist):
     conn.nick = irc_paramlist[1] + '_'
