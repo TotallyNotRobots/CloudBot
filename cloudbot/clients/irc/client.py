@@ -73,15 +73,6 @@ class IrcClient(Client):
             local_bind = False
 
         self.local_bind = local_bind
-        # create SSL context
-        if self.use_ssl:
-            self.ssl_context = SSLContext(PROTOCOL_SSLv23)
-            if self._ignore_cert_errors:
-                self.ssl_context.verify_mode = ssl.CERT_NONE
-            else:
-                self.ssl_context.verify_mode = ssl.CERT_REQUIRED
-        else:
-            self.ssl_context = None
 
         # transport and protocol
         self._transport = None
@@ -150,8 +141,16 @@ class IrcClient(Client):
         if self.local_bind:
             optional_params["local_addr"] = self.local_bind
 
+        if self.use_ssl:
+            ssl_context = ssl.create_default_context()
+            if self._ignore_cert_errors:
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+
+            optional_params["ssl"] = ssl_context
+
         coro = self.loop.create_connection(
-            partial(_IrcProtocol, self), host=self.server, port=self.port, ssl=self.ssl_context, **optional_params
+            partial(_IrcProtocol, self), host=self.server, port=self.port, **optional_params
         )
 
         if timeout is not None:
