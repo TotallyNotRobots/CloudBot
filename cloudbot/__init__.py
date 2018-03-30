@@ -79,8 +79,10 @@ def _setup():
         dict_config["handlers"]["console"]["level"] = "DEBUG"
         dict_config["loggers"]["asyncio"] = {
             "level": "DEBUG",
-            "handlers": ["console", "file"]
+            "handlers": ["console"]
         }
+        if file_log:
+            dict_config["loggers"]["asyncio"]["handlers"].append("file")
 
     if logging_config.get("file_debug", False):
         dict_config["handlers"]["debug_file"] = {

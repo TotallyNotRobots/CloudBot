@@ -126,7 +126,7 @@ def is_hook_allowed(_hook):
 
 
 def wrap_event(_hook, event, cmd, args):
-    cmd_event = CommandEvent(base_event=event, text=args.strip(), triggered_command=cmd, hook=_hook)
+    cmd_event = CommandEvent(base_event=event, text=args.strip(), triggered_command=cmd, hook=_hook, cmd_prefix='')
     return cmd_event
 
 
