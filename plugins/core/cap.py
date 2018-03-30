@@ -3,9 +3,9 @@ from collections import ChainMap
 from functools import partial
 
 from cloudbot import hook
+from cloudbot.clients.irc.parser import CapList
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
-from cloudbot.clients.irc.parser import CapList
 
 
 @hook.connect(priority=-10, clients="irc")

@@ -1,10 +1,6 @@
 import asyncio
-import socket
-from copy import copy
 
 from cloudbot import hook
-
-socket.setdefaulttimeout(10)
 
 
 # Auto-join on Invite (Configurable, defaults to True)
@@ -32,7 +28,6 @@ def on_join(chan, conn, nick):
 
 @hook.irc_raw('324')
 def check_mode(irc_paramlist, conn, message):
-    # message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
     require_reg = conn.config.get('require_registered_channels', False)
     if "r" not in mode and require_reg:
@@ -108,12 +103,14 @@ def onjoin(conn, bot):
 @hook.irc_raw('376')
 @asyncio.coroutine
 def do_joins(logger, conn):
-    chans = copy(conn.channels)
-
+    """
+    :type logger: logging.Logger
+    :type conn: cloudbot.client.Client
+    """
     # Join config-defined channels
     join_throttle = conn.config.get('join_throttle', 0.4)
     logger.info("[%s|misc] Bot is joining channels for network.", conn.name)
-    for channel in chans:
+    for channel in conn.config_channels:
         conn.join(channel)
         yield from asyncio.sleep(join_throttle)
 

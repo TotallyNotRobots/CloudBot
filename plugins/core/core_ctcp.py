@@ -8,7 +8,7 @@ from cloudbot.event import EventType
 
 # CTCP responses
 @asyncio.coroutine
-@hook.event([EventType.other])
+@hook.event([EventType.other], clients='irc')
 def ctcp_version(notice, irc_ctcp_text):
     if irc_ctcp_text:
         if irc_ctcp_text.startswith("VERSION"):
