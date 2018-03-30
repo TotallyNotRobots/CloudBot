@@ -3,7 +3,7 @@ import collections
 import logging
 import random
 
-from cloudbot.permissions import PermissionManager
+from cloudbot.permissions import NickBasedPermissionManager
 
 logger = logging.getLogger("cloudbot")
 
@@ -20,7 +20,7 @@ class Client:
     :type config_channels: list[str]
     :type vars: dict
     :type history: dict[str, list[tuple]]
-    :type permissions: PermissionManager
+    :type permissions: cloudbot.permissions.AbstractPermissionManager
     :type memory: dict
     :type ready: bool
     """
@@ -38,16 +38,16 @@ class Client:
         self._type = client_type
         self.config = config
 
-        self.nick = self.config['nick']
+        self.nick = None
 
         self.channels = []
-        self.config_channels = self.config.get("channels", [])
+        self.config_channels = []
 
         self.vars = {}
         self.history = {}
 
         # create permissions manager
-        self.permissions = PermissionManager(self)
+        self.permissions = self.get_permissions_manager()
 
         # for plugins to abuse
         self.memory = collections.defaultdict()
@@ -56,6 +56,30 @@ class Client:
         self.ready = False
 
         self._active = False
+
+        self.reload_config()
+
+    def reload_config(self):
+        nick = self.config['nick']
+        if nick != self.nick:
+            self.set_nick(nick)
+
+        channels = self.config['channels']
+        if channels != self.config_channels and self.connected:
+            for chan in channels:
+                if chan not in self.config_channels:
+                    self.join(chan)
+
+            for chan in self.config_channels:
+                if chan not in channels:
+                    self.part(chan)
+
+        self.config_channels = channels
+
+        self.permissions.reload()
+
+    def get_permissions_manager(self):
+        return NickBasedPermissionManager(self)
 
     def describe_server(self):
         raise NotImplementedError

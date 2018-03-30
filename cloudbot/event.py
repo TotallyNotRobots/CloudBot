@@ -325,7 +325,8 @@ class Event:
         """
         if not self.mask:
             raise ValueError("has_permission requires mask is not assigned")
-        return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
+
+        return self.conn.permissions.has_perm(self, permission)
 
     @asyncio.coroutine
     def check_permission(self, permission, notice=True):

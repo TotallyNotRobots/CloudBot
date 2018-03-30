@@ -114,7 +114,7 @@ class CloudBot:
         self.default_plugin_directory = self.base_dir / "plugins"
 
         # set up config
-        self.config = Config(self)
+        self.config = Config()
         logger.debug("Config system initialised.")
 
         # set values for reloading
@@ -156,6 +156,8 @@ class CloudBot:
 
         self.plugin_manager = PluginManager(self)
 
+        self.reload_config()
+
     def run(self):
         """
         Starts CloudBot.
@@ -170,6 +172,22 @@ class CloudBot:
         self.loop.run_until_complete(self.plugin_manager.unload_all())
         self.loop.close()
         return restart
+
+    def reload_config(self):
+        """
+        Called when the config is reloaded
+        """
+        self.config.load_config()
+        for connection in self.config['connections']:
+            name = clean_name(connection['name'])
+            try:
+                conn = self.connections[name]
+            except LookupError:
+                self.connections[name] = conn = self._make_connection(name, connection)
+                logger.debug("[{}] Reloading config created connection.".format(conn.name))
+                async_util.run_coroutine_threadsafe(conn.connect(), self.loop)
+
+            conn.reload_config()
 
     def _make_connection(self, name, config):
         """

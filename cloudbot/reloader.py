@@ -9,6 +9,9 @@ from cloudbot.util import async_util
 
 class Reloader(ABC):
     def __init__(self, bot, handler, pattern, recursive=False):
+        """
+        :type bot: cloudbot.bot.CloudBot
+        """
         self.bot = bot
         self.recursive = recursive
         self.event_handler = handler(self, patterns=[pattern])
@@ -79,7 +82,7 @@ class ConfigReloader(Reloader):
     def reload(self, path):
         if self.bot.running:
             self.bot.logger.info("Config changed, triggering reload.")
-            self.bot.config.load_config()
+            self.bot.reload_config()
 
 
 class ReloadHandler(PatternMatchingEventHandler):

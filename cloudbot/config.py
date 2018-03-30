@@ -12,19 +12,16 @@ class Config(OrderedDict):
     """
     :type filename: str
     :type path: str
-    :type bot: cloudbot.bot.CloudBot
     """
 
-    def __init__(self, bot, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
-        :type bot: cloudbot.bot.CloudBot
         :type args: list
         :type kwargs: dict
         """
         super().__init__(*args, **kwargs)
         self.filename = "config.json"
         self.path = os.path.abspath(self.filename)
-        self.bot = bot
         self.update(*args, **kwargs)
 
         # populate self with config data
@@ -46,11 +43,6 @@ class Config(OrderedDict):
 
         self.update(data)
         logger.debug("Config loaded from file.")
-
-        # reload permissions
-        if self.bot.connections:
-            for connection in self.bot.connections.values():
-                connection.permissions.reload()
 
     def save_config(self):
         """saves the contents of the config dict to the config file"""

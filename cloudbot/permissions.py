@@ -1,210 +1,269 @@
-import logging
-from fnmatch import fnmatch
+from abc import ABC, abstractmethod
+from collections import defaultdict
 
-logger = logging.getLogger("cloudbot")
-
-# put your hostmask here for magic
-# it's disabled by default, see has_perm_mask()
-backdoor = None
+from polymatch import pattern_registry
 
 
-class PermissionManager(object):
-    """
-    :type name: str
-    :type config: dict[str, ?]
-    :type group_perms: dict[str, list[str]]
-    :type group_users: dict[str, list[str]]
-    :type perm_users: dict[str, list[str]]
-    """
-
-    def __init__(self, conn):
+class AbstractPermissionManager(ABC):
+    def __init__(self, client):
         """
-        :type conn: cloudbot.client.Client
+        :type client: .client.Client
         """
-        logger.info("[{}|permissions] Created permission manager for {}.".format(conn.name, conn.name))
-
-        # stuff
-        self.name = conn.name
-        self.config = conn.config
-
-        self.group_perms = {}
-        self.group_users = {}
-        self.perm_users = {}
+        self.client = client
 
         self.reload()
 
-    def reload(self):
-        self.group_perms = {}
-        self.group_users = {}
-        self.perm_users = {}
-        logger.info("[{}|permissions] Reloading permissions for {}.".format(self.name, self.name))
-        groups = self.config.get("permissions", {})
-        # work out the permissions and users each group has
-        for key, value in groups.items():
-            if not key.islower():
-                logger.warning("[{}|permissions] Warning! Non-lower-case group '{}' in config. This will cause problems"
-                               " when setting permissions using the bot's permissions commands"
-                               .format(self.name, key))
-            key = key.lower()
-            self.group_perms[key] = []
-            self.group_users[key] = []
-            for permission in value["perms"]:
-                self.group_perms[key].append(permission.lower())
-            for user in value["users"]:
-                self.group_users[key].append(user.lower())
-
-        for group, users in self.group_users.items():
-            group_perms = self.group_perms[group]
-            for perm in group_perms:
-                if self.perm_users.get(perm) is None:
-                    self.perm_users[perm] = []
-                self.perm_users[perm].extend(users)
-
-        logger.debug("[{}|permissions] Group permissions: {}".format(self.name, self.group_perms))
-        logger.debug("[{}|permissions] Group users: {}".format(self.name, self.group_users))
-        logger.debug("[{}|permissions] Permission users: {}".format(self.name, self.perm_users))
-
-    def has_perm_mask(self, user_mask, perm, notice=True):
+    @abstractmethod
+    def has_perm(self, event, perm):
         """
-        :type user_mask: str
+        :type event: cloudbot.event.Event
         :type perm: str
         :rtype: bool
         """
+        raise NotImplementedError
 
-        if backdoor:
-            if fnmatch(user_mask.lower(), backdoor.lower()):
-                return True
+    @abstractmethod
+    def reload(self):
+        raise NotImplementedError
 
-        if not perm.lower() in self.perm_users:
-            # no one has access
-            return False
 
-        allowed_users = self.perm_users[perm.lower()]
+class EventDataMatcher(ABC):
+    def __init__(self, pattern):
+        """
+        :type pattern: str
+        """
+        # If no pattern type is set, fall back to case-folded glob for compatibility
+        if ':' not in pattern:
+            pattern = 'glob:cf:' + pattern
 
-        for allowed_mask in allowed_users:
-            if fnmatch(user_mask.lower(), allowed_mask):
-                if notice:
-                    logger.info("[{}|permissions] Allowed user {} access to {}".format(self.name, user_mask, perm))
-                return True
+        self._pattern = pattern_registry.pattern_from_string(pattern)
+        self._pattern.compile()
 
-        return False
+    @property
+    def pattern(self):
+        return self._pattern
+
+    @abstractmethod
+    def match(self, event):
+        """
+        :type event: cloudbot.event.Event
+        :rtype: bool
+        """
+        raise NotImplementedError
+
+
+class NickMatcher(EventDataMatcher):
+    def match(self, event):
+        return self._pattern == event
+
+
+class PermissionGroup:
+    def __init__(self):
+        self._permissions = set()
+        self._matches = []
+
+    @property
+    def permissions(self):
+        return self._permissions.copy()
+
+    @permissions.setter
+    def permissions(self, value):
+        self._permissions.update(value)
+
+    @property
+    def patterns(self):
+        return self._matches
+
+    def add_match(self, match):
+        """
+        :type match: EventDataMatcher
+        """
+        self._matches.append(match)
+
+    def add_perm(self, perm):
+        """
+        :type perm: str
+        """
+        self._permissions.add(perm)
+
+    def has_perm(self, perm):
+        """
+        :type perm: str
+        """
+        return perm in self._permissions
+
+    def is_member(self, event):
+        return any(match.match(event) for match in self._matches)
+
+
+class GroupBasedPermissionManager(AbstractPermissionManager):
+    def __init__(self, client):
+        """
+        :type client: cloudbot.client.Client
+        """
+
+        self._groups = {}
+        self._perms_to_groups = defaultdict(set)
+        self._perms_to_users = defaultdict(set)
+
+        super().__init__(client)
+
+    def clear(self):
+        self._groups.clear()
+        self._perms_to_users.clear()
+        self._perms_to_groups.clear()
+
+    def make_group(self, name):
+        """
+        :type name: str
+        :rtype: PermissionGroup
+        """
+        self._groups[name] = group = PermissionGroup()
+        return group
+
+    def get_group(self, name):
+        """
+        :type name: str
+        :rtype: PermissionGroup
+        """
+        try:
+            return self._groups[name]
+        except LookupError:
+            return self.make_group(name)
 
     def get_groups(self):
-        return set().union(self.group_perms.keys(), self.group_users.keys())
+        return self._groups.copy()
+
+    def get_group_names(self):
+        return set(self._groups.keys())
 
     def get_group_permissions(self, group):
         """
-        :type group: str
-        :rtype: list[str]
+        :type group: str | PermissionGroup
+        :rtype: set(str)
         """
-        return self.group_perms.get(group.lower())
+        if isinstance(group, str):
+            group = self.get_group(group)
+
+        return group.permissions
 
     def get_group_users(self, group):
         """
-        :type group: str
-        :rtype: list[str]
+        :type group: str | PermissionGroup
         """
-        return self.group_users.get(group.lower())
+        if isinstance(group, str):
+            group = self.get_group(group)
 
-    def get_user_permissions(self, user_mask):
+        return group.patterns
+
+    def get_user_permissions(self, event):
         """
-        :type user_mask: str
+        :type event: cloudbot.event.Event
         :rtype: list[str]
         """
         permissions = set()
-        for permission, users in self.perm_users.items():
-            for mask_to_check in users:
-                if fnmatch(user_mask.lower(), mask_to_check):
-                    permissions.add(permission)
+        for group in self._groups:
+            if group.is_member(event):
+                permissions.update(group.permissions)
+
         return permissions
 
-    def get_user_groups(self, user_mask):
+    def get_user_groups(self, event):
         """
-        :type user_mask: str
-        :rtype: list[str]
+        :type event: cloudbot.event.Event
+        :rtype: list[PermissionGroup]
         """
-        groups = []
-        for group, users in self.group_users.items():
-            for mask_to_check in users:
-                if fnmatch(user_mask.lower(), mask_to_check):
-                    groups.append(group)
-                    continue
-        return groups
+        return [group for group in self._groups if group.is_member(event)]
 
-    def group_exists(self, group):
+    def group_exists(self, name):
         """
         Checks whether a group exists
-        :type group: str
+        :type name: str
         :rtype: bool
         """
-        return group.lower() in self.group_perms
+        return name in self._groups
 
-    def user_in_group(self, user_mask, group):
+    def user_in_group(self, event, group):
         """
-        Checks whether a user is matched by any masks in a given group
-        :type group: str
-        :type user_mask: str
+        :type event: cloudbot.event.Event
+        :type group: str | PermissionGroup
         :rtype: bool
         """
-        users = self.group_users.get(group.lower())
-        if not users:
-            return False
-        for mask_to_check in users:
-            if fnmatch(user_mask.lower(), mask_to_check):
+        if isinstance(group, str):
+            group = self.get_group(group)
+
+        return group.is_member(event)
+
+    def add_pattern_to_group(self, group, pattern):
+        """
+        :type group: str | PermissionGroup
+        :type pattern: str
+        """
+        if isinstance(group, str):
+            group = self.get_group(group)
+
+        matcher = self.make_data_matcher(pattern)
+        group.add_match(matcher)
+        for perm in group.permissions:
+            self._perms_to_users[perm].update(group.patterns)
+
+    def add_perm_to_group(self, name, perm):
+        """
+        :type name: str
+        :type perm: str
+        """
+        group = self.get_group(name)
+        group.add_perm(perm)
+        self._perms_to_groups[perm].add(group)
+        self._perms_to_users[perm].update(group.patterns)
+
+    def has_perm(self, event, perm):
+        """
+        :type event: cloudbot.event.Event
+        :type perm: str
+        :rtype: bool
+        """
+        for group in self._groups:  # type: PermissionGroup
+            if perm in group.permissions and group.is_member(event):
                 return True
+
         return False
 
-    def remove_group_user(self, group, user_mask):
+    @abstractmethod
+    def make_data_matcher(self, pattern):
         """
-        Removes all users that match user_mask from group. Returns a list of user masks removed from the group.
-        Use permission_manager.reload() to make this change take affect.
-        Use bot.config.save_config() to save this change to file.
-        :type group: str
-        :type user_mask: str
-        :rtype: list[str]
+        :type pattern: str
+        :rtype: EventDataMatcher
         """
-        masks_removed = []
+        raise NotImplementedError
 
-        config_groups = self.config.get("permissions", {})
+    def reload(self):
+        self.clear()
+        conf = self.client.config['permissions']
+        for name, group_data in conf.items():
+            group = self.get_group(name)
+            group.permissions = _get_keys_opt(group_data, 'perms', 'permissions')
+            for pattern in _get_keys_opt(group_data, 'users', 'masks', 'patterns'):
+                self.add_pattern_to_group(group, pattern)
 
-        for mask_to_check in list(self.group_users[group.lower()]):
-            if fnmatch(user_mask.lower(), mask_to_check):
-                masks_removed.append(mask_to_check)
-                # We're going to act like the group keys are all lowercase.
-                # The user has been warned (above) if they aren't.
-                # Okay, maybe a warning, but no support.
-                if group not in config_groups:
-                    logger.warning(
-                        "[{}|permissions] Can't remove user from group due to"
-                        " upper-case group names!".format(self.name))
-                    continue
-                config_group = config_groups.get(group)
-                config_users = config_group.get("users")
-                config_users.remove(mask_to_check)
 
-        return masks_removed
+def _get_keys_opt(mapping, *keys):
+    """
+    :type mapping: collections.Mapping
+    :type keys: tuple(any)
+    """
+    if not keys:
+        raise TypeError("At least one key option must be provided")
 
-    def add_user_to_group(self, user_mask, group):
-        """
-        Adds user to group. Returns whether this actually did anything.
-        Use permission_manager.reload() to make this change take affect.
-        Use bot.config.save_config() to save this change to file.
-        :type group: str
-        :type user_mask: str
-        :rtype: bool
-        """
-        if self.user_in_group(user_mask, group):
-            return False
-        # We're going to act like the group keys are all lowercase.
-        # The user has been warned (above) if they aren't.
-        groups = self.config.get("permissions", {})
-        if group in groups:
-            group_dict = groups.get(group)
-            users = group_dict["users"]
-            users.append(user_mask)
-        else:
-            # create the group
-            group_dict = {"users": [user_mask], "perms": []}
-            groups[group] = group_dict
+    for key in keys:
+        try:
+            return mapping[key]
+        except LookupError:
+            pass
 
-        return True
+    raise KeyError(keys[0])
+
+
+class NickBasedPermissionManager(GroupBasedPermissionManager):
+    def make_data_matcher(self, pattern):
+        return NickMatcher(pattern)
