@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from threading import RLock
 from time import time
@@ -21,10 +20,7 @@ def task_clear():
 
 
 @hook.sieve(priority=100)
-@asyncio.coroutine
-def sieve_suite(bot, event, _hook):
-    global buckets
-
+def sieve_acls(bot, event, _hook):
     conn = event.conn
 
     # check acls
@@ -39,12 +35,24 @@ def sieve_suite(bot, event, _hook):
             if event.chan.lower() in denied_channels:
                 return None
 
+    return event
+
+
+@hook.sieve(priority=101)
+def sieve_disable_commands(bot, event, _hook):
+    conn = event.conn
+
     # check disabled_commands
     if _hook.type == "command":
         disabled_commands = conn.config.get('disabled_commands', [])
         if event.triggered_command in disabled_commands:
             return None
 
+    return event
+
+
+@hook.sieve(priority=102)
+def sieve_permissions(bot, event, _hook):
     # check permissions
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -57,6 +65,13 @@ def sieve_suite(bot, event, _hook):
         if not allowed:
             event.notice("Sorry, you are not allowed to use this command.")
             return None
+
+    return event
+
+
+@hook.sieve(priority=103)
+def sieve_ratelimit(bot, event, _hook):
+    conn = event.conn
 
     # check command spam tokens
     if _hook.type == "command":
