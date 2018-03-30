@@ -1,4 +1,3 @@
-import json
 import logging
 import logging.config
 import os
@@ -8,6 +7,7 @@ import time
 from pathlib import Path
 
 from cloudbot.bot import CloudBot
+from cloudbot.config import Config
 from cloudbot.util import async_util
 
 
@@ -15,15 +15,9 @@ def setup_logger(log_dir=None):
     if log_dir is None:
         log_dir = Path("logs").resolve()
 
-    cfg_file = Path("config.json")
+    cfg = Config()
 
-    if cfg_file.exists():
-        with cfg_file.open(encoding='utf8') as config_file:
-            json_conf = json.load(config_file)
-
-        logging_config = json_conf.get("logging", {})
-    else:
-        logging_config = {}
+    logging_config = cfg.get("logging", {})
 
     file_log = logging_config.get("file_log", False)
 
