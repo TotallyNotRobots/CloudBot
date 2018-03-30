@@ -3,23 +3,13 @@ import os
 import signal
 import sys
 import time
-
 from pathlib import Path
+
+from cloudbot.bot import CloudBot
+from cloudbot.util import async_util
 
 # store the original working directory, for use when restarting
 original_wd = Path().resolve()
-
-# set up environment - we need to make sure we are in the install directory
-path0 = Path(sys.path[0] or '.').resolve()
-install_dir = Path(__file__).resolve().parent
-if path0 == install_dir:
-    sys.path[0] = path0 = install_dir.parent
-
-os.chdir(str(install_dir.parent))
-
-# import bot
-from cloudbot.bot import CloudBot
-from cloudbot.util import async_util
 
 
 def main():
