@@ -1,7 +1,6 @@
 import asyncio
 import collections
 import gc
-import importlib
 import logging
 import re
 import time
@@ -14,13 +13,21 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
-from cloudbot.client import Client, CLIENTS
+from cloudbot.client import Client
 from cloudbot.config import Config
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import PluginReloader, ConfigReloader
 from cloudbot.util import database, formatting, async_util
+
+try:
+    from typing import TYPE_CHECKING
+except ImportError:
+    TYPE_CHECKING = False
+
+if TYPE_CHECKING:
+    from typing import Type
 
 logger = logging.getLogger("cloudbot")
 
@@ -136,8 +143,6 @@ class CloudBot:
         # Bot initialisation complete
         logger.debug("Bot setup completed.")
 
-        self.load_clients()
-
         # create bot connections
         self.create_connections()
 
@@ -166,15 +171,26 @@ class CloudBot:
         self.loop.close()
         return restart
 
+    def _make_connection(self, name, config):
+        """
+        :type name: str
+        :type config: dict
+        :rtype: Client
+        """
+        _type = config.get("type", "irc")
+
+        client = self.get_client(_type)
+
+        client_cls = getattr(client, '__client__')  # type: Type[Client]
+
+        return client_cls(self, name, config)
+
     def create_connections(self):
-        """ Create a BotConnection for all the networks defined in the config """
+        """ Create a Client for all the networks defined in the config """
         for config in self.config['connections']:
             # strip all spaces and capitalization from the connection name
             name = clean_name(config['name'])
-            nick = config['nick']
-            _type = config.get("type", "irc")
-
-            self.connections[name] = CLIENTS[_type](self, name, nick, config=config, channels=config['channels'])
+            self.connections[name] = self._make_connection(name, config)
             logger.debug("[{}] Created connection.".format(name))
 
     @asyncio.coroutine
@@ -239,15 +255,13 @@ class CloudBot:
         # Run a manual garbage collection cycle, to clean up any unused objects created during initialization
         gc.collect()
 
-    def load_clients(self):
+    def get_client(self, name):
         """
-        Load all clients from the "clients" directory
+        :type name: str
+        :rtype: Client
         """
-        client_dir = self.base_dir / "cloudbot" / "clients"
-        for path in client_dir.rglob('*.py'):
-            rel_path = path.relative_to(self.base_dir)
-            mod_path = '.'.join(rel_path.parts).rsplit('.', 1)[0]
-            importlib.import_module(mod_path)
+        client = __import__(".clients." + name)
+        return client
 
     @asyncio.coroutine
     def process(self, event):

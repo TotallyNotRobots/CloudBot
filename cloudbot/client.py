@@ -7,17 +7,6 @@ from cloudbot.permissions import PermissionManager
 
 logger = logging.getLogger("cloudbot")
 
-CLIENTS = {}
-
-
-def client(_type):
-    def _decorate(cls):
-        CLIENTS[_type] = cls
-        cls._type = _type
-        return cls
-
-    return lambda cls: _decorate(cls)
-
 
 class Client:
     """
@@ -25,38 +14,35 @@ class Client:
     :type bot: cloudbot.bot.CloudBot
     :type loop: asyncio.events.AbstractEventLoop
     :type name: str
-    :type channels: list[str]
     :type config: dict[str, unknown]
     :type nick: str
+    :type channels: list[str]
+    :type config_channels: list[str]
     :type vars: dict
     :type history: dict[str, list[tuple]]
     :type permissions: PermissionManager
+    :type memory: dict
+    :type ready: bool
     """
 
-    _type = None
-
-    def __init__(self, bot, name, nick, *, channels=None, config=None):
+    def __init__(self, bot, name, client_type, config):
         """
         :type bot: cloudbot.bot.CloudBot
         :type name: str
-        :type nick: str
-        :type channels: list[str]
+        :type client_type: str
         :type config: dict[str, unknown]
         """
         self.bot = bot
         self.loop = bot.loop
         self.name = name
-        self.nick = nick
+        self._type = client_type
+        self.config = config
 
-        if channels is None:
-            self.channels = []
-        else:
-            self.channels = channels
+        self.nick = self.config['nick']
 
-        if config is None:
-            self.config = {}
-        else:
-            self.config = config
+        self.channels = []
+        self.config_channels = self.config.get("channels", [])
+
         self.vars = {}
         self.history = {}
 

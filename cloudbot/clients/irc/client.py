@@ -7,7 +7,7 @@ from _ssl import PROTOCOL_SSLv23
 from functools import partial
 from ssl import SSLContext
 
-from cloudbot.client import Client, client
+from cloudbot.client import Client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 from cloudbot.util.parsers.irc import Message
@@ -45,7 +45,6 @@ def decode(bytestring):
     return bytestring.decode('utf-8', errors='ignore')
 
 
-@client("irc")
 class IrcClient(Client):
     """
     An implementation of Client for IRC.
@@ -55,15 +54,13 @@ class IrcClient(Client):
     :type _ignore_cert_errors: bool
     """
 
-    def __init__(self, bot, name, nick, *, channels=None, config=None):
+    def __init__(self, bot, name, config):
         """
         :type bot: cloudbot.bot.CloudBot
         :type name: str
-        :type nick: str
-        :type channels: list[str]
         :type config: dict[str, unknown]
         """
-        super().__init__(bot, name, nick, channels=channels, config=config)
+        super().__init__(bot, name, 'irc', config)
 
         self.use_ssl = config['connection'].get('ssl', False)
         self._ignore_cert_errors = config['connection']['ignore_cert']
