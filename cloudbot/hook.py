@@ -256,6 +256,8 @@ def irc_raw(triggers_param, **kwargs):
     :type triggers_param: str | list[str]
     """
 
+    kwargs['clients'] = 'irc'
+
     def _raw_hook(func):
         hook = _get_hook(func, "irc_raw")
         if hook is None:
@@ -407,6 +409,8 @@ def on_cap_available(*caps, **kwargs):
     This hook will fire for each capability in a `CAP LS` response from the server
     """
 
+    kwargs['clients'] = 'irc'
+
     def _on_cap_available_hook(func):
         hook = _get_hook(func, "on_cap_available")
         if hook is None:
@@ -423,6 +427,8 @@ def on_cap_ack(*caps, **kwargs):
 
     This hook will fire for each capability that is acknowledged from the server with `CAP ACK`
     """
+
+    kwargs['clients'] = 'irc'
 
     def _on_cap_ack_hook(func):
         hook = _get_hook(func, "on_cap_ack")
@@ -454,6 +460,8 @@ connect = on_connect
 
 
 def irc_out(param=None, **kwargs):
+    kwargs['clients'] = 'irc'
+
     def _decorate(func):
         hook = _get_hook(func, "irc_out")
         if hook is None:
