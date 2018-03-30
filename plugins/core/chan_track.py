@@ -102,8 +102,11 @@ def is_cap_available(conn, cap):
 
 @hook.on_start
 def get_chan_data(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     for conn in bot.connections.values():
-        if conn.connected:
+        if conn.connected and conn.type == 'irc':
             init_chan_data(conn, False)
             update_conn_data(conn)
 
@@ -136,7 +139,7 @@ def clean_data(bot):
         clean_conn_data(conn)
 
 
-@hook.connect
+@hook.connect(clients='irc')
 def init_chan_data(conn, _clear=True):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
     users = conn.memory.setdefault("users", UsersDict())
@@ -241,7 +244,7 @@ def dump_dict(data, indent=2, level=0, _objects=None):
             yield ((" " * (indent * (level + 1))) + "{}".format(value))
 
 
-@hook.permission("chanop")
+@hook.permission("chanop", clients='irc')
 def perm_check(chan, conn, nick):
     if not (chan and conn):
         return False
@@ -264,7 +267,7 @@ def perm_check(chan, conn, nick):
     return False
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False)
+@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
 def dumpchans(conn):
     """- Dumps all stored channel data for this connection to the console"""
     data = conn.memory["chan_data"]
@@ -273,7 +276,7 @@ def dumpchans(conn):
     return "Printed {} channel records totalling {} lines of data to the console.".format(len(data), len(lines))
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False)
+@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
 def dumpusers(conn):
     """- Dumps all stored user data for this connection to the console"""
     data = conn.memory["users"]
@@ -282,21 +285,21 @@ def dumpusers(conn):
     return "Printed {} user records totalling {} lines of data to the console.".format(len(data), len(lines))
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False)
+@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
 def updateusers(bot):
     """- Forces an update of all /NAMES data for all channels"""
     get_chan_data(bot)
     return "Updating all channel data"
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False)
+@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
 def cleanusers(bot):
     clean_data(bot)
     gc.collect()
     return "Data cleaned."
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False)
+@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
 def clearusers(bot):
     init_chan_data(bot, True)
     gc.collect()

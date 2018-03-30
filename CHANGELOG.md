@@ -1,6 +1,38 @@
 ## Changelog
 
 ### 2.0
+* Remove directory changing on bot load
+* Remove old docs
+* Add virtualenv folder to gitignore
+* Move logging init to `__main__`
+* Clean up logger init
+* Update README with new information
+* Remove outdated web interface support
+* Clean up directory settings on bot object
+* Refactor `Client` construction
+* Restructure client modules
+* Recreate the `SSLContext` on each reconnect
+* Refactor permissions and add global reload methods
+* Switch to using `Config` class in `setup_logger()`
+* Add more client specific checks
+* Refactor dynamic function launches
+* Fix exit message on invalid version
+* Remove the ability to save the config back to disk
+* Rename logger setup function
+* Add custom permissions manager for `IrcClient`
+* Make all IRC specific hooks only run on IRC clients
+* Fix stop and restart commands
+* Refactor `admin_bot`
+* Replace channel checks with client implementations
+* Refactor `admin_channel`
+* Use correct method to send nick on start
+* Clean up IRC specific code
+* Remove old `keep_alive` logic
+* Clean up bucket logic
+* Split up main sieve
+* Add None check to `regex_chans`
+* More core plugins to `core/` folder
+
 
 ### 1.0.9
 TBA
