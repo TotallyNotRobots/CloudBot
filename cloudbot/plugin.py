@@ -121,7 +121,7 @@ class PluginManager:
 
         Won't load any plugins listed in "disabled_plugins".
 
-        :type plugin_dir: str
+        :type plugin_dir: str | Path
         """
         plugin_dir = Path(plugin_dir)
         # Load all .py files in the plugins directory and any subdirectory

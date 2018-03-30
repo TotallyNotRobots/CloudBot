@@ -3,7 +3,6 @@ import collections
 import gc
 import importlib
 import logging
-import os
 import re
 import time
 from functools import partial
@@ -59,20 +58,25 @@ def get_cmd_regex(event):
 
 class CloudBot:
     """
+    :type base_dir: Path
+    :type loop: asyncio.events.AbstractEventLoop
     :type start_time: float
     :type running: bool
+    :type stopped_future: asyncio.Future
+    :param: stopped_future: Future that will be given a result when the bot has stopped.
     :type connections: dict[str, Client]
-    :type data_dir: bytes
+    :type logger: logging.Logger
+    :type memory: dict
+    :type data_dir: Path
     :type config: core.config.Config
+    :type user_agent: str
     :type plugin_manager: PluginManager
+    :type config_reloader: ConfigReloader
     :type plugin_reloader: PluginReloader
     :type db_engine: sqlalchemy.engine.Engine
     :type db_factory: sqlalchemy.orm.session.sessionmaker
     :type db_session: sqlalchemy.orm.scoping.scoped_session
     :type db_metadata: sqlalchemy.sql.schema.MetaData
-    :type loop: asyncio.events.AbstractEventLoop
-    :type stopped_future: asyncio.Future
-    :param: stopped_future: Future that will be given a result when the bot has stopped.
     """
 
     def __init__(self, loop=asyncio.get_event_loop()):
@@ -94,10 +98,13 @@ class CloudBot:
         self.memory = collections.defaultdict()
 
         # declare and create data folder
-        self.data_dir = os.path.abspath('data')
-        if not os.path.exists(self.data_dir):
-            logger.debug("Data folder not found, creating.")
-            os.mkdir(self.data_dir)
+        self.data_dir = self.base_dir / "data"
+        if not self.data_dir.exists():
+            logger.debug("Data folder not found, creating...")
+            self.data_dir.mkdir(parents=True)
+            logger.debug("Done.")
+
+        self.default_plugin_directory = self.base_dir / "plugins"
 
         # set up config
         self.config = Config(self)
@@ -210,7 +217,7 @@ class CloudBot:
     @asyncio.coroutine
     def _init_routine(self):
         # Load plugins
-        yield from self.plugin_manager.load_all(os.path.abspath("plugins"))
+        yield from self.plugin_manager.load_all(self.default_plugin_directory)
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -219,7 +226,7 @@ class CloudBot:
 
         if self.plugin_reloading_enabled:
             # start plugin reloader
-            self.plugin_reloader.start(os.path.abspath("plugins"))
+            self.plugin_reloader.start(str(self.default_plugin_directory))
 
         if self.config_reloading_enabled:
             self.config_reloader.start()
