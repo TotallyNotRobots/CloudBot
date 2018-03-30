@@ -41,7 +41,7 @@ def check_mode(irc_paramlist, conn, message):
 
 
 @hook.irc_raw('MODE')
-def on_mode_change(conn, irc_paramlist, message):
+def on_mode_change(conn, irc_paramlist, message, event):
     require_reg = conn.config.get('require_registered_channels', False)
     chan = irc_paramlist[0]
     modes = irc_paramlist[1]
@@ -55,7 +55,7 @@ def on_mode_change(conn, irc_paramlist, message):
         else:
             new_modes[c] = adding
 
-    if chan[0] == '#' and require_reg and not new_modes.get("r", True):
+    if event.is_channel(chan) and require_reg and not new_modes.get("r", True):
         message("I do not stay in unregistered channels", chan)
         conn.part(chan)
 

@@ -28,7 +28,7 @@ def track_seen(event, db):
     """
     # keep private messages private
     now = time.time()
-    if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
+    if event.is_channel(event.chan) and not re.findall('^s/.*/.*/$', event.content.lower()):
         res = db.execute(
             table.update().values(time=now, quote=event.content, host=str(event.mask))
                 .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)

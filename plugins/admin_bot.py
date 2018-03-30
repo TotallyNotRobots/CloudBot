@@ -184,7 +184,7 @@ def listchans(conn, chan, message, notice, nick):
     chans = ', '.join(sorted(conn.channels))
     lines = formatting.chunk_str("I am currently in: {}".format(chans))
     for line in lines:
-        if chan != nick:
+        if chan == nick:
             message(line)
         else:
             notice(line)

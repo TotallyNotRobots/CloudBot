@@ -2,7 +2,6 @@ import operator
 import re
 from collections import defaultdict
 
-import sqlalchemy
 from sqlalchemy import Table, String, Column, Integer, PrimaryKeyConstraint, select, and_
 
 from cloudbot import hook
@@ -20,13 +19,6 @@ karma_table = Table(
     Column('score', Integer),
     PrimaryKeyConstraint('name', 'chan', 'thing')
 )
-
-
-@hook.on_start
-def remove_non_channel_points(db):
-    """Temporary on_start hook to remove non-channel points"""
-    db.execute(karma_table.delete().where(sqlalchemy.not_(karma_table.c.chan.startswith('#'))))
-    db.commit()
 
 
 def update_score(nick, chan, thing, score, db):

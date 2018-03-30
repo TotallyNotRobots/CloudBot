@@ -36,11 +36,11 @@ def load_bad(db):
 
 
 @hook.command("addbad", permissions=["badwords"])
-def add_bad(text, nick, db):
+def add_bad(text, nick, db, event):
     """<word> <channel> - adds a bad word to the auto kick list must specify a channel with each word"""
     splt = text.lower().split(None, 1)
     word, channel = splt
-    if not channel.startswith('#'):
+    if not event.is_channel(channel):
         return "Please specify a valid channel name after the bad word."
 
     word = re.escape(word)
@@ -63,11 +63,11 @@ def add_bad(text, nick, db):
 
 
 @hook.command("rmbad", "delbad", permissions=["badwords"])
-def del_bad(text, db):
+def del_bad(text, db, event):
     """<word> <channel> - removes the specified word from the specified channels bad word list"""
     splt = text.lower().split(None, 1)
     word, channel = splt
-    if not channel.startswith('#'):
+    if not event.is_channel(channel):
         return "Please specify a valid channel name after the bad word."
 
     db.execute(table.delete().where(table.c.word == word).where(table.c.chan == channel))
@@ -80,10 +80,10 @@ def del_bad(text, db):
 
 
 @hook.command("listbad", permissions=["badwords"])
-def list_bad(text):
+def list_bad(text, event):
     """<channel> - Returns a list of bad words specify a channel to see words for a particular channel"""
     text = text.split(' ')[0].lower()
-    if not text.startswith('#'):
+    if not event.is_channel(text):
         return "Please specify a valid channel name"
 
     return '|'.join(badcache[text])

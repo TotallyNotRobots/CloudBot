@@ -39,6 +39,9 @@ def set_status(db, conn, chan, status):
     :type chan: str
     :type status: str
     """
+    conn = conn.lower()
+    chan = chan.lower()
+
     if (conn, chan) in status_cache:
         # if we have a set value, update
         db.execute(
@@ -50,13 +53,16 @@ def set_status(db, conn, chan, status):
 
 
 def delete_status(db, conn, chan):
+    conn = conn.lower()
+    chan = chan.lower()
+
     db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan))
     db.commit()
 
 
 @hook.sieve()
 def sieve_regex(bot, event, _hook):
-    if _hook.type == "regex" and event.chan.startswith("#") and _hook.plugin.title != "factoids":
+    if _hook.type == "regex" and event.is_channel(event.chan) and _hook.plugin.title != "factoids":
         status = status_cache.get((event.conn.name, event.chan))
         if status != "ENABLED" and (status == "DISABLED" or not default_enabled):
             bot.logger.info("[{}] Denying {} from {}".format(event.conn.name, _hook.function_name, event.chan))
@@ -66,15 +72,31 @@ def sieve_regex(bot, event, _hook):
     return event
 
 
-@hook.command(autohelp=False, permissions=["botcontrol"])
-def enableregex(text, db, conn, chan, nick, message, notice):
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
+def get_channel(event):
+    """
+    :type event: cloudbot.event.CommandEvent
+    :rtype: str
+    """
+    text = event.text
+    chan = event.chan
+    text = text.strip()
+    if text:
+        if not event.is_channel(text):
+            event.notice("Invalid channel {!r}".format(text))
+            return None
+
         channel = text
     else:
-        channel = "#{}".format(text)
+        channel = chan
+
+    return channel
+
+
+@hook.command(autohelp=False, permissions=["botcontrol"])
+def enableregex(db, conn, nick, message, notice, event):
+    channel = get_channel(event)
+    if channel is None:
+        return
 
     message("Enabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Enabling regex matching (youtube, etc) in channel {}".format(channel))
@@ -83,14 +105,10 @@ def enableregex(text, db, conn, chan, nick, message, notice):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def disableregex(text, db, conn, chan, nick, message, notice):
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = "#{}".format(text)
+def disableregex(db, conn, event, nick, message, notice):
+    channel = get_channel(event)
+    if channel is None:
+        return
 
     message("Disabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Disabling regex matching (youtube, etc) in channel {}".format(channel))
@@ -99,14 +117,10 @@ def disableregex(text, db, conn, chan, nick, message, notice):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def resetregex(text, db, conn, chan, nick, message, notice):
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = "#{}".format(text)
+def resetregex(db, conn, event, nick, message, notice):
+    channel = get_channel(event)
+    if channel is None:
+        return
 
     message("Resetting regex matching setting (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Resetting regex matching setting (youtube, etc) in channel {}".format(channel))
@@ -115,20 +129,18 @@ def resetregex(text, db, conn, chan, nick, message, notice):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def regexstatus(text, conn, chan):
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = "#{}".format(text)
+def regexstatus(conn, chan, event):
+    channel = get_channel(event)
+    if channel is None:
+        return
+
     status = status_cache.get((conn.name, chan))
     if status is None:
         if default_enabled:
             status = "ENABLED"
         else:
             status = "DISABLED"
+
     return "Regex status for {}: {}".format(channel, status)
 
 
@@ -138,5 +150,7 @@ def listregex(conn):
     for (conn_name, chan), status in status_cache.values():
         if conn_name != conn.name:
             continue
+
         values.append("{}: {}".format(chan, status))
+
     return ", ".join(values)

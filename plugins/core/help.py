@@ -9,10 +9,9 @@ from cloudbot.util import formatting
 
 @hook.command("help", autohelp=False)
 @asyncio.coroutine
-def help_command(text, chan, conn, bot, notice, message, has_permission, triggered_prefix):
+def help_command(text, chan, nick, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
     :type text: str
-    :type conn: cloudbot.client.Client
     :type bot: cloudbot.bot.CloudBot
     """
     if text:
@@ -65,7 +64,7 @@ def help_command(text, chan, conn, bot, notice, message, has_permission, trigger
         lines = formatting.chunk_str("Here's a list of commands you can use: " + ", ".join(commands))
 
         for line in lines:
-            if chan[:1] == "#":
+            if nick != chan:
                 notice(line)
             else:
                 # This is an user in this case.

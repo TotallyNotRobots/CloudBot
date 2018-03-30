@@ -177,7 +177,7 @@ def optout(text, event, chan, db, conn):
     :type event: cloudbot.event.CommandEvent
     """
     args = text.split()
-    if args[0].startswith("#") and len(args) > 1:
+    if event.is_channel(args[0]) and len(args) > 1:
         chan = args.pop(0)
 
     has_perm = yield from check_channel_permissions(event, chan, "op", "chanop", "snoonetstaff", "botcontrol")
