@@ -1,34 +1,23 @@
 import asyncio
 import logging
+from threading import RLock
 from time import time
 
 from cloudbot import hook
 from cloudbot.util.tokenbucket import TokenBucket
 
-ready = False
+bucket_lock = RLock()
 buckets = {}
 logger = logging.getLogger("cloudbot")
 
+BUCKET_EXPIRE = 600
 
-def task_clear(loop):
-    global buckets
+
+@hook.periodic(BUCKET_EXPIRE)
+def task_clear():
     for uid, _bucket in buckets.copy().items():
-        if (time() - _bucket.timestamp) > 600:
+        if (time() - _bucket.timestamp) > BUCKET_EXPIRE:
             del buckets[uid]
-    loop.call_later(600, task_clear, loop)
-
-
-@hook.irc_raw('004')
-@asyncio.coroutine
-def init_tasks(loop, conn):
-    global ready
-    if ready:
-        # tasks already started
-        return
-
-    logger.info("[{}|sieve] Bot is starting ratelimiter cleanup task.".format(conn.name))
-    loop.call_later(600, task_clear, loop)
-    ready = True
 
 
 @hook.sieve(priority=100)
