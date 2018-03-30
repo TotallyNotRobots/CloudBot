@@ -11,20 +11,23 @@ from cloudbot.bot import CloudBot
 from cloudbot.util import async_util
 
 
-def setup_logger():
-    if os.path.exists(os.path.abspath("config.json")):
-        with open(os.path.abspath("config.json")) as config_file:
+def setup_logger(log_dir=None):
+    if log_dir is None:
+        log_dir = Path("logs").resolve()
+
+    cfg_file = Path("config.json")
+
+    if cfg_file.exists():
+        with cfg_file.open(encoding='utf8') as config_file:
             json_conf = json.load(config_file)
+
         logging_config = json_conf.get("logging", {})
     else:
         logging_config = {}
 
     file_log = logging_config.get("file_log", False)
 
-    logging_dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
-
-    if not os.path.exists(logging_dir):
-        os.makedirs(logging_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     logging.captureWarnings(True)
 
@@ -64,7 +67,7 @@ def setup_logger():
             "formatter": "full",
             "level": "INFO",
             "encoding": "utf-8",
-            "filename": os.path.join(logging_dir, "bot.log")
+            "filename": str(log_dir / "bot.log")
         }
 
         dict_config["loggers"]["cloudbot"]["handlers"].append("file")
@@ -86,7 +89,7 @@ def setup_logger():
             "formatter": "full",
             "encoding": "utf-8",
             "level": "DEBUG",
-            "filename": os.path.join(logging_dir, "debug.log")
+            "filename": str(log_dir / "debug.log")
         }
         dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
 
@@ -103,6 +106,9 @@ def main():
     logging.logProcesses = 0
 
     logger = logging.getLogger("cloudbot")
+
+    setup_logger()
+
     logger.info("Starting CloudBot.")
 
     # create the bot
