@@ -3,9 +3,7 @@ import logging
 import random
 import re
 import ssl
-from _ssl import PROTOCOL_SSLv23
 from functools import partial
-from ssl import SSLContext
 
 from cloudbot.client import Client
 from cloudbot.event import Event, EventType, IrcOutEvent
@@ -82,9 +80,9 @@ class IrcClient(Client):
 
     def describe_server(self):
         if self.use_ssl:
-            return "+{}:{}".format(self.server, self.port)
-        else:
-            return "{}:{}".format(self.server, self.port)
+            return "{}:+{}".format(self.server, self.port)
+
+        return "{}:{}".format(self.server, self.port)
 
     @asyncio.coroutine
     def auto_reconnect(self):
@@ -198,20 +196,16 @@ class IrcClient(Client):
     def notice(self, target, text):
         self.cmd("NOTICE", target, text)
 
-    def set_nick(self, nick):
+    def send_nick(self, nick):
         self.cmd("NICK", nick)
 
     def join(self, channel):
-        self.send("JOIN {}".format(channel))
-        if channel not in self.channels:
-            self.channels.append(channel)
+        self.cmd("JOIN", channel)
 
     def part(self, channel):
         self.cmd("PART", channel)
-        if channel in self.channels:
-            self.channels.remove(channel)
 
-    def set_pass(self, password):
+    def send_pass(self, password):
         if not password:
             return
         self.cmd("PASS", password)
@@ -265,6 +259,9 @@ class IrcClient(Client):
 
     def is_nick_valid(self, nick):
         return bool(irc_nick_re.fullmatch(nick))
+
+    def is_channel(self, name):
+        return name and name[0] in "&#!+.~" and ' ' not in name
 
 
 class _IrcProtocol(asyncio.Protocol):

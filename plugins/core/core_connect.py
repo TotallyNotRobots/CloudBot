@@ -3,7 +3,7 @@ from cloudbot import hook
 
 @hook.connect(priority=0, clients="irc")
 def conn_pass(conn):
-    conn.set_pass(conn.config["connection"].get("password"))
+    conn.send_pass(conn.config["connection"].get("password"))
 
 
 @hook.connect(priority=10)

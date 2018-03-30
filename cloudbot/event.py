@@ -373,6 +373,14 @@ class Event:
         """
         return self.conn.is_nick_valid(nick)
 
+    def is_channel(self, name):
+        """
+        Returns whether a channel name is valid for the current connection
+        :param name: The name to check
+        :return: Whether the name is valid
+        """
+        return self.conn.is_channel(name)
+
     def __getitem__(self, item):
         try:
             return getattr(self, item)
@@ -450,7 +458,8 @@ class RegexEvent(Event):
     :type match: re.__Match
     """
 
-    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None, content_raw=None,
+    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None,
+                 content_raw=None,
                  target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
                  irc_command=None, irc_paramlist=None):
         """
@@ -458,7 +467,8 @@ class RegexEvent(Event):
         :type match: re.__Match
         """
         super().__init__(bot=bot, conn=conn, hook=hook, base_event=base_event, event_type=event_type, content=content,
-                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host,
+                         mask=mask,
                          irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
         self.match = match
 

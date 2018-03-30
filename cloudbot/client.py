@@ -160,6 +160,16 @@ class Client:
         Sets the bot's nickname
         :type nick: str
         """
+        if self.connected:
+            self.send_nick(nick)
+        else:
+            self.nick = nick
+
+    def send_nick(self, nick):
+        """
+        Send the nick change request to the server
+        :type nick: str
+        """
         raise NotImplementedError
 
     def join(self, channel):
@@ -181,6 +191,16 @@ class Client:
         Determines if a nick is valid for this connection
         :param nick: The nick to check
         :return: True if it is valid, otherwise false
+        """
+        raise NotImplementedError
+
+    def is_channel(self, name):
+        """
+        Determines if a name represents a valid channel for this connection or not
+        :type name: str
+        :param name: The name to check
+        :rtype: bool
+        :return: True if the channel is valid, False otherwise
         """
         raise NotImplementedError
 
