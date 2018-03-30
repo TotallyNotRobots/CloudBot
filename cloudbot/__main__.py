@@ -1,4 +1,6 @@
+import json
 import logging
+import logging.config
 import os
 import signal
 import sys
@@ -8,11 +10,93 @@ from pathlib import Path
 from cloudbot.bot import CloudBot
 from cloudbot.util import async_util
 
-# store the original working directory, for use when restarting
-original_wd = Path().resolve()
+
+def setup_logger():
+    if os.path.exists(os.path.abspath("config.json")):
+        with open(os.path.abspath("config.json")) as config_file:
+            json_conf = json.load(config_file)
+        logging_config = json_conf.get("logging", {})
+    else:
+        logging_config = {}
+
+    file_log = logging_config.get("file_log", False)
+
+    logging_dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
+
+    if not os.path.exists(logging_dir):
+        os.makedirs(logging_dir)
+
+    logging.captureWarnings(True)
+
+    dict_config = {
+        "version": 1,
+        "formatters": {
+            "brief": {
+                "format": "[%(asctime)s] [%(levelname)s] %(message)s",
+                "datefmt": "%H:%M:%S"
+            },
+            "full": {
+                "format": "[%(asctime)s] [%(levelname)s] %(message)s",
+                "datefmt": "%Y-%m-%d][%H:%M:%S"
+            }
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "brief",
+                "level": "INFO",
+                "stream": "ext://sys.stdout"
+            }
+        },
+        "loggers": {
+            "cloudbot": {
+                "level": "DEBUG",
+                "handlers": ["console"]
+            }
+        }
+    }
+
+    if file_log:
+        dict_config["handlers"]["file"] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1000000,
+            "backupCount": 5,
+            "formatter": "full",
+            "level": "INFO",
+            "encoding": "utf-8",
+            "filename": os.path.join(logging_dir, "bot.log")
+        }
+
+        dict_config["loggers"]["cloudbot"]["handlers"].append("file")
+
+    if logging_config.get("console_debug", False):
+        dict_config["handlers"]["console"]["level"] = "DEBUG"
+        dict_config["loggers"]["asyncio"] = {
+            "level": "DEBUG",
+            "handlers": ["console"]
+        }
+        if file_log:
+            dict_config["loggers"]["asyncio"]["handlers"].append("file")
+
+    if logging_config.get("file_debug", False):
+        dict_config["handlers"]["debug_file"] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1000000,
+            "backupCount": 5,
+            "formatter": "full",
+            "encoding": "utf-8",
+            "level": "DEBUG",
+            "filename": os.path.join(logging_dir, "debug.log")
+        }
+        dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
+
+    logging.config.dictConfig(dict_config)
 
 
 def main():
+    # store the original working directory, for use when restarting
+    original_wd = Path().resolve()
+
     # Logging optimizations, doing it here because we only want to change this if we're the main file
     logging._srcfile = None
     logging.logThreads = 0
