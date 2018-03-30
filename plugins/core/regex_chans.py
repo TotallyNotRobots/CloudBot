@@ -62,7 +62,7 @@ def delete_status(db, conn, chan):
 
 @hook.sieve()
 def sieve_regex(bot, event, _hook):
-    if _hook.type == "regex" and event.is_channel(event.chan) and _hook.plugin.title != "factoids":
+    if _hook.type == "regex" and event.chan is not None and event.is_channel(event.chan) and _hook.plugin.title != "factoids":
         status = status_cache.get((event.conn.name, event.chan))
         if status != "ENABLED" and (status == "DISABLED" or not default_enabled):
             bot.logger.info("[{}] Denying {} from {}".format(event.conn.name, _hook.function_name, event.chan))
