@@ -9,6 +9,7 @@ from cloudbot.client import Client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 from .parser import Message
+from .permissions import IrcPermissionManager
 
 logger = logging.getLogger("cloudbot")
 
@@ -77,6 +78,9 @@ class IrcClient(Client):
         self._protocol = None
 
         self._connecting = False
+
+    def get_permissions_manager(self):
+        return IrcPermissionManager(self)
 
     def describe_server(self):
         if self.use_ssl:
