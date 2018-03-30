@@ -8,7 +8,7 @@ def conn_pass(conn):
 
 @hook.connect(priority=10)
 def conn_nick(conn):
-    conn.set_nick(conn.nick)
+    conn.send_nick(conn.nick)
 
 
 @hook.connect(priority=20, clients="irc")
