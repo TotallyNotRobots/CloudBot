@@ -10,7 +10,7 @@ from ssl import SSLContext
 from cloudbot.client import Client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
-from cloudbot.util.parsers.irc import Message
+from .parser import Message
 
 logger = logging.getLogger("cloudbot")
 

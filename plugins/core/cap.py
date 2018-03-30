@@ -5,7 +5,7 @@ from functools import partial
 from cloudbot import hook
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
-from cloudbot.util.parsers.irc import CapList
+from cloudbot.clients.irc.parser import CapList
 
 
 @hook.connect(priority=-10, clients="irc")

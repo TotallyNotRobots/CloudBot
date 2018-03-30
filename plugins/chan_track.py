@@ -12,7 +12,7 @@ from operator import attrgetter
 from weakref import WeakValueDictionary
 
 from cloudbot import hook
-from cloudbot.util.parsers.irc import Prefix
+from cloudbot.clients.irc.parser import Prefix
 
 
 class WeakDict(dict):
