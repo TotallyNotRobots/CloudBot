@@ -6,7 +6,7 @@ import asyncio
 import sys
 from functools import partial
 
-from cloudbot.util.func_utils import call_with_args
+from .func_utils import call_with_args
 
 
 def wrap_future(fut, *, loop=None):
@@ -16,22 +16,13 @@ def wrap_future(fut, *, loop=None):
     :param loop: The loop to run in
     :return: The wrapped future
     """
-    if sys.version_info < (3, 4, 4):
+    try:
+        func = getattr(asyncio, "ensure_future")
+    except AttributeError:
         # This is to avoid a SyntaxError on 3.7.0a2+
         func = getattr(asyncio, "async")
-    else:
-        func = asyncio.ensure_future
 
     return func(fut, loop=loop)  # pylint: disable=locally-disabled, deprecated-method
-
-
-@asyncio.coroutine
-def run_func(loop, func, *args, **kwargs):
-    part = partial(func, *args, **kwargs)
-    if asyncio.iscoroutine(func) or asyncio.iscoroutinefunction(func):
-        return (yield from part())
-    else:
-        return (yield from loop.run_in_executor(None, part))
 
 
 @asyncio.coroutine
