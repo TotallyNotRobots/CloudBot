@@ -21,13 +21,12 @@ chan_cache = defaultdict(set)
 db_lock = RLock()
 
 
-def get_channels(db, conn):
-    return db.execute(table.select().where(table.c.conn == conn.name.casefold())).fetchall()
-
-
 @hook.on_start
-def load_cache(db):
-    with db_lock:
+def load_cache(event):
+    """
+    :type event: cloudbot.event.Event
+    """
+    with db_lock, event.db_session() as db:
         chan_cache.clear()
         for row in db.execute(table.select()):
             chan_cache[row['conn']].add(row['chan'])
@@ -43,11 +42,11 @@ def do_joins(conn):
 
 
 @hook.event(EventType.join, singlethread=True)
-def add_chan(db, conn, chan, nick):
+def add_chan(event, conn, chan, nick):
     chans = chan_cache[conn.name]
     chan = chan.casefold()
     if nick.casefold() == conn.nick.casefold() and chan not in chans:
-        with db_lock:
+        with db_lock, event.db_session() as db:
             try:
                 db.execute(table.insert().values(conn=conn.name.casefold(), chan=chan.casefold()))
             except IntegrityError:
@@ -55,20 +54,27 @@ def add_chan(db, conn, chan, nick):
             else:
                 db.commit()
 
-                load_cache(db)
+        load_cache(event)
 
 
 @hook.event(EventType.part, singlethread=True)
-def on_part(db, conn, chan, nick):
+def on_part(event, conn, chan, nick):
+    """
+    :type event: cloudbot.event.Event
+    """
     if nick.casefold() == conn.nick.casefold():
-        with db_lock:
+        with db_lock, event.db_session() as db:
             db.execute(
-                table.delete().where(and_(table.c.conn == conn.name.casefold(), table.c.chan == chan.casefold())))
+                table.delete().where(and_(
+                    table.c.conn == conn.name.casefold(),
+                    table.c.chan == chan.casefold()
+                ))
+            )
             db.commit()
 
-        load_cache(db)
+        load_cache(event)
 
 
 @hook.irc_raw('KICK', singlethread=True)
-def on_kick(db, conn, chan, target):
-    on_part(db, conn, chan, target)
+def on_kick(event, conn, chan, target):
+    on_part(event, conn, chan, target)
