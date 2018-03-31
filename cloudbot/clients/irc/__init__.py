@@ -1,4 +1,7 @@
-from .client import IrcClient
+def get_client():
+    from cloudbot.clients.irc.client import IrcClient
+    return IrcClient
 
-__client_type__ = "irc"
-__client__ = IrcClient
+
+def get_client_type():
+    return "irc"

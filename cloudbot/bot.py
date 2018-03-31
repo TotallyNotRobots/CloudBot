@@ -199,7 +199,7 @@ class CloudBot:
 
         client = self.get_client(_type)
 
-        client_cls = getattr(client, '__client__')  # type: Type[Client]
+        client_cls = getattr(client, 'get_client')()  # type: Type[Client]
 
         return client_cls(self, name, config)
 
