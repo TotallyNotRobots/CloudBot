@@ -29,7 +29,7 @@ def format_quote(q, num, n_quotes):
                                             nick[:1], nick[1:], msg)
 
 
-def add_quote(db, chan, target, sender, message):
+def add_quote(event, chan, target, sender, message):
     """Adds a quote to a nick, returns message string"""
     try:
         query = qtable.insert().values(
@@ -39,22 +39,25 @@ def add_quote(db, chan, target, sender, message):
             msg=message,
             time=time.time()
         )
-        db.execute(query)
-        db.commit()
+        with event.db_session() as db:
+            db.execute(query)
+            db.commit()
     except IntegrityError:
         return "Message already stored, doing nothing."
     return "Quote added."
 
 
-def del_quote(db, nick, msg):
+def del_quote(event, nick, msg):
     """Deletes a quote from a nick"""
     query = qtable.update() \
         .where(qtable.c.chan == 1) \
         .where(qtable.c.nick == nick.lower()) \
         .where(qtable.c.msg == msg) \
         .values(deleted=1)
-    db.execute(query)
-    db.commit()
+
+    with event.db_session() as db:
+        db.execute(query)
+        db.commit()
 
 
 def get_quote_num(num, count, name):
@@ -74,14 +77,16 @@ def get_quote_num(num, count, name):
     return num
 
 
-def get_quote_by_nick(db, nick, num=False):
+def get_quote_by_nick(event, nick, num=False):
     """Returns a formatted quote from a nick, random or selected by number"""
 
     count_query = select([qtable]) \
         .where(qtable.c.deleted != 1) \
         .where(qtable.c.nick == nick.lower()) \
         .count()
-    count = db.execute(count_query).fetchall()[0][0]
+
+    with event.db_session() as db:
+        count = db.execute(count_query).fetchall()[0][0]
 
     try:
         num = get_quote_num(num, count, nick)
@@ -94,18 +99,23 @@ def get_quote_by_nick(db, nick, num=False):
         .order_by(qtable.c.time) \
         .limit(1) \
         .offset((num - 1))
-    data = db.execute(query).fetchall()[0]
+
+    with event.db_session() as db:
+        data = db.execute(query).fetchall()[0]
+
     return format_quote(data, num, count)
 
 
-def get_quote_by_nick_chan(db, chan, nick, num=False):
+def get_quote_by_nick_chan(event, chan, nick, num=False):
     """Returns a formatted quote from a nick in a channel, random or selected by number"""
     count_query = select([qtable]) \
         .where(qtable.c.deleted != 1) \
         .where(qtable.c.chan == chan) \
         .where(qtable.c.nick == nick.lower()) \
         .count()
-    count = db.execute(count_query).fetchall()[0][0]
+
+    with event.db_session() as db:
+        count = db.execute(count_query).fetchall()[0][0]
 
     try:
         num = get_quote_num(num, count, nick)
@@ -119,17 +129,22 @@ def get_quote_by_nick_chan(db, chan, nick, num=False):
         .order_by(qtable.c.time) \
         .limit(1) \
         .offset((num - 1))
-    data = db.execute(query).fetchall()[0]
+
+    with event.db_session() as db:
+        data = db.execute(query).fetchall()[0]
+
     return format_quote(data, num, count)
 
 
-def get_quote_by_chan(db, chan, num=False):
+def get_quote_by_chan(event, chan, num=False):
     """Returns a formatted quote from a channel, random or selected by number"""
     count_query = select([qtable]) \
         .where(qtable.c.deleted != 1) \
         .where(qtable.c.chan == chan) \
         .count()
-    count = db.execute(count_query).fetchall()[0][0]
+
+    with event.db_session() as db:
+        count = db.execute(count_query).fetchall()[0][0]
 
     try:
         num = get_quote_num(num, count, chan)
@@ -142,12 +157,15 @@ def get_quote_by_chan(db, chan, num=False):
         .order_by(qtable.c.time) \
         .limit(1) \
         .offset((num - 1))
-    data = db.execute(query).fetchall()[0]
+
+    with event.db_session() as db:
+        data = db.execute(query).fetchall()[0]
+
     return format_quote(data, num, count)
 
 
 @hook.command('q', 'quote')
-def quote(text, nick, chan, db, notice, event):
+def quote(text, nick, chan, notice, event):
     """[#chan] [nick] [#n] OR add <nick> <message> - gets the [#n]th quote by <nick> (defaulting to random)
     OR adds <message> as a quote for <nick> in the caller's channel"""
 
@@ -157,17 +175,17 @@ def quote(text, nick, chan, db, notice, event):
 
     if add:
         quoted_nick, msg = add.groups()
-        notice(add_quote(db, chan, quoted_nick, nick, msg))
+        notice(add_quote(event, chan, quoted_nick, nick, msg))
         return
     elif retrieve:
         selected, num = retrieve.groups()
         by_chan = event.is_channel(selected)
         if by_chan:
-            return get_quote_by_chan(db, selected, num)
+            return get_quote_by_chan(event, selected, num)
         else:
-            return get_quote_by_nick(db, selected, num)
+            return get_quote_by_nick(event, selected, num)
     elif retrieve_chan:
         chan, nick, num = retrieve_chan.groups()
-        return get_quote_by_nick_chan(db, chan, nick, num)
+        return get_quote_by_nick_chan(event, chan, nick, num)
 
     notice(quote.__doc__)
