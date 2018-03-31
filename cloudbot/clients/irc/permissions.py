@@ -1,8 +1,4 @@
-import logging
-
 from cloudbot.permissions import GroupBasedPermissionManager, EventDataMatcher
-
-logger = logging.getLogger("cloudbot")
 
 
 class IrcPrefixMatcher(EventDataMatcher):
