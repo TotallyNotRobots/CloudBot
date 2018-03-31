@@ -19,22 +19,22 @@ default_enabled = True
 
 
 @hook.on_start()
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
     global status_cache
     status_cache = {}
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         conn = row["connection"]
         chan = row["channel"]
         status = row["status"]
         status_cache[(conn, chan)] = status
 
 
-def set_status(db, conn, chan, status):
+def set_status(event, conn, chan, status):
     """
-    :type db: sqlalchemy.orm.Session
+    :type event: cloudbot.event.Event
     :type conn: str
     :type chan: str
     :type status: str
@@ -42,22 +42,24 @@ def set_status(db, conn, chan, status):
     conn = conn.lower()
     chan = chan.lower()
 
-    if (conn, chan) in status_cache:
-        # if we have a set value, update
-        db.execute(
-            table.update().values(status=status).where(table.c.connection == conn).where(table.c.channel == chan))
-    else:
-        # otherwise, insert
-        db.execute(table.insert().values(connection=conn, channel=chan, status=status))
-    db.commit()
+    with event.db_session() as db:
+        if (conn, chan) in status_cache:
+            # if we have a set value, update
+            db.execute(
+                table.update().values(status=status).where(table.c.connection == conn).where(table.c.channel == chan))
+        else:
+            # otherwise, insert
+            db.execute(table.insert().values(connection=conn, channel=chan, status=status))
+        db.commit()
 
 
-def delete_status(db, conn, chan):
+def delete_status(event, conn, chan):
     conn = conn.lower()
     chan = chan.lower()
 
-    db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan))
-    db.commit()
+    with event.db_session() as db:
+        db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan))
+        db.commit()
 
 
 @hook.sieve()
@@ -93,39 +95,39 @@ def get_channel(event):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def enableregex(db, conn, nick, message, notice, event):
+def enableregex(conn, nick, message, notice, event):
     channel = get_channel(event)
     if channel is None:
         return
 
     message("Enabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Enabling regex matching (youtube, etc) in channel {}".format(channel))
-    set_status(db, conn.name, channel, "ENABLED")
-    load_cache(db)
+    set_status(event, conn.name, channel, "ENABLED")
+    load_cache(event)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def disableregex(db, conn, event, nick, message, notice):
+def disableregex(conn, event, nick, message, notice):
     channel = get_channel(event)
     if channel is None:
         return
 
     message("Disabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Disabling regex matching (youtube, etc) in channel {}".format(channel))
-    set_status(db, conn.name, channel, "DISABLED")
-    load_cache(db)
+    set_status(event, conn.name, channel, "DISABLED")
+    load_cache(event)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def resetregex(db, conn, event, nick, message, notice):
+def resetregex(conn, event, nick, message, notice):
     channel = get_channel(event)
     if channel is None:
         return
 
     message("Resetting regex matching setting (youtube, etc) (issued by {})".format(nick), target=channel)
     notice("Resetting regex matching setting (youtube, etc) in channel {}".format(channel))
-    delete_status(db, conn.name, channel)
-    load_cache(db)
+    delete_status(event, conn.name, channel)
+    load_cache(event)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
