@@ -5,6 +5,8 @@ import logging
 import warnings
 from functools import partial
 
+import sys
+
 from cloudbot.clients.irc.parser import Message
 
 logger = logging.getLogger("cloudbot")
