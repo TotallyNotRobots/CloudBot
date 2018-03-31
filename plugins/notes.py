@@ -21,7 +21,7 @@ table = Table(
 )
 
 
-def read_all_notes(db, server, user, show_deleted=False):
+def read_all_notes(event, server, user, show_deleted=False):
     if show_deleted:
         query = select([table.c.note_id, table.c.text, table.c.added]) \
             .where(table.c.connection == server) \
@@ -33,40 +33,50 @@ def read_all_notes(db, server, user, show_deleted=False):
             .where(table.c.user == user.lower()) \
             .where(table.c.deleted == 0) \
             .order_by(table.c.added)
-    return db.execute(query).fetchall()
+
+    with event.db_session() as db:
+        return db.execute(query).fetchall()
 
 
-def delete_all_notes(db, server, user):
+def delete_all_notes(event, server, user):
     query = table.update() \
         .where(table.c.connection == server) \
         .where(table.c.user == user.lower()) \
         .values(deleted=1)
-    db.execute(query)
-    db.commit()
+
+    with event.db_session() as db:
+        db.execute(query)
+        db.commit()
 
 
-def read_note(db, server, user, note_id):
+def read_note(event, server, user, note_id):
     query = select([table.c.note_id, table.c.text, table.c.added]) \
         .where(table.c.connection == server) \
         .where(table.c.user == user.lower()) \
         .where(table.c.note_id == note_id)
-    return db.execute(query).fetchone()
+
+    with event.db_session() as db:
+        return db.execute(query).fetchone()
 
 
-def delete_note(db, server, user, note_id):
+def delete_note(event, server, user, note_id):
     query = table.update() \
         .where(table.c.connection == server) \
         .where(table.c.user == user.lower()) \
         .where(table.c.note_id == note_id) \
         .values(deleted=1)
-    db.execute(query)
-    db.commit()
+
+    with event.db_session() as db:
+        db.execute(query)
+        db.commit()
 
 
-def add_note(db, server, user, text):
+def add_note(event, server, user, text):
     id_query = select([sqlalchemy.sql.expression.func.max(table.c.note_id).label("maxid")]) \
         .where(table.c.user == user.lower())
-    max_id = db.execute(id_query).scalar()
+
+    with event.db_session() as db:
+        max_id = db.execute(id_query).scalar()
 
     if max_id is None:
         note_id = 1
@@ -81,8 +91,10 @@ def add_note(db, server, user, text):
         deleted=False,
         added=datetime.today()
     )
-    db.execute(query)
-    db.commit()
+
+    with event.db_session() as db:
+        db.execute(query)
+        db.commit()
 
 
 def format_note(data):
@@ -95,7 +107,7 @@ def format_note(data):
 
 
 @hook.command("note", "notes", "todo")
-def note(text, conn, nick, db, notice):
+def note(text, conn, nick, notice, event):
     """<add|list|get|del|clear> args - manipulates your list of notes"""
     parts = text.split()
 
@@ -114,7 +126,7 @@ def note(text, conn, nick, db, notice):
         note_text = " ".join(args)
 
         # add note to database
-        add_note(db, conn.name, nick, note_text)
+        add_note(event, conn.name, nick, note_text)
 
         notice("Note added!")
         return
@@ -125,20 +137,20 @@ def note(text, conn, nick, db, notice):
 
         # but lets get the note first
         note_id = args[0]
-        n = read_note(db, conn.name, nick, note_id)
+        n = read_note(event, conn.name, nick, note_id)
 
         if not n:
             notice("#{} is not a valid note ID.".format(note_id))
             return
 
         # now we delete it
-        delete_note(db, conn.name, nick, note_id)
+        delete_note(event, conn.name, nick, note_id)
 
         notice("Note #{} deleted!".format(note_id))
         return
     elif cmd == 'clear':
         # user is deleting all notes
-        delete_all_notes(db, conn.name, nick)
+        delete_all_notes(event, conn.name, nick)
 
         notice("All notes deleted!")
         return
@@ -148,7 +160,7 @@ def note(text, conn, nick, db, notice):
             return "No note ID provided!"
 
         note_id = args[0]
-        n = read_note(db, conn.name, nick, note_id)
+        n = read_note(event, conn.name, nick, note_id)
 
         if not n:
             notice("{} is not a valid note ID.".format(nick))
@@ -164,7 +176,7 @@ def note(text, conn, nick, db, notice):
             return "No note ID provided!"
 
         note_id = args[0]
-        n = read_note(db, conn.name, nick, note_id)
+        n = read_note(event, conn.name, nick, note_id)
 
         if not n:
             notice("{} is not a valid note ID.".format(nick))
@@ -175,7 +187,7 @@ def note(text, conn, nick, db, notice):
         return text
     elif cmd == 'list':
         # user is getting all notes
-        notes = read_all_notes(db, conn.name, nick)
+        notes = read_all_notes(event, conn.name, nick)
 
         if not notes:
             notice("You have no notes.".format(nick))
@@ -189,7 +201,7 @@ def note(text, conn, nick, db, notice):
             notice(text)
     elif cmd == 'listall':
         # user is getting all notes including deleted ones
-        notes = read_all_notes(db, conn.name, nick, show_deleted=True)
+        notes = read_all_notes(event, conn.name, nick, show_deleted=True)
 
         if not notes:
             notice("You have no notes.".format(nick))
