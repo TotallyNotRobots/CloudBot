@@ -20,6 +20,7 @@ from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import PluginReloader, ConfigReloader
 from cloudbot.util import database, formatting, async_util
+from cloudbot.util.database import ContextSession
 
 try:
     from typing import TYPE_CHECKING
@@ -157,6 +158,9 @@ class CloudBot:
         self.plugin_manager = PluginManager(self)
 
         self.reload_config()
+
+    def get_db_session(self):
+        return ContextSession(self.db_session())
 
     def run(self):
         """

@@ -2,7 +2,6 @@ import asyncio
 import concurrent.futures
 import enum
 import logging
-import sys
 import warnings
 from functools import partial
 
@@ -36,7 +35,7 @@ class Event:
     :type user: str
     :type host: str
     :type mask: str
-    :type db: sqlalchemy.orm.Session
+    :type _db: sqlalchemy.orm.Session
     :type db_executor: concurrent.futures.ThreadPoolExecutor
     :type irc_raw: str
     :type irc_prefix: str
@@ -90,7 +89,7 @@ class Event:
         :type irc_paramlist: list[str]
         :type irc_ctcp_text: str
         """
-        self.db = None
+        self._db = None
         self.db_executor = None
         self.bot = bot
         self.conn = conn
@@ -158,7 +157,7 @@ class Event:
             # we're running a coroutine hook with a db, so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
             # be sure to initialize the db in the database executor, so it will be accessible in that thread.
-            self.db = yield from self.async_call(self.bot.db_session)
+            self._db = yield from self.async_call(self.bot.db_session)
 
     def prepare_threaded(self):
         """
@@ -176,7 +175,7 @@ class Event:
         if "db" in self.hook.required_args:
             # logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
 
-            self.db = self.bot.db_session()
+            self._db = self.bot.db_session()
 
     @asyncio.coroutine
     def close(self):
@@ -191,11 +190,11 @@ class Event:
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
 
-        if self.db is not None:
+        if self._db is not None:
             # logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
             # be sure the close the database in the database executor, as it is only accessable in that one thread
-            yield from self.async_call(self.db.close)
-            self.db = None
+            yield from self.async_call(self._db.close)
+            self._db = None
 
     def close_threaded(self):
         """
@@ -208,10 +207,21 @@ class Event:
         """
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
-        if self.db is not None:
+        if self._db is not None:
             # logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
-            self.db.close()
-            self.db = None
+            self._db.close()
+            self._db = None
+
+    def db_session(self):
+        return self.bot.get_db_session()
+
+    @property
+    def db(self):
+        warnings.warn(
+            "event.db is deperecated in favor of event.db_session",
+            DeprecationWarning
+        )
+        return self._db
 
     @property
     def event(self):
