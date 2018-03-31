@@ -24,14 +24,17 @@ herald_cache = defaultdict(dict)
 
 
 @hook.on_start
-def load_cache(db):
+def load_cache(event):
     herald_cache.clear()
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         herald_cache[row["chan"]][row["name"]] = row["quote"]
 
 
 @hook.command()
-def herald(text, nick, chan, db, reply):
+def herald(text, nick, chan, reply, event):
     """{<message>|show|delete|remove} - adds a greeting for your nick that will be announced everytime you join the channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
     if text.lower() == "show":
         greeting = herald_cache[chan.casefold()].get(nick.casefold())
@@ -45,43 +48,47 @@ def herald(text, nick, chan, db, reply):
             return "no herald set, unable to delete."
 
         query = table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
-        db.execute(query)
-        db.commit()
+        with event.db_session() as db:
+            db.execute(query)
+            db.commit()
 
         reply("greeting \'{}\' for {} has been removed".format(greeting, nick))
 
-        load_cache(db)
+        load_cache(event)
     else:
-        res = db.execute(
-            table.update().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower()).values(quote=text)
-        )
-        if res.rowcount == 0:
-            db.execute(table.insert().values(name=nick.lower(), chan=chan.lower(), quote=text))
+        with event.db_session() as db:
+            res = db.execute(
+                table.update().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower()).values(quote=text)
+            )
+            if res.rowcount == 0:
+                db.execute(table.insert().values(name=nick.lower(), chan=chan.lower(), quote=text))
 
-        db.commit()
+            db.commit()
+
         reply("greeting successfully added")
 
-        load_cache(db)
+        load_cache(event)
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def deleteherald(text, chan, db, reply):
+def deleteherald(text, chan, reply, event):
     """<nickname> - Delete [nickname]'s herald."""
 
     nick = text.strip()
 
-    res = db.execute(
-        table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
-    )
+    with event.db_session() as db:
+        res = db.execute(
+            table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        )
 
-    db.commit()
+        db.commit()
 
-    if res.rowcount > 0:
-        reply("greeting for {} has been removed".format(text.lower()))
-    else:
-        reply("{} does not have a herald".format(text.lower()))
+        if res.rowcount > 0:
+            reply("greeting for {} has been removed".format(text.lower()))
+        else:
+            reply("{} does not have a herald".format(text.lower()))
 
-    load_cache(db)
+    load_cache(event)
 
 
 @hook.irc_raw("JOIN", singlethread=True)
