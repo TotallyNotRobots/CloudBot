@@ -18,4 +18,5 @@ pythonwhois
 imgurpython
 isodate
 yarl
+regex
 polymatch
