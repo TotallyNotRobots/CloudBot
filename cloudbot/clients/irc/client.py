@@ -59,8 +59,6 @@ class IrcClient(Client):
         :type name: str
         :type config: dict[str, unknown]
         """
-        super().__init__(bot, name, 'irc', config)
-
         self.use_ssl = config['connection'].get('ssl', False)
         self._ignore_cert_errors = config['connection']['ignore_cert']
         self._timeout = config['connection'].get('timeout', 300)
@@ -78,6 +76,8 @@ class IrcClient(Client):
         self._protocol = None
 
         self._connecting = False
+
+        super().__init__(bot, name, 'irc', config)
 
     def get_permissions_manager(self):
         return IrcPermissionManager(self)
