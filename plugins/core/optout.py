@@ -81,33 +81,43 @@ def format_optout_list(opts):
     return gen_markdown_table(headers, table)
 
 
-def set_optout(db, conn, chan, pattern, allowed):
+def set_optout(event, conn, chan, pattern, allowed):
+    """
+    :type event: cloudbot.event.Event
+    """
     conn_cf = conn.casefold()
     chan_cf = chan.casefold()
     pattern_cf = pattern.casefold()
     clause = and_(optout_table.c.network == conn_cf, optout_table.c.chan == chan_cf, optout_table.c.hook == pattern_cf)
-    res = db.execute(optout_table.update().values(allow=allowed).where(clause))
-    if not res.rowcount:
-        db.execute(optout_table.insert().values(network=conn_cf, chan=chan_cf, hook=pattern_cf, allow=allowed))
+    with event.db_session() as db:
+        res = db.execute(optout_table.update().values(allow=allowed).where(clause))
+        if not res.rowcount:
+            db.execute(optout_table.insert().values(network=conn_cf, chan=chan_cf, hook=pattern_cf, allow=allowed))
 
-    db.commit()
-    load_cache(db)
+        db.commit()
+
+    load_cache(event)
 
 
-def del_optout(db, conn, chan, pattern):
+def del_optout(event, conn, chan, pattern):
     conn_cf = conn.casefold()
     chan_cf = chan.casefold()
     pattern_cf = pattern.casefold()
     clause = and_(optout_table.c.network == conn_cf, optout_table.c.chan == chan_cf, optout_table.c.hook == pattern_cf)
-    res = db.execute(optout_table.delete().where(clause))
 
-    db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        res = db.execute(optout_table.delete().where(clause))
+        db.commit()
+
+    load_cache(event)
 
     return res.rowcount > 0
 
 
-def clear_optout(db, conn, chan=None):
+def clear_optout(event, conn, chan=None):
+    """
+    :type event: cloudbot.event.Event
+    """
     conn_cf = conn.casefold()
     if chan:
         chan_cf = chan.casefold()
@@ -115,9 +125,11 @@ def clear_optout(db, conn, chan=None):
     else:
         clause = optout_table.c.network == conn_cf
 
-    res = db.execute(optout_table.delete().where(clause))
-    db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        res = db.execute(optout_table.delete().where(clause))
+        db.commit()
+
+    load_cache(event)
 
     return res.rowcount
 
@@ -137,10 +149,16 @@ _STR_TO_BOOL = {
 
 
 @hook.onload
-def load_cache(db):
+def load_cache(event):
+    """
+    :type event: cloudbot.event.Event
+    """
     with cache_lock:
         optout_cache.clear()
-        for row in db.execute(optout_table.select()):
+        with event.db_session() as db:
+            rows = db.execute(optout_table.select()).fetchall()
+
+        for row in rows:
             optout_cache[row["network"]].append(OptOut(row["chan"], row["hook"], row["allow"]))
 
         for opts in optout_cache.values():
@@ -171,7 +189,7 @@ def optout_sieve(bot, event, _hook):
 
 @hook.command
 @asyncio.coroutine
-def optout(text, event, chan, db, conn):
+def optout(text, event, chan, conn):
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current channel if not specified
     :type text: str
     :type event: cloudbot.event.CommandEvent
@@ -196,7 +214,7 @@ def optout(text, event, chan, db, conn):
         except KeyError:
             return "Invalid allow option."
 
-    yield from event.async_call(set_optout, db, conn.name, chan, pattern, allowed)
+    yield from event.async_call(set_optout, event, conn.name, chan, pattern, allowed)
 
     return "{action} hooks matching {pattern} in {channel}.".format(
         action="Enabled" if allowed else "Disabled",
@@ -207,7 +225,7 @@ def optout(text, event, chan, db, conn):
 
 @hook.command
 @asyncio.coroutine
-def deloptout(text, event, chan, db, conn):
+def deloptout(text, event, chan, conn):
     """[chan] <pattern> - Delete global optout hooks matching <pattern> in [chan], or the current channel if not specified"""
     args = text.split()
     if len(args) > 1:
@@ -221,7 +239,7 @@ def deloptout(text, event, chan, db, conn):
 
     pattern = args.pop(0)
 
-    deleted = yield from event.async_call(del_optout, db, conn, chan, pattern)
+    deleted = yield from event.async_call(del_optout, event, conn, chan, pattern)
 
     if deleted:
         return "Deleted optout '{}' in channel '{}'.".format(pattern, chan)
@@ -272,13 +290,13 @@ def list_optout(conn, event, async_call):
 
 @hook.command("clearoptout", autohelp=False)
 @asyncio.coroutine
-def clear(conn, event, db, async_call):
+def clear(conn, event, async_call):
     """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = yield from check_global_perms(event)
 
     if not allowed:
         return
 
-    count = yield from async_call(clear_optout, db, conn.name, chan)
+    count = yield from async_call(clear_optout, event, conn.name, chan)
 
     return "Cleared {} opt outs from the list.".format(count)
