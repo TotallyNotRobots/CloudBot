@@ -29,12 +29,12 @@ profile_cache = {}
 
 
 @hook.on_start()
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
     profile_cache.clear()
-    for row in db.execute(table.select().order_by(table.c.category)):
+    with event.db_session() as db:
+        rows = db.execute(table.select().order_by(table.c.category)).fetchall()
+
+    for row in rows:
         nick = row["nick"].lower()
         cat = row["category"]
         text = row["text"]
@@ -129,7 +129,7 @@ def profile(text, chan, notice, nick):
 
 
 @hook.command()
-def profileadd(text, chan, nick, notice, db):
+def profileadd(text, chan, nick, notice, event):
     """<category> <content> - Adds data to your profile in the current channel under \"<category>\""""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
@@ -142,24 +142,25 @@ def profileadd(text, chan, nick, notice, db):
         chan_profiles = profile_cache.get(chan.casefold(), {})
         user_profile = chan_profiles.get(nick.casefold(), {})
         cat, data = match.groups()
-        if cat.casefold() not in user_profile:
-            db.execute(
-                table.insert().values(chan=chan.casefold(), nick=nick.casefold(), category=cat.casefold(), text=data))
-            db.commit()
-            load_cache(db)
-            return "Created new profile category {}".format(cat)
+        with event.db_session() as db:
+            if cat.casefold() not in user_profile:
+                db.execute(
+                    table.insert().values(chan=chan.casefold(), nick=nick.casefold(), category=cat.casefold(),
+                                          text=data))
+                db.commit()
+                event.reply("Created new profile category {}".format(cat))
+            else:
+                db.execute(table.update().values(text=data).where((and_(table.c.nick == nick.casefold(),
+                                                                        table.c.chan == chan.casefold(),
+                                                                        table.c.category == cat.casefold()))))
+                db.commit()
+                event.reply("Updated profile category {}".format(cat))
 
-        else:
-            db.execute(table.update().values(text=data).where((and_(table.c.nick == nick.casefold(),
-                                                                    table.c.chan == chan.casefold(),
-                                                                    table.c.category == cat.casefold()))))
-            db.commit()
-            load_cache(db)
-            return "Updated profile category {}".format(cat)
+        load_cache(event)
 
 
 @hook.command()
-def profiledel(nick, chan, text, notice, db):
+def profiledel(nick, chan, text, notice, event):
     """<category> - Deletes \"<category>\" from a user's profile"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
@@ -172,16 +173,18 @@ def profiledel(nick, chan, text, notice, db):
         notice("That category does not exist in your profile")
         return
 
-    db.execute(table.delete().where((and_(table.c.nick == nick.casefold(),
-                                          table.c.chan == chan.casefold(),
-                                          table.c.category == category.casefold()))))
-    db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        db.execute(table.delete().where((and_(table.c.nick == nick.casefold(),
+                                              table.c.chan == chan.casefold(),
+                                              table.c.category == category.casefold()))))
+        db.commit()
+
+    load_cache(event)
     return "Deleted profile category {}".format(category)
 
 
 @hook.command(autohelp=False)
-def profileclear(nick, chan, text, notice, db):
+def profileclear(nick, chan, text, notice, event):
     """[key] - Clears all of your profile data in the current channel"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
@@ -189,10 +192,12 @@ def profileclear(nick, chan, text, notice, db):
     if text:
         if nick in confirm_keys[chan.casefold()] and text == confirm_keys[chan.casefold()][nick.casefold()]:
             del confirm_keys[chan.casefold()][nick.casefold()]
-            db.execute(table.delete().where((and_(table.c.nick == nick.casefold(),
-                                                  table.c.chan == chan.casefold()))))
-            db.commit()
-            load_cache(db)
+            with event.db_session() as db:
+                db.execute(table.delete().where((and_(table.c.nick == nick.casefold(),
+                                                      table.c.chan == chan.casefold()))))
+                db.commit()
+
+            load_cache(event)
             return "Profile data cleared for {}.".format(nick)
         else:
             notice("Invalid confirm key")
