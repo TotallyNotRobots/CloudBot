@@ -30,13 +30,13 @@ logger = logging.getLogger("cloudbot")
 
 
 @hook.on_start()
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
+    with event.db_session() as db:
+        grabs = db.execute(table.select().order_by(table.c.time)).fetchall()
+
     with cache_lock:
         grab_cache.clear()
-        for row in db.execute(table.select().order_by(table.c.time)):
+        for row in grabs:
             name = row["name"].lower()
             quote = row["quote"]
             chan = row["chan"]
@@ -79,11 +79,13 @@ def check_grabs(name, quote, chan):
         return False
 
 
-def grab_add(nick, time, msg, chan, db):
+def grab_add(nick, time, msg, chan, event):
     # Adds a quote to the grab table
-    db.execute(table.insert().values(name=nick, time=time, quote=msg, chan=chan))
-    db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        db.execute(table.insert().values(name=nick, time=time, quote=msg, chan=chan))
+        db.commit()
+
+    load_cache(event)
 
 
 def get_latest_line(conn, chan, nick):
@@ -95,7 +97,7 @@ def get_latest_line(conn, chan, nick):
 
 
 @hook.command()
-def grab(text, nick, chan, db, conn):
+def grab(text, nick, chan, conn, event):
     """<nick> - grabs the last message from the specified nick and adds it to the quote database"""
     if text.lower() == nick.lower():
         return "Didn't your mother teach you not to grab yourself?"
@@ -112,7 +114,7 @@ def grab(text, nick, chan, db, conn):
             return "I already have that quote from {} in the database".format(text)
 
         try:
-            grab_add(name.casefold(), timestamp, msg, chan, db)
+            grab_add(name.casefold(), timestamp, msg, chan, event)
         except SQLAlchemyError:
             logger.exception("Error occurred when grabbing %s in %s", name, chan)
             return "Error occurred."
