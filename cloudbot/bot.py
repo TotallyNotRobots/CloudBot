@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import gc
+import importlib
 import logging
 import re
 import time
@@ -282,7 +283,7 @@ class CloudBot:
         :type name: str
         :rtype: Client
         """
-        client = __import__(".clients." + name)
+        client = importlib.import_module(".clients." + name, package=__package__)
         return client
 
     @asyncio.coroutine
