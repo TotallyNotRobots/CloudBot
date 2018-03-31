@@ -162,7 +162,7 @@ class GroupBasedPermissionManager(AbstractPermissionManager):
         :rtype: list[str]
         """
         permissions = set()
-        for group in self._groups:
+        for group in self._groups.values():
             if group.is_member(event):
                 permissions.update(group.permissions)
 
@@ -223,7 +223,7 @@ class GroupBasedPermissionManager(AbstractPermissionManager):
         :type perm: str
         :rtype: bool
         """
-        for group in self._groups:  # type: PermissionGroup
+        for group in self._groups.values():  # type: PermissionGroup
             if perm in group.permissions and group.is_member(event):
                 return True
 
