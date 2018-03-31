@@ -21,26 +21,26 @@ table = Table(
 )
 
 
-def track_seen(event, db):
+def track_seen(event):
     """ Tracks messages for the .seen command
     :type event: cloudbot.event.Event
-    :type db: sqlalchemy.orm.Session
     """
     # keep private messages private
     now = time.time()
     if event.is_channel(event.chan) and not re.findall('^s/.*/.*/$', event.content.lower()):
-        res = db.execute(
-            table.update().values(time=now, quote=event.content, host=str(event.mask))
-                .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
-        )
-        if res.rowcount == 0:
-            db.execute(
-                table.insert().values(
-                    name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
-                )
+        with event.db_session() as db:
+            res = db.execute(
+                table.update().values(time=now, quote=event.content, host=str(event.mask))
+                    .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
             )
+            if res.rowcount == 0:
+                db.execute(
+                    table.insert().values(
+                        name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
+                    )
+                )
 
-        db.commit()
+            db.commit()
 
 
 def track_history(event, message_time, conn):
@@ -61,7 +61,7 @@ def track_history(event, message_time, conn):
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def chat_tracker(event, db, conn):
+def chat_tracker(event, conn):
     """
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
@@ -71,7 +71,7 @@ def chat_tracker(event, db, conn):
         event.content = "\x01ACTION {}\x01".format(event.content)
 
     message_time = time.time()
-    track_seen(event, db)
+    track_seen(event)
     track_history(event, message_time, conn)
 
 
@@ -91,7 +91,7 @@ def resethistory(event, conn):
 
 
 @hook.command()
-def seen(text, nick, chan, db, event, is_nick_valid):
+def seen(text, nick, chan, event, is_nick_valid):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
@@ -106,10 +106,11 @@ def seen(text, nick, chan, db, event, is_nick_valid):
     if not is_nick_valid(text):
         return "I can't look up that name, its impossible to use!"
 
-    last_seen = db.execute(
-        select([table.c.name, table.c.time, table.c.quote])
-            .where(table.c.name == text.lower()).where(table.c.chan == chan)
-    ).fetchone()
+    with event.db_session() as db:
+        last_seen = db.execute(
+            select([table.c.name, table.c.time, table.c.quote])
+                .where(table.c.name == text.lower()).where(table.c.chan == chan)
+        ).fetchone()
 
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
