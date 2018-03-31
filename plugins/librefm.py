@@ -21,13 +21,13 @@ table = Table(
 
 
 @hook.on_start()
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
     global last_cache
     last_cache = []
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         nick = row["nick"]
         account = row["acc"]
         last_cache.append((nick, account))
@@ -44,7 +44,7 @@ def get_account(nick):
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
-def librefm(text, nick, db, notice):
+def librefm(text, nick, notice, event):
     """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
 
     # check if the user asked us not to save his details
@@ -123,12 +123,14 @@ def librefm(text, nick, db, notice):
     out += ending
 
     if text and not dontsave:
-        res = db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
-        if res.rowcount <= 0:
-            db.execute(table.insert().values(nick=nick.lower(), acc=user))
+        with event.db_session() as db:
+            res = db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
+            if res.rowcount <= 0:
+                db.execute(table.insert().values(nick=nick.lower(), acc=user))
 
-        db.commit()
-        load_cache(db)
+            db.commit()
+
+        load_cache(event)
     return out
 
 

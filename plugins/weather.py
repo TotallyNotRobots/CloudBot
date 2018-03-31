@@ -70,35 +70,39 @@ def find_location(location):
     return json['results'][0]['geometry']['location']
 
 
-def load_cache(db):
+def load_cache(event):
     global location_cache
     location_cache = []
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         nick = row["nick"]
         location = row["loc"]
         location_cache.append((nick, location))
 
 
-def add_location(nick, location, db):
+def add_location(nick, location, event):
     test = dict(location_cache)
     location = str(location)
-    if nick.lower() in test:
-        db.execute(table.update().values(loc=location.lower()).where(table.c.nick == nick.lower()))
-        db.commit()
-        load_cache(db)
-    else:
-        db.execute(table.insert().values(nick=nick.lower(), loc=location.lower()))
-        db.commit()
-        load_cache(db)
+    with event.db_session() as db:
+        if nick.lower() in test:
+            db.execute(table.update().values(loc=location.lower()).where(table.c.nick == nick.lower()))
+            db.commit()
+        else:
+            db.execute(table.insert().values(nick=nick.lower(), loc=location.lower()))
+            db.commit()
+
+    load_cache(event)
 
 
 @hook.on_start
-def on_start(bot, db):
+def on_start(bot, event):
     """ Loads API keys """
     global dev_key, wunder_key
     dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
     wunder_key = bot.config.get("api_keys", {}).get("wunderground", None)
-    load_cache(db)
+    load_cache(event)
 
 
 def get_location(nick):
@@ -112,7 +116,7 @@ def get_location(nick):
 
 
 @hook.command("weather", "we", autohelp=False)
-def weather(text, reply, db, nick, notice_doc):
+def weather(text, reply, event, nick, notice_doc):
     """<location> - Gets weather data for <location>."""
     if not wunder_key:
         return "This command requires a Weather Underground API key."
@@ -199,4 +203,4 @@ def weather(text, reply, db, nick, notice_doc):
           "Low: {tomorrow_low_f}F/{tomorrow_low_c}C - {url}".format_map(weather_data))
 
     if text:
-        add_location(nick, location, db)
+        add_location(nick, location, event)

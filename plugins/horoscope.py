@@ -15,24 +15,27 @@ table = Table(
 )
 
 
-def get_sign(db, nick):
-    row = db.execute(select([table.c.sign]).where(table.c.nick == nick.lower())).fetchone()
+def get_sign(event, nick):
+    with event.db_session() as db:
+        row = db.execute(select([table.c.sign]).where(table.c.nick == nick.lower())).fetchone()
+
     if not row:
         return None
 
     return row[0]
 
 
-def set_sign(db, nick, sign):
-    res = db.execute(table.update().values(sign=sign.lower()).where(table.c.nick == nick.lower()))
-    if res.rowcount == 0:
-        db.execute(table.insert().values(nick=nick.lower(), sign=sign.lower()))
+def set_sign(event, nick, sign):
+    with event.db_session() as db:
+        res = db.execute(table.update().values(sign=sign.lower()).where(table.c.nick == nick.lower()))
+        if res.rowcount == 0:
+            db.execute(table.insert().values(nick=nick.lower(), sign=sign.lower()))
 
-    db.commit()
+        db.commit()
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
+def horoscope(text, bot, nick, notice, notice_doc, reply, message, event):
     """[sign] - get your horoscope"""
     signs = {
         'aries': '1',
@@ -59,7 +62,7 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
         sign = text.strip().lower()
 
     if not sign:
-        sign = get_sign(db, nick)
+        sign = get_sign(event, nick)
         if not sign:
             notice_doc()
             return
@@ -89,6 +92,6 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
     result = "\x02{}\x02 {}".format(sign, horoscope_text)
 
     if text and not dontsave:
-        set_sign(db, nick, sign)
+        set_sign(event, nick, sign)
 
     message(result)

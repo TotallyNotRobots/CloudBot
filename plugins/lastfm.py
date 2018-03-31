@@ -62,12 +62,12 @@ last_cache = {}
 
 
 @hook.on_start()
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
     last_cache.clear()
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         nick = row["nick"]
         account = row["acc"]
         last_cache[nick] = account
@@ -185,7 +185,7 @@ def _topartists(bot, text, nick, period=None, limit=10):
 
 
 @hook.command("lastfm", "last", "np", "l", autohelp=False)
-def lastfm(event, db, text, nick, bot):
+def lastfm(event, text, nick, bot):
     """[user] [dontsave] - displays the now playing (or last played) track of LastFM user [user]"""
     api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
@@ -262,14 +262,15 @@ def lastfm(event, db, text, nick, bot):
     out += ending
 
     if text and not dontsave:
-        if get_account(nick):
-            db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
-            db.commit()
-        else:
-            db.execute(table.insert().values(nick=nick.lower(), acc=user))
-            db.commit()
+        with event.db_session() as db:
+            if get_account(nick):
+                db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
+                db.commit()
+            else:
+                db.execute(table.insert().values(nick=nick.lower(), acc=user))
+                db.commit()
 
-        load_cache(db)
+        load_cache(event)
     return out
 
 
