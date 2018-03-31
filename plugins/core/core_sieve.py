@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from threading import RLock
 from time import time
@@ -52,6 +53,7 @@ def sieve_disable_commands(bot, event, _hook):
 
 
 @hook.sieve(priority=102)
+@asyncio.coroutine
 def sieve_permissions(bot, event, _hook):
     # check permissions
     allowed_permissions = _hook.permissions
