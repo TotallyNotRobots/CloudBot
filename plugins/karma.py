@@ -21,53 +21,56 @@ karma_table = Table(
 )
 
 
-def update_score(nick, chan, thing, score, db):
+def update_score(nick, chan, thing, score, event):
     if nick.casefold() == chan.casefold():
         # This is a PM, don't set points in a PM
         return
 
     thing = thing.strip()
     clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.thing == thing.lower())
-    karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
-    if karma:
-        score += int(karma[0])
-        query = karma_table.update().values(score=score).where(clause)
-    else:
-        query = karma_table.insert().values(name=nick, chan=chan, thing=thing.lower(), score=score)
+    with event.db_session() as db:
+        karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
+        if karma:
+            score += int(karma[0])
+            query = karma_table.update().values(score=score).where(clause)
+        else:
+            query = karma_table.insert().values(name=nick, chan=chan, thing=thing.lower(), score=score)
 
-    db.execute(query)
-    db.commit()
+        db.execute(query)
+        db.commit()
 
 
 @hook.command("pp", "addpoint")
-def addpoint(text, nick, chan, db):
+def addpoint(text, nick, chan, event):
     """<thing> - adds a point to the <thing>"""
-    update_score(nick, chan, text, 1, db)
+    update_score(nick, chan, text, 1, event)
 
 
 @hook.regex(karmaplus_re)
-def re_addpt(match, nick, chan, db, notice):
+def re_addpt(match, nick, chan, notice, event):
     """no useful help txt"""
     thing = match.group().split('++')[0]
     if thing:
-        addpoint(thing, nick, chan, db)
+        addpoint(thing, nick, chan, event)
     else:
-        notice(pluspts(nick, chan, db))
+        notice(pluspts(nick, chan, event))
 
 
 @hook.command("mm", "rmpoint")
-def rmpoint(text, nick, chan, db):
+def rmpoint(text, nick, chan, event):
     """<thing> - subtracts a point from the <thing>"""
-    update_score(nick, chan, text, -1, db)
+    update_score(nick, chan, text, -1, event)
 
 
 @hook.command("pluspts", autohelp=False)
-def pluspts(nick, chan, db):
+def pluspts(nick, chan, event):
     """- prints the things you have liked and their scores"""
     output = ""
     clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.score >= 0)
     query = select([karma_table.c.thing, karma_table.c.score]).where(clause).order_by(karma_table.c.score.desc())
-    likes = db.execute(query).fetchall()
+
+    with event.db_session() as db:
+        likes = db.execute(query).fetchall()
 
     for like in likes:
         output += "{} has {} points ".format(like[0], like[1])
@@ -76,12 +79,14 @@ def pluspts(nick, chan, db):
 
 
 @hook.command("minuspts", autohelp=False)
-def minuspts(nick, chan, db):
+def minuspts(nick, chan, event):
     """- prints the things you have disliked and their scores"""
     output = ""
     clause = and_(karma_table.c.name == nick, karma_table.c.chan == chan, karma_table.c.score <= 0)
     query = select([karma_table.c.thing, karma_table.c.score]).where(clause).order_by(karma_table.c.score)
-    likes = db.execute(query).fetchall()
+
+    with event.db_session() as db:
+        likes = db.execute(query).fetchall()
 
     for like in likes:
         output += "{} has {} points ".format(like[0], like[1])
@@ -90,17 +95,17 @@ def minuspts(nick, chan, db):
 
 
 @hook.regex(karmaminus_re)
-def re_rmpt(match, nick, chan, db, notice):
+def re_rmpt(match, nick, chan, notice, event):
     """no useful help txt"""
     thing = match.group().split('--')[0]
     if thing:
-        rmpoint(thing, nick, chan, db)
+        rmpoint(thing, nick, chan, event)
     else:
-        notice(minuspts(nick, chan, db))
+        notice(minuspts(nick, chan, event))
 
 
 @hook.command("points", autohelp=False)
-def points(text, chan, db):
+def points(text, chan, event):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0
     thing = ""
@@ -112,7 +117,9 @@ def points(text, chan, db):
         query = select([karma_table.c.score]).where(karma_table.c.thing == text.lower()).where(
             karma_table.c.chan == chan)
 
-    karma = db.execute(query).fetchall()
+    with event.db_session() as db:
+        karma = db.execute(query).fetchall()
+
     if karma:
         pos = 0
         neg = 0
@@ -131,17 +138,18 @@ def points(text, chan, db):
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)
-def pointstop(text, chan, db):
+def pointstop(text, chan, event):
     """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
     points = defaultdict(int)
-    if text == "global" or text == "-global":
-        items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
-        out = "The top {} favorite things in all channels are: "
-    else:
-        items = db.execute(
-            select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
-        ).fetchall()
-        out = "The top {} favorite things in {} are: "
+    with event.db_session() as db:
+        if text == "global" or text == "-global":
+            items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
+            out = "The top {} favorite things in all channels are: "
+        else:
+            items = db.execute(
+                select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
+            ).fetchall()
+            out = "The top {} favorite things in {} are: "
 
     if items:
         for item in items:
@@ -161,17 +169,19 @@ def pointstop(text, chan, db):
 
 
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
-def pointsbottom(text, chan, db):
+def pointsbottom(text, chan, event):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
     points = defaultdict(int)
-    if text == "global" or text == "-global":
-        items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
-        out = "The {} most hated things in all channels are: "
-    else:
-        items = db.execute(
-            select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
-        ).fetchall()
-        out = "The {} most hated things in {} are: "
+    with event.db_session() as db:
+        if text == "global" or text == "-global":
+            items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
+            out = "The {} most hated things in all channels are: "
+        else:
+            items = db.execute(
+                select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
+            ).fetchall()
+            out = "The {} most hated things in {} are: "
+
     if items:
         for item in items:
             thing = item[0]
