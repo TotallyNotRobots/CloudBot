@@ -5,6 +5,7 @@ import asyncio
 import importlib
 import inspect
 import re
+import warnings
 from numbers import Number
 from pathlib import Path
 
@@ -14,7 +15,9 @@ from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEv
 from cloudbot.hook import Action
 from cloudbot.plugin import Plugin, Hook
 from cloudbot.util import database
+from cloudbot.util.func_utils import populate_args
 
+warnings.filterwarnings("error", module="^(cloudbot|plugins)(\..*|$)")
 database.metadata = MetaData()
 Hook.original_init = Hook.__init__
 
@@ -134,8 +137,7 @@ def test_hook_args(hook):
     else:
         assert False, "Unhandled hook type '{}' in tests".format(hook.type)
 
-    for arg in hook.required_args:
-        assert hasattr(event, arg), "Undefined parameter '{}' for hook function".format(arg)
+    populate_args(hook.function, event)
 
 
 def test_coroutine_hooks(hook):

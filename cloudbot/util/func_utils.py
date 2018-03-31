@@ -23,7 +23,7 @@ def _get_arg_value(param, data_map):
         return param.default
 
 
-def _populate_args(func, data_map):
+def populate_args(func, data_map):
     args = []
     kwargs = {}
     sig = inspect.signature(func)
@@ -45,5 +45,5 @@ def _populate_args(func, data_map):
 
 
 def call_with_args(func, arg_data):
-    args, kwargs = _populate_args(func, arg_data)
+    args, kwargs = populate_args(func, arg_data)
     return func(*args, **kwargs)
