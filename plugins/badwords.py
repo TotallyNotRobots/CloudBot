@@ -21,14 +21,16 @@ badcache = defaultdict(list)
 
 @hook.on_start()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
-def load_bad(db):
+def load_bad(event):
     """- Should run on start of bot to load the existing words into the regex"""
     global badword_re
     badcache.clear()
     words = []
-    for chan, word in db.execute(select([table.c.chan, table.c.word])):
-        badcache[chan.casefold()].append(word)
-        words.append(word)
+
+    with event.db_session() as db:
+        for chan, word in db.execute(select([table.c.chan, table.c.word])):
+            badcache[chan.casefold()].append(word)
+            words.append(word)
 
     badword_re = re.compile(
         r'(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format('|'.join(words)), re.IGNORECASE
@@ -36,7 +38,7 @@ def load_bad(db):
 
 
 @hook.command("addbad", permissions=["badwords"])
-def add_bad(text, nick, db, event):
+def add_bad(text, nick, event):
     """<word> <channel> - adds a bad word to the auto kick list must specify a channel with each word"""
     splt = text.lower().split(None, 1)
     word, channel = splt
@@ -55,25 +57,29 @@ def add_bad(text, nick, db, event):
             channel
         )
 
-    db.execute(table.insert().values(word=word, nick=nick, chan=channel))
-    db.commit()
-    load_bad(db)
+    with event.db_session() as db:
+        db.execute(table.insert().values(word=word, nick=nick, chan=channel))
+        db.commit()
+
+    load_bad(event)
     wordlist = list_bad(channel)
     return "Current badwords: {}".format(wordlist)
 
 
 @hook.command("rmbad", "delbad", permissions=["badwords"])
-def del_bad(text, db, event):
+def del_bad(text, event):
     """<word> <channel> - removes the specified word from the specified channels bad word list"""
     splt = text.lower().split(None, 1)
     word, channel = splt
     if not event.is_channel(channel):
         return "Please specify a valid channel name after the bad word."
 
-    db.execute(table.delete().where(table.c.word == word).where(table.c.chan == channel))
-    db.commit()
+    with event.db_session() as db:
+        db.execute(table.delete().where(table.c.word == word).where(table.c.chan == channel))
+        db.commit()
+
+    load_bad(event)
     newlist = list_bad(channel)
-    load_bad(db)
     return "Removing {} new bad word list for {} is: {}".format(
         word, channel, newlist
     )

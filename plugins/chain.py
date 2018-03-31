@@ -21,10 +21,11 @@ allow_cache = {}
 
 
 @hook.on_start
-def load_cache(db):
+def load_cache(event):
     allow_cache.clear()
-    for row in db.execute(commands.select()):
-        allow_cache[row["hook"]] = row["allowed"]
+    with event.db_session() as db:
+        for row in db.execute(commands.select()):
+            allow_cache[row["hook"]] = row["allowed"]
 
 
 def format_hook_name(_hook):
@@ -56,7 +57,7 @@ def get_hook_from_command(bot, hook_name):
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def chainallow(text, db, notice_doc, bot):
+def chainallow(text, notice_doc, bot, event):
     """{add [hook] [{allow|deny}]|del [hook]} - Manage the allowed list fo comands for the chain command"""
     args = text.split()
     subcmd = args.pop(0).lower()
@@ -85,13 +86,16 @@ def chainallow(text, db, notice_doc, bot):
             values['allowed'] = allow
 
         updated = True
-        res = db.execute(commands.update().values(**values).where(commands.c.hook == hook_name))
-        if res.rowcount == 0:
-            updated = False
-            db.execute(commands.insert().values(**values))
 
-        db.commit()
-        load_cache(db)
+        with event.db_session() as db:
+            res = db.execute(commands.update().values(**values).where(commands.c.hook == hook_name))
+            if res.rowcount == 0:
+                updated = False
+                db.execute(commands.insert().values(**values))
+
+            db.commit()
+
+        load_cache(event)
         if updated:
             return "Updated state of '{}' in chainallow to allowed={}".format(hook_name, allow_cache.get(hook_name))
 
@@ -100,9 +104,11 @@ def chainallow(text, db, notice_doc, bot):
 
         return "Added '{}' as a denied command".format(hook_name)
     elif subcmd == "del":
-        res = db.execute(commands.delete().where(commands.c.hook == hook_name))
-        db.commit()
-        load_cache(db)
+        with event.db_session() as db:
+            res = db.execute(commands.delete().where(commands.c.hook == hook_name))
+            db.commit()
+
+        load_cache(event)
         return "Deleted {}.".format(pluralize_auto(res.rowcount, "row"))
     else:
         return notice_doc()

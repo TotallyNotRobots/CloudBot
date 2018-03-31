@@ -27,13 +27,16 @@ table = Table(
 
 
 @hook.on_start()
-def load_cache(db):
+def load_cache(event):
     """
     :type db: sqlalchemy.orm.Session
     """
     global factoid_cache
     factoid_cache = defaultdict(lambda: default_dict)
-    for row in db.execute(table.select()):
+    with event.db_session() as db:
+        results = db.execute(table.select()).fetchall()
+
+    for row in results:
         # assign variables
         chan = row["chan"]
         word = row["word"]
@@ -46,37 +49,41 @@ def load_cache(db):
             factoid_cache[chan][word] = data
 
 
-def add_factoid(db, word, chan, data, nick):
+def add_factoid(event, word, chan, data, nick):
     """
     :type db: sqlalchemy.orm.Session
     :type word: str
     :type data: str
     :type nick: str
     """
-    if word in factoid_cache[chan]:
-        # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
-            table.c.word == word))
-        db.commit()
-    else:
-        # otherwise, insert
-        db.execute(table.insert().values(word=word, data=data, nick=nick, chan=chan))
-        db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        if word in factoid_cache[chan]:
+            # if we have a set value, update
+            db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
+                table.c.word == word))
+            db.commit()
+        else:
+            # otherwise, insert
+            db.execute(table.insert().values(word=word, data=data, nick=nick, chan=chan))
+            db.commit()
+
+    load_cache(event)
 
 
-def del_factoid(db, chan, word):
+def del_factoid(event, chan, word):
     """
     :type db: sqlalchemy.orm.Session
     :type word: str
     """
-    db.execute(table.delete().where(table.c.word == word).where(table.c.chan == chan))
-    db.commit()
-    load_cache(db)
+    with event.db_session() as db:
+        db.execute(table.delete().where(table.c.word == word).where(table.c.chan == chan))
+        db.commit()
+
+    load_cache(event)
 
 
 @hook.command("r", "remember", permissions=["op", "chanop"])
-def remember(text, nick, db, chan, notice):
+def remember(text, nick, chan, notice, event):
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
     try:
@@ -104,17 +111,17 @@ def remember(text, nick, db, chan, notice):
         if old_data:
             notice('Previous data was \x02{}\x02'.format(old_data))
 
-    add_factoid(db, word, chan, data, nick)
+    add_factoid(event, word, chan, data, nick)
 
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
-def forget(text, chan, db, notice):
+def forget(text, chan, notice, event):
     """<word> - forgets previously remembered <word>"""
     global factoid_cache
     data = factoid_cache[chan][text.lower()]
 
     if data:
-        del_factoid(db, chan, text)
+        del_factoid(event, chan, text)
         notice('"{}" has been forgotten.'.format(data.replace('`', "'")))
         return
     else:
