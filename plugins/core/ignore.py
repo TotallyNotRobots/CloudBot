@@ -19,34 +19,38 @@ table = Table(
 
 
 @hook.on_start
-def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
+def load_cache(event):
     global ignore_cache
     ignore_cache = []
-    for row in db.execute(table.select()):
+
+    with event.db_session() as db:
+        rows = db.execute(table.select()).fetchall()
+
+    for row in rows:
         conn = row["connection"]
         chan = row["channel"]
         mask = row["mask"]
         ignore_cache.append((conn, chan, mask))
 
 
-def add_ignore(db, conn, chan, mask):
+def add_ignore(event, conn, chan, mask):
     if (conn, chan) in ignore_cache:
-        pass
-    else:
+        return
+
+    with event.db_session() as db:
         db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
+        db.commit()
 
-    db.commit()
-    load_cache(db)
+    load_cache(event)
 
 
-def remove_ignore(db, conn, chan, mask):
-    db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan)
-               .where(table.c.mask == mask))
-    db.commit()
-    load_cache(db)
+def remove_ignore(event, conn, chan, mask):
+    with event.db_session() as db:
+        db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan)
+                   .where(table.c.mask == mask))
+        db.commit()
+
+    load_cache(event)
 
 
 def is_ignored(conn, chan, mask):
@@ -108,7 +112,7 @@ def get_user(conn, text):
 
 
 @hook.command(permissions=["ignore", "chanop"])
-def ignore(text, db, chan, conn, notice, admin_log, nick):
+def ignore(text, chan, conn, notice, admin_log, nick, event):
     """<nick|mask> -- ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
@@ -117,11 +121,11 @@ def ignore(text, db, chan, conn, notice, admin_log, nick):
     else:
         admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
         notice("{} has been ignored in {}.".format(target, chan))
-        add_ignore(db, conn.name, chan, target)
+        add_ignore(event, conn.name, chan, target)
 
 
 @hook.command(permissions=["ignore", "chanop"])
-def unignore(text, db, chan, conn, notice, nick, admin_log):
+def unignore(text, chan, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
@@ -130,11 +134,11 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     else:
         admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
         notice("{} has been un-ignored in {}.".format(target, chan))
-        remove_ignore(db, conn.name, chan, target)
+        remove_ignore(event, conn.name, chan, target)
 
 
 @hook.command(permissions=["botcontrol"])
-def global_ignore(text, db, conn, notice, nick, admin_log):
+def global_ignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
@@ -143,11 +147,11 @@ def global_ignore(text, db, conn, notice, nick, admin_log):
     else:
         notice("{} has been globally ignored.".format(target))
         admin_log("{} used GLOBAL_IGNORE to make me ignore {} everywhere".format(nick, target))
-        add_ignore(db, conn.name, "*", target)
+        add_ignore(event, conn.name, "*", target)
 
 
 @hook.command(permissions=["botcontrol"])
-def global_unignore(text, db, conn, notice, nick, admin_log):
+def global_unignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
@@ -156,4 +160,4 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
     else:
         notice("{} has been globally un-ignored.".format(target))
         admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
-        remove_ignore(db, conn.name, "*", target)
+        remove_ignore(event, conn.name, "*", target)
