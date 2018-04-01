@@ -165,9 +165,9 @@ def load_cache(event):
             opts.sort(reverse=True)
 
 
-# noinspection PyUnusedLocal
 @hook.sieve(priority=Priority.HIGHEST)
-def optout_sieve(bot, event, _hook):
+def optout_sieve(event):
+    _hook = event.hook
     if not event.chan or not event.conn:
         return event
 

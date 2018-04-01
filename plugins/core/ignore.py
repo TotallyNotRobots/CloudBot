@@ -1,4 +1,3 @@
-import asyncio
 from fnmatch import fnmatch
 
 from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
@@ -69,15 +68,13 @@ def is_ignored(conn, chan, mask):
                 return True
 
 
-# noinspection PyUnusedLocal
 @hook.sieve(priority=50)
-@asyncio.coroutine
-def ignore_sieve(bot, event, _hook):
+def ignore_sieve(event):
     """
-    :type bot: cloudbot.bot.CloudBot
     :type event: cloudbot.event.Event
-    :type _hook: cloudbot.plugin.Hook
     """
+    _hook = event.hook
+
     # don't block event hooks
     if _hook.type in ("irc_raw", "event"):
         return event

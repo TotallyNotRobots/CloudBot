@@ -3,7 +3,8 @@ from cloudbot.hook import Priority
 
 
 @hook.sieve(priority=Priority.LOWEST)
-def cmd_autohelp(bot, event, _hook):
+def cmd_autohelp(event):
+    _hook = event.hook
     if _hook.type == "command" and _hook.auto_help and not event.text and _hook.doc is not None:
         event.notice_doc()
         return None

@@ -19,7 +19,6 @@ from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database, async_util
 from cloudbot.util.async_util import run_func_with_args
-from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
 
@@ -467,25 +466,18 @@ class PluginManager:
         return ok
 
     @asyncio.coroutine
-    def _sieve(self, sieve, event, hook):
+    def _sieve(self, sieve, event):
         """
         :type sieve: cloudbot.plugin.Hook
         :type event: cloudbot.event.Event
-        :type hook: cloudbot.plugin.Hook
         :rtype: cloudbot.event.Event
         """
-        coro = run_func_with_args(self.bot.loop, sieve.function, event)
-
+        ok, out = yield from self.internal_launch(sieve, event)
         result, error = None, None
-        task = async_util.wrap_future(coro)
-        sieve.plugin.tasks.append(task)
-        try:
-            result = yield from task
-        except Exception:
-            logger.exception("Error running sieve {} on {}:".format(sieve.description, hook.description))
-            error = sys.exc_info()
-
-        sieve.plugin.tasks.remove(task)
+        if ok is True:
+            result = out
+        else:
+            error = out
 
         post_event = partial(
             PostHookEvent, launched_hook=sieve, launched_event=event, bot=event.bot,
@@ -516,14 +508,17 @@ class PluginManager:
 
         Returns False if the hook didn't run successfully, and True if it ran successfully.
 
-        :type event: cloudbot.event.Event | cloudbot.event.CommandEvent
-        :type hook: cloudbot.plugin.Hook | cloudbot.plugin.CommandHook
+        :type event: cloudbot.event.Event
+        :type hook: cloudbot.plugin.Hook
         :rtype: bool
         """
 
+        if event.hook is not hook:
+            raise ValueError("Can not launch {!r} with {!r}, hook objects differ.".format(hook, event))
+
         if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
             for sieve in self.bot.plugin_manager.sieves:
-                event = yield from self._sieve(sieve, event, hook)
+                event = yield from self._sieve(sieve, event)
                 if event is None:
                     return False
 

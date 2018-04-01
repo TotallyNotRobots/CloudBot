@@ -63,7 +63,8 @@ def delete_status(event, conn, chan):
 
 
 @hook.sieve()
-def sieve_regex(bot, event, _hook):
+def sieve_regex(event, bot):
+    _hook = event.hook
     if _hook.type == "regex" and event.chan is not None and event.is_channel(event.chan) and _hook.plugin.title != "factoids":
         status = status_cache.get((event.conn.name, event.chan))
         if status != "ENABLED" and (status == "DISABLED" or not default_enabled):

@@ -21,8 +21,8 @@ def task_clear():
 
 
 @hook.sieve(priority=100)
-def sieve_acls(bot, event, _hook):
-    conn = event.conn
+def sieve_acls(event, conn):
+    _hook = event.hook
 
     # check acls
     acl = conn.config.get('acls', {}).get(_hook.function_name)
@@ -40,8 +40,8 @@ def sieve_acls(bot, event, _hook):
 
 
 @hook.sieve(priority=101)
-def sieve_disable_commands(bot, event, _hook):
-    conn = event.conn
+def sieve_disable_commands(event, conn):
+    _hook = event.hook
 
     # check disabled_commands
     if _hook.type == "command":
@@ -54,7 +54,8 @@ def sieve_disable_commands(bot, event, _hook):
 
 @hook.sieve(priority=102)
 @asyncio.coroutine
-def sieve_permissions(bot, event, _hook):
+def sieve_permissions(event):
+    _hook = event.hook
     # check permissions
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -72,8 +73,8 @@ def sieve_permissions(bot, event, _hook):
 
 
 @hook.sieve(priority=103)
-def sieve_ratelimit(bot, event, _hook):
-    conn = event.conn
+def sieve_ratelimit(event, bot, conn):
+    _hook = event.hook
 
     # check command spam tokens
     if _hook.type == "command":

@@ -144,6 +144,13 @@ class Event:
         return self
 
     @property
+    def current_hook(self):
+        """
+        :rtype: cloudbot.plugin.Hook
+        """
+        return self.hook
+
+    @property
     def loop(self):
         """
         :rtype: asyncio.events.AbstractEventLoop
