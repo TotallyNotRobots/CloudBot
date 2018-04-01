@@ -18,6 +18,7 @@ import sqlalchemy
 from cloudbot.event import Event, PostHookEvent
 from cloudbot.hook import Priority, Action
 from cloudbot.util import database, async_util
+from cloudbot.util.async_util import run_func_with_args
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
@@ -412,31 +413,6 @@ class PluginManager:
             logger.info("Loaded {}".format(hook))
             logger.debug("Loaded {}".format(repr(hook)))
 
-    def _execute_hook_threaded(self, hook, event):
-        """
-        :type hook: Hook
-        :type event: cloudbot.event.Event
-        """
-        event.prepare_threaded()
-
-        try:
-            return call_with_args(hook.function, event)
-        finally:
-            event.close_threaded()
-
-    @asyncio.coroutine
-    def _execute_hook_sync(self, hook, event):
-        """
-        :type hook: Hook
-        :type event: cloudbot.event.Event
-        """
-        yield from event.prepare()
-
-        try:
-            return (yield from call_with_args(hook.function, event))
-        finally:
-            yield from event.close()
-
     @asyncio.coroutine
     def internal_launch(self, hook, event):
         """
@@ -445,10 +421,7 @@ class PluginManager:
         :param event: The event providing data for the hook
         :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result is the result from the hook
         """
-        if hook.threaded:
-            coro = self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)
-        else:
-            coro = self._execute_hook_sync(hook, event)
+        coro = run_func_with_args(self.bot.loop, hook.function, event)
 
         task = async_util.wrap_future(coro)
         hook.plugin.tasks.append(task)
@@ -501,10 +474,7 @@ class PluginManager:
         :type hook: cloudbot.plugin.Hook
         :rtype: cloudbot.event.Event
         """
-        if sieve.threaded:
-            coro = self.bot.loop.run_in_executor(None, sieve.function, self.bot, event, hook)
-        else:
-            coro = sieve.function(self.bot, event, hook)
+        coro = run_func_with_args(self.bot.loop, sieve.function, event)
 
         result, error = None, None
         task = async_util.wrap_future(coro)
