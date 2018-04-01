@@ -1,71 +1,32 @@
 import collections
-import inspect
 import re
-from enum import Enum, unique, IntEnum
+from abc import abstractmethod
 
 from cloudbot.event import EventType
+from cloudbot.hooks.basic import BaseHook
+from cloudbot.hooks.types import HookTypes
 
 valid_command_re = re.compile(r"^\w+$")
 
 
-@unique
-class Priority(IntEnum):
-    # Reversed to maintain compatibility with sieve hooks numeric priority
-    LOWEST = 127
-    LOW = 63
-    NORMAL = 0
-    HIGH = -64
-    HIGHEST = -128
+from .hooks.actions import Action
+from .hooks.priority import Priority
 
 
-@unique
-class Action(Enum):
-    """Defines the action to take after executing a hook"""
-    HALTTYPE = 0  # Once this hook executes, no other hook of that type should run
-    HALTALL = 1  # Once this hook executes, No other hook should run
-    CONTINUE = 2  # Normal execution of all hooks
+_HOOK_DATA_FIELD = '_cloudbot_hook'
 
 
-class _Hook:
-    """
-    :type function: function
-    :type type: str
-    :type kwargs: dict[str, unknown]
-    """
+class _CommandHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.COMMAND
 
-    def __init__(self, function, _type):
-        """
-        :type function: function
-        :type _type: str
-        """
-        self.function = function
-        self.type = _type
-        self.kwargs = {}
-
-    def _add_hook(self, kwargs):
-        """
-        :type kwargs: dict[str, unknown]
-        """
-        # update kwargs, overwriting duplicates
-        self.kwargs.update(kwargs)
-
-
-class _CommandHook(_Hook):
-    """
-    :type main_alias: str
-    :type aliases: set[str]
-    """
-
-    def __init__(self, function):
-        """
-        :type function: function
-        """
-        _Hook.__init__(self, function, "command")
+    def _setup(self):
         self.aliases = set()
         self.main_alias = None
 
-        if function.__doc__:
-            self.doc = function.__doc__.split('\n', 1)[0]
+        if self.function.__doc__:
+            self.doc = self.function.__doc__.split('\n', 1)[0]
         else:
             self.doc = None
 
@@ -77,26 +38,26 @@ class _CommandHook(_Hook):
 
         if not alias_param:
             alias_param = self.function.__name__
+
         if isinstance(alias_param, str):
             alias_param = [alias_param]
+
         if not self.main_alias:
             self.main_alias = alias_param[0]
+
         for alias in alias_param:
             if not valid_command_re.match(alias):
                 raise ValueError("Invalid command name {}".format(alias))
+
         self.aliases.update(alias_param)
 
 
-class _RegexHook(_Hook):
-    """
-    :type regexes: list[re.__Regex]
-    """
+class _RegexHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.REGEX
 
-    def __init__(self, function):
-        """
-        :type function: function
-        """
-        _Hook.__init__(self, function, "regex")
+    def _setup(self):
         self.regexes = []
 
     def add_hook(self, regex_param, kwargs):
@@ -125,16 +86,12 @@ class _RegexHook(_Hook):
                 self.regexes.append(re_to_match)
 
 
-class _RawHook(_Hook):
-    """
-    :type triggers: set[str]
-    """
+class _RawHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.IRCRAW
 
-    def __init__(self, function):
-        """
-        :type function: function
-        """
-        _Hook.__init__(self, function, "irc_raw")
+    def _setup(self):
         self.triggers = set()
 
     def add_hook(self, trigger_param, kwargs):
@@ -151,12 +108,12 @@ class _RawHook(_Hook):
             self.triggers.update(trigger_param)
 
 
-class _PeriodicHook(_Hook):
-    def __init__(self, function):
-        """
-        :type function: function
-        """
-        _Hook.__init__(self, function, "periodic")
+class _PeriodicHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.PERIODIC
+
+    def _setup(self):
         self.interval = 60.0
 
     def add_hook(self, interval, kwargs):
@@ -170,16 +127,12 @@ class _PeriodicHook(_Hook):
             self.interval = interval
 
 
-class _EventHook(_Hook):
-    """
-    :type types: set[cloudbot.event.EventType]
-    """
+class _EventHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.EVENT
 
-    def __init__(self, function):
-        """
-        :type function: function
-        """
-        _Hook.__init__(self, function, "event")
+    def _setup(self):
         self.types = set()
 
     def add_hook(self, trigger_param, kwargs):
@@ -196,9 +149,13 @@ class _EventHook(_Hook):
             self.types.update(trigger_param)
 
 
-class _CapHook(_Hook):
-    def __init__(self, func, _type):
-        super().__init__(func, "on_cap_{}".format(_type))
+class _CapHook(BaseHook):
+    @classmethod
+    @abstractmethod
+    def get_type(cls):
+        raise NotImplementedError
+
+    def _setup(self):
         self.caps = set()
 
     def add_hook(self, caps, kwargs):
@@ -206,9 +163,24 @@ class _CapHook(_Hook):
         self.caps.update(caps)
 
 
-class _PermissionHook(_Hook):
-    def __init__(self, func):
-        super().__init__(func, "perm_check")
+class _CapAvailableHook(_CapHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.CAPAVAILABLE
+
+
+class _CapAckHook(_CapHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.CAPACK
+
+
+class _PermissionHook(BaseHook):
+    @classmethod
+    def get_type(cls):
+        return HookTypes.PERMISSION
+
+    def _setup(self):
         self.perms = set()
 
     def add_hook(self, perms, kwargs):
@@ -216,31 +188,61 @@ class _PermissionHook(_Hook):
         self.perms.update(perms)
 
 
+def _basic_hook(hook_type):
+    class _BasicHook(BaseHook):
+        @classmethod
+        def get_type(cls):
+            return hook_type
+
+    return _BasicHook
+
+
+_SieveHook = _basic_hook(HookTypes.SIEVE)
+_OnStartHook = _basic_hook(HookTypes.ONSTART)
+_OnStopHook = _basic_hook(HookTypes.ONSTOP)
+_OnConnectHook = _basic_hook(HookTypes.CONNECT)
+_PostHookHook = _basic_hook(HookTypes.POSTHOOK)
+_IrcOutHook = _basic_hook(HookTypes.IRCOUT)
+
+
+def get_hooks(func):
+    return getattr(func, _HOOK_DATA_FIELD)
+
+
 def _add_hook(func, hook):
-    if not hasattr(func, "_cloudbot_hook"):
-        func._cloudbot_hook = {}
+    try:
+        hooks = get_hooks(func)
+    except AttributeError:
+        hooks = {}
+        setattr(func, _HOOK_DATA_FIELD, hooks)
     else:
-        assert hook.type not in func._cloudbot_hook  # in this case the hook should be using the add_hook method
-    func._cloudbot_hook[hook.type] = hook
+        if hook.type in hooks:
+            raise TypeError("Attempted to add a duplicate hook")
+
+    hooks[hook.type] = hook
 
 
 def _get_hook(func, hook_type):
-    if hasattr(func, "_cloudbot_hook") and hook_type in func._cloudbot_hook:
-        return func._cloudbot_hook[hook_type]
+    try:
+        hooks = get_hooks(func)
+    except AttributeError:
+        return None
 
-    return None
+    return hooks.get(hook_type)
+
+
+def _get_or_add_hook(func, hook_cls):
+    hook = _get_hook(func, hook_cls.get_type())
+    if hook is None:
+        hook = hook_cls(func)
+        _add_hook(func, hook)
+
+    return hook
 
 
 def command(*args, **kwargs):
-    """External command decorator. Can be used directly as a decorator, or with args to return a decorator.
-    :type param: str | list[str] | function
-    """
-
     def _command_hook(func, alias_param=None):
-        hook = _get_hook(func, "command")
-        if hook is None:
-            hook = _CommandHook(func)
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _CommandHook)
 
         hook.add_hook(alias_param, kwargs)
         return func
@@ -259,11 +261,7 @@ def irc_raw(triggers_param, **kwargs):
     kwargs['clients'] = 'irc'
 
     def _raw_hook(func):
-        hook = _get_hook(func, "irc_raw")
-        if hook is None:
-            hook = _RawHook(func)
-            _add_hook(func, hook)
-
+        hook = _get_or_add_hook(func, _RawHook)
         hook.add_hook(triggers_param, kwargs)
         return func
 
@@ -279,10 +277,7 @@ def event(types_param, **kwargs):
     """
 
     def _event_hook(func):
-        hook = _get_hook(func, "event")
-        if hook is None:
-            hook = _EventHook(func)
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _EventHook)
 
         hook.add_hook(types_param, kwargs)
         return func
@@ -300,10 +295,7 @@ def regex(regex_param, **kwargs):
     """
 
     def _regex_hook(func):
-        hook = _get_hook(func, "regex")
-        if hook is None:
-            hook = _RegexHook(func)
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _RegexHook)
 
         hook.add_hook(regex_param, kwargs)
         return func
@@ -320,10 +312,7 @@ def sieve(param=None, **kwargs):
     """
 
     def _sieve_hook(func):
-        hook = _get_hook(func, "sieve")
-        if hook is None:
-            hook = _Hook(func, "sieve")  # there's no need to have a specific SieveHook object
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _SieveHook)
 
         hook._add_hook(kwargs)
         return func
@@ -340,10 +329,7 @@ def periodic(interval, **kwargs):
     """
 
     def _periodic_hook(func):
-        hook = _get_hook(func, "periodic")
-        if hook is None:
-            hook = _PeriodicHook(func)
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _PeriodicHook)
 
         hook.add_hook(interval, kwargs)
         return func
@@ -360,10 +346,7 @@ def on_start(param=None, **kwargs):
     """
 
     def _on_start_hook(func):
-        hook = _get_hook(func, "on_start")
-        if hook is None:
-            hook = _Hook(func, "on_start")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _OnStartHook)
 
         hook._add_hook(kwargs)
         return func
@@ -384,10 +367,8 @@ def on_stop(param=None, **kwargs):
     """
 
     def _on_stop_hook(func):
-        hook = _get_hook(func, "on_stop")
-        if hook is None:
-            hook = _Hook(func, "on_stop")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _OnStopHook)
+
         hook._add_hook(kwargs)
         return func
 
@@ -409,10 +390,7 @@ def on_cap_available(*caps, **kwargs):
     kwargs['clients'] = 'irc'
 
     def _on_cap_available_hook(func):
-        hook = _get_hook(func, "on_cap_available")
-        if hook is None:
-            hook = _CapHook(func, "available")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _CapAvailableHook)
         hook.add_hook(caps, kwargs)
         return func
 
@@ -428,10 +406,7 @@ def on_cap_ack(*caps, **kwargs):
     kwargs['clients'] = 'irc'
 
     def _on_cap_ack_hook(func):
-        hook = _get_hook(func, "on_cap_ack")
-        if hook is None:
-            hook = _CapHook(func, "ack")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _CapAckHook)
         hook.add_hook(caps, kwargs)
         return func
 
@@ -440,10 +415,7 @@ def on_cap_ack(*caps, **kwargs):
 
 def on_connect(param=None, **kwargs):
     def _on_connect_hook(func):
-        hook = _get_hook(func, "on_connect")
-        if hook is None:
-            hook = _Hook(func, "on_connect")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _OnConnectHook)
         hook._add_hook(kwargs)
         return func
 
@@ -460,10 +432,7 @@ def irc_out(param=None, **kwargs):
     kwargs['clients'] = 'irc'
 
     def _decorate(func):
-        hook = _get_hook(func, "irc_out")
-        if hook is None:
-            hook = _Hook(func, "irc_out")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _IrcOutHook)
 
         hook._add_hook(kwargs)
         return func
@@ -480,10 +449,7 @@ def post_hook(param=None, **kwargs):
     """
 
     def _decorate(func):
-        hook = _get_hook(func, "post_hook")
-        if hook is None:
-            hook = _Hook(func, "post_hook")
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _PostHookHook)
 
         hook._add_hook(kwargs)
         return func
@@ -496,10 +462,7 @@ def post_hook(param=None, **kwargs):
 
 def permission(*perms, **kwargs):
     def _perm_hook(func):
-        hook = _get_hook(func, "perm_check")
-        if hook is None:
-            hook = _PermissionHook(func)
-            _add_hook(func, hook)
+        hook = _get_or_add_hook(func, _PermissionHook)
 
         hook.add_hook(perms, kwargs)
         return func

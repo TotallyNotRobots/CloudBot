@@ -8,15 +8,15 @@ import time
 import warnings
 from collections import defaultdict
 from functools import partial
-from itertools import chain
-from operator import attrgetter
 from pathlib import Path
 from weakref import WeakValueDictionary
 
 import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
-from cloudbot.hook import Priority, Action
+from cloudbot.hook import Priority, Action, get_hooks
+from cloudbot.hooks.basic import BaseHook
+from cloudbot.hooks.types import HookTypes
 from cloudbot.util import database, async_util
 from cloudbot.util.async_util import run_func_with_args
 
@@ -33,15 +33,16 @@ def find_hooks(parent, module):
     module._cloudbot_loaded = True
     hooks = defaultdict(list)
     for name, func in module.__dict__.items():
-        if hasattr(func, "_cloudbot_hook"):
-            # if it has cloudbot hook
-            func_hooks = func._cloudbot_hook
+        try:
+            func_hooks = get_hooks(func)
+        except AttributeError:
+            continue
 
-            for hook_type, func_hook in func_hooks.items():
-                hooks[hook_type].append(_hook_name_to_plugin[hook_type](parent, func_hook))
+        if not isinstance(func_hooks, dict):
+            continue
 
-            # delete the hook to free memory
-            del func._cloudbot_hook
+        for hook_type, func_hook in func_hooks.items():  # type: str, BaseHook
+            hooks[hook_type].append(func_hook.make_full_hook(parent))
 
     return hooks
 
@@ -188,7 +189,7 @@ class PluginManager:
         yield from plugin.create_tables(self.bot)
 
         # run on_start hooks
-        for on_start_hook in plugin.hooks["on_start"]:
+        for on_start_hook in plugin.hooks[HookTypes.ONSTART.type]:
             success = yield from self.launch(on_start_hook, Event(bot=self.bot, hook=on_start_hook))
             if not success:
                 logger.warning("Not registering hooks from plugin {}: on_start hook errored".format(plugin.title))
@@ -200,98 +201,12 @@ class PluginManager:
         self.plugins[plugin.file_path] = plugin
         self._plugin_name_map[plugin.title] = plugin
 
-        for on_cap_available_hook in plugin.hooks["on_cap_available"]:
-            for cap in on_cap_available_hook.caps:
-                self.cap_hooks["on_available"][cap.casefold()].append(on_cap_available_hook)
-            self._log_hook(on_cap_available_hook)
-
-        for on_cap_ack_hook in plugin.hooks["on_cap_ack"]:
-            for cap in on_cap_ack_hook.caps:
-                self.cap_hooks["on_ack"][cap.casefold()].append(on_cap_ack_hook)
-            self._log_hook(on_cap_ack_hook)
-
-        for periodic_hook in plugin.hooks["periodic"]:
-            task = async_util.wrap_future(self._start_periodic(periodic_hook))
-            plugin.tasks.append(task)
-            self._log_hook(periodic_hook)
-
-        # register commands
-        for command_hook in plugin.hooks["command"]:
-            for alias in command_hook.aliases:
-                if alias in self.commands:
-                    logger.warning(
-                        "Plugin {} attempted to register command {} which was already registered by {}. "
-                        "Ignoring new assignment.".format(plugin.title, alias, self.commands[alias].plugin.title))
-                else:
-                    self.commands[alias] = command_hook
-            self._log_hook(command_hook)
-
-        # register raw hooks
-        for raw_hook in plugin.hooks["irc_raw"]:
-            if raw_hook.is_catch_all():
-                self.catch_all_triggers.append(raw_hook)
-            else:
-                for trigger in raw_hook.triggers:
-                    if trigger in self.raw_triggers:
-                        self.raw_triggers[trigger].append(raw_hook)
-                    else:
-                        self.raw_triggers[trigger] = [raw_hook]
-            self._log_hook(raw_hook)
-
-        # register events
-        for event_hook in plugin.hooks["event"]:
-            for event_type in event_hook.types:
-                if event_type in self.event_type_hooks:
-                    self.event_type_hooks[event_type].append(event_hook)
-                else:
-                    self.event_type_hooks[event_type] = [event_hook]
-            self._log_hook(event_hook)
-
-        # register regexps
-        for regex_hook in plugin.hooks["regex"]:
-            for regex_match in regex_hook.regexes:
-                self.regex_hooks.append((regex_match, regex_hook))
-            self._log_hook(regex_hook)
-
-        # register sieves
-        for sieve_hook in plugin.hooks["sieve"]:
-            self.sieves.append(sieve_hook)
-            self._log_hook(sieve_hook)
-
-        # register connect hooks
-        for connect_hook in plugin.hooks["on_connect"]:
-            self.connect_hooks.append(connect_hook)
-            self._log_hook(connect_hook)
-
-        for out_hook in plugin.hooks["irc_out"]:
-            self.out_sieves.append(out_hook)
-            self._log_hook(out_hook)
-
-        for post_hook in plugin.hooks["post_hook"]:
-            self.hook_hooks["post"].append(post_hook)
-            self._log_hook(post_hook)
-
-        for perm_hook in plugin.hooks["perm_check"]:
-            for perm in perm_hook.perms:
-                self.perm_hooks[perm].append(perm_hook)
-
-            self._log_hook(perm_hook)
-
-        # sort sieve hooks by priority
-        self.sieves.sort(key=lambda x: x.priority)
-        self.connect_hooks.sort(key=attrgetter("priority"))
-
-        # Sort hooks
-        self.regex_hooks.sort(key=lambda x: x[1].priority)
-        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks, self.hook_hooks)
-        lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
-        lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
-
-        for lst in lists_of_hooks:
-            lst.sort(key=attrgetter("priority"))
+        for hooks in plugin.hooks.values():
+            for _hook in hooks:
+                _hook.register(self)
 
         # we don't need this anymore
-        del plugin.hooks["on_start"]
+        del plugin.hooks[HookTypes.ONSTART.type]
 
     @asyncio.coroutine
     def unload_plugin(self, path):
@@ -313,73 +228,12 @@ class PluginManager:
         # get the loaded plugin
         plugin = self.plugins[str(file_path)]
 
-        for on_cap_available_hook in plugin.hooks["on_cap_available"]:
-            available_hooks = self.cap_hooks["on_available"]
-            for cap in on_cap_available_hook.caps:
-                cap_cf = cap.casefold()
-                available_hooks[cap_cf].remove(on_cap_available_hook)
-                if not available_hooks[cap_cf]:
-                    del available_hooks[cap_cf]
-
-        for on_cap_ack in plugin.hooks["on_cap_ack"]:
-            ack_hooks = self.cap_hooks["on_ack"]
-            for cap in on_cap_ack.caps:
-                cap_cf = cap.casefold()
-                ack_hooks[cap_cf].remove(on_cap_ack)
-                if not ack_hooks[cap_cf]:
-                    del ack_hooks[cap_cf]
-
-        # unregister commands
-        for command_hook in plugin.hooks["command"]:
-            for alias in command_hook.aliases:
-                if alias in self.commands and self.commands[alias] == command_hook:
-                    # we need to make sure that there wasn't a conflict, so we don't delete another plugin's command
-                    del self.commands[alias]
-
-        # unregister raw hooks
-        for raw_hook in plugin.hooks["irc_raw"]:
-            if raw_hook.is_catch_all():
-                self.catch_all_triggers.remove(raw_hook)
-            else:
-                for trigger in raw_hook.triggers:
-                    assert trigger in self.raw_triggers  # this can't be not true
-                    self.raw_triggers[trigger].remove(raw_hook)
-                    if not self.raw_triggers[trigger]:  # if that was the last hook for this trigger
-                        del self.raw_triggers[trigger]
-
-        # unregister events
-        for event_hook in plugin.hooks["event"]:
-            for event_type in event_hook.types:
-                assert event_type in self.event_type_hooks  # this can't be not true
-                self.event_type_hooks[event_type].remove(event_hook)
-                if not self.event_type_hooks[event_type]:  # if that was the last hook for this event type
-                    del self.event_type_hooks[event_type]
-
-        # unregister regexps
-        for regex_hook in plugin.hooks["regex"]:
-            for regex_match in regex_hook.regexes:
-                self.regex_hooks.remove((regex_match, regex_hook))
-
-        # unregister sieves
-        for sieve_hook in plugin.hooks["sieve"]:
-            self.sieves.remove(sieve_hook)
-
-        # unregister connect hooks
-        for connect_hook in plugin.hooks["on_connect"]:
-            self.connect_hooks.remove(connect_hook)
-
-        for out_hook in plugin.hooks["irc_out"]:
-            self.out_sieves.remove(out_hook)
-
-        for post_hook in plugin.hooks["post_hook"]:
-            self.hook_hooks["post"].remove(post_hook)
-
-        for perm_hook in plugin.hooks["perm_check"]:
-            for perm in perm_hook.perms:
-                self.perm_hooks[perm].remove(perm_hook)
+        for hooks in plugin.hooks.values():
+            for _hook in hooks:
+                _hook.unregister(self)
 
         # Run on_stop hooks
-        for on_stop_hook in plugin.hooks["on_stop"]:
+        for on_stop_hook in plugin.hooks[HookTypes.ONSTOP.type]:
             event = Event(bot=self.bot, hook=on_stop_hook)
             yield from self.launch(on_stop_hook, event)
 
@@ -437,16 +291,7 @@ class PluginManager:
         return ok, out
 
     @asyncio.coroutine
-    def _execute_hook(self, hook, event):
-        """
-        Runs the specific hook with the given bot and event.
-
-        Returns False if the hook errored, True otherwise.
-
-        :type hook: cloudbot.plugin.Hook
-        :type event: cloudbot.event.Event
-        :rtype: bool
-        """
+    def _wrap_and_run(self, hook, event):
         ok, out = yield from self.internal_launch(hook, event)
         result, error = None, None
         if ok is True:
@@ -463,6 +308,21 @@ class PluginManager:
             if success and res is False:
                 break
 
+        return ok, out
+
+    @asyncio.coroutine
+    def _execute_hook(self, hook, event):
+        """
+        Runs the specific hook with the given bot and event.
+
+        Returns False if the hook errored, True otherwise.
+
+        :type hook: cloudbot.plugin.Hook
+        :type event: cloudbot.event.Event
+        :rtype: bool
+        """
+        ok, out = yield from self._wrap_and_run(hook, event)
+
         return ok
 
     @asyncio.coroutine
@@ -472,23 +332,9 @@ class PluginManager:
         :type event: cloudbot.event.Event
         :rtype: cloudbot.event.Event
         """
-        ok, out = yield from self.internal_launch(sieve, event)
-        result, error = None, None
-        if ok is True:
-            result = out
-        else:
-            error = out
+        ok, out = yield from self._wrap_and_run(sieve, event)
 
-        post_event = partial(
-            PostHookEvent, launched_hook=sieve, launched_event=event, bot=event.bot,
-            conn=event.conn, result=result, error=error
-        )
-        for post_hook in self.hook_hooks["post"]:
-            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
-            if success and res is False:
-                break
-
-        return result
+        return out if ok else None
 
     @asyncio.coroutine
     def _start_periodic(self, hook):
@@ -516,7 +362,8 @@ class PluginManager:
         if event.hook is not hook:
             raise ValueError("Can not launch {!r} with {!r}, hook objects differ.".format(hook, event))
 
-        if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
+        # we don't need sieves on on_start hooks.
+        if hook.type not in (HookTypes.ONSTART.type, HookTypes.ONSTOP.type, HookTypes.PERIODIC.type):
             for sieve in self.bot.plugin_manager.sieves:
                 event = yield from self._sieve(sieve, event)
                 if event is None:
@@ -911,33 +758,3 @@ class PostHookHook(Hook):
 
     def __str__(self):
         return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PermHook(Hook):
-    def __init__(self, plugin, perm_hook):
-        self.perms = perm_hook.perms
-        super().__init__("perm_check", plugin, perm_hook)
-
-    def __repr__(self):
-        return "PermHook[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "perm hook {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-_hook_name_to_plugin = {
-    "command": CommandHook,
-    "regex": RegexHook,
-    "irc_raw": RawHook,
-    "sieve": SieveHook,
-    "event": EventHook,
-    "periodic": PeriodicHook,
-    "on_start": OnStartHook,
-    "on_stop": OnStopHook,
-    "on_cap_available": OnCapAvaliableHook,
-    "on_cap_ack": OnCapAckHook,
-    "on_connect": OnConnectHook,
-    "irc_out": IrcOutHook,
-    "post_hook": PostHookHook,
-    "perm_check": PermHook,
-}
