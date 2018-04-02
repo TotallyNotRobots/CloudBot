@@ -8,18 +8,46 @@ from cloudbot.event import CapEvent
 from cloudbot.util import async_util
 
 
+class ServerCaps:
+    def __init__(self):
+        self.available = set()
+        self.enabled = set()
+        self.request_queue = {}
+
+    def clear(self):
+        self.available.clear()
+        self.enabled.clear()
+        self.request_queue.clear()
+
+
+def get_caps(conn):
+    """
+    :type conn: cloudbot.client.Client
+    :rtype: ServerCaps
+    """
+    try:
+        return conn.memory["server_caps"]
+    except KeyError:
+        conn.memory["server_caps"] = caps = ServerCaps()
+        return caps
+
+
 @hook.connect(priority=-10, clients="irc")
 def send_cap_ls(conn):
+    caps = get_caps(conn)
+    if not isinstance(caps, ServerCaps):
+        conn.memory["server_caps"] = ServerCaps()
+
+    caps.clear()
     conn.cmd("CAP", "LS", "302")
-    conn.memory.setdefault("available_caps", set()).clear()
-    conn.memory.setdefault("cap_queue", {}).clear()
 
 
 @asyncio.coroutine
 def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
-    available_caps = conn.memory["available_caps"]
+    caps = get_caps(conn)
+    available_caps = caps.available
     available_caps.update(caplist)
-    cap_queue = conn.memory["cap_queue"]
+    cap_queue = caps.request_queue
     for cap in caplist:
         name = cap.name
         name_cf = name.casefold()
@@ -31,7 +59,7 @@ def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
         results = yield from asyncio.gather(*tasks)
         if any(ok and (res or res is None) for ok, res in results):
             cap_queue[name_cf] = async_util.create_future(conn.loop)
-            conn.cmd("CAP", "REQ", cap)
+            conn.cmd("CAP", "REQ", cap.name)
 
     if irc_paramlist[2] != '+':
         yield from asyncio.gather(*cap_queue.values())
@@ -73,21 +101,31 @@ def cap_ls(conn, caplist, event, irc_paramlist, bot, logger):
 
 @asyncio.coroutine
 def handle_req_resp(enabled, conn, caplist, event, bot):
-    server_caps = conn.memory.setdefault('server_caps', {})
-    cap_queue = conn.memory.get("cap_queue", {})
-    caps = (cap.name.casefold() for cap in caplist)
-    for cap in caps:
-        server_caps[cap] = enabled
+    if enabled:
+        event.logger.info("[%s|cap] Capabilities Acknowledged: %s", conn.name, caplist)
+    else:
+        event.logger.info("[%s|cap] Capabilities Failed: %s", conn.name, caplist)
+
+    cap_info = get_caps(conn)
+    enabled_caps = cap_info.enabled
+    caps = ((cap.name.casefold(), cap) for cap in caplist)
+    for name, cap in caps:
         if enabled:
-            cap_event = partial(CapEvent, base_event=event, cap=cap)
+            enabled_caps.add(cap)
+
+            cap_event = partial(CapEvent, base_event=event, cap=name, cap_param=cap.value)
             tasks = [
                 bot.plugin_manager.launch(_hook, cap_event(hook=_hook))
-                for _hook in bot.plugin_manager.cap_hooks["on_ack"][cap]
+                for _hook in bot.plugin_manager.cap_hooks["on_ack"][name]
             ]
             yield from asyncio.gather(*tasks)
 
-        if cap in cap_queue:
-            cap_queue[cap].set_result(enabled)
+        try:
+            fut = cap_info.request_queue.pop(name)
+        except KeyError as e:
+            raise KeyError("Got ACK/NAK for CAP not in request queue") from e
+        else:
+            fut.set_result(enabled)
 
 
 @_subcmd_handler("ACK")
@@ -118,9 +156,9 @@ def cap_new(logger, caplist, conn, event, bot, irc_paramlist):
 def cap_del(logger, conn, caplist):
     # TODO add hooks for CAP removal
     logger.info("[%s|cap] Capabilities removed by server: %s", conn.name, caplist)
-    server_caps = conn.memory.setdefault('server_caps', {})
-    for cap in caplist:
-        server_caps[cap.name.casefold()] = False
+    server_caps = get_caps(conn)
+    server_caps.available -= set(caplist)
+    server_caps.enabled -= set(caplist)
 
 
 @hook.irc_raw("CAP")

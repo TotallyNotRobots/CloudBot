@@ -67,6 +67,8 @@ class Cap(Parseable):
     def __eq__(self, other):
         if isinstance(other, Cap):
             return self.name == other.name
+        elif isinstance(other, str):
+            return self == Cap.parse(other)
 
         return NotImplemented
 

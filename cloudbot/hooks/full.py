@@ -229,7 +229,11 @@ class RawHook(Hook):
         else:
             for trigger in self.triggers:
                 if trigger in manager.raw_triggers:
-                    manager.raw_triggers[trigger].append(self)
+                    hooks = manager.raw_triggers[trigger]
+                    if self in hooks:
+                        raise ValueError("Attempt to register a RawHook twice")
+
+                    hooks.append(self)
                 else:
                     manager.raw_triggers[trigger] = [self]
         manager._log_hook(self)

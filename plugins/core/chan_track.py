@@ -95,9 +95,13 @@ def do_caps():
     return True
 
 
-def is_cap_available(conn, cap):
-    caps = conn.memory.get("server_caps", {})
-    return bool(caps.get(cap, False))
+def is_cap_enabled(conn, cap):
+    try:
+        caps = conn.memory["server_caps"]
+    except LookupError:
+        return False
+
+    return cap in caps.enabled
 
 
 @hook.on_start
@@ -165,8 +169,8 @@ def replace_user_data(conn, chan_data):
     old_users = chan_data["users"]
     new_data = chan_data.pop("new_users", [])
     new_users = KeyFoldDict()
-    has_uh_i_n = is_cap_available(conn, "userhost-in-names")
-    has_multi_pfx = is_cap_available(conn, "multi-prefix")
+    has_uh_i_n = is_cap_enabled(conn, "userhost-in-names")
+    has_multi_pfx = is_cap_enabled(conn, "multi-prefix")
     for name in new_data:
         user_data = WeakDict(channels=KeyFoldWeakValueDict())
         memb_data = WeakDict(user=user_data, chan=weakref.proxy(chan_data))
@@ -315,7 +319,7 @@ def on_join(nick, user, host, conn, irc_paramlist):
 
     data = {'ident': user, 'host': host}
 
-    if is_cap_available(conn, "extended-join") and other_data:
+    if is_cap_enabled(conn, "extended-join") and other_data:
         acct, realname = other_data
         if acct == "*":
             acct = None
