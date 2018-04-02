@@ -6,7 +6,6 @@ import logging
 import re
 import time
 from functools import partial
-from operator import attrgetter
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -304,11 +303,10 @@ class CloudBot:
             if hook.clients and _event.conn.type not in hook.clients:
                 return True
 
-            coro = self.plugin_manager.launch(hook, _event)
             if _run_before:
-                run_before_tasks.append(coro)
+                run_before_tasks.append((hook, _event))
             else:
-                tasks.append(coro)
+                tasks.append((hook, _event))
 
             if hook.action is Action.HALTALL:
                 halted = True
@@ -392,8 +390,17 @@ class CloudBot:
                         # The hook has an action of Action.HALT* so stop adding new tasks
                         break
 
-        run_before_tasks.sort(key=attrgetter("priority"))
-        tasks.sort(key=attrgetter("priority"))
+        run_before_tasks.sort(key=lambda p: p[0].priority)
+        tasks.sort(key=lambda p: p[0].priority)
+
+        def _wrap_task(task):
+            _hook, _event = task
+            return self.plugin_manager.launch(_hook, _event)
+
+        def _wrap_tasks(_tasks):
+            for task in tasks:
+                yield _wrap_task(task)
+
         # Run the tasks
-        yield from asyncio.gather(*run_before_tasks, loop=self.loop)
-        yield from asyncio.gather(*tasks, loop=self.loop)
+        yield from asyncio.gather(*_wrap_tasks(run_before_tasks), loop=self.loop)
+        yield from asyncio.gather(*_wrap_tasks(tasks), loop=self.loop)
