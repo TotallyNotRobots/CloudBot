@@ -398,7 +398,7 @@ class CloudBot:
             return self.plugin_manager.launch(_hook, _event)
 
         def _wrap_tasks(_tasks):
-            for task in tasks:
+            for task in _tasks:
                 yield _wrap_task(task)
 
         # Run the tasks
