@@ -10,7 +10,7 @@ from threading import RLock
 from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint, and_
 
 from cloudbot import hook
-from cloudbot.hook import Priority
+from cloudbot.hooks.priority import Priority
 from cloudbot.util import database, web
 from cloudbot.util.formatting import gen_markdown_table
 

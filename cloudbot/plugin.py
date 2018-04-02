@@ -8,14 +8,18 @@ import time
 import warnings
 from collections import defaultdict
 from functools import partial
+from itertools import chain
+from operator import attrgetter
 from pathlib import Path
 from weakref import WeakValueDictionary
 
 import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
-from cloudbot.hook import Priority, Action, get_hooks
+from cloudbot.hook import get_hooks
+from cloudbot.hooks.actions import Action
 from cloudbot.hooks.basic import BaseHook
+from cloudbot.hooks.priority import Priority
 from cloudbot.hooks.types import HookTypes
 from cloudbot.util import database, async_util
 from cloudbot.util.async_util import run_func_with_args
@@ -204,6 +208,15 @@ class PluginManager:
         for hooks in plugin.hooks.values():
             for _hook in hooks:
                 _hook.register(self)
+
+        # Sort hooks
+        self.regex_hooks.sort(key=lambda x: x[1].priority)
+        dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks, self.hook_hooks)
+        lists_of_hooks = [self.catch_all_triggers, self.sieves, self.connect_hooks, self.out_sieves]
+        lists_of_hooks.extend(chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks))
+
+        for lst in lists_of_hooks:
+            lst.sort(key=attrgetter("priority"))
 
         # we don't need this anymore
         del plugin.hooks[HookTypes.ONSTART.type]

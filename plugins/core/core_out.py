@@ -3,7 +3,7 @@ Core filters for IRC raw lines
 """
 
 from cloudbot import hook
-from cloudbot.hook import Priority
+from cloudbot.hooks.priority import Priority
 from cloudbot.util import colors
 
 NEW_LINE_TRANS_TBL = str.maketrans({

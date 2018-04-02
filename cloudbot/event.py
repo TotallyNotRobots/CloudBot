@@ -316,12 +316,12 @@ class Event:
     if sys.version_info < (3, 7, 0):
         # noinspection PyCompatibility
         @asyncio.coroutine
-        def async_(self, function, *args, **kwargs):
+        def async_(self, func, *args, **kwargs):
             warnings.warn(
                 "event.async() is deprecated, use event.async_call() instead.",
                 DeprecationWarning, stacklevel=2
             )
-            result = yield from self.async_call(function, *args, **kwargs)
+            result = yield from self.async_call(func, *args, **kwargs)
             return result
 
 

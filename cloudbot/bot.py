@@ -6,6 +6,7 @@ import logging
 import re
 import time
 from functools import partial
+from operator import attrgetter
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -17,7 +18,7 @@ from watchdog.observers import Observer
 from cloudbot.client import Client
 from cloudbot.config import Config
 from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
-from cloudbot.hook import Action
+from cloudbot.hooks.actions import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import PluginReloader, ConfigReloader
 from cloudbot.util import database, formatting, async_util
@@ -391,6 +392,8 @@ class CloudBot:
                         # The hook has an action of Action.HALT* so stop adding new tasks
                         break
 
+        run_before_tasks.sort(key=attrgetter("priority"))
+        tasks.sort(key=attrgetter("priority"))
         # Run the tasks
         yield from asyncio.gather(*run_before_tasks, loop=self.loop)
         yield from asyncio.gather(*tasks, loop=self.loop)

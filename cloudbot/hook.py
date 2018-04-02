@@ -8,11 +8,6 @@ from cloudbot.hooks.types import HookTypes
 
 valid_command_re = re.compile(r"^\w+$")
 
-
-from .hooks.actions import Action
-from .hooks.priority import Priority
-
-
 _HOOK_DATA_FIELD = '_cloudbot_hook'
 
 
@@ -217,7 +212,7 @@ def _add_hook(func, hook):
         setattr(func, _HOOK_DATA_FIELD, hooks)
     else:
         if hook.type in hooks:
-            raise TypeError("Attempted to add a duplicate hook")
+            raise TypeError("Attempted to add a duplicate hook", func, hook, hook.type)
 
     hooks[hook.type] = hook
 
@@ -228,11 +223,19 @@ def _get_hook(func, hook_type):
     except AttributeError:
         return None
 
-    return hooks.get(hook_type)
+    try:
+        hook = hooks[hook_type]
+    except KeyError:
+        return None
+    else:
+        if hook is None:
+            raise TypeError("Expected Hook, got None")
+
+    return hook
 
 
 def _get_or_add_hook(func, hook_cls):
-    hook = _get_hook(func, hook_cls.get_type())
+    hook = _get_hook(func, hook_cls.get_type_name())
     if hook is None:
         hook = hook_cls(func)
         _add_hook(func, hook)

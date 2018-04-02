@@ -8,7 +8,7 @@ Author:
 from collections import defaultdict
 
 from cloudbot import hook
-from cloudbot.hook import Priority
+from cloudbot.hooks.priority import Priority
 from cloudbot.util import web
 from cloudbot.util.formatting import gen_markdown_table
 

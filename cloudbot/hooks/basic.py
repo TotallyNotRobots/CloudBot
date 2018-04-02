@@ -7,11 +7,11 @@ class BaseHook(ABC):
     :type kwargs: dict[str, unknown]
     """
 
-    def __init__(self, function):
+    def __init__(self, func):
         """
-        :type function: function
+        :type func: function
         """
-        self.function = function
+        self.function = func
         self.kwargs = {}
 
         self._setup()
@@ -31,9 +31,13 @@ class BaseHook(ABC):
     def get_type(cls):
         raise NotImplementedError
 
+    @classmethod
+    def get_type_name(cls):
+        return cls.get_type().type
+
     @property
     def type(self):
         return self.get_type().type
 
     def make_full_hook(self, plugin):
-        return self.get_type().full_hook(self, plugin)
+        return self.get_type().full_hook(plugin, self)

@@ -1,5 +1,5 @@
 from cloudbot import hook
-from cloudbot.hook import Priority
+from cloudbot.hooks.priority import Priority
 
 
 @hook.sieve(priority=Priority.LOWEST)

@@ -5,7 +5,8 @@ import sys
 import warnings
 from abc import abstractmethod, ABC
 
-from cloudbot.hook import Action, Priority
+from cloudbot.hooks.actions import Action
+from cloudbot.hooks.priority import Priority
 from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
@@ -358,12 +359,12 @@ class OnStopHook(Hook):
 class CapHook(Hook):
     def register(self, manager):
         for cap in self.caps:
-            manager.cap_hooks["on_available"][cap.casefold()].append(self)
+            manager.cap_hooks["on_" + self._subtype][cap.casefold()].append(self)
 
         manager._log_hook(self)
 
     def unregister(self, manager):
-        ack_hooks = manager.cap_hooks[self._subtype]
+        ack_hooks = manager.cap_hooks["on_" + self._subtype]
         for cap in self.caps:
             cap_cf = cap.casefold()
             ack_hooks[cap_cf].remove(self)
