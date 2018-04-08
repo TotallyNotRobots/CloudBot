@@ -475,8 +475,7 @@ class _IrcProtocol(asyncio.Protocol):
                 irc_prefix=mask, irc_command=command, irc_paramlist=command_params, irc_ctcp_text=ctcp_text
             )
 
-            # handle the message, async
-            async_util.wrap_future(self.bot.process(event), loop=self.loop)
+            self.bot.event_queue.put_nowait(event)
 
     @property
     def connected(self):

@@ -1,5 +1,4 @@
 import asyncio
-import collections
 import gc
 import importlib
 import logging
@@ -9,6 +8,7 @@ import time
 from functools import partial
 from pathlib import Path
 
+import collections
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -95,6 +95,8 @@ class CloudBot:
         # stores each bot server connection
         self.connections = {}
 
+        self.event_queue = asyncio.Queue()
+
         # for plugins
         self.logger = logger
 
@@ -166,8 +168,10 @@ class CloudBot:
         # Initializes the bot, plugins and connections
         self.loop.run_until_complete(self._init_routine())
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
+        self.loop.run_until_complete(self.main_loop())
         restart = self.loop.run_until_complete(self.stopped_future)
         self.loop.run_until_complete(self.plugin_manager.unload_all())
+        self.loop.run_until_complete(self.plugin_manager.shutdown())
         self.loop.close()
         return restart
 
@@ -211,6 +215,7 @@ class CloudBot:
             connection.close()
 
         self.running = False
+        self.event_queue.put_nowait(None)
         # Give the stopped_future a result, so that run() will exit
         self.stopped_future.set_result(restart)
 
@@ -221,6 +226,7 @@ class CloudBot:
 
     @asyncio.coroutine
     def _init_routine(self):
+        yield from self.plugin_manager.start()
         # Load plugins
         yield from self.plugin_manager.load_all(os.path.abspath("plugins"))
 
@@ -258,12 +264,10 @@ class CloudBot:
             mod_path = '.'.join(rel_path.parts).rsplit('.', 1)[0]
             importlib.import_module(mod_path)
 
-    @asyncio.coroutine
-    def process(self, event):
+    def _get_tasks(self, event):
         """
         :type event: Event
         """
-        run_before_tasks = []
         tasks = []
         halted = False
 
@@ -275,11 +279,8 @@ class CloudBot:
             if hook.clients and _event.conn.type not in hook.clients:
                 return True
 
-            coro = self.plugin_manager.launch(hook, _event)
-            if _run_before:
-                run_before_tasks.append(coro)
-            else:
-                tasks.append(coro)
+            # coro = self.plugin_manager.launch(hook, _event)
+            tasks.append((hook, _event))
 
             if hook.action is Action.HALTALL:
                 halted = True
@@ -290,9 +291,7 @@ class CloudBot:
 
         # Raw IRC hook
         for raw_hook in self.plugin_manager.catch_all_triggers:
-            # run catch-all coroutine hooks before all others - TODO: Make this a plugin argument
-            run_before = not raw_hook.threaded
-            if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before):
+            if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event)):
                 # The hook has an action of Action.HALT* so stop adding new tasks
                 break
 
@@ -363,6 +362,16 @@ class CloudBot:
                         # The hook has an action of Action.HALT* so stop adding new tasks
                         break
 
-        # Run the tasks
-        yield from asyncio.gather(*run_before_tasks, loop=self.loop)
-        yield from asyncio.gather(*tasks, loop=self.loop)
+        tasks.sort(key=lambda t: t[0].priority)
+        return tasks
+
+    @asyncio.coroutine
+    def main_loop(self):
+        while self.running:
+            event = yield from self.event_queue.get()
+            if event is not None:
+                tasks = self._get_tasks(event)
+                for task in tasks:
+                    self.plugin_manager.hook_queue.put_nowait(task)
+
+            self.event_queue.task_done()

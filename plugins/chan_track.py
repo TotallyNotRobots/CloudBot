@@ -4,6 +4,7 @@ Track channel ops for permissions checks
 Requires:
 server_info.py
 """
+import asyncio
 import warnings
 import weakref
 from operator import attrgetter
@@ -11,6 +12,8 @@ from weakref import WeakValueDictionary
 
 from cloudbot import hook
 from cloudbot.util.parsers.irc import Prefix
+
+lock = asyncio.Lock()
 
 
 class KeyFoldMixin:
@@ -414,7 +417,7 @@ def replace_user_data(conn, chan_data):
             member.data.update(old_data.data)
 
 
-@hook.irc_raw(['353', '366'], singlethread=True)
+@hook.irc_raw(['353', '366'], singlethread=True, lock=lock)
 def on_names(conn, irc_paramlist, irc_command):
     chan = irc_paramlist[2 if irc_command == '353' else 1]
     chan_data = get_channels(conn).getchan(chan)
@@ -435,7 +438,7 @@ def on_names(conn, irc_paramlist, irc_command):
     users.extend(names.split())
 
 
-@hook.permission("chanop")
+@hook.permission("chanop", singlethread=True, lock=lock)
 def perm_check(chan, conn, nick):
     if not (chan and conn):
         return False
@@ -458,7 +461,7 @@ def perm_check(chan, conn, nick):
     return False
 
 
-@hook.irc_raw('JOIN')
+@hook.irc_raw('JOIN', singlethread=True, lock=lock)
 def on_join(nick, user, host, conn, irc_paramlist):
     chan, *other_data = irc_paramlist
 
@@ -481,20 +484,20 @@ def on_join(nick, user, host, conn, irc_paramlist):
         user.data.update(account=acct, realname=realname)
 
 
-@hook.irc_raw('MODE')
+@hook.irc_raw('MODE', singlethread=True, lock=lock)
 def on_mode(chan, irc_paramlist, conn):
     if chan.startswith(':'):
         chan = chan[1:]
-
-    serv_info = conn.memory["server_info"]
-    statuses = serv_info["statuses"]
-    status_modes = {status.mode for status in statuses.values()}
-    mode_types = serv_info["channel_modes"]
 
     try:
         chan_data = get_channel(conn, chan)
     except KeyError:
         return
+
+    serv_info = conn.memory["server_info"]
+    statuses = serv_info["statuses"]
+    status_modes = {status.mode for status in statuses.values()}
+    mode_types = serv_info["channel_modes"]
 
     modes = irc_paramlist[1]
     mode_params = irc_paramlist[2:]
@@ -535,7 +538,7 @@ def on_mode(chan, irc_paramlist, conn):
                         memb_status.remove(status)
 
 
-@hook.irc_raw('PART')
+@hook.irc_raw('PART', singlethread=True, lock=lock)
 def on_part(chan, nick, conn):
     if chan.startswith(':'):
         chan = chan[1:]
@@ -548,12 +551,12 @@ def on_part(chan, nick, conn):
         del chan_data["users"][nick]
 
 
-@hook.irc_raw('KICK')
+@hook.irc_raw('KICK', singlethread=True, lock=lock)
 def on_kick(chan, target, conn):
     on_part(chan, target, conn)
 
 
-@hook.irc_raw('QUIT')
+@hook.irc_raw('QUIT', singlethread=True, lock=lock)
 def on_quit(nick, conn):
     user = get_user(conn, nick)
     for memb in user.channels.values():
@@ -561,7 +564,7 @@ def on_quit(nick, conn):
         del chan.users[nick]
 
 
-@hook.irc_raw('NICK')
+@hook.irc_raw('NICK', singlethread=True, lock=lock)
 def on_nick(nick, irc_paramlist, conn):
     users = get_users(conn)
     new_nick = irc_paramlist[0]
@@ -577,12 +580,12 @@ def on_nick(nick, irc_paramlist, conn):
         chan_users[new_nick] = chan_users.pop(nick)
 
 
-@hook.irc_raw('ACCOUNT')
+@hook.irc_raw('ACCOUNT', singlethread=True, lock=lock)
 def on_account(conn, nick, irc_paramlist):
     get_user(conn, nick).account = irc_paramlist[0]
 
 
-@hook.irc_raw('CHGHOST')
+@hook.irc_raw('CHGHOST', singlethread=True, lock=lock)
 def on_chghost(conn, nick, irc_paramlist):
     ident, host = irc_paramlist
     user = get_user(conn, nick)
@@ -590,7 +593,7 @@ def on_chghost(conn, nick, irc_paramlist):
     user.host = host
 
 
-@hook.irc_raw('AWAY')
+@hook.irc_raw('AWAY', singlethread=True, lock=lock)
 def on_away(conn, nick, irc_paramlist):
     if irc_paramlist:
         reason = irc_paramlist[0]
@@ -602,7 +605,7 @@ def on_away(conn, nick, irc_paramlist):
     user.away_message = reason or None
 
 
-@hook.irc_raw('352')
+@hook.irc_raw('352', singlethread=True, lock=lock)
 def on_who(conn, irc_paramlist):
     _, _, ident, host, server, nick, status, realname = irc_paramlist
     realname = realname.split(None, 1)[1]
@@ -622,7 +625,7 @@ def on_who(conn, irc_paramlist):
     user.is_oper = is_oper
 
 
-@hook.irc_raw('311')
+@hook.irc_raw('311', singlethread=True, lock=lock)
 def on_whois_name(conn, irc_paramlist):
     _, nick, ident, host, _, realname = irc_paramlist
     user = get_user(conn, nick)
@@ -631,13 +634,13 @@ def on_whois_name(conn, irc_paramlist):
     user.realname = realname
 
 
-@hook.irc_raw('330')
+@hook.irc_raw('330', singlethread=True, lock=lock)
 def on_whois_acct(conn, irc_paramlist):
     _, nick, acct = irc_paramlist[:2]
     get_user(conn, nick).account = acct
 
 
-@hook.irc_raw('301')
+@hook.irc_raw('301', singlethread=True, lock=lock)
 def on_whois_away(conn, irc_paramlist):
     _, nick, msg = irc_paramlist
     user = get_user(conn, nick)
@@ -645,13 +648,13 @@ def on_whois_away(conn, irc_paramlist):
     user.away_message = msg
 
 
-@hook.irc_raw('312')
+@hook.irc_raw('312', singlethread=True, lock=lock)
 def on_whois_server(conn, irc_paramlist):
     _, nick, server, _ = irc_paramlist
     get_user(conn, nick).server = server
 
 
-@hook.irc_raw('313')
+@hook.irc_raw('313', singlethread=True, lock=lock)
 def on_whois_oper(conn, irc_paramlist):
     nick = irc_paramlist[1]
     get_user(conn, nick).is_oper = True

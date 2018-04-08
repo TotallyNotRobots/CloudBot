@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import inspect
 import logging
-import re
 import sys
 import time
 import warnings
@@ -104,7 +103,37 @@ class PluginManager:
         self.out_sieves = []
         self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
-        self._hook_waiting_queues = {}
+
+        self.hook_queue = asyncio.Queue()
+
+        self.running = False
+
+        self._worker = None
+
+    @asyncio.coroutine
+    def start(self):
+        self.running = True
+        self._worker = async_util.wrap_future(self.do_loop())
+
+    @asyncio.coroutine
+    def shutdown(self):
+        self.running = False
+        self.hook_queue.put_nowait(None)
+
+        if self._worker:
+            yield from self._worker
+
+    @asyncio.coroutine
+    def do_loop(self):
+        while self.bot.running:
+            task = yield from self.hook_queue.get()
+            if task is None:
+                continue
+
+            _hook, event = task
+            async_util.wrap_future(self.launch(_hook, event))
+            self.hook_queue.task_done()
+            yield from asyncio.sleep(0)
 
     def find_plugin(self, title):
         """
@@ -540,6 +569,21 @@ class PluginManager:
             yield from asyncio.sleep(interval)
 
     @asyncio.coroutine
+    def launch_with_sieves(self, hook, event):
+        """
+        :type event: cloudbot.event.Event | cloudbot.event.CommandEvent
+        :type hook: cloudbot.plugin.Hook | cloudbot.plugin.CommandHook
+        :rtype: bool
+        """
+        if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
+            for sieve in self.bot.plugin_manager.sieves:
+                event = yield from self._sieve(sieve, event, hook)
+                if event is None:
+                    return False
+
+        return (yield from self._execute_hook(hook, event))
+
+    @asyncio.coroutine
     def launch(self, hook, event):
         """
         Dispatch a given event to a given hook using a given bot object.
@@ -551,48 +595,14 @@ class PluginManager:
         :rtype: bool
         """
 
-        if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
-            for sieve in self.bot.plugin_manager.sieves:
-                event = yield from self._sieve(sieve, event, hook)
-                if event is None:
-                    return False
-
         if hook.single_thread:
             # There should only be one running instance of this hook, so let's wait for the last event to be processed
             # before starting this one.
-
-            key = (hook.plugin.title, hook.function_name)
-            if key in self._hook_waiting_queues:
-                queue = self._hook_waiting_queues[key]
-                if queue is None:
-                    # there's a hook running, but the queue hasn't been created yet, since there's only one hook
-                    queue = asyncio.Queue()
-                    self._hook_waiting_queues[key] = queue
-                assert isinstance(queue, asyncio.Queue)
-                # create a future to represent this task
-                future = async_util.create_future(self.bot.loop)
-                queue.put_nowait(future)
-                # wait until the last task is completed
-                yield from future
-            else:
-                # set to None to signify that this hook is running, but there's no need to create a full queue
-                # in case there are no more hooks that will wait
-                self._hook_waiting_queues[key] = None
-
-            # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
-
-            queue = self._hook_waiting_queues[key]
-            if queue is None or queue.empty():
-                # We're the last task in the queue, we can delete it now.
-                del self._hook_waiting_queues[key]
-            else:
-                # set the result for the next task's future, so they can execute
-                next_future = yield from queue.get()
-                next_future.set_result(None)
+            with (yield from hook.lock):
+                result = yield from self.launch_with_sieves(hook, event)
         else:
             # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
+            result = yield from self.launch_with_sieves(hook, event)
 
         # Return the result
         return result
@@ -702,6 +712,11 @@ class Hook:
         self.single_thread = func_hook.kwargs.pop("singlethread", False)
         self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
         self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
+
+        if self.single_thread:
+            self.lock = func_hook.kwargs.pop("lock", asyncio.Lock())
+        else:
+            self.lock = None
 
         clients = func_hook.kwargs.pop("clients", [])
 
