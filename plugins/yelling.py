@@ -15,6 +15,10 @@ def YELL_CHECK(event, conn):
         return
     TESTY = URL_RE.sub('', event.content)
     TESTY = YELL_RE.sub('', TESTY)
+    if not TESTY:
+        # Ignore empty strings
+        return
+
     CAPS_COUNT = sum(1 for c in TESTY if c.isupper())
     if CAPS_COUNT / len(TESTY) < .75:
         KICK_THEM = "KICK {} {} :USE MOAR CAPS YOU TROGLODYTE!".format(event.chan, event.nick)
