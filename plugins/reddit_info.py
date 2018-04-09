@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from datetime import datetime
 
@@ -10,11 +11,39 @@ from cloudbot.util.formatting import pluralize_auto
 from cloudbot.util.pager import paginated_list
 
 search_pages = defaultdict(dict)
+user_re = re.compile(r'^(?:/?u(?:ser)?/)?(?P<name>.+)$', re.IGNORECASE)
+sub_re = re.compile(r'^(?:/?r/)?(?P<name>.+)$', re.IGNORECASE)
 
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
 # This agent should be unique for your cloudbot instance
 agent = {"User-Agent": "gonzobot a cloudbot (IRCbot) implementation for snoonet.org by /u/bloodygonzo"}
+
+
+def test_get_user():
+    assert get_sub('test') == 'test'
+    assert get_sub('r/test') == 'test'
+    assert get_sub('/r/test') == 'test'
+
+
+def test_get_sub():
+    assert get_user('test') == 'test'
+    assert get_user('/u/test') == 'test'
+    assert get_user('u/test') == 'test'
+    assert get_user('/user/test') == 'test'
+    assert get_user('user/test') == 'test'
+
+
+def get_user(text):
+    match = user_re.match(text)
+    if match:
+        return match.group('name')
+
+
+def get_sub(text):
+    match = sub_re.match(text)
+    if match:
+        return match.group('name')
 
 
 def statuscheck(status, item):
@@ -60,7 +89,7 @@ def moremod(text, chan, conn):
 @hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan, conn, reply):
     """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
-    user = text
+    user = get_user(text)
     r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
     try:
         r.raise_for_status()
@@ -87,7 +116,7 @@ def moderates(text, chan, conn, reply):
 @hook.command("karma", "ruser", singlethread=True)
 def karma(text, reply):
     """<reddituser> - will return the information about the specified reddit username"""
-    user = text
+    user = get_user(text)
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
     try:
@@ -133,7 +162,7 @@ def karma(text, reply):
 @hook.command("cakeday", singlethread=True)
 def cake_day(text, reply):
     """<reddituser> - will return the cakeday for the given reddit username."""
-    user = text
+    user = get_user(text)
     url = user_url + "about.json"
     r = requests.get(url.format(user), headers=agent)
 
@@ -171,11 +200,7 @@ def time_format(numdays):
 @hook.command("submods", "mods", "rmods", singlethread=True)
 def submods(text, chan, conn, reply):
     """<subreddit> - prints the moderators of the specified subreddit."""
-    sub = text
-    if sub.startswith('/r/'):
-        sub = sub[3:]
-    elif sub.startswith('r/'):
-        sub = sub[2:]
+    sub = get_sub(text)
     url = subreddit_url + "about/moderators.json"
     r = requests.get(url.format(sub), headers=agent)
 
@@ -211,11 +236,7 @@ def submods(text, chan, conn, reply):
 @hook.command("subinfo", "subreddit", "sub", "rinfo", singlethread=True)
 def subinfo(text, reply):
     """<subreddit> - fetches information about the specified subreddit."""
-    sub = text
-    if sub.startswith('/r/'):
-        sub = sub[3:]
-    elif sub.startswith('r/'):
-        sub = sub[2:]
+    sub = get_sub(text)
     url = subreddit_url + "about.json"
     r = requests.get(url.format(sub), headers=agent)
 
