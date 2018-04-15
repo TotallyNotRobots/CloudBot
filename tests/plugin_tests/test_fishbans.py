@@ -1,6 +1,6 @@
 import responses
 
-from plugins.fishbans import fishbans, bancount
+from plugins.minecraft.fishbans import fishbans, bancount
 
 test_user = "notch"
 
