@@ -61,6 +61,33 @@ HEADERS = {
 MAX_RECV = 1000000
 
 
+def get_encoding(soup):
+    meta_charset = soup.find('meta', charset=True)
+
+    if meta_charset:
+        return meta_charset['charset']
+    else:
+        meta_content_type = soup.find(
+            'meta', {'http-equiv': lambda t: t and t.lower() == 'content-type', 'content': True}
+        )
+        if meta_content_type:
+            return requests.utils.get_encoding_from_headers({'content-type': meta_content_type['content']})
+
+    return None
+
+
+def parse_content(content, encoding=None):
+    html = BeautifulSoup(content, "lxml", from_encoding=encoding)
+    old_encoding = encoding
+
+    encoding = get_encoding(html)
+
+    if encoding is not None and encoding != old_encoding:
+        html = BeautifulSoup(content, "lxml", from_encoding=encoding)
+
+    return html
+
+
 @hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
 def print_url_title(message, match):
     with closing(requests.get(match.group(), headers=HEADERS, stream=True, timeout=3)) as r:
@@ -68,13 +95,14 @@ def print_url_title(message, match):
         if not r.encoding:
             return
 
+        # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
         content = r.raw.read(MAX_RECV + 1, decode_content=True)
         encoding = r.encoding
 
     if len(content) > MAX_RECV:
         return
 
-    html = BeautifulSoup(content, "lxml", from_encoding=encoding)
+    html = parse_content(content, encoding)
 
     if html.title:
         title = html.title.text

@@ -8,6 +8,15 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.util import timeformat, formatting
 
+sub_re = re.compile(r'^(?:/?r/)?(?P<name>.+)$', re.IGNORECASE)
+
+
+def get_sub(text):
+    match = sub_re.match(text)
+    if match:
+        return match.group('name')
+
+
 reddit_re = re.compile(
     r"""
     https? # Scheme
@@ -89,7 +98,8 @@ def reddit(text, bot, reply):
     if text:
         # clean and split the input
         parts = text.lower().strip().split()
-        url = base_url.format(parts.pop(0).strip())
+        sub = get_sub(parts.pop(0).strip())
+        url = base_url.format(sub)
 
         # find the requested post number (if any)
         if parts:

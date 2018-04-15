@@ -1,4 +1,8 @@
-from plugins.link_announcer import url_re
+import codecs
+
+from bs4 import BeautifulSoup
+
+from plugins.link_announcer import url_re, get_encoding
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -65,7 +69,8 @@ SEARCH = (
     ("(https://foo.bar)", "https://foo.bar"),
     ("[https://example.com]", "https://example.com"),
     ("<a hreh=\"https://example.com/test.page?#test\">", "https://example.com/test.page?#test"),
-    ("<https://www.example.com/this.is.a.test/blah.txt?a=1#123>", "https://www.example.com/this.is.a.test/blah.txt?a=1#123"),
+    ("<https://www.example.com/this.is.a.test/blah.txt?a=1#123>",
+     "https://www.example.com/this.is.a.test/blah.txt?a=1#123"),
 )
 
 
@@ -82,3 +87,23 @@ def test_search():
     for text, out in SEARCH:
         match = url_re.search(text)
         assert match and match.group() == out
+
+
+ENCODINGS = (
+    (b'<meta charset="utf8">', codecs.lookup('utf8')),
+    (b'', None),
+    (b'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">', codecs.lookup('utf8')),
+)
+
+
+def test_encoding_parse():
+    for text, enc in ENCODINGS:
+        soup = BeautifulSoup(text, "lxml")
+        encoding = get_encoding(soup)
+        if encoding is None:
+            assert enc is None, "Got empty encoding from {!r} expected {!r}".format(text, enc)
+            continue
+
+        enc_obj = codecs.lookup(encoding)
+
+        assert enc, enc_obj

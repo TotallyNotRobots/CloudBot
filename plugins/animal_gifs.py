@@ -18,12 +18,16 @@ DOG_PAGES = (
 def get_gifs(url):
     soup = get_soup(url)
     container = soup.find('div', class_="row")
-    gifs = [urljoin(url, elem["src"]) for elem in container.find_all('img')]
+    gifs = [urljoin(url, elem["data-src"]) for elem in container.find_all('img', {'data-src': True})]
     return gifs
 
 
 def get_random_gif(url):
-    return random.choice(get_gifs(url))
+    gifs = get_gifs(url)
+    if not gifs:
+        return "No GIFs found"
+
+    return random.choice(gifs)
 
 
 @hook.command(autohelp=False)
