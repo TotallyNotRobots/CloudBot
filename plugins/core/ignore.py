@@ -54,19 +54,25 @@ def remove_ignore(event, conn, chan, mask):
     load_cache(event)
 
 
-def is_ignored(conn, chan, mask):
+def is_ignored(conn, chan, mask, wild_match=True):
+    if wild_match:
+        _match = fnmatch
+    else:
+        def _match(a, b):
+            return a == b
+
     mask_cf = mask.casefold()
     for _conn, _chan, _mask in ignore_cache:
         _mask_cf = _mask.casefold()
         if _chan == "*":
             # this is a global ignore
-            if fnmatch(mask_cf, _mask_cf):
+            if _match(mask_cf, _mask_cf):
                 return True
         else:
             # this is a channel-specific ignore
             if not (conn, chan) == (_conn, _chan):
                 continue
-            if fnmatch(mask_cf, _mask_cf):
+            if _match(mask_cf, _mask_cf):
                 return True
 
 
@@ -119,7 +125,7 @@ def ignore(text, chan, conn, notice, admin_log, nick, event):
     """<nick|mask> -- ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, chan, target):
+    if is_ignored(conn.name, chan, target, False):
         notice("{} is already ignored in {}.".format(target, chan))
     else:
         admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
@@ -132,7 +138,7 @@ def unignore(text, chan, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, chan, target):
+    if not is_ignored(conn.name, chan, target, False):
         notice("{} is not ignored in {}.".format(target, chan))
     else:
         admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
@@ -145,7 +151,7 @@ def global_ignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, "*", target):
+    if is_ignored(conn.name, "*", target, False):
         notice("{} is already globally ignored.".format(target))
     else:
         notice("{} has been globally ignored.".format(target))
@@ -158,7 +164,7 @@ def global_unignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, "*", target):
+    if not is_ignored(conn.name, "*", target, False):
         notice("{} is not globally ignored.".format(target))
     else:
         notice("{} has been globally un-ignored.".format(target))
