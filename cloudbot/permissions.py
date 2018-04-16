@@ -7,7 +7,7 @@ from polymatch import pattern_registry
 class AbstractPermissionManager(ABC):
     def __init__(self, client):
         """
-        :type client: .client.Client
+        :type client: cloudbot.client.Client
         """
         self.client = client
 
@@ -54,7 +54,7 @@ class EventDataMatcher(ABC):
 
 class NickMatcher(EventDataMatcher):
     def match(self, event):
-        return self._pattern == event
+        return self._pattern == event.nick
 
 
 class PermissionGroup:
