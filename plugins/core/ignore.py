@@ -3,7 +3,9 @@ from fnmatch import fnmatch
 from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
 
 from cloudbot import hook
-from cloudbot.util import database
+from cloudbot.util import database, web
+from cloudbot.util.formatting import gen_markdown_table
+from cloudbot.util.web import FileTypes
 
 table = Table(
     "ignored",
@@ -108,7 +110,11 @@ def get_user(conn, text):
     return mask
 
 
-@hook.command(permissions=["ignore", "chanop"])
+global_ignore_perms = ["botcontrol"]
+channel_ignore_perms = global_ignore_perms + ["ignore", "chanop"]
+
+
+@hook.command(permissions=channel_ignore_perms)
 def ignore(text, chan, conn, notice, admin_log, nick, event):
     """<nick|mask> -- ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
@@ -121,7 +127,7 @@ def ignore(text, chan, conn, notice, admin_log, nick, event):
         add_ignore(event, conn.name, chan, target)
 
 
-@hook.command(permissions=["ignore", "chanop"])
+@hook.command(permissions=channel_ignore_perms)
 def unignore(text, chan, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
@@ -134,7 +140,7 @@ def unignore(text, chan, conn, notice, nick, admin_log, event):
         remove_ignore(event, conn.name, chan, target)
 
 
-@hook.command(permissions=["botcontrol"])
+@hook.command(permissions=global_ignore_perms)
 def global_ignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
@@ -147,7 +153,7 @@ def global_ignore(text, conn, notice, nick, admin_log, event):
         add_ignore(event, conn.name, "*", target)
 
 
-@hook.command(permissions=["botcontrol"])
+@hook.command(permissions=global_ignore_perms)
 def global_unignore(text, conn, notice, nick, admin_log, event):
     """<nick|mask> -- un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
@@ -158,3 +164,75 @@ def global_unignore(text, conn, notice, nick, admin_log, event):
         notice("{} has been globally un-ignored.".format(target))
         admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
         remove_ignore(event, conn.name, "*", target)
+
+
+def _markdown_escape(text):
+    return text.replace('*', '\\*')
+
+
+def _escape_values(values):
+    for value in values:
+        yield _markdown_escape(value)
+
+
+def paste_ignore_list(network=None, chan=None):
+    if network is None:
+        assert chan is None
+
+    ignores = [
+        _ignore for _ignore in ignore_cache
+        if (
+            (network is None or _ignore[0] == network) and
+            (chan is None or _ignore[1] == chan)
+        )
+    ]
+
+    if not ignores:
+        return "No results."
+
+    if network is None:  # Listing all ignores on this bot
+        headers = ["Network", "Channel", "Mask"]
+        header = "Bot-wide ignore list"
+    elif chan is None:  # Listing all ignores for this network
+        headers = ["Channel", "Mask"]
+        ignores = [_ignore[1:] for _ignore in ignores]
+        header = "Ignore list for {}".format(network)
+    else:
+        headers = ["Mask"]
+        ignores = [_ignore[2:] for _ignore in ignores]
+        if chan == "*":
+            header = "Global ignore list for {}".format(network)
+        else:
+            header = "Ignore list for {}".format(chan)
+
+    escaped_ignores = [
+        tuple(_escape_values(row))
+        for row in ignores
+    ]
+
+    out = gen_markdown_table(headers, escaped_ignores)
+    text = "## " + header + "\n" + out
+
+    return web.paste(text, FileTypes.MARKDOWN)
+
+
+@hook.command("listignores", autohelp=False, permissions=channel_ignore_perms)
+def list_ignores(conn, chan, text):
+    """[channel] - View the ignores list for [channel] or the current channel if none is specified"""
+    if text:
+        channel = text
+    else:
+        channel = chan
+
+    return paste_ignore_list(conn.name.casefold(), channel.casefold())
+
+
+@hook.command("listglobalignores", autohelp=False, permissions=global_ignore_perms + ["snoonetstaff"])
+def list_global_ignores(conn):
+    """- List all global ignores for this network"""
+    return paste_ignore_list(conn.name.casefold(), "*")
+
+
+@hook.command("listallignores", autohelp=False, permissions=global_ignore_perms)
+def list_all_ignores():
+    return paste_ignore_list()
