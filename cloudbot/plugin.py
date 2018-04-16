@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import inspect
 import logging
-import re
 import sys
 import time
 import warnings
@@ -109,7 +108,37 @@ class PluginManager:
         self.out_sieves = []
         self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
-        self._hook_waiting_queues = {}
+
+        self.hook_queue = asyncio.Queue()
+
+        self.running = False
+
+        self._worker = None
+
+    @asyncio.coroutine
+    def start(self):
+        self.running = True
+        self._worker = async_util.wrap_future(self.do_loop())
+
+    @asyncio.coroutine
+    def shutdown(self):
+        self.running = False
+        self.hook_queue.put_nowait(None)
+
+        if self._worker:
+            yield from self._worker
+
+    @asyncio.coroutine
+    def do_loop(self):
+        while self.bot.running:
+            task = yield from self.hook_queue.get()
+            if task is None:
+                continue
+
+            _hook, event = task
+            async_util.wrap_future(self.launch(_hook, event))
+            self.hook_queue.task_done()
+            yield from asyncio.sleep(0)
 
     def find_plugin(self, title):
         """
@@ -361,14 +390,14 @@ class PluginManager:
             yield from asyncio.sleep(interval)
 
     @asyncio.coroutine
-    def launch(self, hook, event):
+    def launch_with_sieves(self, hook, event):
         """
         Dispatch a given event to a given hook using a given bot object.
 
         Returns False if the hook didn't run successfully, and True if it ran successfully.
 
         :type event: cloudbot.event.Event
-        :type hook: cloudbot.plugin.Hook
+        :type hook: cloudbot.hooks.full.Hook
         :rtype: bool
         """
 
@@ -382,42 +411,28 @@ class PluginManager:
                 if event is None:
                     return False
 
+        return (yield from self._execute_hook(hook, event))
+
+    @asyncio.coroutine
+    def launch(self, hook, event):
+        """
+        Dispatch a given event to a given hook using a given bot object.
+
+        Returns False if the hook didn't run successfully, and True if it ran successfully.
+
+        :type event: cloudbot.event.Event
+        :type hook: cloudbot.hooks.full.Hook
+        :rtype: bool
+        """
+
         if hook.single_thread:
             # There should only be one running instance of this hook, so let's wait for the last event to be processed
             # before starting this one.
-
-            key = (hook.plugin.title, hook.function_name)
-            if key in self._hook_waiting_queues:
-                queue = self._hook_waiting_queues[key]
-                if queue is None:
-                    # there's a hook running, but the queue hasn't been created yet, since there's only one hook
-                    queue = asyncio.Queue()
-                    self._hook_waiting_queues[key] = queue
-                assert isinstance(queue, asyncio.Queue)
-                # create a future to represent this task
-                future = async_util.create_future(self.bot.loop)
-                queue.put_nowait(future)
-                # wait until the last task is completed
-                yield from future
-            else:
-                # set to None to signify that this hook is running, but there's no need to create a full queue
-                # in case there are no more hooks that will wait
-                self._hook_waiting_queues[key] = None
-
-            # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
-
-            queue = self._hook_waiting_queues[key]
-            if queue is None or queue.empty():
-                # We're the last task in the queue, we can delete it now.
-                del self._hook_waiting_queues[key]
-            else:
-                # set the result for the next task's future, so they can execute
-                next_future = yield from queue.get()
-                next_future.set_result(None)
+            with (yield from hook.lock):
+                result = yield from self.launch_with_sieves(hook, event)
         else:
             # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
+            result = yield from self.launch_with_sieves(hook, event)
 
         # Return the result
         return result
@@ -478,296 +493,3 @@ class Plugin:
 
             for table in self.tables:
                 bot.db_metadata.remove(table)
-
-
-class Hook:
-    """
-    Each hook is specific to one function. This class is never used by itself, rather extended.
-
-    :type type; str
-    :type plugin: Plugin
-    :type function: callable
-    :type function_name: str
-    :type required_args: list[str]
-    :type threaded: bool
-    :type permissions: list[str]
-    :type single_thread: bool
-    """
-
-    def __init__(self, _type, plugin, func_hook):
-        """
-        :type _type: str
-        :type plugin: Plugin
-        :type func_hook: hook._Hook
-        """
-        self.type = _type
-        self.plugin = plugin
-        self.function = func_hook.function
-        self.function_name = self.function.__name__
-
-        sig = inspect.signature(self.function)
-
-        # don't process args starting with "_"
-        self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
-        if sys.version_info < (3, 7, 0):
-            if "async" in self.required_args:
-                logger.warning("Use of deprecated function 'async' in %s", self.description)
-                time.sleep(1)
-                warnings.warn(
-                    "event.async() is deprecated, use event.async_call() instead.",
-                    DeprecationWarning, stacklevel=2
-                )
-
-        if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
-            self.threaded = False
-        else:
-            self.threaded = True
-
-        self.permissions = func_hook.kwargs.pop("permissions", [])
-        self.single_thread = func_hook.kwargs.pop("singlethread", False)
-        self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
-        self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
-
-        clients = func_hook.kwargs.pop("clients", [])
-
-        if isinstance(clients, str):
-            clients = [clients]
-
-        self.clients = clients
-
-        if func_hook.kwargs:
-            # we should have popped all the args, so warn if there are any left
-            logger.warning("Ignoring extra args {} from {}".format(func_hook.kwargs, self.description))
-
-    @property
-    def description(self):
-        return "{}:{}".format(self.plugin.title, self.function_name)
-
-    def __repr__(self):
-        return "type: {}, plugin: {}, permissions: {}, single_thread: {}, threaded: {}".format(
-            self.type, self.plugin.title, self.permissions, self.single_thread, self.threaded
-        )
-
-
-class CommandHook(Hook):
-    """
-    :type name: str
-    :type aliases: list[str]
-    :type doc: str
-    :type auto_help: bool
-    """
-
-    def __init__(self, plugin, cmd_hook):
-        """
-        :type plugin: Plugin
-        :type cmd_hook: cloudbot.util.hook._CommandHook
-        """
-        self.auto_help = cmd_hook.kwargs.pop("autohelp", True)
-
-        self.name = cmd_hook.main_alias.lower()
-        self.aliases = [alias.lower() for alias in cmd_hook.aliases]  # turn the set into a list
-        self.aliases.remove(self.name)
-        self.aliases.insert(0, self.name)  # make sure the name, or 'main alias' is in position 0
-        self.doc = cmd_hook.doc
-
-        super().__init__("command", plugin, cmd_hook)
-
-    def __repr__(self):
-        return "Command[name: {}, aliases: {}, {}]".format(self.name, self.aliases[1:], Hook.__repr__(self))
-
-    def __str__(self):
-        return "command {} from {}".format("/".join(self.aliases), self.plugin.file_name)
-
-
-class RegexHook(Hook):
-    """
-    :type regexes: set[re.__Regex]
-    """
-
-    def __init__(self, plugin, regex_hook):
-        """
-        :type plugin: Plugin
-        :type regex_hook: cloudbot.util.hook._RegexHook
-        """
-        self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
-        self.only_no_match = regex_hook.kwargs.pop("only_no_match", False)
-
-        self.regexes = regex_hook.regexes
-
-        super().__init__("regex", plugin, regex_hook)
-
-    def __repr__(self):
-        return "Regex[regexes: [{}], {}]".format(", ".join(regex.pattern for regex in self.regexes),
-                                                 Hook.__repr__(self))
-
-    def __str__(self):
-        return "regex {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PeriodicHook(Hook):
-    """
-    :type interval: int
-    """
-
-    def __init__(self, plugin, periodic_hook):
-        """
-        :type plugin: Plugin
-        :type periodic_hook: cloudbot.util.hook._PeriodicHook
-        """
-
-        self.interval = periodic_hook.interval
-        self.initial_interval = periodic_hook.kwargs.pop("initial_interval", self.interval)
-
-        super().__init__("periodic", plugin, periodic_hook)
-
-    def __repr__(self):
-        return "Periodic[interval: [{}], {}]".format(self.interval, Hook.__repr__(self))
-
-    def __str__(self):
-        return "periodic hook ({} seconds) {} from {}".format(self.interval, self.function_name, self.plugin.file_name)
-
-
-class RawHook(Hook):
-    """
-    :type triggers: set[str]
-    """
-
-    def __init__(self, plugin, irc_raw_hook):
-        """
-        :type plugin: Plugin
-        :type irc_raw_hook: cloudbot.util.hook._RawHook
-        """
-        super().__init__("irc_raw", plugin, irc_raw_hook)
-
-        self.triggers = irc_raw_hook.triggers
-
-    def is_catch_all(self):
-        return "*" in self.triggers
-
-    def __repr__(self):
-        return "Raw[triggers: {}, {}]".format(list(self.triggers), Hook.__repr__(self))
-
-    def __str__(self):
-        return "irc raw {} ({}) from {}".format(self.function_name, ",".join(self.triggers), self.plugin.file_name)
-
-
-class SieveHook(Hook):
-    def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._SieveHook
-        """
-        super().__init__("sieve", plugin, sieve_hook)
-
-    def __repr__(self):
-        return "Sieve[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "sieve {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class EventHook(Hook):
-    """
-    :type types: set[cloudbot.event.EventType]
-    """
-
-    def __init__(self, plugin, event_hook):
-        """
-        :type plugin: Plugin
-        :type event_hook: cloudbot.util.hook._EventHook
-        """
-        super().__init__("event", plugin, event_hook)
-
-        self.types = event_hook.types
-
-    def __repr__(self):
-        return "Event[types: {}, {}]".format(list(self.types), Hook.__repr__(self))
-
-    def __str__(self):
-        return "event {} ({}) from {}".format(self.function_name, ",".join(str(t) for t in self.types),
-                                              self.plugin.file_name)
-
-
-class OnStartHook(Hook):
-    def __init__(self, plugin, on_start_hook):
-        """
-        :type plugin: Plugin
-        :type on_start_hook: cloudbot.util.hook._On_startHook
-        """
-        super().__init__("on_start", plugin, on_start_hook)
-
-    def __repr__(self):
-        return "On_start[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "on_start {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class OnStopHook(Hook):
-    def __init__(self, plugin, on_stop_hook):
-        super().__init__("on_stop", plugin, on_stop_hook)
-
-    def __repr__(self):
-        return "On_stop[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "on_stop {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class CapHook(Hook):
-    def __init__(self, _type, plugin, base_hook):
-        self.caps = base_hook.caps
-        super().__init__("on_cap_{}".format(_type), plugin, base_hook)
-
-    def __repr__(self):
-        return "{name}[{caps} {base!r}]".format(name=self.type, caps=self.caps, base=super())
-
-    def __str__(self):
-        return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
-
-
-class OnCapAvaliableHook(CapHook):
-    def __init__(self, plugin, base_hook):
-        super().__init__("available", plugin, base_hook)
-
-
-class OnCapAckHook(CapHook):
-    def __init__(self, plugin, base_hook):
-        super().__init__("ack", plugin, base_hook)
-
-
-class OnConnectHook(Hook):
-    def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._Hook
-        """
-        super().__init__("on_connect", plugin, sieve_hook)
-
-    def __repr__(self):
-        return "{name}[{base!r}]".format(name=self.type, base=super())
-
-    def __str__(self):
-        return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
-
-
-class IrcOutHook(Hook):
-    def __init__(self, plugin, out_hook):
-        super().__init__("irc_out", plugin, out_hook)
-
-    def __repr__(self):
-        return "Irc_Out[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PostHookHook(Hook):
-    def __init__(self, plugin, out_hook):
-        super().__init__("post_hook", plugin, out_hook)
-
-    def __repr__(self):
-        return "Post_hook[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)

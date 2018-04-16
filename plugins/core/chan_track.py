@@ -4,20 +4,16 @@ Track channel ops for permissions checks
 Requires:
 server_info.py
 """
-import gc
+import asyncio
+import warnings
 import weakref
-from collections import Mapping
-from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
 from cloudbot import hook
 from cloudbot.clients.irc.parser import Prefix
 
-
-class WeakDict(dict):
-    # Subclass dict to allow it to be weakly referenced
-    pass
+lock = asyncio.Lock()
 
 
 class KeyFoldMixin:
@@ -33,14 +29,50 @@ class KeyFoldMixin:
     def __delitem__(self, key):
         return super().__delitem__(key.casefold())
 
-    def pop(self, key, *args, **kwargs):
-        return super().pop(key.casefold(), *args, **kwargs)
+    def pop(self, key, *args):
+        try:
+            o = self[key]
+        except KeyError as e:
+            if args:
+                return args[0]
+
+            raise e
+        else:
+            del self[key]
+            return o
 
     def get(self, key, default=None):
-        return super().get(key, default)
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def setdefault(self, key, default=None):
-        return super().setdefault(key, default)
+        try:
+            return self[key]
+        except KeyError:
+            self[key] = default
+            return default
+
+    def update(*args, **kwargs):
+        if not args:
+            raise TypeError("'update' method missing 'self' parameter")
+
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError("At most 1 positional argument expected")
+
+        if args:
+            d = args[0]
+            if hasattr(d, 'keys'):
+                for k in d:
+                    self[k] = d[k]
+            else:
+                for k, v in d:
+                    self[k] = v
+
+        if kwargs:
+            self.update(kwargs)
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
@@ -53,25 +85,219 @@ class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
 
 class ChanDict(KeyFoldDict):
     def getchan(self, name):
+        """
+        :type name: str
+        :rtype: Channel
+        """
         try:
             return self[name]
         except KeyError:
-            self[name] = value = WeakDict(name=name, users=KeyFoldDict())
+            self[name] = value = Channel(name)
             return value
 
 
 class UsersDict(KeyFoldWeakValueDict):
-    def getuser(self, nick):
+    def getuser(self, nick, user=None, host=None):
+        """
+        :type nick: str
+        :type user: str
+        :type host: str
+        :rtype: User
+        """
         try:
             return self[nick]
         except KeyError:
-            self[nick] = value = WeakDict(nick=nick, channels=KeyFoldWeakValueDict())
+            self[nick] = value = User(nick, user, host)
             return value
+
+    def merge_user(self, new_user):
+        """
+        :type new_user: User
+        :rtype: User
+        """
+        try:
+            old_user = self[new_user.nick]
+        except KeyError:
+            self[new_user.nick] = new_user
+            return new_user
+
+        if new_user.ident is not None:
+            old_user.ident = new_user.ident
+
+        if new_user.host is not None:
+            old_user.host = new_user.host
+
+        old_user.data.update(new_user.data)
+
+        return old_user
+
+
+class BaseData:
+    def __init__(self):
+        self.data = {}
+
+    def __getitem__(self, item):
+        warnings.warn(
+            "Access to data fields via __getitem__ has been deprecated inb favor of accessing the .data attribute",
+            DeprecationWarning
+        )
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            return self.data[item]
+
+    def __setitem__(self, key, value):
+        warnings.warn(
+            "Access to data fields via __setitem__ has been deprecated inb favor of accessing the .data attribute",
+            DeprecationWarning
+        )
+        if hasattr(self, key):
+            setattr(self, key, value)
+        else:
+            self.data[key] = value
+
+
+class User(BaseData):
+    """
+    :type nick: str
+    :type ident: str | None
+    :type host: str | None
+    :type channels: dict[str, ChannelMember]
+    """
+
+    def __init__(self, nick, ident=None, host=None):
+        super().__init__()
+
+        self.nick = nick
+        self.ident = ident
+        self.host = host
+        self.channels = KeyFoldWeakValueDict()
+
+        self.is_away = False
+        self.away_message = None
+
+        self.is_oper = False
+
+        self.realname = None
+
+        self.server = None
+
+        self._account = None
+
+    @property
+    def account(self):
+        return self._account
+
+    @account.setter
+    def account(self, value):
+        if value == "*":
+            self._account = None
+        else:
+            self._account = value
+
+    @property
+    def mask(self):
+        out = self.nick
+        if self.ident is not None:
+            out += '!' + self.ident
+
+        if self.host is not None:
+            out += '@' + self.host
+
+        return out
+
+    def add_channel(self, chan):
+        """
+        :type chan: Channel
+        :rtype: ChannelMember
+        """
+        return chan.add_user(self)
+
+
+class Channel(BaseData):
+    """
+    :type name: str
+    :type users: dict[str, ChannelMember]
+    """
+
+    def __init__(self, name):
+        super().__init__()
+
+        self.name = name
+        self.users = KeyFoldDict()
+
+        self.receiving_names = False
+
+    def get_member(self, name):
+        """
+        :type name: str
+        :rtype: ChannelMember
+        """
+        return self.users[name]
+
+    def add_user(self, user):
+        """
+        :type user: User
+        :rtype: ChannelMember
+        """
+        member = ChannelMember(user, self)
+        self.users[user.nick] = member
+        user.channels[self.name] = member
+        return member
+
+
+class ChannelMember(BaseData):
+    """
+    :type user: User
+    :type channel: Channel
+    :type status: list[plugins.core.server_info.Status]
+    """
+
+    def __init__(self, user, channel):
+        super().__init__()
+
+        self.user = user
+        self.channel = weakref.proxy(channel)
+        self.status = []
+
+
+def get_users(conn):
+    """
+    :type conn: cloudbot.client.Client
+    :rtype: UsersDict
+    """
+    return conn.memory["users"]
+
+
+def get_user(conn, name):
+    """
+    :type conn: cloudbot.client.Client
+    :type name: str
+    :rtype: User
+    """
+    return get_users(conn)[name]
+
+
+def get_channels(conn):
+    """
+    :type conn: cloudbot.client.Client
+    :rtype: ChanDict
+    """
+    return conn.memory["chan_data"]
+
+
+def get_channel(conn, name):
+    """
+    :type conn: cloudbot.client.Client
+    :type name: str
+    :rtype: Channel
+    """
+    return get_channels(conn)[name]
 
 
 def update_chan_data(conn, chan):
-    chan_data = conn.memory["chan_data"].getchan(chan)
-    chan_data["receiving_names"] = False
+    chan_data = get_channels(conn).getchan(chan)
+    chan_data.data["receiving_names"] = False
     conn.cmd("NAMES", chan)
 
 
@@ -115,34 +341,6 @@ def get_chan_data(bot):
             update_conn_data(conn)
 
 
-def clean_user_data(user):
-    for memb in user.get("channels", {}).values():
-        status = list(set(memb.get("status", [])))
-        status.sort(key=attrgetter("level"), reverse=True)
-        memb["status"] = status
-
-
-def clean_chan_data(chan):
-    with suppress(KeyError):
-        del chan["new_users"]
-
-    with suppress(KeyError):
-        del chan["receiving_names"]
-
-
-def clean_conn_data(conn):
-    for user in conn.memory.get("users", {}).values():
-        clean_user_data(user)
-
-    for chan in conn.memory.get("chan_data", {}).values():
-        clean_chan_data(chan)
-
-
-def clean_data(bot):
-    for conn in bot.connections.values():
-        clean_conn_data(conn)
-
-
 @hook.connect(clients='irc')
 def init_chan_data(conn, _clear=True):
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
@@ -160,20 +358,39 @@ def init_chan_data(conn, _clear=True):
 
 
 def add_user_membership(user, chan, membership):
-    user["channels"][chan] = membership
+    """
+    :type user: User
+    :type chan: Channel
+    :type membership: ChannelMember
+    """
+    user.channels[chan] = membership
+
+
+def get_conn_statuses(conn):
+    """
+    :type conn: cloudbot.client.Client
+    :rtype: dict[str, plugins.core.server_info.Status]
+    """
+    return {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
 
 
 def replace_user_data(conn, chan_data):
-    statuses = {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
-    users = conn.memory["users"]
-    old_users = chan_data["users"]
-    new_data = chan_data.pop("new_users", [])
-    new_users = KeyFoldDict()
+    """
+    :type conn: cloudbot.client.Client
+    :type chan_data: Channel
+    """
+    statuses = get_conn_statuses(conn)
+    global_users = get_users(conn)
+
+    # Remove and store the old user data
+    old_members = chan_data.users.copy()
+    chan_data.users.clear()
+
+    names_data = chan_data.data.pop("new_users", [])
     has_uh_i_n = is_cap_enabled(conn, "userhost-in-names")
     has_multi_pfx = is_cap_enabled(conn, "multi-prefix")
-    for name in new_data:
-        user_data = WeakDict(channels=KeyFoldWeakValueDict())
-        memb_data = WeakDict(user=user_data, chan=weakref.proxy(chan_data))
+
+    for name in names_data:
         user_statuses = []
         while name[:1] in statuses:
             status, name = name[:1], name[1:]
@@ -185,44 +402,40 @@ def replace_user_data(conn, chan_data):
         user_statuses.sort(key=attrgetter("level"), reverse=True)
         # At this point, user_status[0] will the the Status object representing the highest status the user has
         # in the channel
-        memb_data["status"] = user_statuses
 
         if has_uh_i_n:
             pfx = Prefix.parse(name)
-            user_data.update(nick=pfx.nick, ident=pfx.user, host=pfx.host)
+            user = User(pfx.nick, pfx.user, pfx.host)
         else:
-            user_data["nick"] = name
+            user = User(name)
 
-        nick = user_data["nick"]
-        new_users[nick] = memb_data
-        if nick in old_users:
-            old_data = old_users[nick]  # Old membership object
-            old_data.update(memb_data)  # New data takes priority over old data
-            memb_data.update(old_data)
+        user = global_users.merge_user(user)
 
-        old_user_data = users.getuser(nick)
-        user_data["channels"] = old_user_data["channels"]
-        add_user_membership(user_data, chan_data["name"], memb_data)
-        old_user_data.update(user_data)
-        user_data = old_user_data
-        memb_data["user"] = user_data
+        member = user.add_channel(chan_data)
 
-    old_users.clear()
-    old_users.update(new_users)  # Reassigning the dict would break other references to the data, so just update instead
+        member.status.clear()
+        member.status.extend(user_statuses)
+
+        try:
+            old_data = old_members[user.nick]
+        except KeyError:
+            pass
+        else:
+            member.data.update(old_data.data)
 
 
-@hook.irc_raw(['353', '366'], singlethread=True)
+@hook.irc_raw(['353', '366'], singlethread=True, lock=lock)
 def on_names(conn, irc_paramlist, irc_command):
     chan = irc_paramlist[2 if irc_command == '353' else 1]
-    chan_data = conn.memory["chan_data"].getchan(chan)
+    chan_data = get_channels(conn).getchan(chan)
     if irc_command == '366':
-        chan_data["receiving_names"] = False
+        chan_data.receiving_names = False
         replace_user_data(conn, chan_data)
         return
 
-    users = chan_data.setdefault("new_users", [])
-    if not chan_data.get("receiving_names"):
-        chan_data["receiving_names"] = True
+    users = chan_data.data.setdefault("new_users", [])
+    if not chan_data.receiving_names:
+        chan_data.receiving_names = True
         users.clear()
 
     names = irc_paramlist[-1]
@@ -232,23 +445,7 @@ def on_names(conn, irc_paramlist, irc_command):
     users.extend(names.split())
 
 
-def dump_dict(data, indent=2, level=0, _objects=None):
-    if _objects is None:
-        _objects = [id(data)]
-
-    for key, value in data.items():
-        yield ((" " * (indent * level)) + "{}:".format(key))
-        if id(value) in _objects:
-            yield ((" " * (indent * (level + 1))) + "[...]")
-        elif isinstance(value, Mapping):
-            _objects.append(id(value))
-            yield from dump_dict(value, indent=indent, level=level + 1, _objects=_objects)
-        else:
-            _objects.append(id(value))
-            yield ((" " * (indent * (level + 1))) + "{}".format(value))
-
-
-@hook.permission("chanop", clients='irc')
+@hook.permission("chanop", singlethread=True, lock=lock)
 def perm_check(chan, conn, nick):
     if not (chan and conn):
         return False
@@ -271,93 +468,49 @@ def perm_check(chan, conn, nick):
     return False
 
 
-@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
-def dumpchans(conn):
-    """- Dumps all stored channel data for this connection to the console"""
-    data = conn.memory["chan_data"]
-    lines = list(dump_dict(data))
-    print('\n'.join(lines))
-    return "Printed {} channel records totalling {} lines of data to the console.".format(len(data), len(lines))
-
-
-@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
-def dumpusers(conn):
-    """- Dumps all stored user data for this connection to the console"""
-    data = conn.memory["users"]
-    lines = list(dump_dict(data))
-    print('\n'.join(lines))
-    return "Printed {} user records totalling {} lines of data to the console.".format(len(data), len(lines))
-
-
-@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
-def updateusers(bot):
-    """- Forces an update of all /NAMES data for all channels"""
-    get_chan_data(bot)
-    return "Updating all channel data"
-
-
-@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
-def cleanusers(bot):
-    clean_data(bot)
-    gc.collect()
-    return "Data cleaned."
-
-
-@hook.command(permissions=["botcontrol"], autohelp=False, clients='irc')
-def clearusers(bot):
-    init_chan_data(bot, True)
-    gc.collect()
-    return "Data cleared."
-
-
-@hook.irc_raw('JOIN')
+@hook.irc_raw('JOIN', singlethread=True, lock=lock)
 def on_join(nick, user, host, conn, irc_paramlist):
     chan, *other_data = irc_paramlist
 
     if chan.startswith(':'):
         chan = chan[1:]
 
-    data = {'ident': user, 'host': host}
+    users = get_users(conn)
+    user = users.getuser(nick, user, host)
+
+    chans = get_channels(conn)
+    chan_data = chans.getchan(chan)
+
+    user.add_channel(chan_data)
 
     if is_cap_enabled(conn, "extended-join") and other_data:
         acct, realname = other_data
         if acct == "*":
             acct = None
 
-        data.update(account=acct, realname=realname)
-
-    users = conn.memory['users']
-
-    user_data = users.getuser(nick)
-    user_data.update(data)
-
-    chan_data = conn.memory["chan_data"].getchan(chan)
-    memb_data = WeakDict(chan=weakref.proxy(chan_data), user=user_data, status=[])
-    chan_data["users"][nick] = memb_data
-    add_user_membership(user_data, chan, memb_data)
+        user.data.update(account=acct, realname=realname)
 
 
-@hook.irc_raw('MODE')
+@hook.irc_raw('MODE', singlethread=True, lock=lock)
 def on_mode(chan, irc_paramlist, conn):
     if chan.startswith(':'):
         chan = chan[1:]
+
+    try:
+        chan_data = get_channel(conn, chan)
+    except KeyError:
+        return
 
     serv_info = conn.memory["server_info"]
     statuses = serv_info["statuses"]
     status_modes = {status.mode for status in statuses.values()}
     mode_types = serv_info["channel_modes"]
-    chans = conn.memory["chan_data"]
 
-    try:
-        chan_data = chans[chan]
-    except KeyError:
-        return
-
-    chan_users = chan_data["users"]
     modes = irc_paramlist[1]
     mode_params = irc_paramlist[2:]
     new_modes = {}
     adding = True
+
     for c in modes:
         if c == '+':
             adding = True
@@ -376,9 +529,15 @@ def on_mode(chan, irc_paramlist, conn):
                 param = mode_params.pop(0)
 
                 if is_status:
-                    memb = chan_users[param]
+                    member = chan_data.get_member(param)
+                    # memb = chan_users[param]
                     status = statuses[c]
-                    memb_status = memb["status"]
+                    memb_status = member.status
+                    if adding == (status in memb_status):
+                        raise ValueError("Attempted to add status {!r} to {!r} in {!r}".format(
+                            status, param, chan
+                        ))
+
                     if adding:
                         memb_status.append(status)
                         memb_status.sort(key=attrgetter("level"), reverse=True)
@@ -386,12 +545,12 @@ def on_mode(chan, irc_paramlist, conn):
                         memb_status.remove(status)
 
 
-@hook.irc_raw('PART')
+@hook.irc_raw('PART', singlethread=True, lock=lock)
 def on_part(chan, nick, conn):
     if chan.startswith(':'):
         chan = chan[1:]
 
-    channels = conn.memory["chan_data"]
+    channels = get_channels(conn)
     if nick.casefold() == conn.nick.casefold():
         del channels[chan]
     else:
@@ -399,100 +558,110 @@ def on_part(chan, nick, conn):
         del chan_data["users"][nick]
 
 
-@hook.irc_raw('KICK')
+@hook.irc_raw('KICK', singlethread=True, lock=lock)
 def on_kick(chan, target, conn):
     on_part(chan, target, conn)
 
 
-@hook.irc_raw('QUIT')
+@hook.irc_raw('QUIT', singlethread=True, lock=lock)
 def on_quit(nick, conn):
-    users = conn.memory["users"]
-    if nick in users:
-        user = users[nick]
-        for memb in user.get("channels", {}).values():
-            chan = memb["chan"]
-            del chan["users"][nick]
+    user = get_user(conn, nick)
+    for memb in user.channels.values():
+        chan = memb.channel
+        del chan.users[nick]
 
 
-@hook.irc_raw('NICK')
+@hook.irc_raw('NICK', singlethread=True, lock=lock)
 def on_nick(nick, irc_paramlist, conn):
-    users = conn.memory["users"]
+    users = get_users(conn)
     new_nick = irc_paramlist[0]
     if new_nick.startswith(':'):
         new_nick = new_nick[1:]
 
     user = users.pop(nick)
     users[new_nick] = user
-    user["nick"] = new_nick
-    for memb in user.get("channels", {}).values():
-        chan_users = memb["chan"]["users"]
+    user.nick = new_nick
+
+    for memb in user.channels.values():
+        chan_users = memb.channel.users
         chan_users[new_nick] = chan_users.pop(nick)
 
 
-@hook.irc_raw('ACCOUNT')
+@hook.irc_raw('ACCOUNT', singlethread=True, lock=lock)
 def on_account(conn, nick, irc_paramlist):
-    conn.memory["users"][nick]["account"] = irc_paramlist[0]
+    get_user(conn, nick).account = irc_paramlist[0]
 
 
-@hook.irc_raw('CHGHOST')
+@hook.irc_raw('CHGHOST', singlethread=True, lock=lock)
 def on_chghost(conn, nick, irc_paramlist):
     ident, host = irc_paramlist
-    conn.memory["users"][nick].update(ident=ident, host=host)
+    user = get_user(conn, nick)
+    user.ident = ident
+    user.host = host
 
 
-@hook.irc_raw('AWAY')
+@hook.irc_raw('AWAY', singlethread=True, lock=lock)
 def on_away(conn, nick, irc_paramlist):
     if irc_paramlist:
         reason = irc_paramlist[0]
     else:
         reason = None
 
-    conn.memory["users"][nick].update(is_away=(reason is not None), away_message=reason)
+    user = get_user(conn, nick)
+    user.is_away = bool(reason)
+    user.away_message = reason or None
 
 
-@hook.irc_raw('352')
+@hook.irc_raw('352', singlethread=True, lock=lock)
 def on_who(conn, irc_paramlist):
     _, _, ident, host, server, nick, status, realname = irc_paramlist
     realname = realname.split(None, 1)[1]
-    user = conn.memory["users"][nick]
+    user = get_user(conn, nick)
     status = list(status)
     is_away = status.pop(0) == "G"
     is_oper = status[:1] == "*"
-    user.update(
-        ident=ident,
-        host=host,
-        server=server,
-        realname=realname,
-        is_away=is_away,
-        is_oper=is_oper,
-    )
+
+    user.ident = ident
+    user.host = host
+
+    user.server = server
+
+    user.realname = realname
+
+    user.is_away = is_away
+    user.is_oper = is_oper
 
 
-@hook.irc_raw('311')
+@hook.irc_raw('311', singlethread=True, lock=lock)
 def on_whois_name(conn, irc_paramlist):
     _, nick, ident, host, _, realname = irc_paramlist
-    conn.memory["users"][nick].update(ident=ident, host=host, realname=realname)
+    user = get_user(conn, nick)
+    user.ident = ident
+    user.host = host
+    user.realname = realname
 
 
-@hook.irc_raw('330')
+@hook.irc_raw('330', singlethread=True, lock=lock)
 def on_whois_acct(conn, irc_paramlist):
     _, nick, acct = irc_paramlist[:2]
-    conn.memory["users"][nick]["account"] = acct
+    get_user(conn, nick).account = acct
 
 
-@hook.irc_raw('301')
+@hook.irc_raw('301', singlethread=True, lock=lock)
 def on_whois_away(conn, irc_paramlist):
     _, nick, msg = irc_paramlist
-    conn.memory["users"][nick].update(is_away=True, away_message=msg)
+    user = get_user(conn, nick)
+    user.is_away = True
+    user.away_message = msg
 
 
-@hook.irc_raw('312')
+@hook.irc_raw('312', singlethread=True, lock=lock)
 def on_whois_server(conn, irc_paramlist):
     _, nick, server, _ = irc_paramlist
-    conn.memory["users"][nick].update(server=server)
+    get_user(conn, nick).server = server
 
 
-@hook.irc_raw('313')
+@hook.irc_raw('313', singlethread=True, lock=lock)
 def on_whois_oper(conn, irc_paramlist):
     nick = irc_paramlist[1]
-    conn.memory["users"][nick].update(is_oper=True)
+    get_user(conn, nick).is_oper = True

@@ -57,6 +57,11 @@ class Hook(ABC):
         self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
         self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
 
+        if self.single_thread:
+            self.lock = func_hook.kwargs.pop("lock", asyncio.Lock())
+        else:
+            self.lock = None
+
         clients = func_hook.kwargs.pop("clients", [])
 
         if isinstance(clients, str):
