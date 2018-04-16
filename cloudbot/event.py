@@ -1,8 +1,6 @@
 import asyncio
 import enum
 import logging
-import sys
-import warnings
 from functools import partial
 
 from cloudbot.clients.irc.parser import Message
@@ -312,24 +310,6 @@ class Event:
             return getattr(self, item)
         except AttributeError:
             raise KeyError(item)
-
-    if sys.version_info < (3, 7, 0):
-        # noinspection PyCompatibility
-        @asyncio.coroutine
-        def async_(self, func, *args, **kwargs):
-            warnings.warn(
-                "event.async() is deprecated, use event.async_call() instead.",
-                DeprecationWarning, stacklevel=2
-            )
-            result = yield from self.async_call(func, *args, **kwargs)
-            return result
-
-
-# Silence deprecation warnings about use of the 'async' name as a function
-try:
-    setattr(Event, 'async', getattr(Event, 'async_'))
-except AttributeError:
-    pass
 
 
 class CommandEvent(Event):

@@ -1,8 +1,5 @@
 import asyncio
-import inspect
 import logging
-import sys
-import warnings
 from abc import abstractmethod, ABC
 
 from cloudbot.hooks.actions import Action
@@ -35,17 +32,6 @@ class Hook(ABC):
         self.plugin = plugin
         self.function = func_hook.function
         self.function_name = self.function.__name__
-
-        sig = inspect.signature(self.function)
-
-        # don't process args starting with "_"
-        if sys.version_info < (3, 7, 0):
-            if "async" in sig.parameters:
-                logger.warning("Use of deprecated function 'async' in %s", self.description)
-                warnings.warn(
-                    "event.async() is deprecated, use event.async_call() instead.",
-                    DeprecationWarning, stacklevel=2
-                )
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
             self.threaded = False

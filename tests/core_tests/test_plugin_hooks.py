@@ -12,8 +12,9 @@ from pathlib import Path
 from sqlalchemy import MetaData
 
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
-from cloudbot.hook import Action
-from cloudbot.plugin import Plugin, Hook
+from cloudbot.hooks.actions import Action
+from cloudbot.hooks.full import Hook
+from cloudbot.plugin import Plugin
 from cloudbot.util import database
 from cloudbot.util.func_utils import populate_args
 
@@ -117,10 +118,8 @@ def test_hook_doc(hook):
 
 
 def test_hook_args(hook):
-    assert 'async' not in hook.required_args, "Use of deprecated function Event.async"
-
     bot = MockBot()
-    if hook.type in ("irc_raw", "perm_check", "periodic", "on_start", "on_stop", "event", "on_connect"):
+    if hook.type in ("irc_raw", "perm_check", "periodic", "on_start", "on_stop", "event", "on_connect", "sieve"):
         event = Event(bot=bot)
     elif hook.type == "command":
         event = CommandEvent(bot=bot, hook=hook, text="", triggered_command="", cmd_prefix='.')
@@ -132,8 +131,6 @@ def test_hook_args(hook):
         event = PostHookEvent(bot=bot)
     elif hook.type == "irc_out":
         event = IrcOutEvent(bot=bot)
-    elif hook.type == "sieve":
-        return
     else:
         assert False, "Unhandled hook type '{}' in tests".format(hook.type)
 
