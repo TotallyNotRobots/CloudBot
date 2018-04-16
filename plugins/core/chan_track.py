@@ -12,6 +12,7 @@ from weakref import WeakValueDictionary
 
 from cloudbot import hook
 from cloudbot.clients.irc.parser import Prefix
+from cloudbot.util import formatting
 
 lock = asyncio.Lock()
 
@@ -327,7 +328,7 @@ def is_cap_enabled(conn, cap):
     except LookupError:
         return False
 
-    return cap in caps.enabled
+    return caps.is_cap_enabled(cap)
 
 
 @hook.on_start
@@ -665,3 +666,15 @@ def on_whois_server(conn, irc_paramlist):
 def on_whois_oper(conn, irc_paramlist):
     nick = irc_paramlist[1]
     get_user(conn, nick).is_oper = True
+
+
+@hook.command("listchannelusers", singlethread=True, lock=lock)
+def list_channel_users(conn, chan):
+    def _format_user(user):
+        return user.nick[:1] + "\u200b" + user.nick[1:]
+
+    nicks = [
+        _format_user(member.user)
+        for member in get_channel(conn, chan).users.values()
+    ]
+    return formatting.get_text_list(nicks, 'and')
