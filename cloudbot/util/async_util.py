@@ -2,62 +2,43 @@
 Wraps various asyncio functions
 """
 
-import asyncio
-import sys
-from functools import partial
+import asyncio as _asyncio
 
-from .func_utils import call_with_args
+from .compat import asyncio as _asyncio_compat
+from .func_utils import call_with_args as _call_with_args
 
+_asyncio_isfuture = _asyncio.isfuture
+_asyncio_iscoroutine = _asyncio.iscoroutine
+_asyncio_iscoroutinefunction = _asyncio.iscoroutinefunction
 
-def wrap_future(fut, *, loop=None):
-    """
-    Wraps asyncio.async()/asyncio.ensure_future() depending on the python version
-    :param fut: The awaitable, future, or coroutine to wrap
-    :param loop: The loop to run in
-    :return: The wrapped future
-    """
-    try:
-        func = getattr(asyncio, "ensure_future")
-    except AttributeError:
-        # This is to avoid a SyntaxError on 3.7.0a2+
-        func = getattr(asyncio, "async")
+_asyncio_get_event_loop = _asyncio.get_event_loop
+_asyncio_future_init = _asyncio.Future
 
-    return func(fut, loop=loop)  # pylint: disable=locally-disabled, deprecated-method
+# Kept for compatibility
+wrap_future = _asyncio_compat.ensure_future
+run_coroutine_threadsafe = _asyncio_compat.run_coroutine_threadsafe
 
 
-@asyncio.coroutine
+@_asyncio.coroutine
 def run_func_with_args(loop, func, arg_data, executor=None):
-    if asyncio.iscoroutine(func):
+    if _asyncio_iscoroutine(func):
         raise TypeError('A coroutine function or a normal, non-async callable are required')
 
-    if asyncio.iscoroutinefunction(func):
-        coro = call_with_args(func, arg_data)
+    if _asyncio_iscoroutinefunction(func):
+        coro = _call_with_args(func, arg_data)
     else:
-        coro = loop.run_in_executor(executor, call_with_args, func, arg_data)
+        coro = loop.run_in_executor(executor, _call_with_args, func, arg_data)
 
     return (yield from coro)
 
 
-def run_coroutine_threadsafe(coro, loop):
-    """
-    Runs a coroutine in a threadsafe manner
-    :type coro: coroutine
-    :type loop: asyncio.AbstractEventLoop
-    """
-    if not asyncio.iscoroutine(coro):
-        raise TypeError('A coroutine object is required')
-
-    if sys.version_info < (3, 5, 1):
-        loop.call_soon_threadsafe(partial(wrap_future, coro, loop=loop))
-    else:
-        asyncio.run_coroutine_threadsafe(coro, loop)
-
-
 def create_future(loop=None):
     if loop is None:
-        loop = asyncio.get_event_loop()
+        loop = _asyncio_get_event_loop()
 
-    if sys.version_info < (3, 5, 2):
-        return asyncio.Future(loop=loop)
-
-    return loop.create_future()
+    try:
+        f = loop.create_future
+    except AttributeError:
+        return _asyncio_future_init(loop=loop)
+    else:
+        return f()
