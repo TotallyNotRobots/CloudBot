@@ -1,6 +1,6 @@
 import time
 
-from ..tokenbucket import TokenBucket
+from cloudbot.util.tokenbucket import TokenBucket
 
 
 # noinspection PyProtectedMember

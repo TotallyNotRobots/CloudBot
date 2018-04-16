@@ -1,4 +1,4 @@
-from ..filesize import size, si, verbose, V
+from cloudbot.util.filesize import size, si, verbose, V
 
 
 def test_size():

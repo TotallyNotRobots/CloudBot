@@ -1,4 +1,4 @@
-from ..formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
+from cloudbot.util.formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
     strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str, \
     pluralize_suffix
 
