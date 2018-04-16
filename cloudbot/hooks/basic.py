@@ -2,9 +2,9 @@ import collections
 import re
 from abc import abstractmethod, ABC
 
-from cloudbot.event import EventType
-from cloudbot.hooks.types import HookTypes
-from cloudbot.util.text import is_command
+from ..event import EventType
+from ..hooks.types import HookTypes
+from ..util.text import is_command
 
 
 class BaseHook(ABC):

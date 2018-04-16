@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from cloudbot.util.timeformat import format_time, time_since, time_until
+from ..timeformat import format_time, time_since, time_until
 
 
 def test_format_time():

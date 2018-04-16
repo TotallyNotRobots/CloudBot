@@ -1,10 +1,7 @@
 import asyncio
 import importlib
-import inspect
 import logging
 import sys
-import time
-import warnings
 from collections import defaultdict
 from functools import partial
 from itertools import chain
@@ -14,14 +11,12 @@ from weakref import WeakValueDictionary
 
 import sqlalchemy
 
-from cloudbot.event import Event, PostHookEvent
-from cloudbot.hook import get_hooks
-from cloudbot.hooks.actions import Action
-from cloudbot.hooks.basic import BaseHook
-from cloudbot.hooks.priority import Priority
-from cloudbot.hooks.types import HookTypes
-from cloudbot.util import database, async_util
-from cloudbot.util.async_util import run_func_with_args
+from .event import Event, PostHookEvent
+from .hook import get_hooks
+from .hooks.basic import BaseHook
+from .hooks.types import HookTypes
+from .util import database, async_util
+from .util.async_util import run_func_with_args
 
 logger = logging.getLogger("cloudbot")
 

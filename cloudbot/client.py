@@ -3,7 +3,7 @@ import collections
 import logging
 import random
 
-from cloudbot.permissions import NickBasedPermissionManager
+from .permissions import NickBasedPermissionManager
 
 logger = logging.getLogger("cloudbot")
 

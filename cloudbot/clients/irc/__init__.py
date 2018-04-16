@@ -1,5 +1,5 @@
 def get_client():
-    from cloudbot.clients.irc.client import IrcClient
+    from .client import IrcClient
     return IrcClient
 
 

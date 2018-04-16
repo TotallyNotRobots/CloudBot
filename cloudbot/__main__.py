@@ -7,9 +7,9 @@ import time
 from pathlib import Path
 
 import cloudbot
-from cloudbot.bot import CloudBot
-from cloudbot.config import Config
-from cloudbot.util import async_util
+from .bot import CloudBot
+from .config import Config
+from .util import async_util
 
 
 def setup_default_logger(log_dir=None):

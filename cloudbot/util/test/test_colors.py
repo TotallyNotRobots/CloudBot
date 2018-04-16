@@ -1,6 +1,6 @@
 import pytest
 
-from cloudbot.util.colors import parse, strip, get_available_colours, get_available_formats, get_color, get_format, \
+from ..colors import parse, strip, get_available_colours, get_available_formats, get_color, get_format, \
     _convert, strip_irc, strip_all, IRC_COLOUR_DICT
 
 test_input = "The quick $(brown, red)brown$(clear) fox$(fake) jumps over the $(bold)lazy dog$(clear)."

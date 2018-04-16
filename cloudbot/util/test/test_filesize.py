@@ -1,5 +1,4 @@
-import cloudbot.util.filesize as fs
-from cloudbot.util.filesize import size, si, verbose
+from ..filesize import size, si, verbose, V
 
 
 def test_size():
@@ -41,4 +40,4 @@ def test_size_si():
 
 
 def test_size_alias():
-    assert size(1, system=fs.V) == "1 byte"
+    assert size(1, system=V) == "1 byte"

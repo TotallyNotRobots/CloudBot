@@ -5,11 +5,11 @@ import re
 import ssl
 from functools import partial
 
-from cloudbot.client import Client
-from cloudbot.event import Event, EventType, IrcOutEvent
-from cloudbot.util import async_util
 from .parser import Message
 from .permissions import IrcPermissionManager
+from ...client import Client
+from ...event import Event, EventType, IrcOutEvent
+from ...util import async_util
 
 logger = logging.getLogger("cloudbot")
 

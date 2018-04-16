@@ -2,9 +2,9 @@ import asyncio
 import logging
 from abc import abstractmethod, ABC
 
-from cloudbot.hooks.actions import Action
-from cloudbot.hooks.priority import Priority
-from cloudbot.util import async_util
+from .priority import Priority
+from ..hooks.actions import Action
+from ..util import async_util
 
 logger = logging.getLogger("cloudbot")
 

@@ -3,7 +3,7 @@ import enum
 import logging
 from functools import partial
 
-from cloudbot.clients.irc.parser import Message
+from .clients.irc.parser import Message
 
 logger = logging.getLogger("cloudbot")
 

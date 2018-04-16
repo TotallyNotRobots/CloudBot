@@ -1,4 +1,4 @@
-from cloudbot.permissions import GroupBasedPermissionManager, EventDataMatcher
+from ...permissions import GroupBasedPermissionManager, EventDataMatcher
 
 
 class IrcPrefixMatcher(EventDataMatcher):

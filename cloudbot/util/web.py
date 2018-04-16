@@ -16,9 +16,9 @@ License:
 import json
 
 import requests
-# Constants
 from requests import RequestException
 
+# Constants
 DEFAULT_SHORTENER = 'is.gd'
 DEFAULT_PASTEBIN = 'snoonet'
 

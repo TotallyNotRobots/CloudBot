@@ -14,14 +14,14 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
-from cloudbot.client import Client
-from cloudbot.config import Config
-from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
-from cloudbot.hooks.actions import Action
-from cloudbot.plugin import PluginManager
-from cloudbot.reloader import PluginReloader, ConfigReloader
-from cloudbot.util import database, formatting, async_util
-from cloudbot.util.database import ContextSession
+from .client import Client
+from .config import Config
+from .event import Event, CommandEvent, RegexEvent, EventType
+from .hooks.actions import Action
+from .plugin import PluginManager
+from .reloader import PluginReloader, ConfigReloader
+from .util import database, formatting, async_util
+from .util.database import ContextSession
 
 try:
     from typing import TYPE_CHECKING

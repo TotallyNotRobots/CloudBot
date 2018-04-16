@@ -1,4 +1,4 @@
-from cloudbot.hooks.basic import *
+from .hooks.basic import *
 
 _HOOK_DATA_FIELD = '_cloudbot_hook'
 

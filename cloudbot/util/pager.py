@@ -1,6 +1,6 @@
 from threading import RLock
 
-from cloudbot.util.sequence import chunk_iter
+from .sequence import chunk_iter
 
 
 class Pager:

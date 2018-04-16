@@ -9,7 +9,6 @@ Created By:
 License:
     GPL v3
 """
-import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
 from operator import itemgetter
@@ -20,7 +19,6 @@ from requests import Session
 from yarl import URL
 
 from cloudbot import hook
-from cloudbot.event import CommandEvent
 from cloudbot.util import colors, web
 from cloudbot.util.func_utils import call_with_args
 

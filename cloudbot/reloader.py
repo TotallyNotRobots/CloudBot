@@ -4,7 +4,7 @@ from pathlib import Path
 
 from watchdog.events import PatternMatchingEventHandler
 
-from cloudbot.util import async_util
+from .util import async_util
 
 
 class Reloader(ABC):
