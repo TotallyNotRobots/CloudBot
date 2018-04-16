@@ -1,4 +1,6 @@
-import inspect
+import inspect as _inspect
+
+_inspect_signature = _inspect.signature
 
 
 class ParameterError(Exception):
@@ -11,7 +13,7 @@ class ParameterError(Exception):
 
 def _get_arg_value(param, data_map):
     """
-    :type param: inspect.Parameter
+    :type param: _inspect.Parameter
     :type data_map: dict
     """
     try:
@@ -26,14 +28,17 @@ def _get_arg_value(param, data_map):
 def populate_args(func, data_map):
     args = []
     kwargs = {}
-    sig = inspect.signature(func)
-    for key, param in sig.parameters.items():  # type: str, inspect.Parameter
+    _args_add = args.append
+    _kwargs_add = kwargs.__setitem__
+
+    sig = _inspect_signature(func)
+    for key, param in sig.parameters.items():  # type: str, _inspect.Parameter
         if param.kind is param.KEYWORD_ONLY:
-            kwargs[key] = _get_arg_value(param, data_map)
+            _kwargs_add(key, _get_arg_value(param, data_map))
         elif param.kind is param.POSITIONAL_ONLY:
-            args.append(_get_arg_value(param, data_map))
+            _args_add(_get_arg_value(param, data_map))
         elif param.kind is param.POSITIONAL_OR_KEYWORD:
-            kwargs[key] = _get_arg_value(param, data_map)
+            _kwargs_add(key, _get_arg_value(param, data_map))
         elif param.kind is param.VAR_KEYWORD:
             raise TypeError("Unable to populate VAR_KEYWORD parameter '{}'".format(key))
         elif param.kind is param.VAR_POSITIONAL:
