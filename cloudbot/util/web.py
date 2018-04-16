@@ -14,6 +14,7 @@ License:
 """
 
 import json
+from enum import Enum
 
 import requests
 from requests import RequestException
@@ -30,6 +31,24 @@ SNOONET_PASTE = 'https://paste.snoonet.org'
 # Shortening / pasting
 
 # Public API
+
+
+class FileTypes(Enum):
+    """
+    Common file-types for pastebins, pastebin implementations may define their own map of type -> string
+    """
+    TEXT = 0
+    JSON = 1
+    YAML = 2
+    YML = YAML
+    MARKDOWN = 3
+    MD = MARKDOWN
+    HTML = 4
+    XML = 5
+    RESTRUCTUREDTEXT = 6
+    RST = RESTRUCTUREDTEXT
+    PYTHON = 7
+    PYTHON3 = 8
 
 
 def shorten(url, custom=None, key=None, service=DEFAULT_SHORTENER):
@@ -58,9 +77,9 @@ def expand(url, service=None):
     return impl.expand(url)
 
 
-def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
+def paste(data, ext=FileTypes.TEXT, service=DEFAULT_PASTEBIN):
     impl = pastebins[service]
-    return impl.paste(data, ext)
+    return impl.do_paste(data, ext)
 
 
 class ServiceError(Exception):
@@ -106,6 +125,15 @@ class Pastebin:
 
     def paste(self, data, ext):
         raise NotImplementedError
+
+    def map_ext(self, ext):
+        raise NotImplementedError
+
+    def do_paste(self, data, ext):
+        if not isinstance(ext, str):
+            ext = self.map_ext(ext)
+
+        return self.paste(data, ext)
 
 
 # Internal Implementations
@@ -223,6 +251,21 @@ class Gitio(Shortener):
 
 @_pastebin('hastebin')
 class Hastebin(Pastebin):
+    _ext_map = {
+        FileTypes.TEXT: 'txt',
+        FileTypes.JSON: 'json',
+        FileTypes.YAML: 'yaml',
+        FileTypes.MARKDOWN: 'md',
+        FileTypes.HTML: 'html',
+        FileTypes.XML: 'xml',
+        FileTypes.RESTRUCTUREDTEXT: 'rst',
+        FileTypes.PYTHON: 'py',
+        FileTypes.PYTHON3: 'py',
+    }
+
+    def map_ext(self, ext):
+        return self._ext_map[ext]
+
     def paste(self, data, ext):
         r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
         try:
@@ -241,10 +284,26 @@ class Hastebin(Pastebin):
 
 @_pastebin('snoonet')
 class SnoonetPaste(Pastebin):
+    _ext_map = {
+        FileTypes.TEXT: 'text',
+        FileTypes.JSON: 'json',
+        FileTypes.YAML: 'yaml',
+        FileTypes.MARKDOWN: 'markdown',
+        FileTypes.HTML: 'html',
+        FileTypes.XML: 'xml',
+        FileTypes.RESTRUCTUREDTEXT: 'rst',
+        FileTypes.PYTHON: 'python',
+        FileTypes.PYTHON3: 'python3',
+    }
+
+    def map_ext(self, ext):
+        return self._ext_map[ext]
+
     def paste(self, data, ext):
         params = {
             'text': data,
-            'expire': '1d'
+            'expire': '1d',
+            'lang': ext,
         }
         r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
         try:
