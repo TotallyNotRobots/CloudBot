@@ -6,16 +6,24 @@ _asyncio_iscoroutine = _asyncio.iscoroutine
 _asyncio_iscoroutinefunction = _asyncio.iscoroutinefunction
 
 _asyncio_get_event_loop = _asyncio.get_event_loop
+_asyncio_future_init = _asyncio.Future
+
+try:
+    _asyncio_async = getattr(_asyncio, "async")
+except AttributeError:
+    _asyncio_async = None
 
 
 def _ensure_future(coro_or_future, *, loop=None):
-    return getattr(_asyncio, "async")(coro_or_future, loop=loop)
+    return _asyncio_async(coro_or_future, loop=loop)
 
 
 try:
     ensure_future = _asyncio.ensure_future
 except AttributeError:
     ensure_future = _ensure_future
+else:
+    del _ensure_future
 
 
 def _is_future(fut):
@@ -120,6 +128,12 @@ try:
     run_coroutine_threadsafe = _asyncio.run_coroutine_threadsafe
 except AttributeError:
     run_coroutine_threadsafe = _run_coroutine_threadsafe
+else:
+    del _is_future
+    del _copy_future_state
+    del _set_concurrent_future_state
+    del _chain_future
+    del _run_coroutine_threadsafe
 
 
 def create_future(loop=None):
@@ -129,6 +143,6 @@ def create_future(loop=None):
     try:
         f = loop.create_future
     except AttributeError:
-        return _asyncio.Future(loop=loop)
+        return _asyncio_future_init(loop=loop)
     else:
         return f()

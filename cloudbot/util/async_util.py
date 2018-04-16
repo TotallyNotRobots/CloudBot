@@ -17,6 +17,7 @@ _asyncio_future_init = _asyncio.Future
 # Kept for compatibility
 wrap_future = _asyncio_compat.ensure_future
 run_coroutine_threadsafe = _asyncio_compat.run_coroutine_threadsafe
+create_future = _asyncio_compat.create_future
 
 
 @_asyncio.coroutine
@@ -30,15 +31,3 @@ def run_func_with_args(loop, func, arg_data, executor=None):
         coro = loop.run_in_executor(executor, _call_with_args, func, arg_data)
 
     return (yield from coro)
-
-
-def create_future(loop=None):
-    if loop is None:
-        loop = _asyncio_get_event_loop()
-
-    try:
-        f = loop.create_future
-    except AttributeError:
-        return _asyncio_future_init(loop=loop)
-    else:
-        return f()
