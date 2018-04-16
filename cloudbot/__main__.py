@@ -6,14 +6,20 @@ import sys
 import time
 from pathlib import Path
 
+import cloudbot
 from cloudbot.bot import CloudBot
 from cloudbot.config import Config
 from cloudbot.util import async_util
 
 
 def setup_default_logger(log_dir=None):
+    """
+    :type log_dir: str | Path
+    """
     if log_dir is None:
         log_dir = Path("logs").resolve()
+
+    cloudbot.logging_dir = log_dir
 
     cfg = Config()
 
