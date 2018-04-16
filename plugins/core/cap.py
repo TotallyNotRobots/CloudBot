@@ -3,7 +3,7 @@ from collections import ChainMap
 from functools import partial
 
 from cloudbot import hook
-from cloudbot.clients.irc.parser import CapList
+from cloudbot.clients.irc.parser import CapList, Cap
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
 
@@ -13,6 +13,12 @@ class ServerCaps:
         self.available = set()
         self.enabled = set()
         self.request_queue = {}
+
+    def is_cap_enabled(self, cap):
+        if isinstance(cap, str):
+            cap = Cap.parse(cap)
+
+        return cap in self.enabled
 
     def clear(self):
         self.available.clear()
@@ -173,3 +179,8 @@ def on_cap(irc_paramlist, event):
         args["caplist"] = CapList.parse(capstr)
 
     yield from _launch_handler(irc_paramlist[1], event, **args)
+
+
+@hook.command("listcaps", autohelp=False)
+def list_caps(conn):
+    return str(get_caps(conn).enabled)
