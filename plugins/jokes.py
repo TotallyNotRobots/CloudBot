@@ -16,6 +16,7 @@ data_files = (
     "book_puns",
     "lawyerjoke",
     "kero",
+    "kenm",
 )
 
 
@@ -131,3 +132,9 @@ def kero(text):
 def lawyerjoke(message):
     """- returns a lawyer joke, so lawyers know how much we hate them"""
     message(random.choice(joke_data['lawyerjoke']))
+
+
+@hook.command("kenm", autohelp=False)
+def kenm(message):
+    """- Wisdom from Ken M."""
+    message(random.choice(joke_data['kenm']))
