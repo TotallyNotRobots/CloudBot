@@ -1,5 +1,4 @@
 import re
-from contextlib import closing
 
 import requests
 from bs4 import BeautifulSoup
@@ -58,7 +57,9 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
 }
 
-MAX_RECV = 1000000
+CHUNK_SIZE = 512
+MAX_CHUNKS = 4096
+MAX_RECV = CHUNK_SIZE * MAX_CHUNKS
 
 
 def get_encoding(soup):
@@ -88,23 +89,26 @@ def parse_content(content, encoding=None):
     return html
 
 
+find_title = re.compile(
+    br'<title.*?>.*?</title>', re.IGNORECASE | re.MULTILINE | re.DOTALL
+).search
+
+
 @hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
-def print_url_title(message, match):
-    with closing(requests.get(match.group(), headers=HEADERS, stream=True, timeout=3)) as r:
-        r.raise_for_status()
-        if not r.encoding:
-            return
+def print_url_title(match):
+    content = b""
+    with requests.get(match.group(), headers=HEADERS, stream=True) as response:
+        response.raise_for_status()
+        for chunk in response.iter_content(CHUNK_SIZE):
+            content += chunk
+            if find_title(content) or len(content) > MAX_RECV:
+                break
 
-        # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
-        content = r.raw.read(MAX_RECV + 1, decode_content=True)
-        encoding = r.encoding
-
-    if len(content) > MAX_RECV:
-        return
+        encoding = response.encoding
+        if encoding is None:
+            encoding = response.apparent_encoding
 
     html = parse_content(content, encoding)
-
-    if html.title:
-        title = html.title.text
-        out = "Title: \x02{}\x02".format(title.strip())
-        message(out)
+    title = html.title
+    if title and title.text and title.text.strip():
+        return "Title: \x02{}\x02".format(title.text.strip())
