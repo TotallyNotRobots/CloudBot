@@ -12,13 +12,11 @@ cache: pip
 install:
   - "sudo apt-get update -q"
   - "sudo apt-get install -y python3-lxml libenchant-dev"
-  - "pip install -r ./travis/requirements.txt"
+  - "pip install -U pip setuptools"
+  - "pip install -Ur requirements.txt"
 
 script:
   - "py.test . -R : -v --cov . --cov-report term-missing --pylint --pylint-rcfile=travis/pylintrc --ignore=venv/ -p tests.pytest_json_lint"
-
-after_success:
-  - "coveralls"
 
 env:
   - PYTHONPATH=.
