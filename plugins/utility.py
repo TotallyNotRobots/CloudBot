@@ -56,6 +56,9 @@ def translate(text, dic):
     return text
 
 
+leet_data = {}
+
+
 # on_start
 
 @hook.on_start()
@@ -63,10 +66,10 @@ def load_text(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global leet
+    leet_data.clear()
 
     with codecs.open(os.path.join(bot.data_dir, "leet.json"), encoding="utf-8") as f:
-        leet = json.load(f)
+        leet_data.update(json.load(f))
 
 
 # misc
@@ -220,7 +223,7 @@ def munge(text):
 @hook.command
 def leet(text):
     """<text> -- Makes <text> more 1337h4x0rz."""
-    output = ''.join(random.choice(leet[ch]) if ch.isalpha() else ch for ch in text.lower())
+    output = ''.join(random.choice(leet_data[ch]) if ch.isalpha() else ch for ch in text.lower())
     return output
 
 
