@@ -1,5 +1,6 @@
 import codecs
 
+import pytest
 from bs4 import BeautifulSoup
 
 from plugins.link_announcer import url_re, get_encoding
@@ -74,19 +75,21 @@ SEARCH = (
 )
 
 
-def test_urls():
-    for url in MATCHES:
-        assert url_re.fullmatch(url), url
-
-    for url in FAILS:
-        match = url_re.fullmatch(url)
-        assert not match, match.group()
+@pytest.mark.parametrize("url", list(FAILS))
+def test_url_fails(url):
+    match = url_re.fullmatch(url)
+    assert not match, match.group()
 
 
-def test_search():
-    for text, out in SEARCH:
-        match = url_re.search(text)
-        assert match and match.group() == out
+@pytest.mark.parametrize("url", list(MATCHES))
+def test_url_matches(url):
+    assert url_re.fullmatch(url), url
+
+
+@pytest.mark.parametrize("text,out", list(SEARCH))
+def test_search(text, out):
+    match = url_re.search(text)
+    assert match and match.group() == out
 
 
 ENCODINGS = (
@@ -96,14 +99,14 @@ ENCODINGS = (
 )
 
 
-def test_encoding_parse():
-    for text, enc in ENCODINGS:
-        soup = BeautifulSoup(text, "lxml")
-        encoding = get_encoding(soup)
-        if encoding is None:
-            assert enc is None, "Got empty encoding from {!r} expected {!r}".format(text, enc)
-            continue
+@pytest.mark.parametrize("text,enc", list(ENCODINGS))
+def test_encoding_parse(text, enc):
+    soup = BeautifulSoup(text, "lxml")
+    encoding = get_encoding(soup)
+    if encoding is None:
+        assert enc is None, "Got empty encoding from {!r} expected {!r}".format(text, enc)
+        return
 
-        enc_obj = codecs.lookup(encoding)
+    enc_obj = codecs.lookup(encoding)
 
-        assert enc, enc_obj
+    assert enc == enc_obj
