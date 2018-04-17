@@ -7,12 +7,8 @@ import asyncio as _asyncio
 from .compat import asyncio as _asyncio_compat
 from .func_utils import call_with_args as _call_with_args
 
-_asyncio_isfuture = _asyncio.isfuture
 _asyncio_iscoroutine = _asyncio.iscoroutine
 _asyncio_iscoroutinefunction = _asyncio.iscoroutinefunction
-
-_asyncio_get_event_loop = _asyncio.get_event_loop
-_asyncio_future_init = _asyncio.Future
 
 # Kept for compatibility
 wrap_future = _asyncio_compat.ensure_future
