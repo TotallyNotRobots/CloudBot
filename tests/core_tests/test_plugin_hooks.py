@@ -9,6 +9,7 @@ import warnings
 from numbers import Number
 from pathlib import Path
 
+import mock
 from sqlalchemy import MetaData
 
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
@@ -19,8 +20,7 @@ from cloudbot.util import database
 from cloudbot.util.func_utils import populate_args
 
 warnings.filterwarnings("error", module="^(cloudbot|plugins)(\..*|$)")
-database.metadata = MetaData()
-Hook.original_init = Hook.__init__
+_Hook_init = Hook.__init__
 
 DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
 PLUGINS = []
@@ -32,11 +32,8 @@ class MockBot:
 
 
 def patch_hook_init(self, _type, plugin, func_hook):
-    self.original_init(_type, plugin, func_hook)
+    _Hook_init(self, _type, plugin, func_hook)
     self.func_hook = func_hook
-
-
-Hook.__init__ = patch_hook_init
 
 
 def gather_plugins():
@@ -62,7 +59,9 @@ def load_plugin(plugin_path):
 
 def get_plugins():
     if not PLUGINS:
-        PLUGINS.extend(map(load_plugin, gather_plugins()))
+        with mock.patch.object(database, 'metadata', new=MetaData()), \
+             mock.patch.object(Hook, '__init__', new=patch_hook_init):
+            PLUGINS.extend(map(load_plugin, gather_plugins()))
 
     return PLUGINS
 
@@ -141,3 +140,8 @@ def test_coroutine_hooks(hook):
     if inspect.isgeneratorfunction(hook.function):
         assert asyncio.iscoroutinefunction(hook.function), \
             "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the hook/coroutine decorators."
+
+
+def test_hook_lock(hook):
+    if hook.single_thread:
+        assert isinstance(hook.lock, asyncio.Lock)
