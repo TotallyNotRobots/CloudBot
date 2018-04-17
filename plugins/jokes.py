@@ -17,6 +17,7 @@ data_files = (
     "lawyerjoke",
     "kero",
     "kenm",
+    "topicchange",
 )
 
 
@@ -138,3 +139,9 @@ def lawyerjoke(message):
 def kenm(message):
     """- Wisdom from Ken M."""
     message(random.choice(joke_data['kenm']))
+
+
+@hook.command("changetopic", "discuss", "question", autohelp=False)
+def topicchange(message):
+    """- generates a random question to help start a conversation or change a topic"""
+    message(random.choice(joke_data['topicchange']))
