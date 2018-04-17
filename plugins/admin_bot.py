@@ -97,9 +97,9 @@ def cycle(text, conn, chan, notice, event):
     conn.join(target)
 
 
-@hook.command(permissions=["botcontrol"])
+@hook.command("nick", permissions=["botcontrol"])
 @asyncio.coroutine
-def nick(text, conn, notice, is_nick_valid):
+def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -145,7 +145,7 @@ def say(text, conn, chan, nick, admin_log, event):
 
 @hook.command("message", "sayto", permissions=["botcontrol", "snoonetstaff"])
 @asyncio.coroutine
-def message(text, conn, nick, admin_log):
+def say_message(text, conn, nick, admin_log):
     """<name> <message> - says <message> to <name>
     :type text: str
     :type conn: cloudbot.client.Client
