@@ -8,8 +8,8 @@ import re
 import warnings
 from numbers import Number
 from pathlib import Path
+from unittest import mock
 
-import mock
 from sqlalchemy import MetaData
 
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
