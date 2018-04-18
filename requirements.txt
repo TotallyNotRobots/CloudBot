@@ -9,7 +9,7 @@ lxml==4.2.1
 mcstatus==2.2
 microdata==0.6.1
 nltk==3.2.5
-polymatch==0.1.5
+polymatch==0.1.6
 psutil==5.4.5
 pyenchant==2.0.0
 pytest==3.5.0
