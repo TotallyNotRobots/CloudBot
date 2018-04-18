@@ -18,6 +18,9 @@ install:
 script:
   - "py.test"
 
+after_success:
+  - codecov
+
 env:
   - PYTHONPATH=.
   - PYTHONPATH=. PYTHONASYNCIODEBUG=1
