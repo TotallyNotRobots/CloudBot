@@ -120,7 +120,7 @@ class HTMLTextExtractor(HTMLParser):
     """
 
     def __init__(self):
-        HTMLParser.__init__(self)
+        super().__init__(convert_charrefs=True)
         self.result = []
 
     def handle_data(self, d):
