@@ -87,7 +87,7 @@ def setup_default_logger(log_dir=None):
     :type log_dir: str | Path
     """
     if log_dir is None:
-        log_dir = Path("logs").resolve()
+        log_dir = cloudbot.get_default_log_directory()
 
     cloudbot.logging_dir = log_dir
 

@@ -1,5 +1,4 @@
 from copy import deepcopy
-from pathlib import Path
 
 import pytest
 
@@ -51,7 +50,8 @@ DEFAULT = {
 ])
 def test_logging_config(config_data, expected):
     from cloudbot.__main__ import generate_logging_config
+    from cloudbot import get_default_log_directory
     config = deepcopy(DEFAULT)
     config['logging'].update(config_data)
-    cfg = generate_logging_config(Path().resolve() / "logs", config)
+    cfg = generate_logging_config(get_default_log_directory(), config)
     assert _check_value(cfg, expected[0], expected[1])

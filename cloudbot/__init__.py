@@ -8,6 +8,14 @@ if sys.version_info < (3, 4, 0):
 
 __version__ = (2, 0, 0, 'alpha', 0)
 
-__all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader"]
+__all__ = [
+    "clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
+    "get_default_log_directory"
+]
 
-logging_dir = Path().resolve() / "logs"
+
+def get_default_log_directory():
+    return Path().resolve() / "logs"
+
+
+logging_dir = get_default_log_directory()
