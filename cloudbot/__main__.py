@@ -12,24 +12,10 @@ from .config import Config
 from .util import async_util
 
 
-def setup_default_logger(log_dir=None):
-    """
-    :type log_dir: str | Path
-    """
-    if log_dir is None:
-        log_dir = Path("logs").resolve()
-
-    cloudbot.logging_dir = log_dir
-
-    cfg = Config()
-
+def generate_logging_config(log_dir, cfg):
     logging_config = cfg.get("logging", {})
 
     file_log = logging_config.get("file_log", False)
-
-    log_dir.mkdir(parents=True, exist_ok=True)
-
-    logging.captureWarnings(True)
 
     dict_config = {
         "version": 1,
@@ -93,7 +79,22 @@ def setup_default_logger(log_dir=None):
         }
         dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
 
-    logging.config.dictConfig(dict_config)
+    return dict_config
+
+
+def setup_default_logger(log_dir=None):
+    """
+    :type log_dir: str | Path
+    """
+    if log_dir is None:
+        log_dir = Path("logs").resolve()
+
+    cloudbot.logging_dir = log_dir
+
+    logging.captureWarnings(True)
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    logging.config.dictConfig(generate_logging_config(log_dir, Config()))
 
 
 def main():
