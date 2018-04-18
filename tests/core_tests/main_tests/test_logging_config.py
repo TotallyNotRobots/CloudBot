@@ -53,5 +53,5 @@ def test_logging_config(config_data, expected):
     from cloudbot.__main__ import generate_logging_config
     config = deepcopy(DEFAULT)
     config['logging'].update(config_data)
-    cfg = generate_logging_config(Path("logs").resolve(), config)
+    cfg = generate_logging_config(Path().resolve() / "logs", config)
     assert _check_value(cfg, expected[0], expected[1])
