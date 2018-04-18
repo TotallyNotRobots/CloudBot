@@ -2,14 +2,12 @@
 database - contains variables set by cloudbot to be easily access
 """
 
-from contextlib import AbstractContextManager
-
 # this is assigned in the CloudBot so that its recreated when the bot restarts
 metadata = None
 base = None
 
 
-class ContextSession(AbstractContextManager):
+class ContextSession:
     def __init__(self, session):
         """
         :type session: sqlalchemy.orm.Session
