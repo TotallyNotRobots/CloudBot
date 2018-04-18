@@ -89,10 +89,13 @@ def setup_default_logger(log_dir=None):
     if log_dir is None:
         log_dir = cloudbot.get_default_log_directory()
 
+    log_dir = Path(log_dir)
+
     cloudbot.logging_dir = log_dir
 
     logging.captureWarnings(True)
-    log_dir.mkdir(parents=True, exist_ok=True)
+    if not log_dir.exists():
+        log_dir.mkdir(parents=True)
 
     logging.config.dictConfig(generate_logging_config(log_dir, Config()))
 
