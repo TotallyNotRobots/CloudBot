@@ -1,5 +1,6 @@
 beautifulsoup4==4.6.0
 cleverwrap==0.2.3.6
+codecov==2.0.15
 feedparser==5.2.1
 geoip2==2.8.0
 imgurpython==1.1.7
