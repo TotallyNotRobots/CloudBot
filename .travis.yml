@@ -16,7 +16,7 @@ install:
   - "pip install -Ur requirements.txt"
 
 script:
-  - "py.test . -R : -v --cov cloudbot --cov plugins --cov-report term-missing:skip-covered --pylint --pylint-rcfile=travis/pylintrc --ignore=venv/ -p tests.pytest_json_lint"
+  - "py.test"
 
 env:
   - PYTHONPATH=.
