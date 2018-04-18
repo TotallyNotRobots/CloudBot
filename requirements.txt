@@ -3,6 +3,7 @@ cleverwrap==0.2.3.6
 feedparser==5.2.1
 geoip2==2.8.0
 imgurpython==1.1.7
+isodate==0.6.0
 lxml==4.2.1
 mcstatus==2.2
 microdata==0.6.1
