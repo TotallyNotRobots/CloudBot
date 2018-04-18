@@ -12,15 +12,7 @@ from unittest import mock
 
 from sqlalchemy import MetaData
 
-from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
-from cloudbot.hooks.actions import Action
-from cloudbot.hooks.full import Hook
-from cloudbot.plugin import Plugin
-from cloudbot.util import database
-from cloudbot.util.func_utils import populate_args
-
 warnings.filterwarnings("error", module="^(cloudbot|plugins)(\..*|$)")
-_Hook_init = Hook.__init__
 
 DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
 PLUGINS = []
@@ -31,11 +23,6 @@ class MockBot:
         self.loop = None
 
 
-def patch_hook_init(self, _type, plugin, func_hook):
-    _Hook_init(self, _type, plugin, func_hook)
-    self.func_hook = func_hook
-
-
 def gather_plugins():
     plugin_dir = Path("plugins")
     path_list = plugin_dir.rglob("[!_]*.py")
@@ -43,6 +30,7 @@ def gather_plugins():
 
 
 def load_plugin(plugin_path):
+    from cloudbot.plugin import Plugin
     path = Path(plugin_path)
     file_path = path.resolve()
     file_name = file_path.name
@@ -58,6 +46,14 @@ def load_plugin(plugin_path):
 
 
 def get_plugins():
+    from cloudbot.hooks.full import Hook
+    from cloudbot.util import database
+    _Hook_init = Hook.__init__
+
+    def patch_hook_init(self, _type, plugin, func_hook):
+        _Hook_init(self, _type, plugin, func_hook)
+        self.func_hook = func_hook
+
     if not PLUGINS:
         with mock.patch.object(database, 'metadata', new=MetaData()), \
              mock.patch.object(Hook, '__init__', new=patch_hook_init):
@@ -78,20 +74,30 @@ def pytest_generate_tests(metafunc):
         )
 
 
-HOOK_ATTR_TYPES = {
-    'permissions': (list, set, frozenset, tuple),
-    'single_thread': bool,
-    'action': Action,
-    'priority': int,
+HOOK_ATTR_TYPES = {}
 
-    'auto_help': bool,
 
-    'run_on_cmd': bool,
-    'only_no_match': bool,
+def get_hook_attr_types():
+    from cloudbot.hooks.actions import Action
+    if not HOOK_ATTR_TYPES:
+        HOOK_ATTR_TYPES.update(
+            {
+                'permissions': (list, set, frozenset, tuple),
+                'single_thread': bool,
+                'action': Action,
+                'priority': int,
 
-    'interval': Number,
-    'initial_interval': Number,
-}
+                'auto_help': bool,
+
+                'run_on_cmd': bool,
+                'only_no_match': bool,
+
+                'interval': Number,
+                'initial_interval': Number,
+            }
+        )
+
+    return HOOK_ATTR_TYPES
 
 
 def test_hook_kwargs(hook):
@@ -117,6 +123,8 @@ def test_hook_doc(hook):
 
 
 def test_hook_args(hook):
+    from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
+    from cloudbot.util.func_utils import populate_args
     bot = MockBot()
     if hook.type in ("irc_raw", "perm_check", "periodic", "on_start", "on_stop", "event", "on_connect", "sieve"):
         event = Event(bot=bot)

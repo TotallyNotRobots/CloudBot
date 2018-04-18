@@ -1,7 +1,5 @@
 import responses
 
-from plugins.minecraft.fishbans import fishbans, bancount
-
 test_user = "notch"
 
 test_api = """
@@ -39,6 +37,7 @@ class TestBans:
         """
         tests fishbans with a successful API response having multiple bans
         """
+        from plugins.minecraft.fishbans import fishbans
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
 
         assert fishbans(test_user, DummyBot) == bans_reply
@@ -48,6 +47,7 @@ class TestBans:
         """
         tests fishbans with a successful API response having a single ban
         """
+        from plugins.minecraft.fishbans import fishbans
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_single)
 
         assert fishbans(test_user, DummyBot) == bans_reply_single
@@ -57,6 +57,7 @@ class TestBans:
         """
         tests fishbans with a failed API response
         """
+        from plugins.minecraft.fishbans import fishbans
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
 
         assert fishbans(test_user, DummyBot) == reply_failed
@@ -66,6 +67,7 @@ class TestBans:
         """
         tests fishbans with a successful API response having no bans
         """
+        from plugins.minecraft.fishbans import fishbans
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
 
         assert fishbans(test_user, DummyBot) == bans_reply_none
@@ -75,6 +77,7 @@ class TestBans:
         """
         tests fishbans with a HTTP error
         """
+        from plugins.minecraft.fishbans import fishbans
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', status=404)
 
         assert fishbans(test_user, DummyBot).startswith(reply_error)
@@ -86,6 +89,7 @@ class TestCount:
         """
         tests bancount with a successful API response having multiple bans
         """
+        from plugins.minecraft.fishbans import bancount
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
 
         assert bancount(test_user, DummyBot) == count_reply
@@ -95,6 +99,7 @@ class TestCount:
         """
         tests bancount with a failed API response
         """
+        from plugins.minecraft.fishbans import bancount
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
 
         assert bancount(test_user, DummyBot) == reply_failed
@@ -104,6 +109,7 @@ class TestCount:
         """
         tests bancount with a successful API response having no bans
         """
+        from plugins.minecraft.fishbans import bancount
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
 
         assert bancount(test_user, DummyBot) == count_reply_none
@@ -113,6 +119,7 @@ class TestCount:
         """
         tests bancount with a HTTP error
         """
+        from plugins.minecraft.fishbans import bancount
         responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', status=404)
 
         assert bancount(test_user, DummyBot).startswith(reply_error)

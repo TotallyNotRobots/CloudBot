@@ -1,10 +1,9 @@
 import time
 
-from cloudbot.util.tokenbucket import TokenBucket
-
 
 # noinspection PyProtectedMember
 def test_bucket_consume():
+    from cloudbot.util.tokenbucket import TokenBucket
     bucket = TokenBucket(10, 5)
     # larger then capacity
     assert bucket.consume(15) is False
@@ -18,6 +17,7 @@ def test_bucket_consume():
 
 # noinspection PyProtectedMember
 def test_bucket_advanced():
+    from cloudbot.util.tokenbucket import TokenBucket
     bucket = TokenBucket(10, 1)
     # tokens start at 10
     assert bucket._tokens == 10
@@ -32,6 +32,7 @@ def test_bucket_advanced():
 
 
 def test_bucket_regen():
+    from cloudbot.util.tokenbucket import TokenBucket
     bucket = TokenBucket(10, 10)
     # success
     assert bucket.consume(10) is True

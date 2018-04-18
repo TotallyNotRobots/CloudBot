@@ -1,7 +1,3 @@
-from cloudbot.util.formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
-    strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str, \
-    pluralize_suffix
-
 test_munge_input = "The quick brown fox jumps over the lazy dog"
 test_munge_count = 3
 test_munge_result_a = "Ţħë ʠüíċķ Бŗöωñ ƒöχ ĵüṁρš övëŗ ţħë ĺäźÿ đöġ"
@@ -46,26 +42,31 @@ test_chunk_str_result = ['The quick', 'brown fox', 'jumped', 'over the', 'lazy d
 
 
 def test_munge():
+    from cloudbot.util.formatting import munge
     assert munge(test_munge_input) == test_munge_result_a
     assert munge(test_munge_input, test_munge_count) == test_munge_result_b
 
 
 def test_dict_format():
+    from cloudbot.util.formatting import dict_format
     assert dict_format(test_format_data, test_format_formats) == test_format_result
     assert dict_format({}, test_format_formats) is None
 
 
 def test_pluralize():
+    from cloudbot.util.formatting import pluralize_suffix
     assert pluralize_suffix(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
     assert pluralize_suffix(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
 
 
 def test_strip_colors():
     # compatibility
+    from cloudbot.util.formatting import strip_colors
     assert strip_colors(test_strip_colors_input) == test_strip_colors_result
 
 
 def test_truncate_str():
+    from cloudbot.util.formatting import truncate, truncate_str
     assert truncate(test_truncate_str_input, length=test_truncate_str_length_a) == test_truncate_str_result_a
     assert truncate(test_truncate_str_input, length=test_truncate_str_length_b) == test_truncate_str_result_b
 
@@ -76,6 +77,7 @@ def test_truncate_str():
 
 # noinspection PyPep8
 def test_truncate_words():
+    from cloudbot.util.formatting import truncate_words
     assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_a) == \
            test_truncate_words_result_a
     assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_b) == \
@@ -83,10 +85,12 @@ def test_truncate_words():
 
 
 def test_strip_html():
+    from cloudbot.util.formatting import strip_html
     assert strip_html(test_strip_html_input) == test_strip_html_result
 
 
 def test_multiword_replace():
+    from cloudbot.util.formatting import multi_replace, multiword_replace
     assert multi_replace(test_multiword_replace_text, test_multiword_replace_dict) == test_multiword_replace_result
 
     # compatibility
@@ -94,6 +98,7 @@ def test_multiword_replace():
 
 
 def test_ireplace():
+    from cloudbot.util.formatting import ireplace
     assert ireplace(test_ireplace_input, "fox", "cat") == "The quick brown cat cat cat jumped over the lazy dog"
     assert ireplace(test_ireplace_input, "FOX", "cAt") == "The quick brown cAt cAt cAt jumped over the lazy dog"
     assert ireplace(test_ireplace_input, "fox", "cat", 1) == "The quick brown cat fox FOX jumped over the lazy dog"
@@ -104,10 +109,12 @@ def test_ireplace():
 
 
 def test_chunk_str():
+    from cloudbot.util.formatting import chunk_str
     assert chunk_str(test_chunk_str_input, 10) == test_chunk_str_result
 
 
 def test_get_text_list():
+    from cloudbot.util.formatting import get_text_list
     assert get_text_list(['a', 'b', 'c', 'd']) == 'a, b, c or d'
     assert get_text_list(['a', 'b', 'c'], 'and') == 'a, b and c'
     assert get_text_list(['a', 'b'], 'and') == 'a and b'
@@ -116,6 +123,7 @@ def test_get_text_list():
 
 
 def test_smart_split():
+    from cloudbot.util.formatting import smart_split
     assert list(smart_split(r'This is "a person\'s" test.')) == ['This', 'is', '"a person\\\'s"', 'test.']
     assert list(smart_split(r"Another 'person\'s' test.")) == ['Another', "'person\\'s'", 'test.']
     assert list(smart_split(r'A "\"funky\" style" test.')) == ['A', '"\\"funky\\" style"', 'test.']

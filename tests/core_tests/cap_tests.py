@@ -1,8 +1,6 @@
-from cloudbot.clients.irc.parser import Cap
-from plugins.core.cap import ServerCaps
-
-
 def test_cap_compare():
+    from cloudbot.clients.irc.parser import Cap
+    from plugins.core.cap import ServerCaps
     caps = ServerCaps()
     test_cap_name = "test-cap-thing"
     test_cap = Cap.parse(test_cap_name)

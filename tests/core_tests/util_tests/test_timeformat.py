@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from cloudbot.util.timeformat import format_time, time_since, time_until
-
 
 def test_format_time():
+    from cloudbot.util.timeformat import format_time
     # basic
     assert format_time(120000) == "1 day, 9 hours and 20 minutes"
     assert format_time(120000, simple=True) == "1d 9h 20m"
@@ -14,6 +13,7 @@ def test_format_time():
 
 
 def test_timesince():
+    from cloudbot.util.timeformat import time_since
     then = datetime(2010, 4, 12, 12, 30, 0)
     then_timestamp = 1271075400.0
     then_future = datetime(2012, 4, 12, 12, 30, 0)
@@ -30,6 +30,7 @@ def test_timesince():
 
 
 def test_timeuntil():
+    from cloudbot.util.timeformat import time_until
     now = datetime(2010, 4, 12, 12, 30, 0)
     future = datetime(2010, 5, 15, 1, 50, 0)
     # basic

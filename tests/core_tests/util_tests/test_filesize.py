@@ -1,7 +1,5 @@
-from cloudbot.util.filesize import size, si, verbose, V
-
-
 def test_size():
+    from cloudbot.util.filesize import size
     # Using the traditional system, where a factor of 1024 is used
     assert size(10) == "10B"
     assert size(100) == "100B"
@@ -16,6 +14,7 @@ def test_size():
 
 
 def test_size_verbose():
+    from cloudbot.util.filesize import size, verbose
     # Using the verbose system, where a factor of 1024 is used
     assert size(1, system=verbose) == "1 byte"
     assert size(1000, system=verbose) == "1000 bytes"
@@ -26,6 +25,7 @@ def test_size_verbose():
 
 
 def test_size_si():
+    from cloudbot.util.filesize import size, si
     # Using the SI system, with a factor of 1000
     assert size(10, system=si) == "10B"
     assert size(100, system=si) == "100B"
@@ -40,4 +40,5 @@ def test_size_si():
 
 
 def test_size_alias():
+    from cloudbot.util.filesize import size, V
     assert size(1, system=V) == "1 byte"

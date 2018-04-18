@@ -3,8 +3,6 @@ import codecs
 import pytest
 from bs4 import BeautifulSoup
 
-from plugins.link_announcer import url_re, get_encoding
-
 MATCHES = (
     "http://foo.com/blah_blah",
     "http://foo.com/blah_blah/",
@@ -77,17 +75,20 @@ SEARCH = (
 
 @pytest.mark.parametrize("url", list(FAILS))
 def test_url_fails(url):
+    from plugins.link_announcer import url_re
     match = url_re.fullmatch(url)
     assert not match, match.group()
 
 
 @pytest.mark.parametrize("url", list(MATCHES))
 def test_url_matches(url):
+    from plugins.link_announcer import url_re
     assert url_re.fullmatch(url), url
 
 
 @pytest.mark.parametrize("text,out", list(SEARCH))
 def test_search(text, out):
+    from plugins.link_announcer import url_re
     match = url_re.search(text)
     assert match and match.group() == out
 
@@ -101,6 +102,7 @@ ENCODINGS = (
 
 @pytest.mark.parametrize("text,enc", list(ENCODINGS))
 def test_encoding_parse(text, enc):
+    from plugins.link_announcer import get_encoding
     soup = BeautifulSoup(text, "lxml")
     encoding = get_encoding(soup)
     if encoding is None:
