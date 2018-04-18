@@ -24,8 +24,7 @@ try:
     ensure_future = _asyncio.ensure_future
 except AttributeError:
     def ensure_future(coro_or_future, *, loop=None):
-        return _asyncio_async(coro_or_future, loop=loop)
-
+        return _asyncio_async(coro_or_future, loop=loop)  # pylint: disable=locally-disabled, deprecated-method
 
 try:
     run_coroutine_threadsafe = _asyncio.run_coroutine_threadsafe
