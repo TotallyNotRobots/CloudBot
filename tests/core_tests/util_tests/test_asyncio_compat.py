@@ -19,3 +19,16 @@ def test_ensure_future(loop):
     from cloudbot.util.compat.asyncio import create_future, isfuture, ensure_future
 
     assert isfuture(ensure_future(create_future(loop), loop=loop))
+
+
+def test_run_coroutine_threadsage(loop):
+    from cloudbot.util.compat.asyncio import run_coroutine_threadsafe
+
+    def _run_coro_in_thread():
+        run_coroutine_threadsafe(asyncio.sleep(0), loop).result()
+
+    @asyncio.coroutine
+    def _coro():
+        yield from loop.run_in_executor(None, _run_coro_in_thread)
+
+    loop.run_until_complete(_coro())
