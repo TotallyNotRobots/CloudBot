@@ -227,6 +227,9 @@ def _basic_hook(hook_type):
         def get_type(cls):
             return hook_type
 
+        def add_hook(self, kwargs):
+            self._add_hook(kwargs)
+
     return _BasicHook
 
 

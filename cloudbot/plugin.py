@@ -293,7 +293,7 @@ class PluginManager:
 
         return True
 
-    def _log_hook(self, hook):
+    def log_hook(self, hook):
         """
         Logs registering a given hook
 
@@ -374,7 +374,7 @@ class PluginManager:
         return out if ok else None
 
     @asyncio.coroutine
-    def _start_periodic(self, hook):
+    def start_periodic(self, hook):
         interval = hook.interval
         initial_interval = hook.initial_interval
         yield from asyncio.sleep(initial_interval)

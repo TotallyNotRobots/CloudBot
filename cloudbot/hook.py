@@ -120,7 +120,7 @@ def sieve(param=None, **kwargs):
     def _sieve_hook(func):
         hook = _get_or_add_hook(func, BaseSieveHook)
 
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):
@@ -154,7 +154,7 @@ def on_start(param=None, **kwargs):
     def _on_start_hook(func):
         hook = _get_or_add_hook(func, BaseOnStartHook)
 
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):
@@ -175,7 +175,7 @@ def on_stop(param=None, **kwargs):
     def _on_stop_hook(func):
         hook = _get_or_add_hook(func, BaseOnStopHook)
 
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):
@@ -222,7 +222,7 @@ def on_cap_ack(*caps, **kwargs):
 def on_connect(param=None, **kwargs):
     def _on_connect_hook(func):
         hook = _get_or_add_hook(func, BaseOnConnectHook)
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):
@@ -240,7 +240,7 @@ def irc_out(param=None, **kwargs):
     def _decorate(func):
         hook = _get_or_add_hook(func, BaseIrcOutHook)
 
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):
@@ -257,7 +257,7 @@ def post_hook(param=None, **kwargs):
     def _decorate(func):
         hook = _get_or_add_hook(func, BasePostHookHook)
 
-        hook._add_hook(kwargs)
+        hook.add_hook(kwargs)
         return func
 
     if callable(param):

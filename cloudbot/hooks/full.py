@@ -90,7 +90,7 @@ class HookListRegister(Hook):
 
     def register(self, manager):
         self.get_list(manager).append(self)
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         self.get_list(manager).remove(self)
@@ -113,7 +113,7 @@ class CommandHook(Hook):
             else:
                 manager.commands[alias] = self
 
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         for alias in self.aliases:
@@ -152,7 +152,7 @@ class RegexHook(Hook):
         for regex_match in self.regexes:
             manager.regex_hooks.append((regex_match, self))
 
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         for regex_match in self.regexes:
@@ -184,9 +184,9 @@ class PeriodicHook(Hook):
     """
 
     def register(self, manager):
-        task = async_util.wrap_future(manager._start_periodic(self))
+        task = async_util.wrap_future(manager.start_periodic(self))
         self.plugin.tasks.append(task)
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         pass
@@ -227,7 +227,7 @@ class RawHook(Hook):
                     hooks.append(self)
                 else:
                     manager.raw_triggers[trigger] = [self]
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         if self.is_catch_all():
@@ -287,7 +287,7 @@ class EventHook(Hook):
                 manager.event_type_hooks[event_type].append(self)
             else:
                 manager.event_type_hooks[event_type] = [self]
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         for event_type in self.types:
@@ -356,7 +356,7 @@ class CapHook(Hook):
         for cap in self.caps:
             manager.cap_hooks["on_" + self._subtype][cap.casefold()].append(self)
 
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         ack_hooks = manager.cap_hooks["on_" + self._subtype]
@@ -439,7 +439,7 @@ class PermHook(Hook):
         for perm in self.perms:
             manager.perm_hooks[perm].append(self)
 
-        manager._log_hook(self)
+        manager.log_hook(self)
 
     def unregister(self, manager):
         for perm in self.perms:
