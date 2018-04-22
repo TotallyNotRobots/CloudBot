@@ -3,7 +3,7 @@ from datetime import datetime, date, timedelta
 import pytest
 
 
-class TestCall:
+class Call:
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -12,17 +12,17 @@ class TestCall:
         return func(*self.args, **self.kwargs)
 
 
-@pytest.mark.parametrized(
+@pytest.mark.parametrize(
     "call,result",
     [
         # basic
-        (TestCall(120000), "1 day, 9 hours and 20 minutes"),
-        (TestCall(120000, simple=True), "1d 9h 20m"),
+        (Call(120000), "1 day, 9 hours and 20 minutes"),
+        (Call(120000, simple=True), "1d 9h 20m"),
 
         # count
-        (TestCall(1200003, count=4), "13 days, 21 hours, 20 minutes and 3 seconds"),
-        (TestCall(1200000, count=4), "13 days, 21 hours and 20 minutes"),
-        (TestCall(1200000, count=2), "13 days and 21 hours"),
+        (Call(1200003, count=4), "13 days, 21 hours, 20 minutes and 3 seconds"),
+        (Call(1200000, count=4), "13 days, 21 hours and 20 minutes"),
+        (Call(1200000, count=2), "13 days and 21 hours"),
     ]
 )
 def test_format_time(call, result):
