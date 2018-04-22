@@ -1,15 +1,33 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta
+
+import pytest
 
 
-def test_format_time():
+class TestCall:
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def call(self, func):
+        return func(*self.args, **self.kwargs)
+
+
+@pytest.mark.parametrized(
+    "call,result",
+    [
+        # basic
+        (TestCall(120000), "1 day, 9 hours and 20 minutes"),
+        (TestCall(120000, simple=True), "1d 9h 20m"),
+
+        # count
+        (TestCall(1200003, count=4), "13 days, 21 hours, 20 minutes and 3 seconds"),
+        (TestCall(1200000, count=4), "13 days, 21 hours and 20 minutes"),
+        (TestCall(1200000, count=2), "13 days and 21 hours"),
+    ]
+)
+def test_format_time(call, result):
     from cloudbot.util.timeformat import format_time
-    # basic
-    assert format_time(120000) == "1 day, 9 hours and 20 minutes"
-    assert format_time(120000, simple=True) == "1d 9h 20m"
-    # count
-    assert format_time(1200003, count=4) == "13 days, 21 hours, 20 minutes and 3 seconds"
-    assert format_time(1200000, count=4) == "13 days, 21 hours and 20 minutes"
-    assert format_time(1200000, count=2) == "13 days and 21 hours"
+    assert call.call(format_time) == result
 
 
 def test_timesince():
@@ -27,6 +45,11 @@ def test_timesince():
     assert time_since(then, now, count=3) == "1 month, 2 days and 13 hours"
     # future
     assert time_since(then_future, now) == "0 minutes"
+    # day conversion
+    assert time_since(date(2010, 5, 14), now) == "1 day and 1 hour"
+    assert time_since(date(2010, 5, 14), date(2010, 5, 17)) == "3 days"
+
+    assert time_since(datetime.now() - timedelta(days=1, hours=2)) == "1 day and 2 hours"
 
 
 def test_timeuntil():
@@ -37,3 +60,5 @@ def test_timeuntil():
     assert time_until(future, now) == "1 month and 2 days"
     # count
     assert time_until(future, now, count=3) == "1 month, 2 days and 13 hours"
+
+    assert time_until(datetime.now() + timedelta(days=2, hours=5)) == "2 days and 5 hours"
