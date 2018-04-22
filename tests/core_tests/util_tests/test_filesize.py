@@ -42,3 +42,8 @@ def test_size_si():
 def test_size_alias():
     from cloudbot.util.filesize import size, V
     assert size(1, system=V) == "1 byte"
+
+
+def test_negative():
+    from cloudbot.util.filesize import size
+    assert size(-1) is None
