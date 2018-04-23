@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import Column, Integer, Table
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -65,6 +66,25 @@ def test_session(table, session_factory):
 
     with session_factory() as session:
         session.execute(table.insert().values(test=5))
+
+    with session_factory() as session:
+        results = session.execute(table.select()).fetchall()
+        assert len(results) == 1
+        assert results[0]['test'] == 5
+
+    with pytest.raises(IntegrityError):
+        with session_factory() as session:
+            session.execute(table.insert().values(test=5))
+
+    with session_factory() as session:
+        results = session.execute(table.select()).fetchall()
+        assert len(results) == 1
+        assert results[0]['test'] == 5
+
+    with pytest.raises(IntegrityError):
+        with session_factory() as session:
+            session.execute(table.insert().values(test=5))
+            session.commit()
 
     with session_factory() as session:
         results = session.execute(table.select()).fetchall()
