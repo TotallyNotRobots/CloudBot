@@ -1,7 +1,7 @@
 import asyncio
-import collections
 import logging
 import random
+from collections import defaultdict
 
 from .permissions import NickBasedPermissionManager
 
@@ -50,7 +50,7 @@ class Client:
         self.permissions = self.get_permissions_manager()
 
         # for plugins to abuse
-        self.memory = collections.defaultdict()
+        self.memory = defaultdict()
 
         # set when on_load in core_misc is done
         self.ready = False

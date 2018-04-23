@@ -1,10 +1,10 @@
 import asyncio
-import collections
 import gc
 import importlib
 import logging
 import re
 import time
+from collections import defaultdict
 from functools import partial
 from pathlib import Path
 
@@ -106,7 +106,7 @@ class CloudBot:
         self.logger = logger
 
         # for plugins to abuse
-        self.memory = collections.defaultdict()
+        self.memory = defaultdict()
 
         # declare and create data folder
         self.data_dir = self.base_dir / "data"

@@ -1,9 +1,9 @@
-import collections
 import re
 from abc import abstractmethod, ABC
 
 from ..event import EventType
 from ..hooks.types import HookTypes
+from ..util.abc import Iterable
 from ..util.text import is_command
 
 
@@ -108,7 +108,7 @@ class BaseRegexHook(BaseHook):
             # we only use regex.search anyways, so this is a good determiner
             self.regexes.append(regex_param)
         else:
-            assert isinstance(regex_param, collections.Iterable)
+            assert isinstance(regex_param, Iterable)
             # if the parameter is a list, add each one
             for re_to_match in regex_param:
                 if isinstance(re_to_match, str):

@@ -16,18 +16,18 @@ License: GPL v3
 import base64
 import binascii
 import codecs
-import collections
 import hashlib
 import json
 import os
 import random
 import re
 import urllib.parse
+from collections import OrderedDict
 
 from cloudbot import hook
 from cloudbot.util import formatting, web, colors
 
-COLORS = collections.OrderedDict([
+COLORS = OrderedDict([
     ('red', '\x0304'),
     ('orange', '\x0307'),
     ('yellow', '\x0308'),
