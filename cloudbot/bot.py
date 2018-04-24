@@ -378,7 +378,7 @@ class CloudBot:
     @asyncio.coroutine
     def main_loop(self):
         while self.running:
-            event = yield from self.event_queue.get()
+            event = yield from self.event_queue.get()  # type: Event
             if event is not None:
                 tasks = self._get_tasks(event)
                 for task in tasks:
