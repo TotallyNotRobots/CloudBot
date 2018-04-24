@@ -161,7 +161,7 @@ def chain(text, bot, event):
     out_func = None
     _target = None
 
-    def message(msg, target=None):
+    def _message(msg, target=None):
         nonlocal buffer
         nonlocal out_func
         nonlocal _target
@@ -170,6 +170,8 @@ def chain(text, bot, event):
             out_func = event.message
 
         _target = target
+
+    _message.__name__ = "message"
 
     def reply(*messages, target=None):
         nonlocal buffer
@@ -196,7 +198,7 @@ def chain(text, bot, event):
         args += (" " if args else "") + buffer
         buffer = ""
         cmd_event = wrap_event(_hook, event, cmd, args)
-        cmd_event.message = message
+        cmd_event.message = _message
         cmd_event.reply = reply
         cmd_event.action = action
         if _hook.auto_help and not cmd_event.text and _hook.doc is not None:

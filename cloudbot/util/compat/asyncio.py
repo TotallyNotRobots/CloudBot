@@ -88,18 +88,18 @@ except AttributeError:
             else:
                 _set_concurrent_future_state(future, other)
 
-        def _call_check_cancel(destination):
-            if destination.cancelled():
+        def _call_check_cancel(fut):
+            if fut.cancelled():
                 if source_loop is None or source_loop is dest_loop:
                     source.cancel()
                 else:
                     source_loop.call_soon_threadsafe(source.cancel)
 
-        def _call_set_state(source):
+        def _call_set_state(fut):
             if dest_loop is None or dest_loop is source_loop:
-                _set_state(destination, source)
+                _set_state(destination, fut)
             else:
-                dest_loop.call_soon_threadsafe(_set_state, destination, source)
+                dest_loop.call_soon_threadsafe(_set_state, destination, fut)
 
         destination.add_done_callback(_call_check_cancel)
         source.add_done_callback(_call_set_state)
