@@ -1,4 +1,4 @@
-import responses
+from responses import mock as resp_mock
 
 test_user = "notch"
 
@@ -32,94 +32,94 @@ class DummyBot:
 
 
 class TestBans:
-    @responses.activate
+    @resp_mock.activate
     def test_bans(self):
         """
         tests fishbans with a successful API response having multiple bans
         """
         from plugins.minecraft.fishbans import fishbans
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
 
         assert fishbans(test_user, DummyBot) == bans_reply
 
-    @responses.activate
+    @resp_mock.resp_mock
     def test_bans_single(self):
         """
         tests fishbans with a successful API response having a single ban
         """
         from plugins.minecraft.fishbans import fishbans
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_single)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_single)
 
         assert fishbans(test_user, DummyBot) == bans_reply_single
 
-    @responses.activate
+    @resp_mock.activate
     def test_bans_failed(self):
         """
         tests fishbans with a failed API response
         """
         from plugins.minecraft.fishbans import fishbans
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
 
         assert fishbans(test_user, DummyBot) == reply_failed
 
-    @responses.activate
+    @resp_mock.activate
     def test_bans_none(self):
         """
         tests fishbans with a successful API response having no bans
         """
         from plugins.minecraft.fishbans import fishbans
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
 
         assert fishbans(test_user, DummyBot) == bans_reply_none
 
-    @responses.activate
+    @resp_mock.activate
     def test_bans_error(self):
         """
         tests fishbans with a HTTP error
         """
         from plugins.minecraft.fishbans import fishbans
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', status=404)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', status=404)
 
         assert fishbans(test_user, DummyBot).startswith(reply_error)
 
 
 class TestCount:
-    @responses.activate
+    @resp_mock.activate
     def test_count(self):
         """
         tests bancount with a successful API response having multiple bans
         """
         from plugins.minecraft.fishbans import bancount
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api)
 
         assert bancount(test_user, DummyBot) == count_reply
 
-    @responses.activate
+    @resp_mock.activate
     def test_count_failed(self):
         """
         tests bancount with a failed API response
         """
         from plugins.minecraft.fishbans import bancount
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_failed)
 
         assert bancount(test_user, DummyBot) == reply_failed
 
-    @responses.activate
+    @resp_mock.activate
     def test_count_none(self):
         """
         tests bancount with a successful API response having no bans
         """
         from plugins.minecraft.fishbans import bancount
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', body=test_api_none)
 
         assert bancount(test_user, DummyBot) == count_reply_none
 
-    @responses.activate
+    @resp_mock.activate
     def test_count_error(self):
         """
         tests bancount with a HTTP error
         """
         from plugins.minecraft.fishbans import bancount
-        responses.add(responses.GET, 'http://api.fishbans.com/stats/notch/', status=404)
+        resp_mock.add(resp_mock.GET, 'http://api.fishbans.com/stats/notch/', status=404)
 
         assert bancount(test_user, DummyBot).startswith(reply_error)
