@@ -358,15 +358,6 @@ def init_chan_data(conn, _clear=True):
         users.clear()
 
 
-def add_user_membership(user, chan, membership):
-    """
-    :type user: User
-    :type chan: Channel
-    :type membership: ChannelMember
-    """
-    user.channels[chan] = membership
-
-
 def get_conn_statuses(conn):
     """
     :type conn: cloudbot.client.Client
