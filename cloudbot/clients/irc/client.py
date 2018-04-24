@@ -9,7 +9,7 @@ from .parser import Message
 from .permissions import IrcPermissionManager
 from ...client import Client
 from ...event import Event, EventType, IrcOutEvent
-from ...util.async_util import wrap_future
+from ...util.async_util import wrap_future, create_future
 
 logger = logging.getLogger("cloudbot")
 
