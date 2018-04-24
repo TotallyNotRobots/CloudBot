@@ -6,11 +6,6 @@ import requests
 from cloudbot import hook
 from cloudbot.util import web
 
-try:
-    import cfscrape
-except ImportError:
-    cfscrape = None
-
 
 class SteamError(Exception):
     pass
@@ -38,24 +33,16 @@ def get_data(user, currency="us"):
 
     # get the page
     try:
-        if cfscrape:
-            scraper = cfscrape.create_scraper()
-            request = scraper.get(CALC_URL, params=params)
-        else:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, '
-                              'like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-                'Referer': 'https://steamdb.info/'
-            }
-            request = requests.get(CALC_URL, params=params, headers=headers)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, '
+                          'like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+            'Referer': 'https://steamdb.info/'
+        }
+        request = requests.get(CALC_URL, params=params, headers=headers)
 
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        if cfscrape:
-            raise SteamError("Could not get user info: {}".format(e))
-        else:
-            raise SteamError("Could not get user info: {} (You may have been blocked by CloudFlare, try installing the "
-                             "cfscrape module)".format(e))
+        raise SteamError("Could not get user info: {}".format(e))
 
     # parse that page!
     soup = bs4.BeautifulSoup(request.content)
