@@ -22,14 +22,6 @@ from .util.async_util import run_coroutine_threadsafe, create_future
 from .util.database import ContextSession
 from .util.formatting import get_text_list
 
-try:
-    from typing import TYPE_CHECKING
-except ImportError:
-    TYPE_CHECKING = False
-
-if TYPE_CHECKING:
-    from typing import Type
-
 logger = logging.getLogger("cloudbot")
 
 
@@ -198,7 +190,7 @@ class CloudBot:
 
         client = self.get_client(_type)
 
-        client_cls = getattr(client, 'get_client')()  # type: Type[Client]
+        client_cls = getattr(client, 'get_client')()
 
         return client_cls(self, name, config)
 
