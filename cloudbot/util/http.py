@@ -3,13 +3,8 @@
 import http.cookiejar
 import json
 import urllib.error
-import urllib.error
-import urllib.parse
-import urllib.parse
 import urllib.parse
 import urllib.request
-import urllib.request
-# noinspection PyUnresolvedReferences
 import warnings
 # noinspection PyUnresolvedReferences
 from urllib.parse import quote, quote_plus as _quote_plus
