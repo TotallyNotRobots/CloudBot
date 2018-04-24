@@ -16,9 +16,8 @@
 
 import urllib.parse
 
-from bs4 import BeautifulSoup
-
 from cloudbot import hook
+from cloudbot.util.http import get_soup
 
 DEGREE_SYMBOL = "F"
 
@@ -83,8 +82,7 @@ def get_weather(text, reply):
 
     # Fetch HTML
     url = "http://www.thefuckingweather.com/?" + query_string
-    data = urllib.request.urlopen(url).read()
-    soup = BeautifulSoup(data)
+    soup = get_soup(url)
 
     # Check for an error report
     try:
