@@ -28,7 +28,7 @@ def find_hooks(parent, module):
     :rtype: dict
     """
     # set the loaded flag
-    module._cloudbot_loaded = True
+    setattr(module, '_cloudbot_loaded', True)
     hooks = defaultdict(list)
     for _, func in module.__dict__.items():
         try:
