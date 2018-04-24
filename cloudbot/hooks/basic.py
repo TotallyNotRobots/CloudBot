@@ -50,6 +50,8 @@ class BaseHook(ABC):
 
 
 class BaseCommandHook(BaseHook):
+    main_alias = None
+
     @classmethod
     def get_type(cls):
         return HookTypes.COMMAND
@@ -143,6 +145,8 @@ class BaseRawHook(BaseHook):
 
 
 class BasePeriodicHook(BaseHook):
+    interval = None
+
     @classmethod
     def get_type(cls):
         return HookTypes.PERIODIC
