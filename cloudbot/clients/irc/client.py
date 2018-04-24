@@ -41,6 +41,7 @@ def decode(bytestring):
             return bytestring.decode(codec)
         except UnicodeDecodeError:
             continue
+    # noinspection PyUnreachableCode
     return bytestring.decode('utf-8', errors='ignore')
 
 
