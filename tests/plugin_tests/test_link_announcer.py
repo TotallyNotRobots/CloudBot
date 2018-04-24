@@ -2,6 +2,7 @@ import codecs
 
 import pytest
 from bs4 import BeautifulSoup
+from responses import mock as resp_mock
 
 
 @pytest.mark.parametrize("url", [
@@ -111,3 +112,24 @@ def test_encoding_parse(text, enc):
     enc_obj = codecs.lookup(encoding)
 
     assert enc == enc_obj
+
+
+def test_parsing_page_title():
+    from plugins.link_announcer import url_re, print_url_title
+    url = "https://docs.python.org/3.7/whatsnew/3.7.html#changes-in-python-behavior"
+    expected_title = "Title: \x02What\u2019s New In Python 3.7 \u2014 Python 3.7.0b3 documentation\x02"
+    body = """\
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>What’s New In Python 3.7 &#8212; Python 3.7.0b3 documentation</title>
+  </head>
+</html>
+    """
+    with resp_mock:
+        resp_mock.add(resp_mock.GET, url, body)
+        match = url_re.search(url)
+        assert expected_title == print_url_title(match)
