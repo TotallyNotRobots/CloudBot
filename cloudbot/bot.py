@@ -56,6 +56,15 @@ def get_cmd_regex(event):
     return cmd_re
 
 
+def get_client(name):
+    """
+    :type name: str
+    :rtype: Client
+    """
+    client = importlib.import_module(".clients." + name, package=__package__)
+    return client
+
+
 class CloudBot:
     """
     :type base_dir: Path
@@ -188,7 +197,7 @@ class CloudBot:
         """
         _type = config.get("type", "irc")
 
-        client = self.get_client(_type)
+        client = get_client(_type)
 
         client_cls = getattr(client, 'get_client')()
 
@@ -265,14 +274,6 @@ class CloudBot:
 
         # Run a manual garbage collection cycle, to clean up any unused objects created during initialization
         gc.collect()
-
-    def get_client(self, name):
-        """
-        :type name: str
-        :rtype: Client
-        """
-        client = importlib.import_module(".clients." + name, package=__package__)
-        return client
 
     def _get_tasks(self, event):
         """

@@ -48,28 +48,29 @@ import re
 TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
+def _get_part(required_part, part_list):
+    _parts = part_list[required_part]
+    _weighted_parts = []
+    # this uses way too much code, but I wrote it at like 6am
+
+    for _part in _parts:
+        if isinstance(_part, (list, tuple)):
+            __part, __weight = _part
+            _weighted_parts.append((__part, __weight))
+        else:
+            __part = _part
+            _weighted_parts.append((__part, 5))
+
+    population = [val for val, cnt in _weighted_parts for _ in range(cnt)]
+    return random.choice(population)
+
+
 class TextGenerator(object):
     def __init__(self, templates, parts, default_templates=None, variables=None):
         self.templates = templates
         self.default_templates = default_templates
         self.parts = parts
         self.variables = variables
-
-    def get_part(self, required_part, part_list):
-        _parts = part_list[required_part]
-        _weighted_parts = []
-        # this uses way too much code, but I wrote it at like 6am
-
-        for _part in _parts:
-            if isinstance(_part, (list, tuple)):
-                __part, __weight = _part
-                _weighted_parts.append((__part, __weight))
-            else:
-                __part = _part
-                _weighted_parts.append((__part, 5))
-
-        population = [val for val, cnt in _weighted_parts for _ in range(cnt)]
-        return random.choice(population)
 
     def generate_string(self, template=None):
         """
@@ -91,7 +92,7 @@ class TextGenerator(object):
         for required_part in required_parts:
             # get the part
             try:
-                replacement = self.get_part(required_part, _parts)
+                replacement = _get_part(required_part, _parts)
             except KeyError:
                 continue
 
