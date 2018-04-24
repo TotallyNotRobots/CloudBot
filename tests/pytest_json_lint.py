@@ -19,3 +19,6 @@ class JsonItem(pytest.Item, pytest.File):
         data = json.loads(text, object_pairs_hook=OrderedDict)
         formatted_text = json.dumps(data, indent=4) + '\n'
         assert formatted_text == text, "Improperly formatted JSON file"
+
+    def collect(self):
+        pass

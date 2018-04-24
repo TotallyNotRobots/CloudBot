@@ -137,6 +137,9 @@ class HTMLTextExtractor(HTMLParser):
     def get_text(self):
         return ''.join(self.result)
 
+    def error(self, message):
+        raise Exception(message)
+
 
 # Functions
 
