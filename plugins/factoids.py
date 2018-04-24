@@ -28,9 +28,6 @@ table = Table(
 
 @hook.on_start()
 def load_cache(event):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     global factoid_cache
     factoid_cache = defaultdict(lambda: default_dict)
     with event.db_session() as db:
@@ -51,7 +48,6 @@ def load_cache(event):
 
 def add_factoid(event, word, chan, data, nick):
     """
-    :type db: sqlalchemy.orm.Session
     :type word: str
     :type data: str
     :type nick: str
@@ -72,7 +68,6 @@ def add_factoid(event, word, chan, data, nick):
 
 def del_factoid(event, chan, word):
     """
-    :type db: sqlalchemy.orm.Session
     :type word: str
     """
     with event.db_session() as db:

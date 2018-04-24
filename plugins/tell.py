@@ -110,7 +110,6 @@ def tellinput(event, conn, nick, notice):
     """
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
-    :type db: sqlalchemy.orm.Session
     """
     if 'showtells' in event.content.lower():
         return
