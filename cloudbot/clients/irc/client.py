@@ -9,7 +9,7 @@ from .parser import Message
 from .permissions import IrcPermissionManager
 from ...client import Client
 from ...event import Event, EventType, IrcOutEvent
-from ...util import async_util
+from ...util.async_util import wrap_future
 
 logger = logging.getLogger("cloudbot")
 
@@ -255,7 +255,7 @@ class IrcClient(Client):
         :type line: str
         :type log: bool
         """
-        async_util.wrap_future(self._protocol.send(line, log=log), loop=self.loop)
+        wrap_future(self._protocol.send(line, log=log), loop=self.loop)
 
     @property
     def connected(self):
@@ -298,7 +298,7 @@ class _IrcProtocol(asyncio.Protocol):
         self._transport = None
 
         # Future that waits until we are connected
-        self._connected_future = async_util.create_future(self.loop)
+        self._connected_future = create_future(self.loop)
 
     def connection_made(self, transport):
         self._transport = transport
@@ -313,7 +313,7 @@ class _IrcProtocol(asyncio.Protocol):
         if exc:
             logger.error("[{}] Connection lost: {}".format(self.conn.name, exc))
 
-        async_util.wrap_future(self.conn.auto_reconnect(), loop=self.loop)
+        wrap_future(self.conn.auto_reconnect(), loop=self.loop)
 
     def close(self):
         self._connecting = False

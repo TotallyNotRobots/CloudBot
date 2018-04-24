@@ -9,9 +9,7 @@ from functools import partial
 from pathlib import Path
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.schema import MetaData
 from watchdog.observers import Observer
 
 from .client import Client
@@ -20,8 +18,9 @@ from .event import Event, CommandEvent, RegexEvent, EventType
 from .hooks.actions import Action
 from .plugin import PluginManager
 from .reloader import PluginReloader, ConfigReloader
-from .util import database, formatting, async_util
+from .util.async_util import run_coroutine_threadsafe, create_future
 from .util.database import ContextSession
+from .util.formatting import get_text_list
 
 try:
     from typing import TYPE_CHECKING
@@ -83,9 +82,7 @@ class CloudBot:
     :type config_reloader: ConfigReloader
     :type plugin_reloader: PluginReloader
     :type db_engine: sqlalchemy.engine.Engine
-    :type db_factory: sqlalchemy.orm.session.sessionmaker
     :type db_session: sqlalchemy.orm.scoping.scoped_session
-    :type db_metadata: sqlalchemy.sql.schema.MetaData
     """
 
     def __init__(self, loop=asyncio.get_event_loop()):
@@ -95,7 +92,7 @@ class CloudBot:
         self.start_time = time.time()
         self.running = True
         # future which will be called when the bot stopsIf you
-        self.stopped_future = async_util.create_future(self.loop)
+        self.stopped_future = create_future(self.loop)
 
         # stores each bot server connection
         self.connections = {}
@@ -133,14 +130,7 @@ class CloudBot:
         # setup db
         db_path = self.config.get('database', 'sqlite:///cloudbot.db')
         self.db_engine = create_engine(db_path)
-        self.db_factory = sessionmaker(bind=self.db_engine)
-        self.db_session = scoped_session(self.db_factory)
-        self.db_metadata = MetaData()
-        self.db_base = declarative_base(metadata=self.db_metadata, bind=self.db_engine)
-
-        # set botvars so plugins can access when loading
-        database.metadata = self.db_metadata
-        database.base = self.db_base
+        self.db_session = scoped_session(sessionmaker(bind=self.db_engine))
 
         logger.debug("Database system initialised.")
 
@@ -194,7 +184,7 @@ class CloudBot:
             except LookupError:
                 self.connections[name] = conn = self._make_connection(name, connection)
                 logger.debug("[{}] Reloading config created connection.".format(conn.name))
-                async_util.run_coroutine_threadsafe(conn.connect(), self.loop)
+                run_coroutine_threadsafe(conn.connect(), self.loop)
 
             conn.reload_config()
 
@@ -369,7 +359,7 @@ class CloudBot:
                             add_hook(command_hook, command_event)
                         else:
                             commands = sorted(command for command, plugin in potential_matches)
-                            txt_list = formatting.get_text_list(commands)
+                            txt_list = get_text_list(commands)
                             event.notice("Possible matches: {}".format(txt_list))
 
         if event.type in (EventType.message, EventType.action):

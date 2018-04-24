@@ -7,9 +7,9 @@ import time
 from pathlib import Path
 
 import cloudbot
+from .util.async_util import run_coroutine_threadsafe
 from .bot import CloudBot
 from .config import Config
-from .util import async_util
 
 
 def generate_logging_config(log_dir, cfg):
@@ -134,7 +134,7 @@ def main():
             # we are currently in the process of restarting
             stopped_while_restarting = True
         else:
-            async_util.run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
+            run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
 
         logger.warning("Bot received Signal Interrupt ({})".format(signum))
 

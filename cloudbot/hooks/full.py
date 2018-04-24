@@ -4,7 +4,7 @@ from abc import abstractmethod, ABC
 
 from .priority import Priority
 from ..hooks.actions import Action
-from ..util import async_util
+from ..util.async_util import wrap_future
 
 logger = logging.getLogger("cloudbot")
 
@@ -184,7 +184,7 @@ class PeriodicHook(Hook):
     """
 
     def register(self, manager):
-        task = async_util.wrap_future(manager.start_periodic(self))
+        task = wrap_future(manager.start_periodic(self))
         self.plugin.tasks.append(task)
         manager.log_hook(self)
 

@@ -4,12 +4,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 
 
-def test_database():
-    from cloudbot.util.database import metadata, base
-    assert metadata is None
-    assert base is None
-
-
 @pytest.fixture(scope='session')
 def db_base():
     return declarative_base()

@@ -2,7 +2,7 @@ import asyncio
 import base64
 
 from cloudbot import hook
-from cloudbot.util import async_util
+from cloudbot.util.async_util import create_future
 
 
 @hook.on_cap_available("sasl")
@@ -17,14 +17,14 @@ def sasl_ack(conn, logger):
     sasl_auth = conn.config.get('sasl')
     if sasl_auth and sasl_auth.get('enabled', True):
         sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()
-        auth_fut = async_util.create_future(conn.loop)
+        auth_fut = create_future(conn.loop)
         conn.memory["sasl_auth_future"] = auth_fut
         conn.cmd("AUTHENTICATE", sasl_mech)
         cmd, arg = yield from auth_fut
         if cmd == "908":
             logger.warning("[%s|sasl] SASL mechanism not supported", conn.name)
         elif cmd == "AUTHENTICATE" and arg[0] == '+':
-            num_fut = async_util.create_future(conn.loop)
+            num_fut = create_future(conn.loop)
             conn.memory["sasl_numeric_future"] = num_fut
             if sasl_mech == "PLAIN":
                 auth_str = "{nick}\0{user}\0{passwd}".format(

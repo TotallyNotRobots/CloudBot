@@ -11,7 +11,7 @@ import geoip2.errors
 import requests
 
 from cloudbot import hook
-from cloudbot.util import async_util
+from cloudbot.util.async_util import wrap_future
 
 logger = logging.getLogger("cloudbot")
 
@@ -71,7 +71,7 @@ def check_db(loop):
 @hook.on_start
 @asyncio.coroutine
 def load_geoip(loop):
-    async_util.wrap_future(check_db(loop), loop=loop)
+    wrap_future(check_db(loop), loop=loop)
 
 
 @hook.command

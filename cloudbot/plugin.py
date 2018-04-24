@@ -15,8 +15,8 @@ from .event import Event, PostHookEvent
 from .hook import get_hooks
 from .hooks.basic import BaseHook
 from .hooks.types import HookTypes
-from .util import database, async_util
-from .util.async_util import run_func_with_args
+from .util.async_util import run_func_with_args, wrap_future
+from .util.database import metadata
 
 logger = logging.getLogger("cloudbot")
 
@@ -52,7 +52,7 @@ def find_tables(code):
     """
     tables = []
     for name, obj in code.__dict__.items():
-        if isinstance(obj, sqlalchemy.Table) and obj.metadata == database.metadata:
+        if isinstance(obj, sqlalchemy.Table) and obj.metadata is metadata:
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
 
@@ -113,7 +113,7 @@ class PluginManager:
     @asyncio.coroutine
     def start(self):
         self.running = True
-        self._worker = async_util.wrap_future(self.do_loop())
+        self._worker = wrap_future(self.do_loop())
 
     @asyncio.coroutine
     def shutdown(self):
@@ -131,7 +131,7 @@ class PluginManager:
                 continue
 
             _hook, event = task
-            async_util.wrap_future(self.launch(_hook, event))
+            wrap_future(self.launch(_hook, event))
             self.hook_queue.task_done()
             yield from asyncio.sleep(0)
 
@@ -313,7 +313,7 @@ class PluginManager:
         """
         coro = run_func_with_args(self.bot.loop, hook.function, event)
 
-        task = async_util.wrap_future(coro)
+        task = wrap_future(coro)
         hook.plugin.tasks.append(task)
         try:
             out = yield from task
@@ -487,4 +487,4 @@ class Plugin:
             logger.info("Unregistering tables for {}".format(self.title))
 
             for table in self.tables:
-                bot.db_metadata.remove(table)
+                metadata.remove(table)

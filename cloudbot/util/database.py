@@ -2,9 +2,10 @@
 database - contains variables set by cloudbot to be easily access
 """
 
-# this is assigned in the CloudBot so that its recreated when the bot restarts
-metadata = None
-base = None
+from sqlalchemy.ext.declarative import declarative_base as _declarative_base
+
+Base = _declarative_base()
+metadata = Base.metadata
 
 
 class ContextSession:

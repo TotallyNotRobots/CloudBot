@@ -5,7 +5,7 @@ from functools import partial
 from cloudbot import hook
 from cloudbot.clients.irc.parser import CapList, Cap
 from cloudbot.event import CapEvent
-from cloudbot.util import async_util
+from cloudbot.util.async_util import create_future, run_func_with_args
 
 
 class ServerCaps:
@@ -64,7 +64,7 @@ def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
         ]
         results = yield from asyncio.gather(*tasks)
         if any(ok and (res or res is None) for ok, res in results):
-            cap_queue[name_cf] = async_util.create_future(conn.loop)
+            cap_queue[name_cf] = create_future(conn.loop)
             conn.cmd("CAP", "REQ", cap.name)
 
     if irc_paramlist[2] != '+':
@@ -95,7 +95,7 @@ def _launch_handler(subcmd, event, **kwargs):
     except LookupError:
         return
 
-    yield from async_util.run_func_with_args(event.loop, handler, ChainMap(event, kwargs))
+    yield from run_func_with_args(event.loop, handler, ChainMap(event, kwargs))
 
 
 @_subcmd_handler("LS")
