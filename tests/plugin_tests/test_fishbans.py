@@ -42,7 +42,7 @@ class TestBans:
 
         assert fishbans(test_user, DummyBot) == bans_reply
 
-    @resp_mock.resp_mock
+    @resp_mock.activate
     def test_bans_single(self):
         """
         tests fishbans with a successful API response having a single ban
