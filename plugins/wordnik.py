@@ -52,7 +52,7 @@ def define(text):
         data['attrib'] = ATTRIB_NAMES[data['sourceDictionary']]
         return "\x02{word}\x02: {text} - {url} ({attrib})".format(**data)
     else:
-        return "I could not find a definition for \x02{}\x02.".format(word)
+        return "I could not find a definition for \x02{}\x02.".format(text)
 
 
 @hook.command("wordusage", "wordexample", "usage")
@@ -69,12 +69,12 @@ def word_usage(text):
 
     json = requests.get(url, params=params).json()
     if json:
-        out = "\x02{}\x02: ".format(word)
+        out = "\x02{}\x02: ".format(text)
         example = random.choice(json['examples'])
         out += "{} ".format(example['text'])
         return " ".join(out.split())
     else:
-        return "I could not find any usage examples for \x02{}\x02.".format(word)
+        return "I could not find any usage examples for \x02{}\x02.".format(text)
 
 
 @hook.command("pronounce", "sounditout")
@@ -92,10 +92,10 @@ def pronounce(text):
     json = requests.get(url, params=params).json()
 
     if json:
-        out = "\x02{}\x02: ".format(word)
+        out = "\x02{}\x02: ".format(text)
         out += " • ".join([i['raw'] for i in json])
     else:
-        return "Sorry, I don't know how to pronounce \x02{}\x02.".format(word)
+        return "Sorry, I don't know how to pronounce \x02{}\x02.".format(text)
 
     url = API_URL + "word.json/{}/audio".format(word)
 
@@ -129,11 +129,11 @@ def synonym(text):
     json = requests.get(url, params=params).json()
 
     if json:
-        out = "\x02{}\x02: ".format(word)
+        out = "\x02{}\x02: ".format(text)
         out += " • ".join(json[0]['words'])
         return " ".join(out.split())
     else:
-        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(word)
+        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
 
 
 @hook.command()
@@ -153,12 +153,12 @@ def antonym(text):
     json = requests.get(url, params=params).json()
 
     if json:
-        out = "\x02{}\x02: ".format(word)
+        out = "\x02{}\x02: ".format(text)
         out += " • ".join(json[0]['words'])
         out = out[:-2]
         return " ".join(out.split())
     else:
-        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(word)
+        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
 
 
 # word of the day
