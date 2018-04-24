@@ -55,8 +55,10 @@ def get_name(thread_id):
 
 def get_thread_dump():
     code = []
+    # noinspection PyProtectedMember
+    frames = sys._current_frames()
     threads = [(get_name(thread_id), traceback.extract_stack(stack))
-               for thread_id, stack in sys._current_frames().items()]
+               for thread_id, stack in frames.items()]
     for thread_name, stack in threads:
         code.append("# {}".format(thread_name))
         for filename, line_num, name, line in stack:
@@ -85,7 +87,7 @@ def show_types():
 def show_growth():
     if objgraph is None:
         return "objgraph not installed"
-    objgraph.show_growth(limit=10)
+    objgraph.show_growth()
     return "Printed to console"
 
 

@@ -26,7 +26,7 @@ def fetch_db():
         os.remove(PATH)
     r = requests.get(DB_URL, stream=True)
     if r.status_code == 200:
-        with gzip.open(r.raw, 'rb') as infile:
+        with gzip.open(r.raw) as infile:
             with open(PATH, 'wb') as outfile:
                 shutil.copyfileobj(infile, outfile)
 

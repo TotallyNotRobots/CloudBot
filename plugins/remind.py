@@ -96,7 +96,7 @@ def check_reminders(bot, event):
             if not conn.ready:
                 return
 
-            remind_text = colors.parse(time_since(added_time, count=2))
+            remind_text = colors.parse(time_since(added_time))
             alert = colors.parse("{}, you have a reminder from $(b){}$(clear) ago!".format(user, remind_text))
 
             conn.message(user, alert)
@@ -104,7 +104,7 @@ def check_reminders(bot, event):
 
             delta = (remind_time - added_time).seconds
             if delta > (30 * 60):
-                late_time = time_since(remind_time, count=2)
+                late_time = time_since(remind_time)
                 late = "(I'm sorry for delivering this message $(b){}$(clear) late," \
                        " it seems I was unable to deliver it on time)".format(late_time)
                 conn.message(user, colors.parse(late))

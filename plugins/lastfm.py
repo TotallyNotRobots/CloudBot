@@ -104,7 +104,7 @@ def get_tags(api_key, method, artist, **params):
         for item in tags['toptags']['tag']:
             tag_list.append(item['name'])
 
-    tag_list = filter_tags(tag_list, artist, limit=4)
+    tag_list = filter_tags(tag_list, artist)
 
     return ', '.join(tag_list) if tag_list else 'no tags'
 
