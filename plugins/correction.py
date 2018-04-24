@@ -13,6 +13,8 @@ def correction(match, conn, nick, chan, message):
     :type match: re.__Match
     :type conn: cloudbot.client.Client
     :type chan: str
+    :type nick: str
+    :type message: types.FunctionType
     """
     groups = [unescape_re.sub(r"\1", group or "") for group in match.groups()]
     find = groups[0]

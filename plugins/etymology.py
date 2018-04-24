@@ -19,6 +19,7 @@ from cloudbot import hook
 def etymology(text, reply):
     """<word> - retrieves the etymology of <word>
     :type text: str
+    :type reply: types.FunctionType
     """
 
     url = 'http://www.etymonline.com/index.php'

@@ -34,6 +34,8 @@ def on_kick(conn, chan, target, loop):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
+    :type target: str
+    :type loop: asyncio.AbstractEventLoop
     """
     # if the bot has been kicked, remove from the channel list
     if target == conn.nick:

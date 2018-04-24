@@ -44,6 +44,9 @@ def join(text, conn, nick, notice, admin_log, event):
     :type text: str
     :type conn: cloudbot.client.Client
     :type event: cloudbot.event.Event
+    :type nick: str
+    :type notice: types.FunctionType
+    :type admin_log: types.FunctionType
     """
     if not event.is_channel(text):
         return "That channel name is not valid."
@@ -83,6 +86,8 @@ def cycle(text, conn, chan, notice, event):
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
+    :type notice: types.FunctionType
+    :type event: cloudbot.event.Event
     """
     if text:
         if not event.is_channel(text):
@@ -103,6 +108,8 @@ def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
     :type text: str
     :type conn: cloudbot.client.Client
+    :type notice: types.FunctionType
+    :type is_nick_valid: types.FunctionType
     """
     if not is_nick_valid(text):
         notice("Invalid username '{}'".format(text))
@@ -118,6 +125,7 @@ def raw(text, conn, notice):
     """<command> - sends <command> as a raw IRC command
     :type text: str
     :type conn: cloudbot.client.Client
+    :type notice: types.FunctionType
     """
     notice("Raw command sent.")
     conn.send(text)
@@ -130,7 +138,9 @@ def say(text, conn, chan, nick, admin_log, event):
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
-    :type event: cloudbot.event.Evemt
+    :type event: cloudbot.event.Event
+    :type nick: str
+    :type admin_log: types.FunctionType
     """
     split = text.split(None, 1)
     if event.is_channel(split[0]) and len(split) > 1:
@@ -149,6 +159,8 @@ def say_message(text, conn, nick, admin_log):
     """<name> <message> - says <message> to <name>
     :type text: str
     :type conn: cloudbot.client.Client
+    :type nick: str
+    :type admin_log: types.FunctionType
     """
     split = text.split(None, 1)
     channel = split[0]
@@ -165,6 +177,8 @@ def me(text, conn, chan, nick, admin_log, event):
     :type conn: cloudbot.client.Client
     :type chan: str
     :type event: cloudbot.event.Event
+    :type nick: str
+    :type admin_log: types.FunctionType
     """
     split = text.split(None, 1)
     if event.is_channel(split[0]) and len(split) > 1:

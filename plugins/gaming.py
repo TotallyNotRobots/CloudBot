@@ -57,6 +57,7 @@ def n_rolls(count, n):
 def dice(text, notice):
     """<dice roll> - simulates dice rolls. Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4
     :type text: str
+    :type notice: types.FunctionType
     """
 
     if hasattr(text, "groups"):
@@ -120,6 +121,7 @@ def dice(text, notice):
 def choose(text, event):
     """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
     :type text: str
+    :type event: cloudbot.event.CommandEvent
     """
     choices = re.findall(r'([^,]+)', text.strip())
     if len(choices) == 1:
@@ -135,6 +137,8 @@ def choose(text, event):
 def coin(text, notice, action):
     """[amount] - flips [amount] coins
     :type text: str
+    :type notice: types.FunctionType
+    :type action: types.FunctionType
     """
 
     if text:

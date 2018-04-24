@@ -110,6 +110,8 @@ def tellinput(event, conn, nick, notice):
     """
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
+    :type nick: str
+    :type notice: types.FunctionType
     """
     if 'showtells' in event.content.lower():
         return

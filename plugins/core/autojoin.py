@@ -61,6 +61,9 @@ def add_chan(event, conn, chan, nick):
 def on_part(event, conn, chan, nick):
     """
     :type event: cloudbot.event.Event
+    :type conn: cloudbot.client.Client
+    :type chan: str
+    :type nick: str
     """
     if nick.casefold() == conn.nick.casefold():
         with db_lock, event.db_session() as db:

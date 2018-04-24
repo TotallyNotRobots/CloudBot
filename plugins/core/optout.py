@@ -84,6 +84,10 @@ def format_optout_list(opts):
 def set_optout(event, conn, chan, pattern, allowed):
     """
     :type event: cloudbot.event.Event
+    :type conn: str
+    :type chan: str
+    :type pattern: str
+    :type allowed: bool
     """
     conn_cf = conn.casefold()
     chan_cf = chan.casefold()
@@ -117,6 +121,8 @@ def del_optout(event, conn, chan, pattern):
 def clear_optout(event, conn, chan=None):
     """
     :type event: cloudbot.event.Event
+    :type conn: str
+    :type chan: str
     """
     conn_cf = conn.casefold()
     if chan:
@@ -193,6 +199,8 @@ def optout(text, event, chan, conn):
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current channel if not specified
     :type text: str
     :type event: cloudbot.event.CommandEvent
+    :type chan: str
+    :type conn: str
     """
     args = text.split()
     if event.is_channel(args[0]) and len(args) > 1:
@@ -276,6 +284,7 @@ def list_optout(conn, event, async_call):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to view all data for this network
     :type conn: cloudbot.clients.irc.Client
     :type event: cloudbot.event.CommandEvent
+    :type async_call: types.FunctionType
     """
     chan, allowed = yield from check_global_perms(event)
 

@@ -66,6 +66,7 @@ class BaseCommandHook(BaseHook):
     def add_hook(self, alias_param, kwargs):
         """
         :type alias_param: list[str] | str
+        :type kwargs: dict[str, Any]
         """
         self._add_hook(kwargs)
 

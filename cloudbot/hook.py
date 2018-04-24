@@ -97,7 +97,6 @@ def event(types_param, **kwargs):
 def regex(regex_param, **kwargs):
     """External regex decorator. Must be used as a function to return a decorator.
     :type regex_param: str | re.__Regex | list[str | re.__Regex]
-    :type flags: int
     """
 
     def _regex_hook(func):
@@ -131,7 +130,7 @@ def sieve(param=None, **kwargs):
 
 def periodic(interval, **kwargs):
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator
-    :type param: function | None
+    :type interval: function | None | numbers.Number
     """
 
     def _periodic_hook(func):

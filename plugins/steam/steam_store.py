@@ -20,6 +20,7 @@ def format_game(app_id, show_url=True):
     """
     Takes a Steam Store app ID and returns a formatted string with data about that app ID
     :type app_id: string
+    :type show_url: bool
     :return: string
     """
     params = {'appids': app_id}

@@ -185,7 +185,7 @@ class Event:
 
     def reply(self, *messages, target=None):
         """sends a message to the current channel/user with a prefix
-        :type message: str
+        :type messages: str
         :type target: str
         """
         reply_ping = self.conn.config.get("reply_ping", True)

@@ -21,6 +21,7 @@ def load_cheers(bot):
 def cheer(chan, message):
     """
     :type chan: str
+    :type message: types.FunctionType
     """
     shit = random.choice(cheers)
     message(shit, chan)

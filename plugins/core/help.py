@@ -13,6 +13,12 @@ def help_command(text, chan, nick, bot, notice, message, has_permission, trigger
     """[command] - gives help for [command], or lists all available commands if no command is specified
     :type text: str
     :type bot: cloudbot.bot.CloudBot
+    :type chan: str
+    :type nick: str
+    :type notice: types.FunctionType
+    :type message: types.FunctionType
+    :type has_permission: types.FunctionType
+    :type triggered_prefix: str
     """
     if text:
         searching_for = text.lower().strip()

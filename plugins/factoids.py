@@ -48,6 +48,8 @@ def load_cache(event):
 
 def add_factoid(event, word, chan, data, nick):
     """
+    :type event: cloudbot.event.Event
+    :type chan: str
     :type word: str
     :type data: str
     :type nick: str
@@ -68,6 +70,8 @@ def add_factoid(event, word, chan, data, nick):
 
 def del_factoid(event, chan, word):
     """
+    :type event: cloudbot.event.Event
+    :type chan: str
     :type word: str
     """
     with event.db_session() as db:

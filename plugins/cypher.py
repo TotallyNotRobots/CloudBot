@@ -38,6 +38,7 @@ def decode(password, encoded, notice):
     """
     :type password: str
     :type encoded: str
+    :type notice: types.FunctionType
     """
     dec = []
     try:

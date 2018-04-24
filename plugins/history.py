@@ -46,6 +46,7 @@ def track_seen(event):
 def track_history(event, message_time, conn):
     """
     :type event: cloudbot.event.Event
+    :type message_time: numbers.Number
     :type conn: cloudbot.client.Client
     """
     try:
@@ -92,7 +93,11 @@ def resethistory(event, conn):
 @hook.command()
 def seen(text, nick, chan, event, is_nick_valid):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
+    :type text: str
+    :type nick: str
+    :type chan: str
     :type event: cloudbot.event.Event
+    :type is_nick_valid: types.FunctionType
     """
 
     if event.conn.nick.lower() == text.lower():
