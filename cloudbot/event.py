@@ -398,6 +398,7 @@ class IrcOutEvent(Event):
         try:
             return self._parsed_line
         except AttributeError:
+            # noinspection PyAttributeOutsideInit
             self._parsed_line = line = Message.parse(self.line)
 
         return line
