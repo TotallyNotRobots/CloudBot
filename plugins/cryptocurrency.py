@@ -97,6 +97,9 @@ class CMCApi:
                 self._update(obj["symbol"], obj)
 
     def _get_currency_data(self, id_or_symbol, out_currency="USD"):
+        """
+        :rtype: dict[str, Any]
+        """
         self._now = datetime.now()
         old_data = self._cache[id_or_symbol.lower()]
         _id = old_data.get("id", id_or_symbol)
