@@ -302,7 +302,7 @@ def topartists(text, nick, period):
     else:
         username = get_account(nick)
     if not username:
-        return ("No librefm username specified and no librefm username is set in the database.")
+        return "No librefm username specified and no librefm username is set in the database."
     params = {
         'method': 'user.gettopartists',
         'user': username,
