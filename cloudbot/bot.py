@@ -350,7 +350,7 @@ class CloudBot:
                             command_event = cmd_event(hook=command_hook)
                             add_hook(command_hook, command_event)
                         else:
-                            commands = sorted(command for command, plugin in potential_matches)
+                            commands = sorted(command for command, _ in potential_matches)
                             txt_list = get_text_list(commands)
                             event.notice("Possible matches: {}".format(txt_list))
 

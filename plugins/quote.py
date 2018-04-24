@@ -24,7 +24,7 @@ qtable = Table(
 
 def format_quote(q, num, n_quotes):
     """Returns a formatted string of a quote"""
-    ctime, nick, msg = q
+    _, nick, msg = q
     return "[{}/{}] <{}\u200B{}> {}".format(num, n_quotes,
                                             nick[:1], nick[1:], msg)
 

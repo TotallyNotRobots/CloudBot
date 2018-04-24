@@ -48,12 +48,13 @@ def _get_output_for_config(config):
 def test_basic_run(config_data, output):
     count = 0
 
-    def _run_mock(self, *args, **kwargs):
+    # noinspection PyUnusedLocal
+    def _run_mock(self):
         nonlocal count
         count += 1
         return False
 
-    def _mock_reload_config(self, *args, **kwargs):
+    def _mock_reload_config(self):
         self.update(config_data)
 
     with mock.patch('cloudbot.bot.CloudBot.__init__', lambda *args, **kwargs: None), \
@@ -74,7 +75,7 @@ class AppRestart(SystemExit):
 
 def test_restart():
     def _mock_os_execv(*args, **kwargs):
-        raise AppRestart()
+        raise AppRestart(args, kwargs)
 
     with mock.patch('cloudbot.bot.CloudBot.__init__', lambda *args, **kwargs: None), \
          mock.patch('cloudbot.bot.CloudBot.run', lambda *args, **kwargs: True), \

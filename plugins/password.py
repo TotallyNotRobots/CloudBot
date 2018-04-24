@@ -58,7 +58,7 @@ def password(text, notice):
     gen.shuffle(okay)
     chars = []
 
-    for i in range(length):
+    for _ in range(length):
         chars.append(gen.choice(okay))
 
     notice("".join(chars))
@@ -78,7 +78,7 @@ def word_password(text, notice):
 
     words = []
     # generate password
-    for x in range(length):
+    for _ in range(length):
         words.append(gen.choice(common_words))
 
     notice("Your password is '{}'. Feel free to remove the spaces when using it.".format(" ".join(words)))

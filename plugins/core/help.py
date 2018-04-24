@@ -92,7 +92,7 @@ def cmdinfo(text, bot, notice):
                 cmd_hook = potentials[0][1]
             else:
                 notice("Possible matches: {}".format(
-                    formatting.get_text_list(sorted([command for command, plugin in potentials]))))
+                    formatting.get_text_list(sorted([command for command, _ in potentials]))))
                 return
         else:
             cmd_hook = None

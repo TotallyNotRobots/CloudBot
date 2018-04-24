@@ -128,7 +128,7 @@ def imguralbum(text, conn):
     if text == "apicredits":
         return imgur_api.credits
 
-    items, is_reddit = get_items(text)
+    items, _ = get_items(text)
 
     if not items:
         return "No results found."

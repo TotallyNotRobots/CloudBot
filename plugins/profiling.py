@@ -28,11 +28,14 @@ from cloudbot.util import web
 
 def get_name(thread_id):
     current_thread = threading.current_thread()
-    if thread_id == current_thread._ident:
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    current_thread_id = current_thread._ident
+    if thread_id == current_thread_id:
         is_current = True
         thread = current_thread
     else:
         is_current = False
+        # noinspection PyProtectedMember,PyUnresolvedReferences
         thread = threading._active.get(thread_id)
 
     if thread is not None:

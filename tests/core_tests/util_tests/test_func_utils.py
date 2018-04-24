@@ -26,7 +26,7 @@ class TestPopulateArgs:
 
     def test_map_varargs(self):
         def _test(*args):
-            pass
+            return args
 
         from cloudbot.util.func_utils import populate_args
         with pytest.raises(TypeError):
@@ -34,7 +34,7 @@ class TestPopulateArgs:
 
     def test_map_var_kwargs(self):
         def _test(**kwargs):
-            pass
+            return kwargs
 
         from cloudbot.util.func_utils import populate_args
         with pytest.raises(TypeError):

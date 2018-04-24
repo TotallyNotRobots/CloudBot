@@ -30,7 +30,7 @@ def find_hooks(parent, module):
     # set the loaded flag
     module._cloudbot_loaded = True
     hooks = defaultdict(list)
-    for name, func in module.__dict__.items():
+    for _, func in module.__dict__.items():
         try:
             func_hooks = get_hooks(func)
         except AttributeError:
@@ -51,7 +51,7 @@ def find_tables(code):
     :rtype: list[sqlalchemy.Table]
     """
     tables = []
-    for name, obj in code.__dict__.items():
+    for _, obj in code.__dict__.items():
         if isinstance(obj, sqlalchemy.Table) and obj.metadata is metadata:
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
@@ -223,7 +223,7 @@ class PluginManager:
                 logger.warning("Not registering hooks from plugin {}: on_start hook errored".format(plugin.title))
 
                 # unregister databases
-                plugin.unregister_tables(self.bot)
+                plugin.unregister_tables()
                 return
 
         self.plugins[plugin.file_path] = plugin
@@ -275,7 +275,7 @@ class PluginManager:
             yield from self.launch(on_stop_hook, event)
 
         # unregister databases
-        plugin.unregister_tables(self.bot)
+        plugin.unregister_tables()
 
         task_count = len(plugin.tasks)
         if task_count > 0:
@@ -358,7 +358,7 @@ class PluginManager:
         :type event: cloudbot.event.Event
         :rtype: bool
         """
-        ok, out = yield from self._wrap_and_run(hook, event)
+        ok, _ = yield from self._wrap_and_run(hook, event)
 
         return ok
 
@@ -477,10 +477,9 @@ class Plugin:
                 if not (yield from bot.loop.run_in_executor(None, table.exists, bot.db_engine)):
                     yield from bot.loop.run_in_executor(None, table.create, bot.db_engine)
 
-    def unregister_tables(self, bot):
+    def unregister_tables(self):
         """
         Unregisters all sqlalchemy Tables registered to the global metadata by this plugin
-        :type bot: cloudbot.bot.CloudBot
         """
         if self.tables:
             # if there are any tables

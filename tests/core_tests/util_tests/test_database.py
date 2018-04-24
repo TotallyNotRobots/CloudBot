@@ -28,6 +28,7 @@ def table(db_metadata):
 def db_engine(db_metadata, table):
     from sqlalchemy import create_engine
     engine = create_engine("sqlite:///:memory:")
+    assert db_metadata is table.metadata
     db_metadata.bind = engine
 
     db_metadata.create_all()

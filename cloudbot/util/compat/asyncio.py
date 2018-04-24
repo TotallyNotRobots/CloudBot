@@ -17,6 +17,7 @@ _asyncio_future_init = _asyncio.Future
 try:
     _asyncio_async = getattr(_asyncio, "async")
 except AttributeError:
+    # noinspection PyUnusedLocal
     def _asyncio_async(*args, **kwargs):
         raise NotImplementedError
 

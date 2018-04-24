@@ -247,18 +247,18 @@ def console_log(bot, event):
 
 @hook.command("flushlog", permissions=["botcontrol"])
 def flush_log():
-    for name, stream in stream_cache.values():
+    for _, stream in stream_cache.values():
         stream.flush()
-    for name, stream in raw_cache.values():
+    for _, stream in raw_cache.values():
         stream.flush()
 
 
 @hook.on_stop
 def close_logs():
-    for name, stream in stream_cache.values():
+    for _, stream in stream_cache.values():
         stream.flush()
         stream.close()
 
-    for name, stream in raw_cache.values():
+    for _, stream in raw_cache.values():
         stream.flush()
         stream.close()

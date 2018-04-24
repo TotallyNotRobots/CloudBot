@@ -333,7 +333,7 @@ def remove_user(cmd, action_text, event, *, fmt="{cmd} {channel} {target} :{text
     :type event: cloudbot.event.CommandEvent
     :type fmt: str
     """
-    channel, target = parse_chan_with_args(event)
+    _, target = parse_chan_with_args(event)
 
     if ' ' in target:
         target, reason = target.split(None, 1)

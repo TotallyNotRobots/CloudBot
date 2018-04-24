@@ -35,7 +35,7 @@ def isup(text):
     url = text.strip()
 
     # slightly overcomplicated, esoteric URL parsing
-    scheme, auth, path, query, fragment = urllib.parse.urlsplit(url)
+    _, auth, path, _, _ = urllib.parse.urlsplit(url)
 
     domain = auth or path
 

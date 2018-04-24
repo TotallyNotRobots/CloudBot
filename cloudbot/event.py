@@ -246,9 +246,11 @@ class Event:
         else:
             self.conn.notice(target, message)
 
+    # noinspection PyUnusedLocal
     def has_permission(self, permission, notice=True):
         """ returns whether or not the current user has a given permission
         :type permission: str
+        :type notice: bool
         :rtype: bool
         """
         if not self.mask:

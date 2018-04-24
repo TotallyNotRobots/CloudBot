@@ -37,7 +37,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
 
         try:
             lines = ["{} = {}".format(k, v) for k, v in _dump_attrs(launched_event)]
-            exc_type, exc, exc_tb = error
+            _, exc, _ = error
 
             lines.append("")
             lines.append("Error data:")
