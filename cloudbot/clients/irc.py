@@ -2,12 +2,14 @@ import asyncio
 import logging
 import random
 import re
+import socket
 import ssl
+import traceback
 from _ssl import PROTOCOL_SSLv23
 from functools import partial
 from ssl import SSLContext
 
-from cloudbot.client import Client, client
+from cloudbot.client import Client, client, ClientConnectError
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 from cloudbot.util.parsers.irc import Message
@@ -114,15 +116,30 @@ class IrcClient(Client):
 
     @asyncio.coroutine
     def try_connect(self):
-        while not self.connected:
+        while self.active and not self.connected:
             try:
                 yield from self.connect(self._timeout)
-            except (asyncio.TimeoutError, OSError):
-                logger.exception("[%s] Error occurred while connecting", self.name)
+            except (TimeoutError, asyncio.TimeoutError):
+                logger.error("[%s] Timeout occurred while connecting to %s", self.name, self.describe_server())
+            except (socket.error, socket.gaierror, OSError, ssl.SSLError):
+                logger.error(
+                    "[%s] Error occurred while connecting to %s (%s)",
+                    self.name, self.describe_server(),
+                    traceback.format_exc().splitlines()[-1]
+                )
+            except Exception as e:
+                raise ClientConnectError(self.name, self.describe_server()) from e
             else:
                 break
 
-            yield from asyncio.sleep(random.randrange(self._timeout))
+            sleep_time = random.randrange(self._timeout)
+            canceller = asyncio.shield(self.cancelled_future)
+            try:
+                yield from asyncio.wait_for(
+                    canceller, timeout=sleep_time
+                )
+            except asyncio.CancelledError:
+                pass
 
     @asyncio.coroutine
     def connect(self, timeout=None):
@@ -182,7 +199,8 @@ class IrcClient(Client):
 
     def close(self):
         self.quit()
-        self._protocol.close()
+        if self._protocol:
+            self._protocol.close()
 
     def message(self, target, *messages):
         for text in messages:

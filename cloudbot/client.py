@@ -4,6 +4,7 @@ import logging
 import random
 
 from cloudbot.permissions import PermissionManager
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -17,6 +18,13 @@ def client(_type):
         return cls
 
     return lambda cls: _decorate(cls)
+
+
+class ClientConnectError(Exception):
+    def __init__(self, client_name, server):
+        super().__init__("Unable to connect to client {} with server {}".format(client_name, server))
+        self.client_name = client_name
+        self.server = server
 
 
 class Client:
@@ -71,6 +79,8 @@ class Client:
 
         self._active = False
 
+        self.cancelled_future = async_util.create_future(self.loop)
+
     def describe_server(self):
         raise NotImplementedError
 
@@ -84,7 +94,7 @@ class Client:
     @asyncio.coroutine
     def try_connect(self):
         timeout = 30
-        while not self.connected:
+        while self.active and not self.connected:
             try:
                 yield from self.connect(timeout)
             except Exception:
@@ -185,3 +195,7 @@ class Client:
     @property
     def active(self):
         return self._active
+
+    @active.setter
+    def active(self, value):
+        self._active = value

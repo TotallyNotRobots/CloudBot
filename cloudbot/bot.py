@@ -166,8 +166,11 @@ class CloudBot:
         # Initializes the bot, plugins and connections
         self.loop.run_until_complete(self._init_routine())
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
+        logger.debug("Init done")
         restart = self.loop.run_until_complete(self.stopped_future)
+        logger.debug("Waiting for plugin unload")
         self.loop.run_until_complete(self.plugin_manager.unload_all())
+        logger.debug("Unload complete")
         self.loop.close()
         return restart
 
@@ -197,7 +200,12 @@ class CloudBot:
 
         self.observer.stop()
 
+        logger.debug("Stopping connect loops and shutting down clients")
         for connection in self.connections.values():
+            connection.active = False
+            if not connection.cancelled_future.done():
+                connection.cancelled_future.set_result(None)
+
             if not connection.connected:
                 # Don't quit a connection that hasn't connected
                 continue
@@ -205,13 +213,21 @@ class CloudBot:
 
             connection.quit(reason)
 
-        yield from asyncio.sleep(1.0)  # wait for 'QUIT' calls to take affect
+        logger.debug("Done.")
 
+        logger.debug("Sleeping to let clients quit")
+        yield from asyncio.sleep(1.0)  # wait for 'QUIT' calls to take affect
+        logger.debug("Sleep done.")
+
+        logger.debug("Closing clients")
         for connection in self.connections.values():
             connection.close()
 
+        logger.debug("All clients closed")
+
         self.running = False
         # Give the stopped_future a result, so that run() will exit
+        logger.debug("Setting future result for shutdown")
         self.stopped_future.set_result(restart)
 
     @asyncio.coroutine
@@ -238,8 +254,12 @@ class CloudBot:
 
         self.observer.start()
 
+        for conn in self.connections.values():
+            conn.active = True
+
         # Connect to servers
-        yield from asyncio.gather(*[conn.connect() for conn in self.connections.values()], loop=self.loop)
+        yield from asyncio.gather(*[conn.try_connect() for conn in self.connections.values()], loop=self.loop)
+        logger.debug("Connections created.")
 
         # Activate web interface.
         if self.config.get("web", {}).get("enabled", False) and web_installed:
