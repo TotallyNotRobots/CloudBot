@@ -20,13 +20,18 @@ def refresh_fml_cache(loop):
     request = yield from loop.run_in_executor(None, _func)
     soup = BeautifulSoup(request.text)
 
-    for e in soup.find_all('article', {'class': 'art-panel'}):
-        div = e.find('div', {'id': re.compile('card')})
-        if not div:
+    for e in soup.find_all('p', {'class': 'block'}):
+        # the /today bit is there to exclude fml news etc.
+        a = e.find('a', {'href': re.compile('/article/today')})
+        if not a:
             continue
 
-        fml_id = int(div['id'].split('-')[-1])
-        text = ''.join(e.find('p').find_all(text=True))
+        # the .html in the url must be removed before extracting the id
+        fml_id = int(a['href'][:-5].split('_')[-1])
+        text = a.text.strip()
+        # exclude lengthy submissions
+        if len(text) > 375:
+            continue
         fml_cache.append((fml_id, text))
 
 
