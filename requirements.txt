@@ -17,4 +17,4 @@ pyenchant
 pythonwhois
 imgurpython
 isodate
-yarl
+yarl==1.1.1
