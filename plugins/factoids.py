@@ -32,18 +32,13 @@ def load_cache(db):
     :type db: sqlalchemy.orm.Session
     """
     global factoid_cache
-    factoid_cache = defaultdict(lambda: default_dict)
+    factoid_cache = defaultdict(default_dict.copy)
     for row in db.execute(table.select()):
         # assign variables
         chan = row["chan"]
         word = row["word"]
         data = row["data"]
-        if chan not in factoid_cache:
-            factoid_cache.update({chan: {word: data}})
-        elif word not in factoid_cache[chan]:
-            factoid_cache[chan].update({word: data})
-        else:
-            factoid_cache[chan][word] = data
+        factoid_cache[chan][word] = data
 
 
 def add_factoid(db, word, chan, data, nick):
