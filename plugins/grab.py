@@ -152,26 +152,32 @@ def lastgrab(text, chan, message):
 def grabrandom(text, chan, message):
     """[nick] - grabs a random quote from the grab database"""
     with cache_lock:
-        if text:
-            tokens = text.split(' ')
-            if len(tokens) > 1:
-                name = random.choice(tokens)
-            else:
-                name = tokens[0]
-        else:
-            try:
-                name = random.choice(list(grab_cache[chan].keys()))
-            except KeyError:
-                return "I couldn't find any grabs in {}.".format(chan)
         try:
-            grab = random.choice(grab_cache[chan][name.lower()])
+            chan_grabs = grab_cache[chan]
         except KeyError:
-            return "it appears {} has never been grabbed in {}".format(name, chan)
+            return "I couldn't find any grabs in {}.".format(chan)
 
-    if grab:
-        message(format_grab(name, grab), chan)
-    else:
-        return "Hmmm try grabbing a quote first."
+        matching_quotes = []
+
+        if text:
+            for nick in text.split():
+                try:
+                    quotes = chan_grabs[nick.lower()]
+                except LookupError:
+                    pass
+                else:
+                    matching_quotes.extend((nick, quote) for quote in quotes)
+        else:
+            matching_quotes.extend(
+                (name, quote) for name, quotes in chan_grabs.items() for quote in quotes
+            )
+
+    if not matching_quotes:
+        return "I couldn't find any grabs in {}.".format(chan)
+
+    name, quote_text = random.choice(matching_quotes)
+
+    message(format_grab(name, quote_text))
 
 
 @hook.command("grabsearch", "grabs", autohelp=False)
