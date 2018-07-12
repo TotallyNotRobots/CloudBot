@@ -29,8 +29,9 @@ def refresh_fml_cache(loop):
         # the .html in the url must be removed before extracting the id
         fml_id = int(a['href'][:-5].split('_')[-1])
         text = a.text.strip()
-        # exclude lengthy submissions
-        if len(text) > 375:
+        
+        # exclude lengthy submissions and FML photos
+        if len(text) > 375 or text[-3:].lower() != "fml":
             continue
         fml_cache.append((fml_id, text))
 
