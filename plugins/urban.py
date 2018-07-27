@@ -42,9 +42,6 @@ def urban(text, reply):
             raise
 
         page = request.json()
-
-        if page['result_type'] == 'no_results':
-            return 'Not found.'
     else:
         # get a random definition!
         try:
@@ -58,6 +55,9 @@ def urban(text, reply):
         id_num = None
 
     definitions = page['list']
+
+    if not definitions:
+        return 'Not found.'
 
     if id_num:
         # try getting the requested definition
