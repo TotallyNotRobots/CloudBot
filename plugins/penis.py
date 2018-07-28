@@ -11,7 +11,7 @@ bodypart = ['face', 'glasses', 'thigh', 'tummy', 'back', 'hiney', 'hair', 'boobs
 
 @hook.command("penis", "bepis", autohelp=False)
 def penis(text, message):
-    """much dongs, very ween, add a user nick as an arguement for slightly different 'output'"""
+    """[nick] - much dongs, very ween, add a user nick as an arguement for slightly different 'output'"""
     if not text:
         message("{}{}{}".format(random.choice(balls), random.choice(shaft), random.choice(head)))
     else:
