@@ -98,6 +98,13 @@ def boobies(text):
     return out
 
 
+@hook.command("zombs", autohelp=False)
+def zombs():
+    """- prints some fucked up shit."""
+    out = "\u2299\u2299\u0505\u0F0D\u0020\u0E88\u0020\u25DE\u0C6A\u25DF\u0E88\u0020\u0F0D\u0648"
+    return out
+
+
 @hook.command("awesome", "iscool", "cool")
 def awesome(text, is_nick_valid):
     """- Prints a webpage to show <nick> how awesome they are."""
@@ -135,3 +142,9 @@ def kero(text):
 def lawyerjoke(message):
     """- returns a lawyer joke, so lawyers know how much we hate them"""
     message(random.choice(lawyerjoke))
+
+
+@hook.command("fuck", autohelp=False)
+def fuck():
+    """- returns something funny."""
+    return "something funny."
