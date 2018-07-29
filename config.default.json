@@ -128,6 +128,7 @@
         "show_motd": true,
         "show_server_info": true,
         "raw_file_log": false,
-        "file_log": true
+        "file_log": true,
+        "console_log_info": true
     }
 }

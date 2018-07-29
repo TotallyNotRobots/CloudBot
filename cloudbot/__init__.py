@@ -25,6 +25,7 @@ def _setup():
         logging_config = {}
 
     file_log = logging_config.get("file_log", False)
+    console_level = "INFO" if logging_config.get("console_log_info", True) else "WARNING"
 
     global logging_dir
     logging_dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
@@ -50,7 +51,7 @@ def _setup():
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "brief",
-                "level": "INFO",
+                "level": console_level,
                 "stream": "ext://sys.stdout"
             }
         },
