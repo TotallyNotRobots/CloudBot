@@ -221,7 +221,7 @@ def deloptout(text, event, chan, db, conn):
 
     pattern = args.pop(0)
 
-    deleted = yield from event.async_call(del_optout, db, conn, chan, pattern)
+    deleted = yield from event.async_call(del_optout, db, conn.name, chan, pattern)
 
     if deleted:
         return "Deleted optout '{}' in channel '{}'.".format(pattern, chan)
