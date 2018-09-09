@@ -13,7 +13,7 @@ License:
 
 import asyncio
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Table, Column, String, DateTime, PrimaryKeyConstraint
 
@@ -108,8 +108,8 @@ def check_reminders(bot, async_call, db):
             conn.message(user, alert)
             conn.message(user, '"{}"'.format(message))
 
-            delta = (remind_time - added_time).seconds
-            if delta > (30 * 60):
+            delta = current_time - remind_time
+            if delta > timedelta(minutes=30):
                 late_time = time_since(remind_time, count=2)
                 late = "(I'm sorry for delivering this message $(b){}$(clear) late," \
                        " it seems I was unable to deliver it on time)".format(late_time)
