@@ -70,12 +70,19 @@ class UsersDict(KeyFoldWeakValueDict):
 
 
 def update_chan_data(conn, chan):
+    """
+    :type conn: cloudbot.client.Client
+    :type chan: str
+    """
     chan_data = conn.memory["chan_data"].getchan(chan)
     chan_data["receiving_names"] = False
     conn.cmd("NAMES", chan)
 
 
 def update_conn_data(conn):
+    """
+    :type conn: cloudbot.client.Client
+    """
     for chan in set(conn.channels):
         update_chan_data(conn, chan)
 
@@ -96,12 +103,19 @@ def do_caps():
 
 
 def is_cap_available(conn, cap):
+    """
+    :type conn: cloudbot.client.Client
+    :type cap: str
+    """
     caps = conn.memory.get("server_caps", {})
     return bool(caps.get(cap, False))
 
 
 @hook.on_start
 def get_chan_data(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     for conn in bot.connections.values():
         if conn.connected:
             init_chan_data(conn, False)
@@ -109,6 +123,9 @@ def get_chan_data(bot):
 
 
 def clean_user_data(user):
+    """
+    :type user: dict
+    """
     for memb in user.get("channels", {}).values():
         status = list(set(memb.get("status", [])))
         status.sort(key=attrgetter("level"), reverse=True)
@@ -116,6 +133,9 @@ def clean_user_data(user):
 
 
 def clean_chan_data(chan):
+    """
+    :type chan: dict
+    """
     with suppress(KeyError):
         del chan["new_users"]
 
@@ -124,6 +144,9 @@ def clean_chan_data(chan):
 
 
 def clean_conn_data(conn):
+    """
+    :type conn: cloudbot.client.Client
+    """
     for user in conn.memory.get("users", {}).values():
         clean_user_data(user)
 
@@ -132,12 +155,19 @@ def clean_conn_data(conn):
 
 
 def clean_data(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     for conn in bot.connections.values():
         clean_conn_data(conn)
 
 
 @hook.connect
 def init_chan_data(conn, _clear=True):
+    """
+    :type conn: cloudbot.client.Client
+    :type _clear: bool
+    """
     chan_data = conn.memory.setdefault("chan_data", ChanDict())
     users = conn.memory.setdefault("users", UsersDict())
 
@@ -153,10 +183,19 @@ def init_chan_data(conn, _clear=True):
 
 
 def add_user_membership(user, chan, membership):
+    """
+    :type user: dict
+    :type chan: str
+    :type membership: dict
+    """
     user["channels"][chan] = membership
 
 
 def replace_user_data(conn, chan_data):
+    """
+    :type conn: cloudbot.client.Client
+    :type chan_data: dict
+    """
     statuses = {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
     users = conn.memory["users"]
     old_users = chan_data["users"]
@@ -206,6 +245,11 @@ def replace_user_data(conn, chan_data):
 
 @hook.irc_raw(['353', '366'], singlethread=True)
 def on_names(conn, irc_paramlist, irc_command):
+    """
+    :type conn: cloudbot.client.Client
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type irc_command: str
+    """
     chan = irc_paramlist[2 if irc_command == '353' else 1]
     chan_data = conn.memory["chan_data"].getchan(chan)
     if irc_command == '366':
@@ -226,6 +270,12 @@ def on_names(conn, irc_paramlist, irc_command):
 
 
 def dump_dict(data, indent=2, level=0, _objects=None):
+    """
+    :type data: Mapping
+    :type indent: int
+    :type level: int
+    :type _objects: list
+    """
     if _objects is None:
         _objects = [id(data)]
 
@@ -243,6 +293,11 @@ def dump_dict(data, indent=2, level=0, _objects=None):
 
 @hook.permission("chanop")
 def perm_check(chan, conn, nick):
+    """
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    """
     if not (chan and conn):
         return False
 
@@ -266,7 +321,9 @@ def perm_check(chan, conn, nick):
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def dumpchans(conn):
-    """- Dumps all stored channel data for this connection to the console"""
+    """- Dumps all stored channel data for this connection to the console
+    :type conn: cloudbot.client.Client
+    """
     data = conn.memory["chan_data"]
     lines = list(dump_dict(data))
     print('\n'.join(lines))
@@ -275,7 +332,9 @@ def dumpchans(conn):
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def dumpusers(conn):
-    """- Dumps all stored user data for this connection to the console"""
+    """- Dumps all stored user data for this connection to the console
+    :type conn: cloudbot.client.Client
+    """
     data = conn.memory["users"]
     lines = list(dump_dict(data))
     print('\n'.join(lines))
@@ -284,13 +343,18 @@ def dumpusers(conn):
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def updateusers(bot):
-    """- Forces an update of all /NAMES data for all channels"""
+    """- Forces an update of all /NAMES data for all channels
+    :type bot: cloudbot.bot.CloudBot
+    """
     get_chan_data(bot)
     return "Updating all channel data"
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def cleanusers(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     clean_data(bot)
     gc.collect()
     return "Data cleaned."
@@ -298,6 +362,9 @@ def cleanusers(bot):
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def clearusers(bot):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     init_chan_data(bot, True)
     gc.collect()
     return "Data cleared."
@@ -305,6 +372,13 @@ def clearusers(bot):
 
 @hook.irc_raw('JOIN')
 def on_join(nick, user, host, conn, irc_paramlist):
+    """
+    :type nick: str
+    :type user: str
+    :type host: str
+    :type conn: cloudbot.client.Client
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    """
     chan, *other_data = irc_paramlist
 
     if chan.startswith(':'):
@@ -332,6 +406,11 @@ def on_join(nick, user, host, conn, irc_paramlist):
 
 @hook.irc_raw('MODE')
 def on_mode(chan, irc_paramlist, conn):
+    """
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    """
     if chan.startswith(':'):
         chan = chan[1:]
 
@@ -381,6 +460,11 @@ def on_mode(chan, irc_paramlist, conn):
 
 @hook.irc_raw('PART')
 def on_part(chan, nick, conn):
+    """
+    :type chan: str
+    :type nick: str
+    :type conn: cloudbot.client.Client
+    """
     if chan.startswith(':'):
         chan = chan[1:]
 
@@ -394,11 +478,20 @@ def on_part(chan, nick, conn):
 
 @hook.irc_raw('KICK')
 def on_kick(chan, target, conn):
+    """
+    :type chan: str
+    :type target: str
+    :type conn: cloudbot.client.Client
+    """
     on_part(chan, target, conn)
 
 
 @hook.irc_raw('QUIT')
 def on_quit(nick, conn):
+    """
+    :type nick: str
+    :type conn: cloudbot.client.Client
+    """
     users = conn.memory["users"]
     if nick in users:
         user = users[nick]
@@ -409,6 +502,11 @@ def on_quit(nick, conn):
 
 @hook.irc_raw('NICK')
 def on_nick(nick, irc_paramlist, conn):
+    """
+    :type nick: str
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     users = conn.memory["users"]
     new_nick = irc_paramlist[0]
     if new_nick.startswith(':'):
@@ -424,17 +522,32 @@ def on_nick(nick, irc_paramlist, conn):
 
 @hook.irc_raw('ACCOUNT')
 def on_account(conn, nick, irc_paramlist):
+    """
+    :type nick: str
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     conn.memory["users"][nick]["account"] = irc_paramlist[0]
 
 
 @hook.irc_raw('CHGHOST')
 def on_chghost(conn, nick, irc_paramlist):
+    """
+    :type nick: str
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     ident, host = irc_paramlist
     conn.memory["users"][nick].update(ident=ident, host=host)
 
 
 @hook.irc_raw('AWAY')
 def on_away(conn, nick, irc_paramlist):
+    """
+    :type nick: str
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     if irc_paramlist:
         reason = irc_paramlist[0]
     else:
@@ -445,6 +558,10 @@ def on_away(conn, nick, irc_paramlist):
 
 @hook.irc_raw('352')
 def on_who(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     _, _, ident, host, server, nick, status, realname = irc_paramlist
     realname = realname.split(None, 1)[1]
     user = conn.memory["users"][nick]
@@ -463,29 +580,49 @@ def on_who(conn, irc_paramlist):
 
 @hook.irc_raw('311')
 def on_whois_name(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     _, nick, ident, host, _, realname = irc_paramlist
     conn.memory["users"][nick].update(ident=ident, host=host, realname=realname)
 
 
 @hook.irc_raw('330')
 def on_whois_acct(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     _, nick, acct = irc_paramlist[:2]
     conn.memory["users"][nick]["account"] = acct
 
 
 @hook.irc_raw('301')
 def on_whois_away(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     _, nick, msg = irc_paramlist
     conn.memory["users"][nick].update(is_away=True, away_message=msg)
 
 
 @hook.irc_raw('312')
 def on_whois_server(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     _, nick, server, _ = irc_paramlist
     conn.memory["users"][nick].update(server=server)
 
 
 @hook.irc_raw('313')
 def on_whois_oper(conn, irc_paramlist):
+    """
+    :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
+    :type conn: cloudbot.client.Client
+    """
     nick = irc_paramlist[1]
     conn.memory["users"][nick].update(is_oper=True)
