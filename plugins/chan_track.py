@@ -37,10 +37,10 @@ class KeyFoldMixin:
         return super().pop(key.casefold(), *args, **kwargs)
 
     def get(self, key, default=None):
-        return super().get(key, default)
+        return super().get(key.casefold(), default)
 
     def setdefault(self, key, default=None):
-        return super().setdefault(key, default)
+        return super().setdefault(key.casefold(), default)
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
