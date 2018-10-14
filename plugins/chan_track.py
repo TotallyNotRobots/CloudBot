@@ -365,7 +365,9 @@ def clearusers(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    init_chan_data(bot, True)
+    for conn in bot.connections.values():
+        init_chan_data(conn, True)
+
     gc.collect()
     return "Data cleared."
 
