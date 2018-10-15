@@ -23,6 +23,7 @@ class WeakDict(dict):
     pass
 
 
+# noinspection PyUnresolvedReferences
 class KeyFoldMixin:
     def __contains__(self, item):
         return super().__contains__(item.casefold())
@@ -44,6 +45,18 @@ class KeyFoldMixin:
 
     def setdefault(self, key, default=None):
         return super().setdefault(key.casefold(), default)
+
+    def update(self, mapping=None, **kwargs):
+        if mapping is not None:
+            if hasattr(mapping, 'keys'):
+                for k in mapping.keys():
+                    self[k] = mapping[k]
+            else:
+                for k, v in mapping:
+                    self[k] = v
+
+        for k in kwargs:
+            self[k] = kwargs[k]
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
