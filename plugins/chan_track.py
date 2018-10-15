@@ -641,7 +641,7 @@ def on_quit(nick, conn):
     if nick in users:
         user = users.pop(nick)
         for memb in user.channels.values():
-            chan = memb.chan
+            chan = memb.channel
             del chan.users[nick]
 
 
@@ -661,7 +661,7 @@ def on_nick(nick, irc_paramlist, conn):
     users[new_nick] = user
     user.nick = new_nick
     for memb in user.channels.values():
-        chan_users = memb.chan.users
+        chan_users = memb.channel.users
         chan_users[new_nick] = chan_users.pop(nick)
 
 
