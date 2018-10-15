@@ -5,14 +5,17 @@ Requires:
 server_info.py
 """
 import gc
+import json
 import weakref
-from collections import Mapping
+from collections import Mapping, Iterable
 from contextlib import suppress
+from numbers import Number
 from operator import attrgetter
 from weakref import WeakValueDictionary
 
 import cloudbot.bot
 from cloudbot import hook
+from cloudbot.util import web
 from cloudbot.util.parsers.irc import Prefix
 
 logger = cloudbot.bot.logger
@@ -312,26 +315,38 @@ def on_names(conn, irc_paramlist, irc_command):
     users.extend(names.split())
 
 
-def dump_dict(data, indent=2, level=0, _objects=None):
-    """
-    :type data: Mapping
-    :type indent: int
-    :type level: int
-    :type _objects: list
-    """
-    if _objects is None:
-        _objects = [id(data)]
+class MappingSerializer:
+    def __init__(self):
+        self._seen_objects = []
 
-    for key, value in data.items():
-        yield ((" " * (indent * level)) + "{}:".format(key))
-        if id(value) in _objects:
-            yield ((" " * (indent * (level + 1))) + "[...]")
-        elif isinstance(value, Mapping):
-            _objects.append(id(value))
-            yield from dump_dict(value, indent=indent, level=level + 1, _objects=_objects)
+    def _serialize(self, obj):
+        if isinstance(obj, (str, Number, bool)) or obj is None:
+            return obj
+        elif isinstance(obj, Mapping):
+            if id(obj) in self._seen_objects:
+                return '<{} with id {}>'.format(type(obj).__name__, id(obj))
+
+            self._seen_objects.append(id(obj))
+
+            return {
+                self._serialize(k): self._serialize(v)
+                for k, v in obj.items()
+            }
+        elif isinstance(obj, Iterable):
+            if id(obj) in self._seen_objects:
+                return '<{} with id {}>'.format(type(obj).__name__, id(obj))
+
+            self._seen_objects.append(id(obj))
+
+            return [
+                self._serialize(item)
+                for item in obj
+            ]
         else:
-            _objects.append(id(value))
-            yield ((" " * (indent * (level + 1))) + "{}".format(value))
+            return repr(obj)
+
+    def serialize(self, mapping, **kwargs):
+        return json.dumps(self._serialize(mapping), **kwargs)
 
 
 @hook.permission("chanop")
@@ -368,9 +383,7 @@ def dumpchans(conn):
     :type conn: cloudbot.client.Client
     """
     data = get_chans(conn)
-    lines = list(dump_dict(data))
-    print('\n'.join(lines))
-    return "Printed {} channel records totalling {} lines of data to the console.".format(len(data), len(lines))
+    return web.paste(MappingSerializer().serialize(data, indent=2))
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
@@ -379,9 +392,7 @@ def dumpusers(conn):
     :type conn: cloudbot.client.Client
     """
     data = get_users(conn)
-    lines = list(dump_dict(data))
-    print('\n'.join(lines))
-    return "Printed {} user records totalling {} lines of data to the console.".format(len(data), len(lines))
+    return web.paste(MappingSerializer().serialize(data, indent=2))
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
@@ -413,6 +424,14 @@ def clearusers(bot):
 
     gc.collect()
     return "Data cleared."
+
+
+@hook.command("getdata", permissions=["botcontrol"], autohelp=False)
+def getdata_cmd(conn, chan, text, nick):
+    chan_data = get_chans(conn).getchan(chan)
+    user_data = get_users(conn).getuser(nick)
+    memb = get_channel_member(chan_data, user_data)
+    return web.paste(MappingSerializer().serialize(memb, indent=2))
 
 
 @hook.irc_raw('JOIN')
@@ -456,6 +475,10 @@ def on_mode(chan, irc_paramlist, conn):
     """
     if chan.startswith(':'):
         chan = chan[1:]
+
+    if chan.casefold() == conn.nick.casefold():
+        # this is a user mode line
+        return
 
     serv_info = conn.memory["server_info"]
     statuses = serv_info["statuses"]
