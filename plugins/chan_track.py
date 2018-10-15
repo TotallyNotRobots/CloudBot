@@ -93,7 +93,7 @@ def get_users(conn):
     :type conn: cloudbot.client.Client
     :rtype: UsersDict
     """
-    return conn.memory.setdefault("users", UsersDict)
+    return conn.memory.setdefault("users", UsersDict())
 
 
 def get_chans(conn):
