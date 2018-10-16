@@ -1,55 +1,59 @@
 import asyncio
-import os.path
+from abc import ABC
+from pathlib import Path
 
-from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
+from cloudbot.util import async_util
 
-class PluginReloader(object):
-    def __init__(self, bot):
-        """
-        :type bot: cloudbot.bot.CloudBot
-        """
-        self.observer = Observer()
+
+class Reloader(ABC):
+    def __init__(self, bot, handler, pattern, recursive=False):
         self.bot = bot
-        self.reloading = set()
-        self.event_handler = PluginEventHandler(self, patterns=["*.py"])
+        self.recursive = recursive
+        self.event_handler = handler(self, patterns=[pattern])
+        self.watch = None
 
-    def start(self, module_path):
-        """Starts the plugin reloader
-        :type module_path: str
-        """
-        self.observer.schedule(self.event_handler, module_path, recursive=False)
-        self.observer.start()
+    def start(self, path='.'):
+        self.watch = self.observer.schedule(
+            self.event_handler, path=path, recursive=self.recursive
+        )
 
     def stop(self):
-        """Stops the plugin reloader"""
-        self.observer.stop()
+        if self.watch:
+            self.observer.unschedule(self.watch)
+            self.watch = None
+
+    def reload(self, path):
+        pass
+
+    def unload(self, path):
+        pass
+
+    @property
+    def observer(self):
+        return self.bot.observer
+
+
+class PluginReloader(Reloader):
+    def __init__(self, bot):
+        super().__init__(bot, PluginEventHandler, "[!_]*.py", recursive=True)
+        self.reloading = set()
 
     def reload(self, path):
         """
         Loads or reloads a module, given its file path. Thread safe.
-
-        :type path: str
         """
-        if not os.path.isfile(path):
-            # we check if the file still exists here because some programs modify a file before deleting
-            return
-
-        if isinstance(path, bytes):
-            path = path.decode()
-        self.bot.loop.call_soon_threadsafe(lambda: asyncio.async(self._reload(path), loop=self.bot.loop))
+        path = Path(path).resolve()
+        if path.exists():
+            async_util.run_coroutine_threadsafe(self._reload(path), self.bot.loop)
 
     def unload(self, path):
         """
         Unloads a module, given its file path. Thread safe.
-
-        :type path: str
         """
-        if isinstance(path, bytes):
-            path = path.decode()
-        self.bot.loop.call_soon_threadsafe(lambda: asyncio.async(self._unload(path), loop=self.bot.loop))
-
+        path = Path(path).resolve()
+        async_util.run_coroutine_threadsafe(self._unload(path), self.bot.loop)
 
     @asyncio.coroutine
     def _reload(self, path):
@@ -63,20 +67,32 @@ class PluginReloader(object):
         self.reloading.remove(path)
         yield from self.bot.plugin_manager.load_plugin(path)
 
-
     @asyncio.coroutine
     def _unload(self, path):
         yield from self.bot.plugin_manager.unload_plugin(path)
 
 
-class PluginEventHandler(PatternMatchingEventHandler):
+class ConfigReloader(Reloader):
+    def __init__(self, bot):
+        super().__init__(bot, ConfigEventHandler, "*{}".format(bot.config.filename))
+
+    def reload(self, path):
+        if self.bot.running:
+            self.bot.logger.info("Config changed, triggering reload.")
+            self.bot.config.load_config()
+
+
+class ReloadHandler(PatternMatchingEventHandler):
     def __init__(self, loader, *args, **kwargs):
-        """
-        :type loader: PluginReloader
-        """
         super().__init__(*args, **kwargs)
         self.loader = loader
 
+    @property
+    def bot(self):
+        return self.loader.bot
+
+
+class PluginEventHandler(ReloadHandler):
     def on_created(self, event):
         self.loader.reload(event.src_path)
 
@@ -87,6 +103,13 @@ class PluginEventHandler(PatternMatchingEventHandler):
         self.loader.reload(event.src_path)
 
     def on_moved(self, event):
+        self.loader.unload(event.src_path)
         # only load if it's moved to a .py file
-        if event.dest_path.endswith(".py" if isinstance(event.dest_path, str) else b".py"):
+        end = ".py" if isinstance(event.dest_path, str) else b".py"
+        if event.dest_path.endswith(end):
             self.loader.reload(event.dest_path)
+
+
+class ConfigEventHandler(ReloadHandler):
+    def on_any_event(self, event):
+        self.loader.reload(getattr(event, "dest_path", event.src_path))

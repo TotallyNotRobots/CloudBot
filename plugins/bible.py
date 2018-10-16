@@ -1,22 +1,25 @@
 import requests
-import re
 
 from cloudbot import hook
 
-@hook.command("bible", "passage", singlethreaded=True)
-def bible(text):
-    """Prints the specified passage from the Bible"""
+
+@hook.command("bible", "passage", singlethread=True)
+def bible(text, reply):
+    """<passage> - Prints the specified passage from the Bible"""
     passage = text.strip()
     params = {
-        'passage':passage,
-        'formatting':'plain',
-        'type':'json'
+        'passage': passage,
+        'formatting': 'plain',
+        'type': 'json'
     }
-    r = requests.get("https://labs.bible.org/api", params=params)
     try:
+        r = requests.get("https://labs.bible.org/api", params=params)
+        r.raise_for_status()
         response = r.json()[0]
-    except:
-        return "Something went wrong, either you entered an invalid passage or the API is down."
+    except Exception:
+        reply("Something went wrong, either you entered an invalid passage or the API is down.")
+        raise
+
     book = response['bookname']
     ch = response['chapter']
     ver = response['verse']

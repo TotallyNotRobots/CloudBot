@@ -14,20 +14,18 @@ License: GPL v3
 """
 
 import base64
-import hashlib
-import collections
-import re
-import os
-import json
-import codecs
-import urllib.parse
-import random
 import binascii
-import string
+import codecs
+import collections
+import hashlib
+import json
+import os
+import random
+import re
+import urllib.parse
 
 from cloudbot import hook
 from cloudbot.util import formatting, web, colors
-
 
 COLORS = collections.OrderedDict([
     ('red', '\x0304'),
@@ -45,7 +43,7 @@ COLORS = collections.OrderedDict([
 
 # helper functions
 
-strip_re = re.compile("(\x03|\x02|\x1f|\x0f)(?:,?\d{1,2}(?:,\d{1,2})?)?")
+strip_re = re.compile("[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?")
 
 
 def strip(string):
@@ -122,6 +120,7 @@ def swapcase(text):
     """<string> -- Swaps the capitalization of <string>."""
     return text.swapcase()
 
+
 @hook.command("aesthetic", "vapor", "fw")
 def fullwidth(text):
     """<string> -- Converts <string> to full width characters."""
@@ -130,6 +129,7 @@ def fullwidth(text):
         '０１２３４５６７８９ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ！゛＃＄％＆（）＊＋、ー。／：；〈＝〉？＠［］＾＿‘｛｜｝～'
     )
     return text.translate(HALFWIDTH_TO_FULLWIDTH)
+
 
 # encoding
 
@@ -147,7 +147,7 @@ def base64_encode(text):
 
 
 @hook.command("debase64", "unbase64")
-def base64_decode(text, notice, message):
+def base64_decode(text, notice):
     """<string> -- Decode <string> with base64."""
     try:
         return " ".join(base64.b64decode(text.encode()).decode().splitlines())
@@ -167,7 +167,7 @@ def base64_check(text):
 
 
 @hook.command
-def unescape(text, message):
+def unescape(text):
     """<string> -- Unicode unescapes <string>."""
     decoder = codecs.getdecoder("unicode_escape")
     return " ".join(decoder(text)[0].splitlines())

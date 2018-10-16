@@ -1,13 +1,13 @@
 import requests
-
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
-from sqlalchemy.sql import select
+
 from cloudbot import hook
 from cloudbot.util import web, database
 
 
 class APIError(Exception):
     pass
+
 
 # Define database table
 
@@ -59,13 +59,16 @@ def find_location(location):
     if bias:
         params['region'] = bias
 
-    json = requests.get(geocode_api, params=params).json()
+    request = requests.get(geocode_api, params=params)
+    request.raise_for_status()
 
+    json = request.json()
     error = check_status(json['status'])
     if error:
         raise APIError(error)
 
     return json['results'][0]['geometry']['location']
+
 
 def load_cache(db):
     global location_cache
@@ -73,7 +76,8 @@ def load_cache(db):
     for row in db.execute(table.select()):
         nick = row["nick"]
         location = row["loc"]
-        location_cache.append((nick,location))
+        location_cache.append((nick, location))
+
 
 def add_location(nick, location, db):
     test = dict(location_cache)
@@ -86,6 +90,7 @@ def add_location(nick, location, db):
         db.execute(table.insert().values(nick=nick.lower(), loc=location.lower()))
         db.commit()
         load_cache(db)
+
 
 @hook.on_start
 def on_start(bot, db):
@@ -105,80 +110,93 @@ def get_location(nick):
         location = location[0]
     return location
 
+
 @hook.command("weather", "we", autohelp=False)
-def weather(text, reply, db, nick, notice):
-    """weather <location> -- Gets weather data for <location>."""
+def weather(text, reply, db, nick, notice_doc):
+    """<location> - Gets weather data for <location>."""
     if not wunder_key:
         return "This command requires a Weather Underground API key."
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
-    location = ""
     # If no input try the db
     if not text:
         location = get_location(nick)
         if not location:
-            notice(weather.__doc__)
+            notice_doc()
             return
     else:
         location = text
+
     # use find_location to get location data from the user input
     try:
         location_data = find_location(location)
     except APIError as e:
-        return e
+        reply(str(e))
+        raise
 
     formatted_location = "{lat},{lng}".format(**location_data)
 
     url = wunder_api.format(wunder_key, formatted_location)
-    response = requests.get(url).json()
+    request = requests.get(url)
+    request.raise_for_status()
 
-    if response['response'].get('error'):
-        return "{}".format(response['response']['error']['description'])
+    response = request.json()
 
-    forecast_today = response["forecast"]["simpleforecast"]["forecastday"][0]
-    forecast_tomorrow = response["forecast"]["simpleforecast"]["forecastday"][1]
+    error = response['response'].get('error')
+    if error:
+        return "{}".format(error['description'])
+
+    forecast = response["forecast"]["simpleforecast"]["forecastday"]
+    if not forecast:
+        return "Unable to retrieve forecast data."
+
+    forecast_today = forecast[0]
+    forecast_tomorrow = forecast[1]
+
+    forecast_today_high = forecast_today['high']
+    forecast_today_low = forecast_today['low']
+    forecast_tomorrow_high = forecast_tomorrow['high']
+    forecast_tomorrow_low = forecast_tomorrow['low']
+
+    current_observation = response['current_observation']
 
     # put all the stuff we want to use in a dictionary for easy formatting of the output
     weather_data = {
-        "place": response['current_observation']['display_location']['full'],
-        "conditions": response['current_observation']['weather'],
-        "temp_f": response['current_observation']['temp_f'],
-        "temp_c": response['current_observation']['temp_c'],
-        "humidity": response['current_observation']['relative_humidity'],
-        "wind_kph": response['current_observation']['wind_kph'],
-        "wind_mph": response['current_observation']['wind_mph'],
-        "wind_direction": response['current_observation']['wind_dir'],
+        "place": current_observation['display_location']['full'],
+        "conditions": current_observation['weather'],
+        "temp_f": current_observation['temp_f'],
+        "temp_c": current_observation['temp_c'],
+        "humidity": current_observation['relative_humidity'],
+        "wind_kph": current_observation['wind_kph'],
+        "wind_mph": current_observation['wind_mph'],
+        "wind_direction": current_observation['wind_dir'],
         "today_conditions": forecast_today['conditions'],
-        "today_high_f": forecast_today['high']['fahrenheit'],
-        "today_high_c": forecast_today['high']['celsius'],
-        "today_low_f": forecast_today['low']['fahrenheit'],
-        "today_low_c": forecast_today['low']['celsius'],
+        "today_high_f": forecast_today_high['fahrenheit'],
+        "today_high_c": forecast_today_high['celsius'],
+        "today_low_f": forecast_today_low['fahrenheit'],
+        "today_low_c": forecast_today_low['celsius'],
         "tomorrow_conditions": forecast_tomorrow['conditions'],
-        "tomorrow_high_f": forecast_tomorrow['high']['fahrenheit'],
-        "tomorrow_high_c": forecast_tomorrow['high']['celsius'],
-        "tomorrow_low_f": forecast_tomorrow['low']['fahrenheit'],
-        "tomorrow_low_c": forecast_tomorrow['low']['celsius']
+        "tomorrow_high_f": forecast_tomorrow_high['fahrenheit'],
+        "tomorrow_high_c": forecast_tomorrow_high['celsius'],
+        "tomorrow_low_f": forecast_tomorrow_low['fahrenheit'],
+        "tomorrow_low_c": forecast_tomorrow_low['celsius'],
     }
 
     # Get the more accurate URL if available, if not, get the generic one.
-    if "?query=," in response["current_observation"]['ob_url']:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['forecast_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["forcast_url"]
-            pass
+    ob_url = current_observation['ob_url']
+    if "?query=," in ob_url:
+        url = current_observation['forecast_url']
     else:
-        try:
-            weather_data['url'] = web.try_shorten(response["current_observation"]['ob_url'])
-        except:
-            weather_data['url'] = response["current_observation"]["ob_url"]
-            pass
+        url = ob_url
+
+    weather_data['url'] = web.try_shorten(url)
 
     reply("{place} - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, {humidity}, "
           "Wind: {wind_mph}MPH/{wind_kph}KPH {wind_direction}, \x02Today:\x02 {today_conditions}, "
           "High: {today_high_f}F/{today_high_c}C, Low: {today_low_f}F/{today_low_c}C. "
           "\x02Tomorrow:\x02 {tomorrow_conditions}, High: {tomorrow_high_f}F/{tomorrow_high_c}C, "
-          "Low: {tomorrow_low_f}F/{tomorrow_low_c}C - {url}".format(**weather_data))
+          "Low: {tomorrow_low_f}F/{tomorrow_low_c}C - {url}".format_map(weather_data))
+
     if text:
         add_location(nick, location, db)

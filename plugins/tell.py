@@ -1,12 +1,11 @@
-import re
 from datetime import datetime
-from sqlalchemy import Table, Column, String, Boolean, DateTime
 
+from sqlalchemy import Table, Column, String, Boolean, DateTime
 from sqlalchemy.sql import select
 
 from cloudbot import hook
-from cloudbot.util import timeformat, database
 from cloudbot.event import EventType
+from cloudbot.util import timeformat, database
 
 table = Table(
     'tells',
@@ -19,6 +18,7 @@ table = Table(
     Column('time_sent', DateTime),
     Column('time_read', DateTime)
 )
+
 
 @hook.on_start
 def load_cache(db):
@@ -62,6 +62,7 @@ def read_all_tells(db, server, target):
     db.commit()
     load_cache(db)
 
+
 def read_tell(db, server, target, message):
     query = table.update() \
         .where(table.c.connection == server.lower()) \
@@ -86,12 +87,14 @@ def add_tell(db, server, sender, target, message):
     db.commit()
     load_cache(db)
 
+
 def tell_check(conn, nick):
     for _conn, _target in tell_cache:
         if (conn, nick.lower()) == (_conn, _target):
             return True
         else:
             continue
+
 
 @hook.event(EventType.message, singlethread=True)
 def tellinput(event, conn, db, nick, notice):
@@ -103,7 +106,7 @@ def tellinput(event, conn, db, nick, notice):
     if 'showtells' in event.content.lower():
         return
 
-    if tell_check(conn.name, nick): 
+    if tell_check(conn.name, nick):
         tells = get_unread(db, conn.name, nick)
     else:
         return
@@ -127,7 +130,7 @@ def tellinput(event, conn, db, nick, notice):
 
 @hook.command(autohelp=False)
 def showtells(nick, notice, db, conn):
-    """showtells -- View all pending tell messages (sent in a notice)."""
+    """- View all pending tell messages (sent in a notice)."""
 
     tells = get_unread(db, conn.name, nick)
 
@@ -144,36 +147,30 @@ def showtells(nick, notice, db, conn):
 
 
 @hook.command("tell")
-def tell_cmd(text, nick, db, notice, conn):
-    """tell <nick> <message> -- Relay <message> to <nick> when <nick> is around."""
+def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
+    """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
     if query[0].lower() == "paradox":
         return "Paradox doesn't want to hear from me. Just send him a fucking message."
     if len(query) != 2:
-        prefix = conn.config("command_prefix")
-        notice(prefix[0] + tell_cmd.__doc__)
+        notice_doc()
         return
 
-    target = query[0].lower()
+    target = query[0]
     message = query[1].strip()
     sender = nick
 
-    if target == sender.lower():
+    if target.lower() == sender.lower():
         notice("Have you looked in a mirror lately?")
         return
 
-    if target.lower() == conn.nick.lower():
-        # we can't send messages to ourselves
+    if not is_nick_valid(target.lower()) or target.lower() == conn.nick.lower():
         notice("Invalid nick '{}'.".format(target))
         return
 
-    if not re.match("^[a-z0-9_|.\-\]\[]*$", target.lower()):
-        notice("Invalid nick '{}'.".format(target))
-        return
-
-    if count_unread(db, conn.name, target) >= 10:
+    if count_unread(db, conn.name, target.lower()) >= 10:
         notice("Sorry, {} has too many messages queued already.".format(target))
         return
 
-    add_tell(db, conn.name, sender, target, message)
+    add_tell(db, conn.name, sender, target.lower(), message)
     notice("Your message has been saved, and {} will be notified once they are active.".format(target))

@@ -1,10 +1,11 @@
-import re
+import html
 import random
+import re
 from datetime import datetime
 
 import tweepy
-from cloudbot import hook
 
+from cloudbot import hook
 from cloudbot.util import timeformat
 
 TWITTER_RE = re.compile(r"(?:(?:www.twitter.com|twitter.com)/(?:[-_a-zA-Z0-9]+)/status/)([0-9]+)", re.I)
@@ -39,28 +40,15 @@ def twitter_url(match):
     if tw_api is None:
         return
 
-    try:
-        tweet = tw_api.get_status(tweet_id)
-        user = tweet.user
-    except tweepy.error.TweepError:
-        return
+    tweet = tw_api.get_status(tweet_id)
+    user = tweet.user
 
-    # Format the return the text of the tweet
-    text = " ".join(tweet.text.split())
-
-    if user.verified:
-        prefix = "\u2713"
-    else:
-        prefix = ""
-
-    time = timeformat.time_since(tweet.created_at, datetime.utcnow())
-
-    return "{}@\x02{}\x02 ({}): {} ({} ago)".format(prefix, user.screen_name, user.name, text, time)
+    return format_tweet(tweet, user)
 
 
 @hook.command("twitter", "tw", "twatter")
-def twitter(text):
-    """twitter <user> [n] -- Gets last/[n]th tweet from <user>"""
+def twitter(text, reply):
+    """<user> [n] - Gets last/[n]th tweet from <user>"""
 
     if tw_api is None:
         return "This command requires a twitter API key."
@@ -73,9 +61,11 @@ def twitter(text):
             tweet = tw_api.get_status(text)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
-                return "Could not find tweet."
+                reply("Could not find tweet.")
             else:
-                return "Error: {}".format(e.reason)
+                reply("Error: {}".format(e.reason))
+
+            raise
 
         user = tweet.user
 
@@ -97,9 +87,10 @@ def twitter(text):
             user = tw_api.get_user(username)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
-                return "Could not find user."
+                reply("Could not find user.")
             else:
-                return "Error: {}".format(e.reason)
+                reply("Error: {}".format(e.reason))
+            raise
 
         # get the users tweets
         user_timeline = tw_api.user_timeline(id=user.id, count=tweet_number + 1)
@@ -128,7 +119,11 @@ def twitter(text):
         # ???
         return "Invalid Input"
 
-    # Format the return the text of the tweet
+    return format_tweet(tweet, user)
+
+
+# Format the return the text of the tweet
+def format_tweet(tweet, user):
     text = " ".join(tweet.text.split())
 
     if user.verified:
@@ -138,12 +133,12 @@ def twitter(text):
 
     time = timeformat.time_since(tweet.created_at, datetime.utcnow())
 
-    return "{}@\x02{}\x02 ({}): {} ({} ago)".format(prefix, user.screen_name, user.name, text, time)
+    return "{}@\x02{}\x02 ({}): {} ({} ago)".format(prefix, user.screen_name, user.name, html.unescape(text), time)
 
 
 @hook.command("twuser", "twinfo")
-def twuser(text):
-    """twuser <user> -- Get info on the Twitter user <user>"""
+def twuser(text, reply):
+    """<user> - Get info on the Twitter user <user>"""
 
     if tw_api is None:
         return
@@ -153,9 +148,10 @@ def twuser(text):
         user = tw_api.get_user(text)
     except tweepy.error.TweepError as e:
         if "404" in e.reason:
-            return "Could not find user."
+            reply("Could not find user.")
         else:
-            return "Error: {}".format(e.reason)
+            reply("Error: {}".format(e.reason))
+        raise
 
     if user.verified:
         prefix = "\u2713"

@@ -1,10 +1,29 @@
+import collections
 import inspect
 import re
-import collections
+from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType
 
 valid_command_re = re.compile(r"^\w+$")
+
+
+@unique
+class Priority(IntEnum):
+    # Reversed to maintain compatibility with sieve hooks numeric priority
+    LOWEST = 127
+    LOW = 63
+    NORMAL = 0
+    HIGH = -64
+    HIGHEST = -128
+
+
+@unique
+class Action(Enum):
+    """Defines the action to take after executing a hook"""
+    HALTTYPE = 0  # Once this hook executes, no other hook of that type should run
+    HALTALL = 1  # Once this hook executes, No other hook should run
+    CONTINUE = 2  # Normal execution of all hooks
 
 
 class _Hook:
@@ -102,7 +121,7 @@ class _RegexHook(_Hook):
                     re_to_match = re.compile(re_to_match)
                 else:
                     # make sure that the param is either a compiled regex, or has a search attribute.
-                    assert hasattr(regex_param, "search")
+                    assert hasattr(re_to_match, "search")
                 self.regexes.append(re_to_match)
 
 
@@ -175,6 +194,26 @@ class _EventHook(_Hook):
         else:
             # it's a list
             self.types.update(trigger_param)
+
+
+class _CapHook(_Hook):
+    def __init__(self, func, _type):
+        super().__init__(func, "on_cap_{}".format(_type))
+        self.caps = set()
+
+    def add_hook(self, caps, kwargs):
+        self._add_hook(kwargs)
+        self.caps.update(caps)
+
+
+class _PermissionHook(_Hook):
+    def __init__(self, func):
+        super().__init__(func, "perm_check")
+        self.perms = set()
+
+    def add_hook(self, perms, kwargs):
+        self._add_hook(kwargs)
+        self.perms.update(perms)
 
 
 def _add_hook(func, hook):
@@ -279,7 +318,7 @@ def sieve(param=None, **kwargs):
     """
 
     def _sieve_hook(func):
-        assert len(inspect.getargspec(func).args) == 3, \
+        assert len(inspect.signature(func).parameters) == 3, \
             "Sieve plugin has incorrect argument count. Needs params: bot, input, plugin"
 
         hook = _get_hook(func, "sieve")
@@ -316,7 +355,6 @@ def periodic(interval, **kwargs):
         return lambda func: _periodic_hook(func)
 
 
-
 def on_start(param=None, **kwargs):
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator
     :type param: function | None
@@ -339,3 +377,126 @@ def on_start(param=None, **kwargs):
 
 # this is temporary, to ease transition
 onload = on_start
+
+
+def on_stop(param=None, **kwargs):
+    """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator
+    :type param: function | None
+    """
+
+    def _on_stop_hook(func):
+        hook = _get_hook(func, "on_stop")
+        if hook is None:
+            hook = _Hook(func, "on_stop")
+            _add_hook(func, hook)
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _on_stop_hook(param)
+    else:
+        return lambda func: _on_stop_hook(func)
+
+
+on_unload = on_stop
+
+
+def on_cap_available(*caps, **kwargs):
+    """External on_cap_available decorator. Must be used as a function that returns a decorator
+
+    This hook will fire for each capability in a `CAP LS` response from the server
+    """
+
+    def _on_cap_available_hook(func):
+        hook = _get_hook(func, "on_cap_available")
+        if hook is None:
+            hook = _CapHook(func, "available")
+            _add_hook(func, hook)
+        hook.add_hook(caps, kwargs)
+        return func
+
+    return _on_cap_available_hook
+
+
+def on_cap_ack(*caps, **kwargs):
+    """External on_cap_ack decorator. Must be used as a function that returns a decorator
+
+    This hook will fire for each capability that is acknowledged from the server with `CAP ACK`
+    """
+
+    def _on_cap_ack_hook(func):
+        hook = _get_hook(func, "on_cap_ack")
+        if hook is None:
+            hook = _CapHook(func, "ack")
+            _add_hook(func, hook)
+        hook.add_hook(caps, kwargs)
+        return func
+
+    return _on_cap_ack_hook
+
+
+def on_connect(param=None, **kwargs):
+    def _on_connect_hook(func):
+        hook = _get_hook(func, "on_connect")
+        if hook is None:
+            hook = _Hook(func, "on_connect")
+            _add_hook(func, hook)
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _on_connect_hook(param)
+    else:
+        return lambda func: _on_connect_hook(func)
+
+
+connect = on_connect
+
+
+def irc_out(param=None, **kwargs):
+    def _decorate(func):
+        hook = _get_hook(func, "irc_out")
+        if hook is None:
+            hook = _Hook(func, "irc_out")
+            _add_hook(func, hook)
+
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _decorate(param)
+    else:
+        return lambda func: _decorate(func)
+
+
+def post_hook(param=None, **kwargs):
+    """
+    This hook will be fired just after a hook finishes executing
+    """
+
+    def _decorate(func):
+        hook = _get_hook(func, "post_hook")
+        if hook is None:
+            hook = _Hook(func, "post_hook")
+            _add_hook(func, hook)
+
+        hook._add_hook(kwargs)
+        return func
+
+    if callable(param):
+        return _decorate(param)
+    else:
+        return lambda func: _decorate(func)
+
+
+def permission(*perms, **kwargs):
+    def _perm_hook(func):
+        hook = _get_hook(func, "perm_check")
+        if hook is None:
+            hook = _PermissionHook(func)
+            _add_hook(func, hook)
+
+        hook.add_hook(perms, kwargs)
+        return func
+
+    return lambda func: _perm_hook(func)

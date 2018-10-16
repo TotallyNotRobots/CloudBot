@@ -1,10 +1,30 @@
 import asyncio
-import logging
 import collections
+import logging
+import random
 
 from cloudbot.permissions import PermissionManager
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
+
+CLIENTS = {}
+
+
+def client(_type):
+    def _decorate(cls):
+        CLIENTS[_type] = cls
+        cls._type = _type
+        return cls
+
+    return lambda cls: _decorate(cls)
+
+
+class ClientConnectError(Exception):
+    def __init__(self, client_name, server):
+        super().__init__("Unable to connect to client {} with server {}".format(client_name, server))
+        self.client_name = client_name
+        self.server = server
 
 
 class Client:
@@ -20,6 +40,8 @@ class Client:
     :type history: dict[str, list[tuple]]
     :type permissions: PermissionManager
     """
+
+    _type = None
 
     def __init__(self, bot, name, nick, *, channels=None, config=None):
         """
@@ -55,17 +77,41 @@ class Client:
         # set when on_load in core_misc is done
         self.ready = False
 
+        self._active = False
+
+        self.cancelled_future = async_util.create_future(self.loop)
+
     def describe_server(self):
         raise NotImplementedError
 
     @asyncio.coroutine
-    def connect(self):
+    def auto_reconnect(self):
+        if not self._active:
+            return
+
+        yield from self.try_connect()
+
+    @asyncio.coroutine
+    def try_connect(self):
+        timeout = 30
+        while self.active and not self.connected:
+            try:
+                yield from self.connect(timeout)
+            except Exception:
+                logger.exception("[%s] Error occurred while connecting.", self.name)
+            else:
+                break
+
+            yield from asyncio.sleep(random.randrange(timeout))
+
+    @asyncio.coroutine
+    def connect(self, timeout=None):
         """
         Connects to the server, or reconnects if already connected.
         """
         raise NotImplementedError
 
-    def quit(self, reason=None):
+    def quit(self, reason=None, set_inactive=True):
         """
         Gracefully disconnects from the server with reason <reason>, close() should be called shortly after.
         """
@@ -82,6 +128,14 @@ class Client:
         Sends a message to the given target
         :type target: str
         :type text: str
+        """
+        raise NotImplementedError
+
+    def admin_log(self, text, console=True):
+        """
+        Log a message to the configured admin channel
+        :type text: str
+        :type console: bool
         """
         raise NotImplementedError
 
@@ -122,6 +176,26 @@ class Client:
         """
         raise NotImplementedError
 
+    def is_nick_valid(self, nick):
+        """
+        Determines if a nick is valid for this connection
+        :param nick: The nick to check
+        :return: True if it is valid, otherwise false
+        """
+        raise NotImplementedError
+
     @property
     def connected(self):
         raise NotImplementedError
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, value):
+        self._active = value

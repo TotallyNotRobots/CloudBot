@@ -1,7 +1,12 @@
 import asyncio
+import concurrent.futures
 import enum
 import logging
-import concurrent.futures
+import sys
+import warnings
+from functools import partial
+
+from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
 
@@ -41,8 +46,8 @@ class Event:
     """
 
     def __init__(self, *, bot=None, hook=None, conn=None, base_event=None, event_type=EventType.other, content=None,
-                 target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
-                 irc_command=None, irc_paramlist=None, irc_ctcp_text=None):
+                 content_raw=None, target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None,
+                 irc_prefix=None, irc_command=None, irc_paramlist=None, irc_ctcp_text=None):
         """
         All of these parameters except for `bot` and `hook` are optional.
         The irc_* parameters should only be specified for IRC events.
@@ -102,6 +107,7 @@ class Event:
             # If base_event is provided, don't check these parameters, just inherit
             self.type = base_event.type
             self.content = base_event.content
+            self.content_raw = base_event.content_raw
             self.target = base_event.target
             self.chan = base_event.chan
             self.nick = base_event.nick
@@ -118,6 +124,7 @@ class Event:
             # Since base_event wasn't provided, we can take these parameters
             self.type = event_type
             self.content = content
+            self.content_raw = content_raw
             self.target = target
             self.chan = channel
             self.nick = nick
@@ -146,12 +153,12 @@ class Event:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            #logger.debug("Opening database session for {}:threaded=False".format(self.hook.description))
+            # logger.debug("Opening database session for {}:threaded=False".format(self.hook.description))
 
             # we're running a coroutine hook with a db, so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
             # be sure to initialize the db in the database executor, so it will be accessible in that thread.
-            self.db = yield from self.async(self.bot.db_session)
+            self.db = yield from self.async_call(self.bot.db_session)
 
     def prepare_threaded(self):
         """
@@ -167,7 +174,7 @@ class Event:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            #logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
+            # logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
 
             self.db = self.bot.db_session()
 
@@ -185,9 +192,9 @@ class Event:
             raise ValueError("event.hook is required to close an event")
 
         if self.db is not None:
-            #logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
+            # logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
             # be sure the close the database in the database executor, as it is only accessable in that one thread
-            yield from self.async(self.db.close)
+            yield from self.async_call(self.db.close)
             self.db = None
 
     def close_threaded(self):
@@ -202,7 +209,7 @@ class Event:
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
         if self.db is not None:
-            #logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
+            # logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
             self.db.close()
             self.db = None
 
@@ -233,7 +240,20 @@ class Event:
             if self.chan is None:
                 raise ValueError("Target must be specified when chan is not assigned")
             target = self.chan
-        self.conn.message( target, message)
+        self.conn.message(target, message)
+
+    def admin_log(self, message, broadcast=False):
+        """Log a message in the current connections admin log
+        :type message: str
+        :type broadcast: bool
+        :param message: The message to log
+        :param broadcast: Should this be broadcast to all connections
+        """
+        conns = [self.conn] if not broadcast else self.bot.connections.values()
+
+        for conn in conns:
+            if conn and conn.connected:
+                conn.admin_log(message, console=not broadcast)
 
     def reply(self, *messages, target=None):
         """sends a message to the current channel/user with a prefix
@@ -308,16 +328,73 @@ class Event:
         return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
 
     @asyncio.coroutine
-    def async(self, function, *args, **kwargs):
+    def check_permission(self, permission, notice=True):
+        """ returns whether or not the current user has a given permission
+        :type permission: str
+        :type notice: bool
+        :rtype: bool
+        """
+        if self.has_permission(permission, notice=notice):
+            return True
+
+        for perm_hook in self.bot.plugin_manager.perm_hooks[permission]:
+            # noinspection PyTupleAssignmentBalance
+            ok, res = yield from self.bot.plugin_manager.internal_launch(perm_hook, self)
+            if ok and res:
+                return True
+
+        return False
+
+    @asyncio.coroutine
+    def check_permissions(self, *perms, notice=True):
+        for perm in perms:
+            if (yield from self.check_permission(perm, notice=notice)):
+                return True
+
+        return False
+
+    @asyncio.coroutine
+    def async_call(self, func, *args, **kwargs):
         if self.db_executor is not None:
             executor = self.db_executor
         else:
             executor = None
-        if kwargs:
-            result = yield from self.loop.run_in_executor(executor, function, *args)
-        else:
-            result = yield from self.loop.run_in_executor(executor, lambda: function(*args, **kwargs))
+
+        part = partial(func, *args, **kwargs)
+        result = yield from self.loop.run_in_executor(executor, part)
         return result
+
+    def is_nick_valid(self, nick):
+        """
+        Returns whether a nick is valid for a given connection
+        :param nick: The nick to check
+        :return: Whether or not it is valid
+        """
+        return self.conn.is_nick_valid(nick)
+
+    def __getitem__(self, item):
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            raise KeyError(item)
+
+    if sys.version_info < (3, 7, 0):
+        # noinspection PyCompatibility
+        @asyncio.coroutine
+        def async_(self, function, *args, **kwargs):
+            warnings.warn(
+                "event.async() is deprecated, use event.async_call() instead.",
+                DeprecationWarning, stacklevel=2
+            )
+            result = yield from self.async_call(function, *args, **kwargs)
+            return result
+
+
+# Silence deprecation warnings about use of the 'async' name as a function
+try:
+    setattr(Event, 'async', getattr(Event, 'async_'))
+except AttributeError:
+    pass
 
 
 class CommandEvent(Event):
@@ -327,9 +404,9 @@ class CommandEvent(Event):
     :type triggered_command: str
     """
 
-    def __init__(self, *, bot=None, hook, text, triggered_command, conn=None, base_event=None, event_type=None,
-                 content=None, target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None,
-                 irc_prefix=None, irc_command=None, irc_paramlist=None):
+    def __init__(self, *, bot=None, hook, text, triggered_command, cmd_prefix, conn=None, base_event=None,
+                 event_type=None, content=None, content_raw=None, target=None, channel=None, nick=None, user=None,
+                 host=None, mask=None, irc_raw=None, irc_prefix=None, irc_command=None, irc_paramlist=None):
         """
         :param text: The arguments for the command
         :param triggered_command: The command that was triggered
@@ -337,12 +414,14 @@ class CommandEvent(Event):
         :type triggered_command: str
         """
         super().__init__(bot=bot, hook=hook, conn=conn, base_event=base_event, event_type=event_type, content=content,
-                         target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=irc_raw,
-                         irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host,
+                         mask=mask, irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command,
+                         irc_paramlist=irc_paramlist)
         self.hook = hook
         self.text = text
         self.doc = self.hook.doc
         self.triggered_command = triggered_command
+        self.triggered_prefix = cmd_prefix
 
     def notice_doc(self, target=None):
         """sends a notice containing this command's docstring to the current channel/user or a specific channel/user
@@ -350,16 +429,16 @@ class CommandEvent(Event):
         """
         if self.triggered_command is None:
             raise ValueError("Triggered command not set on this event")
+
         if self.hook.doc is None:
-            message = "{}{} requires additional arguments.".format(self.conn.config["command_prefix"][0],
-                                                                   self.triggered_command)
+            message = "{}{} requires additional arguments.".format(self.triggered_prefix, self.triggered_command)
         else:
             if self.hook.doc.split()[0].isalpha():
                 # this is using the old format of `name <args> - doc`
-                message = "{}{}".format(self.conn.config["command_prefix"][0], self.hook.doc)
+                message = "{}{}".format(self.triggered_prefix, self.hook.doc)
             else:
                 # this is using the new format of `<args> - doc`
-                message = "{}{} {}".format(self.conn.config["command_prefix"][0], self.triggered_command, self.hook.doc)
+                message = "{}{} {}".format(self.triggered_prefix, self.triggered_command, self.hook.doc)
 
         self.notice(message, target=target)
 
@@ -370,14 +449,61 @@ class RegexEvent(Event):
     :type match: re.__Match
     """
 
-    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None, target=None,
-                 channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
+    def __init__(self, *, bot=None, hook, match, conn=None, base_event=None, event_type=None, content=None, content_raw=None,
+                 target=None, channel=None, nick=None, user=None, host=None, mask=None, irc_raw=None, irc_prefix=None,
                  irc_command=None, irc_paramlist=None):
         """
         :param: match: The match objected returned by the regex search method
         :type match: re.__Match
         """
         super().__init__(bot=bot, conn=conn, hook=hook, base_event=base_event, event_type=event_type, content=content,
-                         target=target, channel=channel, nick=nick, user=user, host=host, mask=mask, irc_raw=irc_raw,
-                         irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
+                         content_raw=content_raw, target=target, channel=channel, nick=nick, user=user, host=host, mask=mask,
+                         irc_raw=irc_raw, irc_prefix=irc_prefix, irc_command=irc_command, irc_paramlist=irc_paramlist)
         self.match = match
+
+
+class CapEvent(Event):
+    def __init__(self, *args, cap, cap_param=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cap = cap
+        self.cap_param = cap_param
+
+
+class IrcOutEvent(Event):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parsed_line = None
+
+    @asyncio.coroutine
+    def prepare(self):
+        yield from super().prepare()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
+    def prepare_threaded(self):
+        super().prepare_threaded()
+
+        if "parsed_line" in self.hook.required_args:
+            try:
+                self.parsed_line = Message.parse(self.line)
+            except Exception:
+                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                self.parsed_line = None
+
+    @property
+    def line(self):
+        return str(self.irc_raw)
+
+
+class PostHookEvent(Event):
+    def __init__(self, *args, launched_hook=None, launched_event=None, result=None, error=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.launched_hook = launched_hook
+        self.launched_event = launched_event
+        self.result = result
+        self.error = error

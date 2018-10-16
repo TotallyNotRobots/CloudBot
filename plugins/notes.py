@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Table, Column, String, Boolean, Integer, DateTime, PrimaryKeyConstraint
 import sqlalchemy
+from sqlalchemy import Table, Column, String, Boolean, Integer, DateTime, PrimaryKeyConstraint
 from sqlalchemy.sql import select
 
 from cloudbot import hook

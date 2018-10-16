@@ -1,79 +1,46 @@
-import requests
+import json
 import random
+from pathlib import Path
+
+import requests
+
 from cloudbot import hook
 
-FuckOffList = [    
-        'donut',
-        'bus',
-        'chainsaw',
-        'king',
-        'madison',
-        'gfy',
-        'back',
-        'keep',
-        'name',
-        'bday',
-        'dalton',
-        'ing',
-        'nugget',
-        'outside',
-        'off',
-        'problem',
-        'shakespeare',
-        'think',
-        'thinking',
-        'xmas',
-        'yoda',
-        'you'
-                   ]
+BASE_URL = "http://www.foaas.com/{fuck}/{target}"
 
-SingleFuckList = [
-                    'bag',
-                    'awesome',
-                    'because',
-                    'bucket',
-                    'bye',
-                    'cool',
-                    'everyone',
-                    'everything',
-                    'flying',
-                    'give',
-                    'horse',
-                    'life',
-                    'looking',
-                    'maybe',
-                    'me',
-                    'mornin',
-                    'no',
-                    'pink',
-                    'retard',
-                    'rtfm',
-                    'sake',
-                    'shit',
-                    'single',
-                    'thanks',
-                    'that',
-                    'this',
-                    'too',
-                    'tucker',
-                    'zayn',
-                    'zero'
+headers = {'Accept': 'text/plain'}
+
+fuck_offs = {}
 
 
-                    ]
-
-headers = {'Accept' : 'text/plain'}
-
-@hook.command('fos','fuckoff','foaas', autohelp = False)
-def foaas(text, nick, message):
-    '''fos [name] to tell some one to fuck off or just .fos for a generic fuckoff'''
-    Fuckee = text.strip()
-    Fucker = nick
-    if Fuckee == '':
-        r = requests.get('http://www.foaas.com/' + str(random.choice(SingleFuckList)) + '/' + Fucker,headers=headers)
-        out = r.text
-        message(out)
+def format_url(fucker, fuckee=None):
+    if fuckee:
+        fucks = fuck_offs['fuck_offs']
+        target = "\2{fuckee}\2/{fucker}".format(fuckee=fuckee, fucker=fucker)
     else:
-        r = requests.get('http://www.foaas.com/' + str(random.choice(FuckOffList)) + '/' + "\x02" + Fuckee + "\x02" + '/' + Fucker, headers=headers)
-        out = r.text
-        message(out)
+        fucks = fuck_offs['single_fucks']
+        target = fucker
+
+    return BASE_URL.format(fuck=random.choice(fucks), target=target)
+
+
+def get_fuck_off(fucker, fuckee):
+    url = format_url(fucker, fuckee)
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+    return r.text
+
+
+@hook.on_start
+def load_fuck_offs(bot):
+    fuck_offs.clear()
+    data_file = Path(bot.data_dir) / "foaas.json"
+    with data_file.open(encoding='utf-8') as f:
+        fuck_offs.update(json.load(f))
+
+
+@hook.command('fos', 'fuckoff', 'foaas', autohelp=False)
+def foaas(text, nick, message):
+    """[name] - tell some one to fuck off or just .fos for a generic fuckoff"""
+    out = get_fuck_off(nick, text)
+    message(out)

@@ -1,22 +1,25 @@
-import asyncio
 import logging
 import os
+import signal
 import sys
 import time
-import signal
+
+from pathlib import Path
 
 # store the original working directory, for use when restarting
-original_wd = os.path.realpath(".")
+original_wd = Path().resolve()
 
 # set up environment - we need to make sure we are in the install directory
-path0 = os.path.realpath(sys.path[0] or '.')
-install_dir = os.path.realpath(os.path.dirname(__file__))
+path0 = Path(sys.path[0] or '.').resolve()
+install_dir = Path(__file__).resolve().parent
 if path0 == install_dir:
-    sys.path[0] = path0 = os.path.dirname(install_dir)
-os.chdir(path0)
+    sys.path[0] = path0 = install_dir.parent
+
+os.chdir(str(install_dir.parent))
 
 # import bot
 from cloudbot.bot import CloudBot
+from cloudbot.util import async_util
 
 
 def main():
@@ -40,16 +43,16 @@ def main():
     # define closure for signal handling
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
+    # noinspection PyUnusedLocal
     def exit_gracefully(signum, frame):
         nonlocal stopped_while_restarting
         if not _bot:
             # we are currently in the process of restarting
             stopped_while_restarting = True
         else:
-            _bot.loop.call_soon_threadsafe(
-                lambda: asyncio.async(_bot.stop("Killed (Received SIGINT {})".format(signum)), loop=_bot.loop))
+            async_util.run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
 
-        logger.warn("Bot received Signal Interrupt ({})".format(signum))
+        logger.warning("Bot received Signal Interrupt ({})".format(signum))
 
         # restore the original handler so if they do it again it triggers
         signal.signal(signal.SIGINT, original_sigint)
@@ -71,7 +74,7 @@ def main():
             logger.info("Received stop signal, no longer restarting")
         else:
             # actually restart
-            os.chdir(original_wd)
+            os.chdir(str(original_wd))
             args = sys.argv
             logger.info("Restarting Bot")
             logger.debug("Restart arguments: {}".format(args))

@@ -1,15 +1,17 @@
-import socket
-import time
-import requests
-import gzip
 import asyncio
-import shutil
+import gzip
 import logging
 import os.path
+import shutil
+import socket
+import time
+
 import geoip2.database
 import geoip2.errors
+import requests
 
 from cloudbot import hook
+from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -52,6 +54,7 @@ def update_db():
         return geoip2.database.Reader(PATH)
 
 
+@asyncio.coroutine
 def check_db(loop):
     """
     runs update_db in an executor thread and sets geoip_reader to the result
@@ -65,16 +68,16 @@ def check_db(loop):
         geoip_reader = db
 
 
-@asyncio.coroutine
 @hook.on_start
-def load_geoip(loop):
-    asyncio.async(check_db(loop), loop=loop)
-
-
 @asyncio.coroutine
+def load_geoip(loop):
+    async_util.wrap_future(check_db(loop), loop=loop)
+
+
 @hook.command
+@asyncio.coroutine
 def geoip(text, reply, loop):
-    """ geoip <host|ip> -- Looks up the physical location of <host|ip> using Maxmind GeoLite """
+    """<host|ip> - Looks up the physical location of <host|ip> using Maxmind GeoLite """
     global geoip_reader
 
     if not geoip_reader:

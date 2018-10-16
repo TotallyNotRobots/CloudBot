@@ -1,24 +1,18 @@
 import json
-import os
-import time
-import sys
 import logging
-
-from watchdog.observers import Observer
-from watchdog.events import PatternMatchingEventHandler
-
-import cloudbot
+import os
+import sys
+import time
+from collections import OrderedDict
 
 logger = logging.getLogger("cloudbot")
 
 
-class Config(dict):
+class Config(OrderedDict):
     """
     :type filename: str
     :type path: str
     :type bot: cloudbot.bot.CloudBot
-    :type observer: Observer
-    :type event_handler: ConfigEventHandler
     """
 
     def __init__(self, bot, *args, **kwargs):
@@ -35,22 +29,6 @@ class Config(dict):
 
         # populate self with config data
         self.load_config()
-        self.reloading_enabled = self.get("reloading", {}).get("config_reloading", True)
-
-        if self.reloading_enabled:
-            # start watcher
-            self.observer = Observer()
-
-            pattern = "*{}".format(self.filename)
-
-            self.event_handler = ConfigEventHandler(self.bot, self, patterns=[pattern])
-            self.observer.schedule(self.event_handler, path='.', recursive=False)
-            self.observer.start()
-
-    def stop(self):
-        """shuts down the config reloader"""
-        if self.reloading_enabled:
-            self.observer.stop()
 
     def load_config(self):
         """(re)loads the bot config from the config file"""
@@ -64,8 +42,10 @@ class Config(dict):
             sys.exit()
 
         with open(self.path) as f:
-            self.update(json.load(f))
-            logger.debug("Config loaded from file.")
+            data = json.load(f, object_pairs_hook=OrderedDict)
+
+        self.update(data)
+        logger.debug("Config loaded from file.")
 
         # reload permissions
         if self.bot.connections:
@@ -74,27 +54,7 @@ class Config(dict):
 
     def save_config(self):
         """saves the contents of the config dict to the config file"""
-        json.dump(self, open(self.path, 'w'), sort_keys=True, indent=4)
+        with open(self.path, 'w') as f:
+            json.dump(self, f, indent=4)
+
         logger.info("Config saved to file.")
-
-
-class ConfigEventHandler(PatternMatchingEventHandler):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    :type config: core.config.Config
-    :type logger: logging.Logger
-    """
-
-    def __init__(self, bot, config, *args, **kwargs):
-        """
-        :type bot: cloudbot.bot.CloudBot
-        :type config: Config
-        """
-        self.bot = bot
-        self.config = config
-        PatternMatchingEventHandler.__init__(self, *args, **kwargs)
-
-    def on_any_event(self, event):
-        if self.bot.running:
-            logger.info("Config changed, triggering reload.")
-            self.config.load_config()

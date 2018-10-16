@@ -255,7 +255,7 @@ What book genres do you like to read?
 Do you prefer fiction or nonfiction books?
 What book has influenced you the most?
 What book has had the biggest effect on the modern world?
-Do you think people read more or less books now than 50 years ago?
+Do you think people read more or fewer books now than 50 years ago?
 How fast do you read?
 How often do you go to the library?
 Now that indie publishing has become easier, have books gotten better or worse?
@@ -378,7 +378,7 @@ Which season are you most active in?
 Is it better to live where there are four seasons or where one season takes up most of the year?
 If you could make a holiday, what would it be like? What traditions would it have? What would people eat on your holiday?
 What is the biggest holiday for your family?
-Do you wish there were more or less holidays? Why?
+Do you wish there were more or fewer holidays? Why?
 If you had to get rid of a holiday, which would you get rid of? Why?
 What is your favorite holiday?
 What kinds of food do you usually eat on your favorite holiday?

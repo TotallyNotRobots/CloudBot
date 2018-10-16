@@ -1,0 +1,27 @@
+{
+    "templates": [
+        "hands {user} a bowl of {rice} rice."
+    ],
+    "parts": {
+        "rice": [
+            "Uncle Ben's Basmati",
+            "Uncle Ben's Golden Vegetable ",
+            "Japanese Koshihikari",
+            "Camargue red",
+            "Brown",
+            "Wehani",
+            "Jasmine",
+            "Sticky",
+            "Hokkien fried",
+            "Bibimbap",
+            "Dal bhat",
+            "Onigiri",
+            "Long-grain Nychaki",
+            "Iranian Domsiah",
+            "Italian Vialone Nano",
+            "N\u00e0ng Th\u01a1m Ch\u1ee3 \u0110\u00e0o",
+            "Htaman\u00e8",
+            "Aromic Tulaipanji"
+        ]
+    }
+}

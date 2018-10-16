@@ -2,14 +2,12 @@ import random
 import re
 import time
 
+from sqlalchemy import select, Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.types import REAL
+
 from cloudbot import hook
 from cloudbot.util import database
-
-from sqlalchemy import select
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
-from sqlalchemy.types import REAL
-from sqlalchemy.exc import IntegrityError
-
 
 qtable = Table(
     'quote',
@@ -27,8 +25,8 @@ qtable = Table(
 def format_quote(q, num, n_quotes):
     """Returns a formatted string of a quote"""
     ctime, nick, msg = q
-    return "[{}/{}] <{}> {}".format(num, n_quotes,
-                                    nick, msg)
+    return "[{}/{}] <{}\u200B{}> {}".format(num, n_quotes,
+                                            nick[:1], nick[1:], msg)
 
 
 def add_quote(db, chan, target, sender, message):
@@ -93,7 +91,7 @@ def get_quote_by_nick(db, nick, num=False):
     query = select([qtable.c.time, qtable.c.nick, qtable.c.msg]) \
         .where(qtable.c.deleted != 1) \
         .where(qtable.c.nick == nick.lower()) \
-        .order_by(qtable.c.time)\
+        .order_by(qtable.c.time) \
         .limit(1) \
         .offset((num - 1))
     data = db.execute(query).fetchall()[0]
@@ -141,7 +139,7 @@ def get_quote_by_chan(db, chan, num=False):
     query = select([qtable.c.time, qtable.c.nick, qtable.c.msg]) \
         .where(qtable.c.deleted != 1) \
         .where(qtable.c.chan == chan) \
-        .order_by(qtable.c.time)\
+        .order_by(qtable.c.time) \
         .limit(1) \
         .offset((num - 1))
     data = db.execute(query).fetchall()[0]

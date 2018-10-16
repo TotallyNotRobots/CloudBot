@@ -1,39 +1,45 @@
-from collections import deque
-import time
 import asyncio
 import re
+import time
+from collections import deque
+
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select
 
 from cloudbot import hook
-from cloudbot.util import timeformat
 from cloudbot.event import EventType
+from cloudbot.util import timeformat, database
 
-db_ready = []
+table = Table(
+    'seen_user',
+    database.metadata,
+    Column('name', String),
+    Column('time', Float),
+    Column('quote', String),
+    Column('chan', String),
+    Column('host', String),
+    PrimaryKeyConstraint('name', 'chan')
+)
 
 
-def db_init(db, conn_name):
-    """check to see that our db has the the seen table (connection name is for caching the result per connection)
-    :type db: sqlalchemy.orm.Session
-    """
-    global db_ready
-    if db_ready.count(conn_name) < 1:
-        db.execute("create table if not exists seen_user(name, time, quote, chan, host, primary key(name, chan))")
-        db.commit()
-        db_ready.append(conn_name)
-
-
-def track_seen(event, db, conn):
+def track_seen(event, db):
     """ Tracks messages for the .seen command
     :type event: cloudbot.event.Event
     :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
     """
-    db_init(db, conn)
     # keep private messages private
+    now = time.time()
     if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
-        db.execute(
-            "insert or replace into seen_user(name, time, quote, chan, host) values(:name,:time,:quote,:chan,:host)",
-            {'name': event.nick.lower(), 'time': time.time(), 'quote': event.content, 'chan': event.chan,
-             'host': event.mask})
+        res = db.execute(
+            table.update().values(time=now, quote=event.content, host=str(event.mask))
+                .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
+        )
+        if res.rowcount == 0:
+            db.execute(
+                table.insert().values(
+                    name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
+                )
+            )
+
         db.commit()
 
 
@@ -65,12 +71,12 @@ def chat_tracker(event, db, conn):
         event.content = "\x01ACTION {}\x01".format(event.content)
 
     message_time = time.time()
-    track_seen(event, db, conn)
+    track_seen(event, db)
     track_history(event, message_time, conn)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def resethistory(event, conn):
     """- resets chat history for the current channel
     :type event: cloudbot.event.Event
@@ -85,11 +91,10 @@ def resethistory(event, conn):
 
 
 @hook.command()
-def seen(text, nick, chan, db, event, conn):
+def seen(text, nick, chan, db, event, is_nick_valid):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
     """
 
     if event.conn.nick.lower() == text.lower():
@@ -98,23 +103,16 @@ def seen(text, nick, chan, db, event, conn):
     if text.lower() == nick.lower():
         return "Have you looked in a mirror lately?"
 
-    if not re.match("^[A-Za-z0-9_|\^\*\`.\-\]\[\{\}\\\\]*$", text.lower()):
+    if not is_nick_valid(text):
         return "I can't look up that name, its impossible to use!"
 
-    db_init(db, conn.name)
-
-    if '_' in text:
-        text = text.replace("_", "/_")
-
-    last_seen = db.execute("select name, time, quote from seen_user where name like :name escape '/' and chan = :chan",
-                            {'name': text, 'chan': chan}).fetchone()
-
-    text = text.replace("/", "")
+    last_seen = db.execute(
+        select([table.c.name, table.c.time, table.c.quote])
+            .where(table.c.name == text.lower()).where(table.c.chan == chan)
+    ).fetchone()
 
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
-        if last_seen[0] != text.lower():  # for glob matching
-            text = last_seen[0]
         if last_seen[2][0:1] == "\x01":
             return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
         else:

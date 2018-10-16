@@ -1,6 +1,6 @@
-import os
 import asyncio
 import codecs
+import os
 import random
 
 from cloudbot import hook
@@ -16,8 +16,8 @@ def load_responses(bot):
                      f.readlines() if not line.startswith("//")]
 
 
-@asyncio.coroutine
 @hook.command("8ball", "8", "eightball")
+@asyncio.coroutine
 def eightball(action):
     """<question> - asks the all knowing magic electronic eight ball <question>"""
     magic = random.choice(responses)

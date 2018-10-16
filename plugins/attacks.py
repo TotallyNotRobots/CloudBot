@@ -1,22 +1,18 @@
-import codecs
 import json
-import os
-import random
-import asyncio
 import re
+from collections import defaultdict
+from enum import Enum, unique
+from pathlib import Path
 
 from cloudbot import hook
 from cloudbot.util import textgen
 
-nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}]*$", re.I)
 
-
-def is_valid(target):
-    """ Checks if a string is a valid IRC nick. """
-    if nick_re.match(target):
-        return True
-    else:
-        return False
+@unique
+class RespType(Enum):
+    ACTION = 1
+    MESSAGE = 2
+    REPLY = 3
 
 
 def is_self(conn, target):
@@ -27,203 +23,122 @@ def is_self(conn, target):
         return False
 
 
+attack_data = defaultdict(dict)
+
+
+class BasicAttack:
+    def __init__(self, name, doc, *commands, action=None, file=None, response=RespType.ACTION, require_target=True):
+        self.name = name
+        self.action = action or name
+        self.doc = doc
+        self.commands = commands or [name]
+        if file is None:
+            file = "{}.json".format(name)
+
+        self.file = file
+        self.response = response
+        self.require_target = require_target
+
+
+ATTACKS = (
+    BasicAttack("lart", "<user> - LARTs <user>"),
+    BasicAttack(
+        "flirt", "<user> - flirts with <user>", "flirt", "sexup", "jackmeoff", action="flirt with",
+        response=RespType.MESSAGE
+    ),
+    BasicAttack("kill", "<user> - kills <user>", "kill", "end"),
+    BasicAttack("slap", "<user> - Makes the bot slap <user>."),
+    BasicAttack("compliment", "<user> - Makes the bot compliment <user>.", response=RespType.MESSAGE),
+    BasicAttack(
+        "strax", "[user] - Generates a quote from Strax, optionally targeting [user]", action="attack",
+        response=RespType.MESSAGE, require_target=False
+    ),
+    BasicAttack(
+        "nk", "- outputs a random North Korea propaganda slogan", action="target", response=RespType.MESSAGE,
+        require_target=False
+    ),
+    BasicAttack("insult", "<user> - insults <user>", response=RespType.MESSAGE),
+    BasicAttack("present", "<user> - gives gift to <user>", "present", "gift", action="give a gift to"),
+    BasicAttack("spank", "<user> - Spanks <user>"),
+    BasicAttack("bdsm", "<user> - Just a little bit of kinky fun.", "bdsm", "dominate"),
+    BasicAttack("clinton", "<user> - Clinton a <user>"),
+    BasicAttack("trump", "<user> - Trump a <user>"),
+    BasicAttack("glomp", "<user> - glomps <user>"),
+    BasicAttack("bite", "<user> - bites <user>"),
+    BasicAttack("lurve", "<user> - lurves <user>", "lurve", "luff", "luv", response=RespType.MESSAGE),
+    BasicAttack("hug", "<user> - hugs <user>", response=RespType.MESSAGE),
+    BasicAttack("highfive", "<user> - highfives <user>", "high5", "hi5", "highfive", response=RespType.MESSAGE),
+    BasicAttack("fight", "<user> - fights <user>", "fight", "fite", "spar", "challenge", response=RespType.MESSAGE),
+)
+
+
+def load_data(path, data_dict):
+    data_dict.clear()
+    with path.open(encoding='utf-8') as f:
+        data_dict.update(json.load(f))
+
+
 @hook.on_start()
 def load_attacks(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global larts, flirts, kills, slaps, north_korea, insults, strax, compliments, presents
-
-    with codecs.open(os.path.join(bot.data_dir, "larts.txt"), encoding="utf-8") as f:
-        larts = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "flirts.txt"), encoding="utf-8") as f:
-        flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "insults.txt"), encoding="utf-8") as f:
-        insults = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "kills.json"), encoding="utf-8") as f:
-        kills = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "slaps.json"), encoding="utf-8") as f:
-        slaps = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "strax.json"), encoding="utf-8") as f:
-        strax = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "compliments.json"), encoding="utf-8") as f:
-        compliments = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "north_korea.txt"), encoding="utf-8") as f:
-        north_korea = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "presents.json"), encoding="utf-8") as f:
-        presents = json.load(f)
+    attack_data.clear()
+    data_dir = Path(bot.data_dir) / "attacks"
+    for data_file in ATTACKS:
+        load_data(data_dir / data_file.file, attack_data[data_file.name])
 
 
-@asyncio.coroutine
-@hook.command
-def lart(text, conn, nick, action):
-    """<user> - LARTs <user>"""
-    target = text.strip()
-
-    if not is_valid(target):
-        return "I can't lart that."
-
-    if is_self(conn, target):
-        # user is trying to make the bot attack itself!
-        target = nick
-
-    phrase = random.choice(larts)
-
-    # act out the message
-    action(phrase.format(user=target))
-
-
-@asyncio.coroutine
-@hook.command("flirt", "sexup", "jackmeoff")
-def flirt(text, conn, nick, message):
-    """<user> - flirts with <user>"""
-    target = text.strip()
-
-    if not is_valid(target):
-        return "I can't flirt with that."
-
-    if is_self(conn, target):
-        # user is trying to make the bot attack itself!
-        target = nick
-
-    message('{}, {}'.format(target, random.choice(flirts)))
-
-
-@asyncio.coroutine
-@hook.command("kill", "end")
-def kill(text, conn, nick, action):
-    """<user> - kills <user>"""
-    target = text.strip()
-
-    if not is_valid(target):
-        return "I can't attack that."
-
-    if is_self(conn, target):
-        # user is trying to make the bot attack itself!
-        target = nick
-
-    generator = textgen.TextGenerator(kills["templates"], kills["parts"], variables={"user": target})
-
-    # act out the message
-    action(generator.generate_string())
-
-
-@asyncio.coroutine
-@hook.command
-def slap(text, action, nick, conn):
-    """<user> -- Makes the bot slap <user>."""
-    target = text.strip()
-
-    if not is_valid(target):
-        return "I can't slap that."
-
-    if is_self(conn, target):
-        # user is trying to make the bot attack itself!
-        target = nick
-
-    variables = {
-        "user": target
-    }
-    generator = textgen.TextGenerator(slaps["templates"], slaps["parts"], variables=variables)
-
-    # act out the message
-    action(generator.generate_string())
-
-
-@asyncio.coroutine
-@hook.command
-def compliment(text, action, nick, conn):
-    """<user> -- Makes the bot compliment <user>."""
-    target = text.strip()
-
-    if not is_valid(target):
-        return "I can't compliment that."
-
-    if is_self(conn, target):
-        # user is trying to make the bot attack itself!
-        target = nick
-
-    variables = {
-        "user": target
-    }
-    generator = textgen.TextGenerator(compliments["templates"], compliments["parts"], variables=variables)
-
-    # act out the message
-    action(generator.generate_string())
-
-@hook.command(autohelp=False)
-def strax(text, conn, message, nick):
-    """Strax quote."""
+def basic_format(nick, text, data, **kwargs):
+    user = text
+    kwargs['user'] = user
+    kwargs['target'] = user
+    kwargs['nick'] = nick
 
     if text:
-        target = text.strip()
-        if not is_valid(target):
-           return "I can't do that."
+        try:
+            templates = data["target_templates"]
+        except KeyError:
+            templates = data["templates"]
+    else:
+        templates = data["templates"]
 
-        if is_self(conn, target):
-           # user is trying to make the bot attack itself!
-           target = nick
-        variables = {
-           "user": target
+    generator = textgen.TextGenerator(
+        templates, data.get("parts", {}), variables=kwargs
+    )
+
+    return generator.generate_string()
+
+
+def basic_attack(attack):
+    def func(text, conn, nick, action, message, reply, is_nick_valid):
+        responses = {
+            RespType.ACTION: action,
+            RespType.REPLY: reply,
+            RespType.MESSAGE: message,
         }
 
-        generator = textgen.TextGenerator(strax["target_template"], strax["parts"], variables=variables)
-    else:
-        generator = textgen.TextGenerator(strax["template"], strax["parts"])
+        target = text
+        if target:
+            if not is_nick_valid(target):
+                return "I can't {action} that.".format(action=attack.action)
 
-    # Become Strax
-    message(generator.generate_string())
+            if is_self(conn, target):
+                target = nick
+                nick = conn.nick
 
-@hook.command(autohelp=False)
-def nk(chan, message):
-    """outputs a random North Korea propoganda slogan"""
-    index = random.randint(0,len(north_korea)-1)
-    slogan = north_korea[index]
-    message(slogan, chan)
+        out = basic_format(nick, target, attack_data[attack.name])
 
-@asyncio.coroutine
-@hook.command()
-def insult(text, conn, nick, notice, message):
-    """<user> - insults <user>
-    :type text: str
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    """
-    target = text.strip()
+        responses[attack.response](out)
 
-    if " " in target:
-        notice("Invalid username!")
-        return
+    func.__name__ = attack.name
+    func.__doc__ = attack.doc
+    return func
 
-    # if the user is trying to make the bot target itself, target them
-    if is_self(conn, target):
-        target = nick
 
-    message("{}, {}".format(target, random.choice(insults)))
+def create_basic_hooks():
+    for attack in ATTACKS:
+        globals()[attack.name] = hook.command(*attack.commands, autohelp=attack.require_target)(basic_attack(attack))
 
-@asyncio.coroutine
-@hook.command("present", "gift")
-def present(text, conn, nick, action):
-    """<user> - gives gift to <user>"""
-    target = text.strip()
 
-    if not is_valid(target):
-        return "I can't gift that."
-
-    if is_self(conn, target):
-        #user is trying to make the bot gift itself!
-        target = nick
-    variables = {
-       "user": target
-    }
-
-    generator = textgen.TextGenerator(presents["templates"], presents["parts"], variables=variables)
-    action(generator.generate_string())
+create_basic_hooks()

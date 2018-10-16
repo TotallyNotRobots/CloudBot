@@ -1,0 +1,28 @@
+{
+    "templates": [
+        "hands {user} a {donut} donut."
+    ],
+    "parts": {
+        "donut": [
+            "chocolate long john",
+            "vanilla long john",
+            "bear claw",
+            "old fashioned",
+            "Boston cream",
+            "jelly",
+            "chocolate cake",
+            "glazed",
+            "strawberry frosted with sprinkles",
+            "chocolate frosted with sprinkles",
+            "vanilla frosted with sprinkles",
+            "blueberry cake",
+            "cinnamon",
+            "sugared",
+            "assorted holes",
+            "powdered",
+            "apple fritter",
+            "double chocolate",
+            "maple glaze"
+        ]
+    }
+}

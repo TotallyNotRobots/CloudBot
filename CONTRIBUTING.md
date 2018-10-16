@@ -22,12 +22,12 @@ The following guidelines for contribution should be followed if you want to subm
 
 * You need a [GitHub account](https://github.com/signup/free)
 * Submit an [issue ticket](https://github.com/ClouDev/CloudBot/issues) for your issue if there is no one yet.
-  * Try to describe the issue and include steps to reproduce if it's a bug.
+    * Try to describe the issue and include steps to reproduce if it's a bug.
 * If you are able and want to fix this, fork the repository on GitHub
 
 ## Make Changes
 
-* In your forked repository, create a topic branch for your upcoming patch. (optional) 
+* In your forked repository, create a topic branch for your upcoming patch. (optional)
 * Make sure you stick to the coding style that is used already.
 * Make use of the [`.editorconfig`](http://editorconfig.org/) file.
 * Make commits that make sense and describe them properly.
@@ -38,7 +38,7 @@ The following guidelines for contribution should be followed if you want to subm
 
 * Push your changes to a topic branch in your fork of the repository.
 * Open a pull request to the original repository and choose the `python3.4` branch.
-	_Advanced users may use [`hub`](https://github.com/defunkt/hub#git-pull-request) gem for that._
+    _Advanced users may use [`hub`](https://github.com/defunkt/hub#git-pull-request) gem for that._
 * If not done in commit messages (which you really should do) please reference and update your issue with the code changes. But _please do not close the issue yourself_.
 _Notice: You can [turn your previously filed issues into a pull-request here](http://issue2pr.herokuapp.com/)._
 

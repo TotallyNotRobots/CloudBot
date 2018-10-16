@@ -10,17 +10,26 @@ License:
     GPL v3
 """
 
-import asyncio
 import random
 import re
 
 from cloudbot import hook
 
-
 whitespace_re = re.compile(r'\s+')
 valid_diceroll = re.compile(r'^([+-]?(?:\d+|\d*d(?:\d+|F))(?:[+-](?:\d+|\d*d(?:\d+|F)))*)( .+)?$', re.I)
 sign_re = re.compile(r'[+-]?(?:\d*d)?(?:\d+|F)', re.I)
 split_re = re.compile(r'([\d+-]*)d?(F|\d*)', re.I)
+
+
+def clamp(n, min_value, max_value):
+    """Restricts a number to a certain range of values,
+    returning the min or max value if the value is too small or large, respectively
+    :param n: The value to clamp
+    :param min_value: The minimum possible value
+    :param max_value: The maximum possible value
+    :return: The clamped value
+    """
+    return min(max(n, min_value), max_value)
 
 
 def n_rolls(count, n):
@@ -29,22 +38,21 @@ def n_rolls(count, n):
     :type n: int | str
     """
     if n == "F":
-        return [random.randint(-1, 1) for x in range(min(count, 100))]
+        return [random.randint(-1, 1) for _ in range(min(count, 100))]
     if n < 2:  # it's a coin
         if count < 100:
-            return [random.randint(0, 1) for x in range(count)]
+            return [random.randint(0, 1) for _ in range(count)]
         else:  # fake it
             return [int(random.normalvariate(.5 * count, (.75 * count) ** .5))]
     else:
         if count < 100:
-            return [random.randint(1, n) for x in range(count)]
+            return [random.randint(1, n) for _ in range(count)]
         else:  # fake it
             return [int(random.normalvariate(.5 * (1 + n) * count,
                                              (((n + 1) * (2 * n + 1) / 6. -
                                                (.5 * (1 + n)) ** 2) * count) ** .5))]
 
 
-@asyncio.coroutine
 @hook.command("roll", "dice")
 def dice(text, notice):
     """<dice roll> - simulates dice rolls. Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4
@@ -108,22 +116,21 @@ def dice(text, notice):
         return "{} ({})".format(total, ", ".join(rolls))
 
 
-@asyncio.coroutine
 @hook.command
-def choose(text, notice):
+def choose(text, event):
     """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
     :type text: str
     """
-    choices = re.findall(r'([^,]+)', text)
+    choices = re.findall(r'([^,]+)', text.strip())
     if len(choices) == 1:
         choices = choices[0].split(' or ')
         if len(choices) == 1:
-            notice(choose.__doc__)
+            event.notice_doc()
             return
-    return random.choice(choices)
+
+    return random.choice([choice.strip() for choice in choices])
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
 def coin(text, notice, action):
     """[amount] - flips [amount] coins
@@ -144,6 +151,9 @@ def coin(text, notice, action):
     elif amount == 0:
         action("makes a coin flipping motion")
     else:
-        heads = int(random.normalvariate(.5 * amount, (.75 * amount) ** .5))
+        mu = .5 * amount
+        sigma = (.75 * amount) ** .5
+        n = random.normalvariate(mu, sigma)
+        heads = clamp(int(round(n)), 0, amount)
         tails = amount - heads
         action("flips {} coins and gets {} heads and {} tails.".format(amount, heads, tails))

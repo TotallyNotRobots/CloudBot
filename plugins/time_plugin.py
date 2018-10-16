@@ -1,7 +1,8 @@
-import requests
-import time
 import datetime
 import re
+import time
+
+import requests
 
 from cloudbot import hook
 
@@ -43,29 +44,30 @@ def load_key(bot):
 
 
 @hook.command("time")
-def time_command(text):
-    """<location> -- Gets the current time in <location>."""
+def time_command(text, reply):
+    """<location> - Gets the current time in <location>."""
     if not dev_key:
         return "This command requires a Google Developers Console API key."
-    
+
     if text.lower().startswith("utc") or text.lower().startswith("gmt"):
         timezone = text.strip()
         pattern = re.compile(r"utc|gmt|[:+]")
         utcoffset = [x for x in pattern.split(text.lower()) if x]
         if len(utcoffset) > 2:
-           return "Please specify a valid UTC/GMT format Example: UTC-4, UTC+7 GMT7"
+            return "Please specify a valid UTC/GMT format Example: UTC-4, UTC+7 GMT7"
         if len(utcoffset) == 1:
-           utcoffset.append('0')
+            utcoffset.append('0')
         if len(utcoffset) == 2:
-           try:
-               offset = datetime.timedelta(hours=int(utcoffset[0]), minutes=int(utcoffset[1]))
-           except:
-               return "Sorry I could not parse the UTC format you entered. Example UTC7 or UTC-4"
-           curtime = datetime.datetime.utcnow()
-           tztime = curtime + offset
-           formatted_time = datetime.datetime.strftime(tztime, '%I:%M %p, %A, %B %d, %Y')
-           return "\x02{}\x02 ({})".format(formatted_time, timezone)
-           
+            try:
+                offset = datetime.timedelta(hours=int(utcoffset[0]), minutes=int(utcoffset[1]))
+            except Exception:
+                reply("Sorry I could not parse the UTC format you entered. Example UTC7 or UTC-4")
+                raise
+            curtime = datetime.datetime.utcnow()
+            tztime = curtime + offset
+            formatted_time = datetime.datetime.strftime(tztime, '%I:%M %p, %A, %B %d, %Y')
+            return "\x02{}\x02 ({})".format(formatted_time, timezone)
+
     # Use the Geocoding API to get co-ordinates from the input
     params = {"address": text, "key": dev_key}
     if bias:
@@ -109,7 +111,7 @@ def time_command(text):
 
 @hook.command(autohelp=False)
 def beats(text):
-    """ -- Gets the current time in .beats (Swatch Internet Time). """
+    """- Gets the current time in .beats (Swatch Internet Time)."""
 
     if text.lower() == "wut":
         return "Instead of hours and minutes, the mean solar day is divided " \

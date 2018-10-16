@@ -1,6 +1,6 @@
+from enchant import Dict
 from enchant.checker import SpellChecker
 from enchant.tokenize import EmailFilter, URLFilter
-from enchant import Dict
 
 from cloudbot import hook
 
@@ -10,7 +10,7 @@ en_dict = Dict(locale)
 
 @hook.command()
 def spell(text):
-    """spell <word/sentence> -- Check spelling of a word or sentence."""
+    """<word/sentence> - Check spelling of a word or sentence."""
     if len(text.split(" ")) > 1:
         # input is a sentence
         checker = SpellChecker(en_dict, filters=[EmailFilter, URLFilter])

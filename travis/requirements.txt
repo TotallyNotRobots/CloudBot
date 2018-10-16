@@ -1,6 +1,11 @@
-pytest
-responses
-pytest-cov
-pytest-pep8
-flake8
-python-coveralls
+pytest==3.6.4
+responses==0.9.0
+pytest-cov==2.5.1
+pytest-pep8==1.0.6
+pytest-leaks==0.2.2
+pytest-travis-fold==1.3.0
+pytest-pylint==0.12.1
+flake8==3.5.0
+python-coveralls==2.9.1
+pylint==1.8.4
+-r ../requirements.txt

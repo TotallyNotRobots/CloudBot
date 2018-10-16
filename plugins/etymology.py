@@ -1,14 +1,22 @@
-# Plugin by GhettoWizard and Scaevolus
+"""
+Etymology plugin
 
+Authors:
+    - GhettoWizard
+    - Scaevolus
+    - linuxdaemon <linuxdaemon@snoonet.org>
+"""
 import re
-from lxml import html
 
 import requests
+from bs4 import BeautifulSoup
+from requests import HTTPError
 
 from cloudbot import hook
 
+
 @hook.command("e", "etymology")
-def etymology(text):
+def etymology(text, reply):
     """<word> - retrieves the etymology of <word>
     :type text: str
     """
@@ -16,17 +24,26 @@ def etymology(text):
     url = 'http://www.etymonline.com/index.php'
 
     response = requests.get(url, params={"term": text})
+
+    try:
+        response.raise_for_status()
+    except HTTPError as e:
+        reply("Error reaching etymonline.com: {}".format(e.response.status_code))
+        raise
+
     if response.status_code != requests.codes.ok:
         return "Error reaching etymonline.com: {}".format(response.status_code)
 
-    h = html.fromstring(response.text)
+    soup = BeautifulSoup(response.text, "lxml")
 
-    etym = h.xpath('//dl')
+    block = soup.find('div', class_=re.compile("word--.+"))
 
-    if not etym:
+    if not block:
         return 'No etymology found for {} :('.format(text)
 
-    etym = etym[0].text_content()
+    etym = ' '.join(e.text for e in block.div)
+
+    etym = ' '.join(etym.splitlines())
 
     etym = ' '.join(etym.split())
 

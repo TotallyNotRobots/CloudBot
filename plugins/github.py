@@ -17,6 +17,7 @@ def issue(text):
 
     if issue:
         r = requests.get('https://api.github.com/repos/{}/issues/{}'.format(repo, issue))
+        r.raise_for_status()
         j = r.json()
 
         url = web.try_shorten(j['html_url'], service='git.io')
@@ -31,6 +32,7 @@ def issue(text):
         return 'Issue #{} ({}): {} | {}: {}'.format(number, state, url, title, summary)
     else:
         r = requests.get('https://api.github.com/repos/{}/issues'.format(repo))
+        r.raise_for_status()
         j = r.json()
 
         count = len(j)
@@ -38,4 +40,3 @@ def issue(text):
             return 'Repository has no open issues.'
         else:
             return 'Repository has {} open issues.'.format(count)
-

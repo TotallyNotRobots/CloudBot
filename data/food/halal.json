@@ -1,0 +1,38 @@
+{
+    "target_templates": [
+        "Serves {target} {quantity} {quality} {dish}"
+    ],
+    "templates": [
+        "has {quantity} {quality} {dish}"
+    ],
+    "parts": {
+        "quantity": [
+            "a little bit of",
+            "a heaping pile of",
+            "a moderate serving of",
+            "a taste of",
+            "just a smell of"
+        ],
+        "quality": [
+            "fresh made",
+            "left over",
+            "just out of the oven"
+        ],
+        "dish": [
+            "Rice and Goat Meat",
+            "Goat Curry",
+            "Hummus bi Tahina",
+            "L\u00e4ghm\u00e4n",
+            "Mutton biryani",
+            "Kabuli palao",
+            "Shakshouka",
+            "Mutton Msala",
+            "Fatteh Betnjan",
+            "Caprese stuffed chicken breast",
+            "Maqloobeh",
+            "Koofteh berenji",
+            "Fish Makkanwala",
+            "Szechwan"
+        ]
+    }
+}

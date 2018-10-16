@@ -1,9 +1,9 @@
 import re
-import requests
 import uuid
 
-from cloudbot import hook
+import requests
 
+from cloudbot import hook
 
 HIST_API = "http://api.fishbans.com/history/{}"
 UUID_API = "http://api.goender.net/api/uuids/{}/"
@@ -12,12 +12,13 @@ UUID_API = "http://api.goender.net/api/uuids/{}/"
 def get_name(uuid):
     # submit the profile request
     request = requests.get(UUID_API.format(uuid))
+    request.raise_for_status()
     data = request.json()
     return data[uuid]
 
 
 @hook.command("mcuser", "mcpaid", "haspaid")
-def mcuser(text, bot):
+def mcuser(text, bot, reply):
     """<username> - gets information about the Minecraft user <account>"""
     headers = {'User-Agent': bot.user_agent}
     text = text.strip()
@@ -29,15 +30,18 @@ def mcuser(text, bot):
         try:
             name = get_name(cleaned)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, KeyError) as e:
-            return "Could not get username from UUID: {}".format(e)
+            reply("Could not get username from UUID: {}".format(e))
+            raise
     else:
         name = text
 
     # get user data from fishbans
     try:
         request = requests.get(HIST_API.format(requests.utils.quote(name)), headers=headers)
+        request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Could not get profile status: {}".format(e)
+        reply("Could not get profile status: {}".format(e))
+        raise
 
     # read the fishbans data
     try:
@@ -53,7 +57,7 @@ def mcuser(text, bot):
             return results['error']
 
     username = results['data']['username']
-    id = uuid.UUID(results['data']['uuid'])
+    uid = uuid.UUID(results['data']['uuid'])
 
     return 'The account \x02{}\x02 ({}) exists. It is a \x02paid\x02' \
-           ' account.'.format(username, id)
+           ' account.'.format(username, uid)

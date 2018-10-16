@@ -1,0 +1,26 @@
+{
+    "templates": [
+        "hands {user} a delicious {kebab} with {side} and {sauce}"
+    ],
+    "parts": {
+        "kebab": [
+            "lamb doner kebab",
+            "chicken doner kebab",
+            "shawarma"
+        ],
+        "side": [
+            "salad",
+            "fries"
+        ],
+        "sauce": [
+            "garlic sauce",
+            "chili sauce",
+            "mayonnaise",
+            "ketchup",
+            "BBQ sauce",
+            "mint sauce",
+            "tzatziki sauce",
+            "no sauce"
+        ]
+    }
+}

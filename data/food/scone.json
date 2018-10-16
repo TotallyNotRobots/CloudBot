@@ -1,0 +1,39 @@
+{
+    "templates": [
+        "hands {user} a {scone} scone."
+    ],
+    "parts": {
+        "scone": [
+            "almond",
+            "apple brie",
+            "apricot ",
+            "blueberry",
+            "blackberry",
+            "pumpkin",
+            "chocolate and orange",
+            "chocolate",
+            "cinnamon sugar",
+            "coconut",
+            "cranberry",
+            "cranberry lime",
+            "lemon glazed",
+            "maple bacon brown sugar",
+            "Nutella",
+            "pear and goat cheese",
+            "strawberry",
+            "cheddar and roasted red pepper",
+            "lemon poppyseed",
+            "vanilla bean",
+            "cherry almond",
+            "pesto and sun-dried tomato",
+            "raspberry",
+            "lavender and honey",
+            "orange and cranberry",
+            "oatmeal pecan",
+            "cheddar and rosemary",
+            "bacon and gruyere",
+            "black currant",
+            "potato"
+        ]
+    }
+}

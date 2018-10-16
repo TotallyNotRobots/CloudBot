@@ -1,8 +1,9 @@
 import re
 from urllib import parse
-from lxml import html
 
 import requests
+from lxml import html
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting
@@ -12,10 +13,16 @@ ed_url = "http://encyclopediadramatica.se/"
 
 
 @hook.command()
-def drama(text):
+def drama(text, reply):
     """<phrase> - gets the first paragraph of the Encyclopedia Dramatica article on <phrase>"""
 
     search_response = requests.get(api_url, params={"action": "opensearch", "search": text})
+
+    try:
+        search_response.raise_for_status()
+    except HTTPError:
+        reply("Error searching: {}".format(search_response.status_code))
+        raise
 
     if search_response.status_code != requests.codes.ok:
         return "Error searching: {}".format(search_response.status_code)
@@ -29,6 +36,12 @@ def drama(text):
     url = ed_url + parse.quote(article_name, '')
 
     page_response = requests.get(url)
+
+    try:
+        page_response.raise_for_status()
+    except HTTPError:
+        reply("Error getting page: {}".format(page_response.status_code))
+        raise
 
     if page_response.status_code != requests.codes.ok:
         return "Error getting page: {}".format(page_response.status_code)

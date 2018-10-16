@@ -25,6 +25,7 @@ FILTERED_TAGS = ()
 def get_wyr(headers):
     """ Gets a entry from the RRRather API and cleans up the data """
     r = requests.get(url=API_URL, headers=headers)
+    r.raise_for_status()
     data = r.json()
 
     # clean up text
@@ -45,7 +46,7 @@ def get_wyr(headers):
 
 @hook.command("wyr", "wouldyourather", autohelp=False)
 def wyr(bot):
-    """ -- What would you rather do? """
+    """- What would you rather do?"""
     headers = {"User-Agent": bot.user_agent}
 
     # keep trying to get entries until we find one that is not filtered

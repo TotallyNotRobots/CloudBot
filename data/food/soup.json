@@ -1,0 +1,69 @@
+{
+    "templates": [
+        "hands {user} a {size} {soup} soup with {side}."
+    ],
+    "parts": {
+        "soup": [
+            "Ajiaco",
+            "Avgolemono",
+            "Borscht",
+            "Beef noodle",
+            "Beer",
+            "Birds nest",
+            "Chicken noodle",
+            "Caldo verde",
+            "Cazuela",
+            "Chicken Noodle",
+            "Cock-a-leekie",
+            "Cream of crab",
+            "Fufu and Egusi",
+            "Gomguk",
+            "Goulash",
+            "Gumbo",
+            "Kharcho",
+            "Kimchi Guk",
+            "Lagman",
+            "Leek",
+            "Lentil",
+            "Maryland crab",
+            "Matzah ball",
+            "Menudo",
+            "Minestrone",
+            "Miyeok guk",
+            "Milligatawny",
+            "Barley",
+            "Nettle",
+            "Oxtail",
+            "Pozole",
+            "Pumpkin",
+            "Samgyetang",
+            "Snert",
+            "Corn chowder",
+            "French onion",
+            "Lobster",
+            "Miso",
+            "She-crab",
+            "Tomato",
+            "Tteokguk",
+            "Winter mellon",
+            "Crab Gaxpacho",
+            "Salmorejo",
+            "Tarator",
+            "New England clam chowder"
+        ],
+        "size": [
+            "Large bowl of",
+            "Small bowl of",
+            "Cup of",
+            "Gallon of",
+            "Medium bowl of",
+            "Bread bowl of"
+        ],
+        "side": [
+            "Some Croutons",
+            "A baguette",
+            "Sliced apples",
+            "Chicken"
+        ]
+    }
+}

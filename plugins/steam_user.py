@@ -95,12 +95,13 @@ def set_headers(bot):
 
 
 @hook.command("steamid", "sid", "steamuser", "su")
-def steamid(text):
-    """steamid <username> -- gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>. """
+def steamid(text, reply):
+    """<username> - gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>. """
 
     try:
         data = get_data(text)
     except SteamError as e:
-        return "{}".format(e)
+        reply("{}".format(e))
+        raise
 
     return "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, \x02ID3:\x02 {id_3}".format(**data)

@@ -1,6 +1,6 @@
 import re
-import requests
 
+import requests
 from bs4 import BeautifulSoup
 
 from cloudbot import hook
@@ -13,6 +13,7 @@ months = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'Jun
 def xkcd_info(xkcd_id, url=False):
     """ takes an XKCD entry ID and returns a formatted string """
     request = requests.get("http://www.xkcd.com/" + xkcd_id + "/info.0.json")
+    request.raise_for_status()
     data = request.json()
     date = "{} {} {}".format(data['day'], months[int(data['month'])], data['year'])
     if url:
@@ -24,6 +25,7 @@ def xkcd_search(term):
     search_term = requests.utils.quote(term)
     request = requests.get("http://www.ohnorobot.com/index.pl?s={}&Search=Search&"
                            "comic=56&e=0&n=0&b=0&m=0&d=0&t=0".format(search_term))
+    request.raise_for_status()
     soup = BeautifulSoup(request.text)
     result = soup.find('li')
     if result:
@@ -43,5 +45,5 @@ def xkcd_url(match):
 
 @hook.command()
 def xkcd(text):
-    """xkcd <search term> - Search for xkcd comic matching <search term>"""
+    """<search term> - Search for xkcd comic matching <search term>"""
     return xkcd_search(text)

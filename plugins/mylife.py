@@ -1,10 +1,10 @@
 import asyncio
+import functools
 import random
 import re
-import functools
 
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
 
 from cloudbot import hook
 
@@ -16,47 +16,45 @@ mlia_cache = []
 def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
     url = 'http://www.fmylife.com/random/'
-    try:
-        _func = functools.partial(requests.get, url, timeout=6)
-        request = yield from loop.run_in_executor(None, _func)
-        soup = BeautifulSoup(request.text)
+    _func = functools.partial(requests.get, url, timeout=6)
+    request = yield from loop.run_in_executor(None, _func)
+    soup = BeautifulSoup(request.text)
 
-        for e in soup.find_all('div', {'class': re.compile('article')}):
-            fml_id = int(e['id'])
-            text = ''.join(e.find('p').find_all(text=True))
-            fml_cache.append((fml_id, text))
-    except:
-        pass
+    for e in soup.find_all('article', {'class': 'art-panel'}):
+        div = e.find('div', {'id': re.compile('card')})
+        if not div:
+            continue
+
+        fml_id = int(div['id'].split('-')[-1])
+        text = ''.join(e.find('p').find_all(text=True))
+        fml_cache.append((fml_id, text))
 
 
 @asyncio.coroutine
 def refresh_mlia_cache(loop):
     """ gets a page of random MLIAs and puts them into a dictionary """
     url = 'http://mylifeisaverage.com/{}'.format(random.randint(1, 11000))
-    try:
-        _func = functools.partial(requests.get, url, timeout=6)
-        request = yield from loop.run_in_executor(None, _func)
-        soup = BeautifulSoup(request.text)
+    _func = functools.partial(requests.get, url, timeout=6)
+    request = yield from loop.run_in_executor(None, _func)
+    soup = BeautifulSoup(request.text)
 
-        for story in soup.find_all('div', {'class': 'story '}):
-            mlia_id = story.find('span', {'class': 'left'}).a.text
-            mlia_text = story.find('div', {'class': 'sc'}).text
-            mlia_text = " ".join(mlia_text.split())
-            mlia_cache.append((mlia_id, mlia_text))
-    except:
-        pass
+    for story in soup.find_all('div', {'class': 'story '}):
+        mlia_id = story.find('span', {'class': 'left'}).a.text
+        mlia_text = story.find('div', {'class': 'sc'}).text
+        mlia_text = " ".join(mlia_text.split())
+        mlia_cache.append((mlia_id, mlia_text))
 
 
-@asyncio.coroutine
 @hook.on_start()
+@asyncio.coroutine
 def initial_refresh(loop):
     # do an initial refresh of the caches
     yield from refresh_fml_cache(loop)
     yield from refresh_mlia_cache(loop)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def fml(reply, loop):
     """- gets a random quote from fmylife.com"""
 
@@ -73,8 +71,8 @@ def fml(reply, loop):
         yield from refresh_fml_cache(loop)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
+@asyncio.coroutine
 def mlia(reply, loop):
     """- gets a random quote from MyLifeIsAverage.com"""
 

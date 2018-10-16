@@ -1,15 +1,12 @@
 import re
 
-import requests
 import bs4
+import requests
 
 from cloudbot import hook
 from cloudbot.util import web
 
-# different forks of cloudflare-scrape have different package layouts
 try:
-    import cfscrape
-except ImportError:
     import cfscrape
 except ImportError:
     cfscrape = None
@@ -74,9 +71,10 @@ def get_data(user, currency="us"):
         data["value_sales"] = soup.find("h1", {"class": "calculator-price-lowest"}).text
 
         data["count"] = int(soup.find("div",
-                            {"class": "pull-right"
-                             " price-container"}).find("p").find("span", {"class":
-                                                                 "number"}).text.replace(',', ''))
+                                      {"class": "pull-right"
+                                                " price-container"}).find("p").find("span", {"class":
+                                                                                                 "number"}).text.replace(
+            ',', ''))
 
         played = soup.find('td', text='Games not played').find_next('td').text
         played = PLAYED_RE.search(played).groups()
@@ -94,14 +92,15 @@ def get_data(user, currency="us"):
 
 
 @hook.command("steamcalc", "steamdb")
-def steamcalc(text):
-    """steamcalc <username> - Gets value of steam account. Uses steamcommunity.com/id/<nickname>."""
+def steamcalc(text, reply):
+    """<username> - Gets value of steam account. Uses steamcommunity.com/id/<nickname>."""
     user = text.strip().lower()
 
     try:
         data = get_data(user)
     except SteamError as e:
-        return "{}".format(e)
+        reply("{}".format(e))
+        raise
 
     data["short_url"] = web.try_shorten(data["url"])
 

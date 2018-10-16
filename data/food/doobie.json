@@ -1,0 +1,61 @@
+{
+    "templates": [
+        "passes {user} a {size} {adjective} {doobie} made with the finest {strain}"
+    ],
+    "parts": {
+        "adjective": [
+            "perfectly-rolled",
+            "sweet-smelling",
+            "dank, dank",
+            "killer",
+            "cherried",
+            "world record breaking",
+            "glorious",
+            "unfathomable",
+            "awe-inspiring",
+            "spine-chilling"
+        ],
+        "size": [
+            "footlong",
+            "medium",
+            "snoopworthy",
+            "pathetically-sized",
+            "one ounce",
+            "regular-sized",
+            "giant",
+            "super size",
+            "king size",
+            "1 and 1/4"
+        ],
+        "doobie": [
+            "doobie",
+            "spliff",
+            "joint",
+            "blunt",
+            "reefer"
+        ],
+        "strain": [
+            "Blue Dream",
+            "Sour Diesel",
+            "OG Kush",
+            "Shitty UK Cheese",
+            "Grandy Purp",
+            "White Widow",
+            "Pineapple Express",
+            "Girl Scout Cookies",
+            "Strawberry Banana",
+            "Dutch Treat",
+            "BlueBerry Muffin",
+            "Green Crack",
+            "Sour Diesel",
+            "Paris OG",
+            "Tangie",
+            "Sour Tangie",
+            "BlueBerry Headband",
+            "Larry Bird OG",
+            "Pineapple Chunk",
+            "Gorilla Glue #4",
+            "Durban Poision"
+        ]
+    }
+}

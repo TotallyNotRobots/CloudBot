@@ -1,13 +1,14 @@
-import string
 import random as std_random
+import string
 
 from cloudbot import hook
 
-
 try:
     from Crypto.Random import random
+
     gen = random.StrongRandom()
 except ImportError:
+    random = None
     # Just use the regular random module, not the strong one
     gen = std_random.SystemRandom()
 
@@ -17,9 +18,8 @@ with open("data/password_words.txt") as f:
 
 @hook.command(autohelp=False)
 def password(text, notice):
-    """[length [types]] - generates a password of <length> (default 10). [types] can include 'alpha', 'no caps',
-    'numeric', 'symbols' or any combination: eg. 'numbers symbols'"""
-    okay = []
+    """[length [types]] - generates a password of <length> (default 12). [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols' (default: alpha numeric no caps)"""
+    okay = ""
 
     # find the length needed for the password
     numb = text.split(" ")
@@ -35,31 +35,31 @@ def password(text, notice):
 
     # add alpha characters
     if "alpha" in text or "letter" in text:
-        okay += list(string.ascii_lowercase)
+        okay += string.ascii_lowercase
         # adds capital characters if not told not to
         if "no caps" not in text:
-            okay += list(string.ascii_uppercase)
+            okay += string.ascii_uppercase
 
     # add numbers
     if "numeric" in text or "number" in text:
-        okay += list(string.digits)
+        okay += string.digits
 
     # add symbols
     if "symbol" in text or "special" in text:
-        sym = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '=', '_', '+', '[', ']', '{', '}', '\\', '|', ';',
-               ':', "'", '.', '>', ',', '<', '/', '?', '`', '~', '"']
-        okay += sym
+        okay += string.punctuation
 
-    # defaults to lowercase alpha + numbers password if the okay list is empty
+    # defaults to lowercase alpha + numbers password if the okay string is empty
     if not okay:
-        okay = list(string.ascii_lowercase) + list(string.digits)
+        okay = string.ascii_lowercase + string.digits
+
+    okay = list(okay)
 
     # extra random lel
-    random.shuffle(okay)
+    gen.shuffle(okay)
     chars = []
 
     for i in range(length):
-        chars.append(random.choice(okay))
+        chars.append(gen.choice(okay))
 
     notice("".join(chars))
 

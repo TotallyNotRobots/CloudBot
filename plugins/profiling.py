@@ -1,9 +1,9 @@
 import asyncio
 import os
 import signal
+import sys
 import threading
 import traceback
-import sys
 
 PYMPLER_ENABLED = False
 
@@ -64,8 +64,8 @@ def get_thread_dump():
     return web.paste("\n".join(code), ext='txt')
 
 
-@asyncio.coroutine
 @hook.command("threaddump", autohelp=False, permissions=["botcontrol"])
+@asyncio.coroutine
 def threaddump_command():
     return get_thread_dump()
 
@@ -111,11 +111,14 @@ def pympler_diff():
     tr.print_diff()
     return "Printed to console"
 
+
 # # Provide an easy way to get a threaddump, by using SIGUSR1 (only on POSIX systems)
 if os.name == "posix":
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
+    # noinspection PyUnusedLocal
     def debug(sig, frame):
         print(get_thread_dump())
+
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler

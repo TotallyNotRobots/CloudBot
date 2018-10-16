@@ -1,9 +1,11 @@
-import requests
 import random
+
+import requests
 
 from cloudbot import hook
 
 api_url = 'http://api.giphy.com/v1/gifs'
+
 
 @hook.on_start()
 def load_api(bot):
@@ -11,18 +13,20 @@ def load_api(bot):
     global api_key
     api_key = bot.config.get("api_keys", {}).get("giphy", None)
 
+
 @hook.command("gif", "giphy")
-def giphy(text, chan):
-    """Searches giphy.com for a gif using the provided search term."""
+def giphy(text):
+    """<query> - Searches giphy.com for a gif using the provided search term."""
     term = text.strip()
     search_url = api_url + '/search'
     params = {
         'q': term,
         'limit': 10,
         'fmt': "json",
-        'api_key':api_key
+        'api_key': api_key
     }
     results = requests.get(search_url, params=params)
+    results.raise_for_status()
     r = results.json()
     if not r['data']:
         return "no results found."

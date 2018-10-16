@@ -1,12 +1,11 @@
-import re
 import random
+import re
+from contextlib import suppress
 
 from imgurpython import ImgurClient
-from contextlib import suppress
 
 from cloudbot import hook
 from cloudbot.util import web
-
 
 # imgurpython has an issue where it does not allow anonymous album creation
 # to fix this we monkeypatch logged_in to disable login checking
@@ -49,10 +48,12 @@ def get_items(text):
 def load_api(bot):
     global imgur_api
 
-    client_id = bot.config.get("api_keys", {}).get("imgur_client_id")
-    client_secret = bot.config.get("api_keys", {}).get("imgur_client_secret")
+    api_keys = bot.config.get("api_keys", {})
+    client_id = api_keys.get("imgur_client_id")
+    client_secret = api_keys.get("imgur_client_secret")
 
-    if None in (client_id, client_secret):
+    if not (client_id and client_secret):
+        # Either the client id or secret aren't specified
         imgur_api = None
         return
     else:

@@ -1,13 +1,12 @@
-import string
 import re
+import string
+from collections import defaultdict
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
-from collections import defaultdict
-import requests
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web
-
+from cloudbot.util.formatting import gen_markdown_table
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
@@ -33,18 +32,13 @@ def load_cache(db):
     :type db: sqlalchemy.orm.Session
     """
     global factoid_cache
-    factoid_cache = defaultdict(lambda: default_dict)
+    factoid_cache = defaultdict(default_dict.copy)
     for row in db.execute(table.select()):
         # assign variables
         chan = row["chan"]
         word = row["word"]
         data = row["data"]
-        if chan not in factoid_cache:
-            factoid_cache.update({chan:{word:data}})
-        elif word not in factoid_cache[chan]:
-            factoid_cache[chan].update({word:data})
-        else:
-            factoid_cache[chan][word] = data
+        factoid_cache[chan][word] = data
 
 
 def add_factoid(db, word, chan, data, nick):
@@ -56,7 +50,8 @@ def add_factoid(db, word, chan, data, nick):
     """
     if word in factoid_cache[chan]:
         # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(table.c.word == word))
+        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
+            table.c.word == word))
         db.commit()
     else:
         # otherwise, insert
@@ -75,9 +70,9 @@ def del_factoid(db, chan, word):
     load_cache(db)
 
 
-@hook.command("r","remember", permissions=["op"])
+@hook.command("r", "remember", permissions=["op", "chanop"])
 def remember(text, nick, db, chan, notice):
-    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append"""
+    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
     try:
         word, data = text.split(None, 1)
@@ -86,10 +81,9 @@ def remember(text, nick, db, chan, notice):
 
     word = word.lower()
     try:
-        old_data = factoid_cache[chan].get(word)
-    except:
-        old_data = ""
-        pass
+        old_data = factoid_cache[chan][word]
+    except LookupError:
+        old_data = None
 
     if data.startswith('+') and old_data:
         # remove + symbol
@@ -108,7 +102,7 @@ def remember(text, nick, db, chan, notice):
     add_factoid(db, word, chan, data, nick)
 
 
-@hook.command("f","forget", permissions=["op"])
+@hook.command("f", "forget", permissions=["op", "chanop"])
 def forget(text, chan, db, notice):
     """<word> - forgets previously remembered <word>"""
     global factoid_cache
@@ -139,17 +133,14 @@ factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)
-def factoid(match, chan, event, message, action):
+def factoid(content, match, chan, message, action):
     """<word> - shows what data is associated with <word>"""
-
+    arg1 = ""
+    if len(content.split()) >= 2:
+        arg1 = content.split()[1]
     # split up the input
     split = match.group(1).strip().split(" ")
     factoid_id = split[0].lower()
-
-    if len(split) >= 1:
-        arguments = " ".join(split[1:])
-    else:
-        arguments = ""
 
     if factoid_id in factoid_cache[chan]:
         data = factoid_cache[chan][factoid_id]
@@ -157,7 +148,8 @@ def factoid(match, chan, event, message, action):
 
         # factoid post-processors
         result = colors.parse(result)
-
+        if arg1:
+            result = result.replace("<user>", arg1)
         if result.startswith("<act>"):
             result = result[5:].strip()
             action(result)
@@ -170,7 +162,7 @@ def listfactoids(notice, chan):
     """- lists all available factoids"""
     reply_text = []
     reply_text_length = 0
-    for word in factoid_cache[chan].keys():
+    for word in sorted(factoid_cache[chan].keys()):
         added_length = len(word) + 2
         if reply_text_length + added_length > 400:
             notice(", ".join(reply_text))
@@ -180,3 +172,12 @@ def listfactoids(notice, chan):
             reply_text.append(word)
             reply_text_length += added_length
     notice(", ".join(reply_text))
+
+
+@hook.command("listdetailedfacts", autohelp=False)
+def listdetailedfactoids(chan):
+    """- lists all available factoids with their respective data"""
+    headers = ("Command", "Output")
+    data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
+    table = gen_markdown_table(headers, data).encode('UTF-8')
+    return web.paste(table, "md", "hastebin")

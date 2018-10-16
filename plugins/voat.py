@@ -11,12 +11,12 @@ License:
     GNU General Public License (Version 3)
 """
 
-import isodate
-import re
-import random
 import asyncio
 import functools
+import random
+import re
 
+import isodate
 import requests
 
 from cloudbot import hook
@@ -39,8 +39,8 @@ def format_output(item, show_url=False):
     raw_time = isodate.parse_date(item['Date'])
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize(item["CommentCount"], 'comment')
-    item["points"] = formatting.pluralize(item["Likes"], 'point')
+    item["comments"] = formatting.pluralize_auto(item["CommentCount"], 'comment')
+    item["points"] = formatting.pluralize_auto(item["Likes"], 'point')
 
     if item["Type"] == 2:
         item["warning"] = " \x02Link\x02"
@@ -57,7 +57,7 @@ def format_output(item, show_url=False):
 
 @hook.regex(voat_re)
 def voat_url(match, bot):
-    headers = {'User-Agent': bot.user_agent, 'content-type':'text/json'}
+    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
     url = match.group(1)
     url = url.split('/')
     print(url)
@@ -65,18 +65,19 @@ def voat_url(match, bot):
 
     # the voat API gets grumpy if we don't include headers
     r = requests.get(url, headers=headers)
+    r.raise_for_status()
     data = r.json()
     print(data)
 
     return format_output(data)
 
 
-@asyncio.coroutine
 @hook.command(autohelp=False)
-def voat(text, bot, loop):
+@asyncio.coroutine
+def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None
-    headers = {'User-Agent': bot.user_agent, 'content-type':'text/json'}
+    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
 
     if text:
         # clean and split the input
@@ -97,9 +98,11 @@ def voat(text, bot, loop):
     try:
         # Again, identify with Voat using an User Agent
         inquiry = yield from loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
+        inquiry.raise_for_status()
         data = inquiry.json()
     except Exception as e:
-        return "Error: " + str(e)
+        reply("Error: " + str(e))
+        raise
 
     # get the requested/random post
     if id_num is not None:

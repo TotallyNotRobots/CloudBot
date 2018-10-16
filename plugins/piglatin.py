@@ -15,6 +15,7 @@ License:
 """
 
 import string
+
 import nltk
 
 from cloudbot import hook
@@ -67,7 +68,7 @@ def load_nltk():
 
 @hook.command("pig", "piglatin")
 def piglatin(text):
-    """ pig <text> -- Converts <text> to pig latin. """
+    """<text> - Converts <text> to pig latin."""
     global pronunciations
     if not pronunciations:
         return "Please wait, getting NLTK ready!"

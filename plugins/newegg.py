@@ -11,19 +11,19 @@ License:
 """
 
 import json
-import requests
 import re
+
+import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
 
-
 # CONSTANTS
 
-ITEM_URL = "http://www.newegg.com/Product/Product.aspx?Item={}"
+ITEM_URL = "https://www.newegg.com/Product/Product.aspx?Item={}"
 
-API_PRODUCT = "http://www.ows.newegg.com/Products.egg/{}/ProductDetails"
-API_SEARCH = "http://www.ows.newegg.com/Search.egg/Advanced"
+API_PRODUCT = "https://www.ows.newegg.com/Products.egg/{}"
+API_SEARCH = "https://www.ows.newegg.com/Search.egg/Advanced"
 
 NEWEGG_RE = re.compile(r"(?:(?:www.newegg.com|newegg.com)/Product/Product\.aspx\?Item=)([-_a-zA-Z0-9]+)", re.I)
 
@@ -37,11 +37,11 @@ def format_item(item, show_url=True):
     # format the rating nicely if it exists
     if not item["ReviewSummary"]["TotalReviews"] == "[]":
         rating = "Rated {}/5 ({} ratings)".format(item["ReviewSummary"]["Rating"],
-                                                  item["ReviewSummary"]["TotalReviews"][1:-1])
+                                                  item["ReviewSummary"]["TotalReviews"])
     else:
         rating = "No Ratings"
 
-    if not item["FinalPrice"] == item["OriginalPrice"]:
+    if item["OriginalPrice"] and item["FinalPrice"] != item["OriginalPrice"]:
         price = "{FinalPrice}, was {OriginalPrice}".format(**item)
     else:
         price = item["FinalPrice"]
@@ -53,7 +53,7 @@ def format_item(item, show_url=True):
     else:
         tags.append("\x02Out Of Stock\x02")
 
-    if item["FreeShippingFlag"]:
+    if item["IsFreeShipping"]:
         tags.append("\x02Free Shipping\x02")
 
     if item.get("IsPremierItem"):
@@ -61,9 +61,6 @@ def format_item(item, show_url=True):
 
     if item["IsFeaturedItem"]:
         tags.append("\x02Featured\x02")
-
-    if item["IsShellShockerItem"]:
-        tags.append("\x02SHELL SHOCKER\u00AE\x02")
 
     # join all the tags together in a comma separated string ("tag1, tag2, tag3")
     tag_text = ", ".join(tags)
@@ -91,13 +88,15 @@ def newegg_url(match):
         'Referer': 'http://www.newegg.com/'
     }
 
-    item = requests.get(API_PRODUCT.format(item_id), headers=headers).json()
-    return format_item(item, show_url=False)
+    request = requests.get(API_PRODUCT.format(item_id), headers=headers)
+    request.raise_for_status()
+    item = request.json()
+    return format_item(item['Basic'], show_url=False)
 
 
-@hook.command()
-def newegg(text):
-    """newegg <item name> - searches newegg.com for <item name>"""
+# @hook.command()
+def newegg(text, admin_log, reply):
+    """<item name> - searches newegg.com for <item name>"""
 
     # form the search request
     request = {
@@ -124,8 +123,16 @@ def newegg(text):
 
     r = request.json()
 
-    if r.get("Description", False):
-        return "Newegg Error: {Description} (\x02{Code}\x02)". format(**r)
+    if not request.ok:
+        if r.get("Message"):
+            msg = "{ExceptionMessage}\n{ExceptionType}\n{StackTrace}".format(**r).replace("\r", "")
+            url = web.paste(msg)
+            admin_log("Newegg API Error: {ExceptionType}: {url}".format(url=url, **r))
+            return "Newegg Error: {Message} (\x02{code}\x02)".format(code=request.status_code, **r)
+        else:
+            reply("Unknown error occurred.")
+            request.raise_for_status()
+            return
 
     # get the first result
     if r["ProductListItems"]:

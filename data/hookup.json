@@ -1,0 +1,48 @@
+{
+    "templates": [
+        "{user1} used {weapon} and did it with {user2} in the {room}."
+    ],
+    "parts": {
+        "weapon": [
+            "a candlestick",
+            "an axe",
+            "a pistol",
+            "rope",
+            "gloves",
+            "a horseshoe",
+            "a knife",
+            "a baseball bat",
+            "a chalice",
+            "a dumbbell",
+            "a wrench",
+            "a trophy",
+            "a pipe",
+            "garden shears"
+        ],
+        "room": [
+            "courtyard",
+            "guest house",
+            "observatory",
+            "theatre",
+            "drawing room",
+            "garage",
+            "spa",
+            "master bedroom",
+            "studio",
+            "pool",
+            "arcade",
+            "beach house",
+            "surf shop",
+            "kitchen",
+            "ballroom",
+            "conservatory",
+            "billiard room",
+            "library",
+            "study",
+            "hallway",
+            "lounge",
+            "dining room",
+            "cellar"
+        ]
+    }
+}

@@ -1,5 +1,6 @@
-from cloudbot.util.formatting import munge, dict_format, pluralize, strip_colors, truncate, truncate_str, \
-    strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str
+from cloudbot.util.formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
+    strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str, \
+    pluralize_suffix
 
 test_munge_input = "The quick brown fox jumps over the lazy dog"
 test_munge_count = 3
@@ -55,8 +56,8 @@ def test_dict_format():
 
 
 def test_pluralize():
-    assert pluralize(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
-    assert pluralize(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
+    assert pluralize_suffix(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
+    assert pluralize_suffix(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
 
 
 def test_strip_colors():

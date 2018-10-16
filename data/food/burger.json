@@ -1,0 +1,100 @@
+{
+    "templates": [
+        "prepares {user} a {protein} on {bun}, with {cheese}, {topping1}, {topping2}, and {side}!"
+    ],
+    "parts": {
+        "bun": [
+            "a brioche bun",
+            "Texas Toast",
+            "grilled rye bread",
+            "grilled sourdough bread",
+            "a challah bun",
+            "a buttermilk bun",
+            "a rice bun",
+            "a ramen bun",
+            "a ciabatta roll",
+            "a sesame seed bun",
+            "a poppy seed bun",
+            "a whole-wheat bun",
+            "a gluten-free bun",
+            "a moldy bun",
+            "a burnt bun",
+            "a pretzel bun",
+            "a split Krispy Kreme donut",
+            "a bagel",
+            "a stale bun",
+            "a bun with suspicious, tiny bite-marks already on it"
+        ],
+        "protein": [
+            "hamburger",
+            "double hamburger",
+            "triple hamburger",
+            "quarter-pound hamburger",
+            "third-pound hamburger",
+            "half-pound hamburger",
+            "bison burger",
+            "venison burger",
+            "elk burger",
+            "camel burger",
+            "turkey burger",
+            "chicken burger",
+            "plate of sliders",
+            "portobello mushroom burger",
+            "foie gras burger",
+            "tofu burger",
+            "veggie burger",
+            "black bean burger"
+        ],
+        "cheese": [
+            "cheddar cheese",
+            "Wisconsin cheddar",
+            "sharp Vermont cheddar",
+            "pepperjack cheese",
+            "aged gruyere",
+            "Leerdammer cheese",
+            "blue cheese",
+            "Gorgonzola cheese",
+            "Emmentaler cheese",
+            "raclette cheese",
+            "brie"
+        ],
+        "topping1": [
+            "A-1 steak sauce",
+            "ketchup",
+            "barbecue sauce",
+            "mayonnaise",
+            "horseradish",
+            "yellow mustard",
+            "honey mustard",
+            "spicy brown mustard",
+            "dijon mustard",
+            "Dutch mustard",
+            "chili aioli",
+            "rosemary aioli",
+            "cilantro aioli",
+            "sriracha aioli"
+        ],
+        "topping2": [
+            "crispy bacon strips",
+            "caramelized onions",
+            "fried onion straws",
+            "sauteed mushrooms",
+            "a fried egg",
+            "arugula",
+            "romaine lettuce"
+        ],
+        "side": [
+            "a side of fries tossed in parm and truffle oil",
+            "a side of sweet potato fries",
+            "a side of McDonald's fries",
+            "a side of curly fries",
+            "a side of thick-cut chips",
+            "a side of onion rings",
+            "side of sesame ginger coleslaw",
+            "side of macaroni and cheese",
+            "a large chilly soda",
+            "a side of authentic 'strayan prawns fresh off the barbie",
+            "a cup of BBQ dip"
+        ]
+    }
+}

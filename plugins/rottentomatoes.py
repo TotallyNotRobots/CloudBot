@@ -1,4 +1,5 @@
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web
@@ -9,8 +10,8 @@ movie_reviews_url = api_root + 'movies/{}/reviews.json'
 
 
 @hook.command('rottentomatoes', 'rt')
-def rotten_tomatoes(text, bot):
-    """rt <title> -- gets ratings for <title> from Rotten Tomatoes"""
+def rotten_tomatoes(text, bot, reply):
+    """<title> - gets ratings for <title> from Rotten Tomatoes"""
     api_key = bot.config.get("api_keys", {}).get("rottentomatoes", None)
     if not api_key:
         return "No Rotten Tomatoes API key set."
@@ -21,7 +22,13 @@ def rotten_tomatoes(text, bot):
         'apikey': api_key
     }
 
-    request = requests.get(movie_search_url, params=params)
+    try:
+        request = requests.get(movie_search_url, params=params)
+        request.raise_for_status()
+    except HTTPError as e:
+        reply("Error searching: {}".format(e.response.status_code))
+        raise
+
     if request.status_code != requests.codes.ok:
         return "Error searching: {}".format(request.status_code)
 
@@ -46,6 +53,11 @@ def rotten_tomatoes(text, bot):
     }
 
     review_request = requests.get(movie_reviews_url.format(movie_id), params=review_params)
+    try:
+        review_request.raise_for_status()
+    except HTTPError as e:
+        reply("Error searching: {}".format(e.response.status_code))
+        raise
     if review_request.status_code != requests.codes.ok:
         return "Error searching: {}".format(review_request.status_code)
 

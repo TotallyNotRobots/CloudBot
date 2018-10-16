@@ -1,37 +1,36 @@
 {
-
-    "name": "Tolkien hobbit names", 
+    "name": "Tolkien hobbit names",
     "author": "Johan Danforth",
     "templates": {
         "default": "{first}{mid}{final}"
-    }, 
+    },
     "default_templates": [
         "default"
-    ], 
+    ],
     "parts": {
         "final": [
-            "bo", 
-            "do", 
-            "doc", 
-            "go", 
-            "grin", 
+            "bo",
+            "do",
+            "doc",
+            "go",
+            "grin",
             "m"
-        ], 
+        ],
         "mid": [
-            "a", 
-            "e", 
-            "i", 
-            "ia", 
-            "o", 
-            "oi", 
+            "a",
+            "e",
+            "i",
+            "ia",
+            "o",
+            "oi",
             "u"
-        ], 
+        ],
         "first": [
-            "B", 
-            "Dr", 
-            "Fr", 
-            "Mer", 
-            "Per", 
+            "B",
+            "Dr",
+            "Fr",
+            "Mer",
+            "Per",
             "S"
         ]
     }

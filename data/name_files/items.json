@@ -13,8 +13,18 @@
         "short": "{prefix} {type}",
         "short_m": "{material} {type}",
         "short_m_stat": "{stats} {material} {type}"
-    }, 
-    "default_templates": ["default","short","prefix","material","both","both_stat","short_m","short_m_stat","default_stat"], 
+    },
+    "default_templates": [
+        "default",
+        "short",
+        "prefix",
+        "material",
+        "both",
+        "both_stat",
+        "short_m",
+        "short_m_stat",
+        "default_stat"
+    ],
     "parts": {
         "type": [
             "Sword",
@@ -45,7 +55,7 @@
             "Bastard Sword",
             "Javelin",
             "Pistol",
-            "Dart", 
+            "Dart",
             "Spear",
             "Sling",
             "Stiletto",
@@ -185,6 +195,5 @@
             "Martha",
             "Voraci"
         ]
-
     }
 }

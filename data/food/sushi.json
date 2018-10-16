@@ -1,0 +1,46 @@
+{
+    "templates": [
+        "gives {user} a {sushi} roll {sushi_extra}"
+    ],
+    "parts": {
+        "sushi": [
+            "Kappa Maki",
+            "California",
+            "Philadelphia",
+            "Hamachi Yellow Tail",
+            "Tamagoyaki fried egg",
+            "Futomaki",
+            "Natto Maki Soy Bean",
+            "Negitoro Blue Fin",
+            "Kamaboko Kani Crab",
+            "Philadelphia",
+            "Crab meat",
+            "Raw salmon",
+            "Raw tuna",
+            "Eel",
+            "Seared salmon",
+            "Seared Ahi Tuna",
+            "Shark",
+            "Shrimp tempura",
+            "Dragon"
+        ],
+        "sushi_extra": [
+            "drizzled with eel sauce",
+            "garnished with lemon",
+            "decorated with cilantro",
+            "topped with a line of sriracha aeoli",
+            "prepared with love",
+            "made to the standards of the first emperor of Japan",
+            "rolled to perfection",
+            "with a bit of wasabi",
+            "decorated with little cucumber slices",
+            "so good master banishes him from his temple",
+            "so amazing the emperor appoints him as Chief Sushi Chef",
+            "forged of iron!",
+            "with the freshest seaweed off the coasts of Japan",
+            "delicately crafted with mastery",
+            "that shows the true skill of the sushi chef",
+            "with flavor subtle like the ninja warriors of Kyoto"
+        ]
+    }
+}

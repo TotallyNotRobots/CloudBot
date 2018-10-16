@@ -16,30 +16,15 @@ License:
 import json
 
 import requests
-
 # Constants
+from requests import RequestException
 
 DEFAULT_SHORTENER = 'is.gd'
-DEFAULT_PASTEBIN = 'hastebin'
+DEFAULT_PASTEBIN = 'snoonet'
 
-HASTEBIN_SERVER = 'http://hastebin.com'
+HASTEBIN_SERVER = 'https://hastebin.com'
 
-# Python eval
-
-
-def pyeval(code, pastebin=True):
-    p = {'input': code}
-    r = requests.post('http://pyeval.appspot.com/exec', data=p)
-
-    p = {'id': r.text}
-    r = requests.get('http://pyeval.appspot.com/exec', params=p)
-    j = r.json()
-
-    output = j['output'].rstrip('\n')
-    if '\n' in output and pastebin:
-        return paste(output)
-    else:
-        return output
+SNOONET_PASTE = 'https://paste.snoonet.org'
 
 
 # Shortening / pasting
@@ -80,6 +65,7 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
 
 class ServiceError(Exception):
     def __init__(self, message, request):
+        super().__init__()
         self.message = message
         self.request = request
 
@@ -102,6 +88,11 @@ class Shortener:
 
     def expand(self, url):
         r = requests.get(url, allow_redirects=False)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
 
         if 'location' in r.headers:
             return r.headers['location']
@@ -115,6 +106,7 @@ class Pastebin:
 
     def paste(self, data, ext):
         raise NotImplementedError
+
 
 # Internal Implementations
 
@@ -141,6 +133,12 @@ class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'shorturl': custom, 'format': 'json'}
         r = requests.get('http://is.gd/create.php', params=p)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
+
         j = r.json()
 
         if 'shorturl' in j:
@@ -151,6 +149,12 @@ class Isgd(Shortener):
     def expand(self, url):
         p = {'shorturl': url, 'format': 'json'}
         r = requests.get('http://is.gd/forward.php', params=p)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
+
         j = r.json()
 
         if 'url' in j:
@@ -166,6 +170,12 @@ class Googl(Shortener):
         k = {'key': key}
         p = {'longUrl': url}
         r = requests.post('https://www.googleapis.com/urlshortener/v1/url', params=k, data=json.dumps(p), headers=h)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
+
         j = r.json()
 
         if 'error' not in j:
@@ -176,6 +186,12 @@ class Googl(Shortener):
     def expand(self, url):
         p = {'shortUrl': url}
         r = requests.get('https://www.googleapis.com/urlshortener/v1/url', params=p)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
+
         j = r.json()
 
         if 'error' not in j:
@@ -189,6 +205,11 @@ class Gitio(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'code': custom}
         r = requests.post('http://git.io', data=p)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
 
         if r.status_code == requests.codes.created:
             s = r.headers['location']
@@ -204,9 +225,32 @@ class Gitio(Shortener):
 class Hastebin(Pastebin):
     def paste(self, data, ext):
         r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
-        j = r.json()
-
-        if r.status_code is requests.codes.ok:
-            return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
         else:
-            raise ServiceError(j['message'], r)
+            j = r.json()
+
+            if r.status_code is requests.codes.ok:
+                return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
+            else:
+                raise ServiceError(j['message'], r)
+
+
+@_pastebin('snoonet')
+class SnoonetPaste(Pastebin):
+    def paste(self, data, ext):
+        params = {
+            'text': data,
+            'expire': '1d'
+        }
+        r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
+        try:
+            r.raise_for_status()
+        except RequestException as e:
+            r = e.response
+            raise ServiceError(r.reason, r)
+        else:
+            return '{}'.format(r.url)

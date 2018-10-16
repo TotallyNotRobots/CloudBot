@@ -1,9 +1,9 @@
 """brainfuck interpreter adapted from (public domain) code at
 http://brainfuck.sourceforge.net/brain.py"""
 
-import re
 import asyncio
 import random
+import re
 
 from cloudbot import hook
 
@@ -11,8 +11,8 @@ BUFFER_SIZE = 5000
 MAX_STEPS = 1000000
 
 
-@asyncio.coroutine
 @hook.command("brainfuck", "bf")
+@asyncio.coroutine
 def bf(text):
     """<prog> - executes <prog> as Brainfuck code
     :type text: str

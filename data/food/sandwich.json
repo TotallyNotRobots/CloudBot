@@ -1,0 +1,62 @@
+{
+    "templates": [
+        "{gives} {user} {flavor} {meat} and {meat} {type} with {salad} and {sauce}!",
+        "{gives} {user} {flavor} {meat} and {meat} {type} with {salad}, {salad}, and {sauce}!",
+        "{gives} {user} {flavor} {meat} and {meat} {type} with {salad}, {salad}, {salad}, and {sauce}!",
+        "{gives} {user} {flavor} {meat} {type} with {salad} and {sauce}!",
+        "{gives} {user} {flavor} {meat} {type} with {salad}, {salad}, and {sauce}!",
+        "{gives} {user} {flavor} {meat} {type} with {salad}, {salad}, {salad}, and {sauce}!"
+    ],
+    "parts": {
+        "gives": [
+            "hands",
+            "gives",
+            "makes",
+            "passes"
+        ],
+        "flavor": [
+            "a tasty",
+            "a delicious",
+            "an awesome",
+            "an excellent",
+            "a beautifully-made"
+        ],
+        "meat": [
+            "ham",
+            "salami",
+            "steak",
+            "meatball",
+            "tuna",
+            "pork",
+            "chicken",
+            "roast beef",
+            "corned beef",
+            "pastrami",
+            "turkey"
+        ],
+        "type": [
+            "roll",
+            "wrap",
+            "pita",
+            "sandwich",
+            "bun"
+        ],
+        "salad": [
+            "tomatoes",
+            "lettuce",
+            "pickles",
+            "cucumbers",
+            "red onions",
+            "jalapenos"
+        ],
+        "sauce": [
+            "sweet onion sauce",
+            "honey mustard sauce",
+            "mayo",
+            "sweet chili sauce",
+            "italian sauce",
+            "ranch dressing",
+            "barbecue sauce"
+        ]
+    }
+}

@@ -1,0 +1,55 @@
+{
+    "templates": [
+        "{method} {user} a {flavor} {size} {type} cookie and serves it with a {side}!"
+    ],
+    "parts": {
+        "method": [
+            "makes",
+            "gives",
+            "gets",
+            "buys"
+        ],
+        "flavor": [
+            "tasty",
+            "delectable",
+            "delicious",
+            "yummy",
+            "toothsome",
+            "scrumptious",
+            "luscious"
+        ],
+        "size": [
+            "small",
+            "little",
+            "medium-sized",
+            "large",
+            "gigantic"
+        ],
+        "type": [
+            "Chocolate Chip",
+            "Oatmeal",
+            "Sugar",
+            "Oatmeal Raisin",
+            "Macadamia Nut",
+            "Jam Thumbprint",
+            "Mexican Wedding",
+            "Biscotti",
+            "Oatmeal Cranberry",
+            "Chocolate Fudge",
+            "Peanut Butter",
+            "Pumpkin",
+            "Lemon Bar",
+            "Chocolate Oatmeal Fudge",
+            "Toffee Peanut",
+            "Danish Sugar",
+            "Tim Tam",
+            "Triple Chocolate",
+            "Oreo"
+        ],
+        "side": [
+            "glass of milk",
+            "bowl of ice cream",
+            "bowl of chocolate sauce"
+        ]
+    }
+}

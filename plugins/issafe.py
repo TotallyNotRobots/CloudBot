@@ -10,10 +10,12 @@ License:
     GNU General Public License (Version 3)
 """
 
-from cloudbot import hook
-import cloudbot
-import requests
 from urllib.parse import urlparse
+
+import requests
+
+import cloudbot
+from cloudbot import hook
 
 API_SB = "https://sb-ssl.google.com/safebrowsing/api/lookup"
 
@@ -24,13 +26,16 @@ def load_api(bot):
 
     dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
 
+
 @hook.command()
 def issafe(text):
     """<website> -- Checks the website against Google's Safe Browsing List."""
     if urlparse(text).scheme not in ['https', 'http']:
         return "Check your URL (it should be a complete URI)."
 
-    parsed = requests.get(API_SB, params={"url": text, "client": "cloudbot", "key": dev_key, "pver": "3.1", "appver": str(cloudbot.__version__)})
+    parsed = requests.get(API_SB, params={"url": text, "client": "cloudbot", "key": dev_key, "pver": "3.1",
+                                          "appver": str(cloudbot.__version__)})
+    parsed.raise_for_status()
 
     if parsed.status_code == 204:
         condition = "\x02{}\x02 is safe.".format(text)
