@@ -85,7 +85,7 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
 
     soup = BeautifulSoup(request.text)
 
-    horoscope_text = soup.find("div", class_="horoscope-content").find("p").text
+    horoscope_text = soup.find("main", class_="main-horoscope").find("p").text
     result = "\x02{}\x02 {}".format(sign, horoscope_text)
 
     if text and not dontsave:
