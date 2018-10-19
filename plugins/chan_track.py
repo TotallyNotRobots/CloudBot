@@ -15,6 +15,7 @@ from weakref import WeakValueDictionary
 
 import cloudbot.bot
 from cloudbot import hook
+from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
 from cloudbot.util.parsers.irc import Prefix
 
@@ -22,12 +23,18 @@ logger = cloudbot.bot.logger
 
 
 class WeakDict(dict):
-    # Subclass dict to allow it to be weakly referenced
+    """
+    A subclass of dict to allow it to be weakly referenced
+    """
     pass
 
 
 # noinspection PyUnresolvedReferences
 class KeyFoldMixin:
+    """
+    A mixin for Mapping to allow for case-insensitive keys
+    """
+
     def __contains__(self, item):
         return super().__contains__(item.casefold())
 
@@ -41,15 +48,27 @@ class KeyFoldMixin:
         return super().__delitem__(key.casefold())
 
     def pop(self, key, *args, **kwargs):
+        """
+        Wraps `dict.pop`
+        """
         return super().pop(key.casefold(), *args, **kwargs)
 
     def get(self, key, default=None):
+        """
+        Wrap `dict.get`
+        """
         return super().get(key.casefold(), default)
 
     def setdefault(self, key, default=None):
+        """
+        Wrap `dict.setdefault`
+        """
         return super().setdefault(key.casefold(), default)
 
     def update(self, mapping=None, **kwargs):
+        """
+        Wrap `dict.update`
+        """
         if mapping is not None:
             if hasattr(mapping, 'keys'):
                 for k in mapping.keys():
@@ -63,14 +82,24 @@ class KeyFoldMixin:
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
+    """
+    KeyFolded dict type
+    """
     pass
 
 
 class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
+    """
+    KeyFolded WeakValueDictionary
+    """
     pass
 
 
 class ChanDict(KeyFoldDict):
+    """
+    Mapping for channels on a network
+    """
+
     def __init__(self, conn):
         """
         :type conn: cloudbot.client.Client
@@ -80,6 +109,9 @@ class ChanDict(KeyFoldDict):
         self.conn = weakref.ref(conn)
 
     def getchan(self, name):
+        """
+        :type name: str
+        """
         try:
             return self[name]
         except KeyError:
@@ -88,6 +120,10 @@ class ChanDict(KeyFoldDict):
 
 
 class UsersDict(KeyFoldWeakValueDict):
+    """
+    Mapping for users on a network
+    """
+
     def __init__(self, conn):
         """
         :type conn: cloudbot.client.Client
@@ -97,6 +133,9 @@ class UsersDict(KeyFoldWeakValueDict):
         self.conn = weakref.ref(conn)
 
     def getuser(self, nick):
+        """
+        :type nick: str
+        """
         try:
             return self[nick]
         except KeyError:
@@ -105,6 +144,10 @@ class UsersDict(KeyFoldWeakValueDict):
 
 
 class MappingAttributeAdapter:
+    """
+    Map item lookups to attribute lookups
+    """
+
     def __init__(self):
         self.data = {}
 
@@ -122,7 +165,15 @@ class MappingAttributeAdapter:
 
 
 class Channel(MappingAttributeAdapter):
+    """
+    Represents a channel and relevant data
+    """
+
     class Member(MappingAttributeAdapter):
+        """
+        Store a user's membership with the channel
+        """
+
         def __init__(self, user, channel):
             self.user = user
             self.channel = channel
@@ -131,6 +182,11 @@ class Channel(MappingAttributeAdapter):
             super().__init__()
 
         def add_status(self, status, sort=True):
+            """
+            Add a status to this membership
+            :type status: plugins.core.server_info.Status
+            :type sort: bool
+            """
             if status in self.status:
                 logger.warning(
                     "[%s|chantrack] Attempted to add existing status to channel member: %s %s",
@@ -142,6 +198,9 @@ class Channel(MappingAttributeAdapter):
                     self.sort_status()
 
         def remove_status(self, status):
+            """
+            :type status: plugins.core.server_info.Status
+            """
             if status not in self.status:
                 logger.warning(
                     "[%s|chantrack] Attempted to remove status not set on member: %s %s",
@@ -151,6 +210,9 @@ class Channel(MappingAttributeAdapter):
                 self.status.remove(status)
 
         def sort_status(self):
+            """
+            Ensure the status list is properly sorted
+            """
             status = list(set(self.status))
             status.sort(key=attrgetter("level"), reverse=True)
             self.status = status
@@ -184,6 +246,10 @@ class Channel(MappingAttributeAdapter):
 
 
 class User(MappingAttributeAdapter):
+    """
+    Represent a user on a network
+    """
+
     def __init__(self, name, conn):
         """
         :type name: str
@@ -212,6 +278,9 @@ class User(MappingAttributeAdapter):
 
     @property
     def account(self):
+        """
+        The user's nickserv account
+        """
         return self._account
 
     @account.setter
@@ -223,6 +292,9 @@ class User(MappingAttributeAdapter):
 
     @property
     def nick(self):
+        """
+        The user's nickname
+        """
         return self.mask.nick
 
     @nick.setter
@@ -231,6 +303,9 @@ class User(MappingAttributeAdapter):
 
     @property
     def ident(self):
+        """
+        The user's ident/username
+        """
         return self.mask.user
 
     @ident.setter
@@ -239,6 +314,9 @@ class User(MappingAttributeAdapter):
 
     @property
     def host(self):
+        """
+        The user's host/address
+        """
         return self.mask.host
 
     @host.setter
@@ -269,9 +347,11 @@ def get_chans(conn):
 
 
 def update_chan_data(conn, chan):
+    # type: (IrcClient, str) -> None
     """
-    :type conn: cloudbot.client.Client
-    :type chan: str
+    Start the process of updating channel data from /NAMES
+    :param conn: The current connection
+    :param chan: The channel to update
     """
     chan_data = get_chans(conn).getchan(chan)
     chan_data.receiving_names = False
@@ -279,8 +359,10 @@ def update_chan_data(conn, chan):
 
 
 def update_conn_data(conn):
+    # type: (IrcClient) -> None
     """
-    :type conn: cloudbot.client.Client
+    Update all channel data for this connection
+    :param conn: The connection to update
     """
     for chan in set(conn.channels):
         update_chan_data(conn, chan)
@@ -298,6 +380,9 @@ SUPPORTED_CAPS = frozenset({
 
 @hook.on_cap_available(*SUPPORTED_CAPS)
 def do_caps():
+    """
+    Request all available CAPs we support
+    """
     return True
 
 
@@ -316,7 +401,8 @@ def get_chan_data(bot):
     :type bot: cloudbot.bot.CloudBot
     """
     for conn in bot.connections.values():
-        if conn.connected:
+        if conn.connected and conn.type == 'irc':
+            assert isinstance(conn, IrcClient)
             init_chan_data(conn, False)
             update_conn_data(conn)
 
@@ -377,6 +463,14 @@ def init_chan_data(conn, _clear=True):
 
 
 def parse_names_item(item, statuses, has_multi_prefix, has_userhost):
+    """
+    Parse an entry from /NAMES
+    :param item: The entry to parse
+    :param statuses: Status prefixes on this network
+    :param has_multi_prefix: Whether multi-prefix CAP is enabled
+    :param has_userhost: Whether userhost-in-names CAP is enabled
+    :return: The parsed data
+    """
     user_status = []
     while item[:1] in statuses:
         status, item = item[:1], item[1:]
@@ -445,6 +539,10 @@ def on_names(conn, irc_paramlist, irc_command):
 
 
 class MappingSerializer:
+    """
+    Serialize generic mappings to json
+    """
+
     def __init__(self):
         self._seen_objects = []
 
@@ -475,6 +573,9 @@ class MappingSerializer:
             return repr(obj)
 
     def serialize(self, mapping, **kwargs):
+        """
+        Serialize mapping to JSON
+        """
         return json.dumps(self._serialize(mapping), **kwargs)
 
 
@@ -549,14 +650,15 @@ def clearusers(bot):
     :type bot: cloudbot.bot.CloudBot
     """
     for conn in bot.connections.values():
-        init_chan_data(conn, True)
+        init_chan_data(conn)
 
     gc.collect()
     return "Data cleared."
 
 
 @hook.command("getdata", permissions=["botcontrol"], autohelp=False)
-def getdata_cmd(conn, chan, text, nick):
+def getdata_cmd(conn, chan, nick):
+    """- Get data for current user"""
     chan_data = get_chans(conn).getchan(chan)
     user_data = get_users(conn).getuser(nick)
     memb = chan_data.get_member(user_data)
