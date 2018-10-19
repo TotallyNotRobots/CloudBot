@@ -6,8 +6,7 @@ server_info.py
 """
 import gc
 import json
-import weakref
-from collections import Mapping, Iterable
+from collections import Mapping, Iterable, namedtuple
 from contextlib import suppress
 from numbers import Number
 from operator import attrgetter
@@ -267,6 +266,15 @@ def get_chan_data(bot):
         if conn.connected:
             init_chan_data(conn, False)
             update_conn_data(conn)
+
+
+def sort_member_status(member):
+    """
+    :type member: Channel.Member
+    """
+    status = list(set(member.status))
+    status.sort(key=attrgetter("level"), reverse=True)
+    member.status = status
 
 
 def clean_user_data(user):
@@ -543,6 +551,35 @@ def on_join(nick, user, host, conn, irc_paramlist):
     user_data.join_channel(chan_data)
 
 
+ModeChange = namedtuple('ModeChange', 'mode adding param is_status')
+
+
+def _parse_mode_string(modes, params, status_modes, mode_types):
+    new_modes = []
+    adding = True
+    for c in modes:
+        if c == '+':
+            adding = True
+        elif c == '-':
+            adding = False
+        else:
+            is_status = c in status_modes
+            mode_type = mode_types.get(c)
+            if mode_type:
+                mode_type = mode_type.type
+            else:
+                mode_type = 'B' if is_status else None
+
+            if mode_type in "AB" or (mode_type == 'C' and adding):
+                param = params.pop(0)
+            else:
+                param = None
+
+            new_modes.append(ModeChange(c, adding, param, is_status))
+
+    return new_modes
+
+
 @hook.irc_raw('MODE')
 def on_mode(chan, irc_paramlist, conn):
     """
@@ -565,42 +602,31 @@ def on_mode(chan, irc_paramlist, conn):
     chan_data = get_chans(conn).getchan(chan)
 
     modes = irc_paramlist[1]
-    mode_params = irc_paramlist[2:]
-    new_modes = {}
-    adding = True
-    for c in modes:
-        if c == '+':
-            adding = True
-        elif c == '-':
-            adding = False
+    mode_params = list(irc_paramlist[2:]).copy()
+    new_modes = _parse_mode_string(modes, mode_params, status_modes, mode_types)
+    new_statuses = [change for change in new_modes if change.is_status]
+    to_sort = {}
+    for change in new_statuses:
+        status_char = change.mode
+        nick = change.param
+        user = get_users(conn).getuser(nick)
+        memb = chan_data.get_member(user, create=True)
+        status = statuses[status_char]
+        memb_status = memb.status
+        if change.adding:
+            memb_status.append(status)
+            to_sort[user.nick] = memb
         else:
-            new_modes[c] = adding
-            is_status = c in status_modes
-            mode_type = mode_types.get(c)
-            if mode_type:
-                mode_type = mode_type.type
+            if status in memb_status:
+                memb_status.remove(status)
             else:
-                mode_type = 'B' if is_status else None
+                logger.debug(
+                    "[%s|chantrack] Attempt to remove status %s from user %s in channel %s",
+                    conn.name, status, user['nick'], chan
+                )
 
-            if mode_type in "AB" or (mode_type == 'C' and adding):
-                param = mode_params.pop(0)
-
-                if is_status:
-                    user = get_users(conn).getuser(param)
-                    memb = chan_data.get_member(user, create=True)
-                    status = statuses[c]
-                    memb_status = memb.status
-                    if adding:
-                        memb_status.append(status)
-                        memb_status.sort(key=attrgetter("level"), reverse=True)
-                    else:
-                        if status in memb_status:
-                            memb_status.remove(status)
-                        else:
-                            logger.debug(
-                                "[%s|chantrack] Attempt to remove status %s from user %s in channel %s",
-                                conn.name, status, user['nick'], chan
-                            )
+    for member in to_sort.values():
+        sort_member_status(member)
 
 
 @hook.irc_raw('PART')
