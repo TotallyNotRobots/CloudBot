@@ -188,7 +188,8 @@ class Channel(MappingAttributeAdapter):
             """
             if status in self.status:
                 logger.warning(
-                    "[%s|chantrack] Attempted to add existing status to channel member: %s %s",
+                    "[%s|chantrack] Attempted to add existing status "
+                    "to channel member: %s %s",
                     self.conn.name, self, status
                 )
             else:
@@ -202,7 +203,8 @@ class Channel(MappingAttributeAdapter):
             """
             if status not in self.status:
                 logger.warning(
-                    "[%s|chantrack] Attempted to remove status not set on member: %s %s",
+                    "[%s|chantrack] Attempted to remove status not set "
+                    "on member: %s %s",
                     self.conn.name, self, status
                 )
             else:
@@ -272,7 +274,9 @@ class User(MappingAttributeAdapter):
         """
         :type channel: Channel
         """
-        self.channels[channel.name] = memb = channel.get_member(self, create=True)
+        self.channels[channel.name] = memb = channel.get_member(
+            self, create=True
+        )
         return memb
 
     @property
@@ -477,7 +481,8 @@ def parse_names_item(item, statuses, has_multi_prefix, has_userhost):
         status, item = item[:1], item[1:]
         user_status.append(statuses[status])
         if not has_multi_prefix:
-            # Only remove one status prefix if we don't have multi prefix enabled
+            # Only remove one status prefix
+            # if we don't have multi prefix enabled
             break
 
     user_status.sort(key=attrgetter('level'), reverse=True)
@@ -495,13 +500,18 @@ def replace_user_data(conn, chan_data):
     :type conn: cloudbot.client.Client
     :type chan_data: Channel
     """
-    statuses = {status.prefix: status for status in set(conn.memory["server_info"]["statuses"].values())}
+    statuses = {
+        status.prefix: status
+        for status in set(conn.memory["server_info"]["statuses"].values())
+    }
     new_data = chan_data.data.pop("new_users", [])
     new_users = KeyFoldDict()
     has_uh_i_n = is_cap_available(conn, "userhost-in-names")
     has_multi_pfx = is_cap_available(conn, "multi-prefix")
     for name in new_data:
-        nick, ident, host, status = parse_names_item(name, statuses, has_multi_pfx, has_uh_i_n)
+        nick, ident, host, status = parse_names_item(
+            name, statuses, has_multi_pfx, has_uh_i_n
+        )
         user_data = get_users(conn).getuser(nick)
         user_data.mask = Prefix(nick, ident, host)
 
@@ -510,7 +520,9 @@ def replace_user_data(conn, chan_data):
 
     old_users = chan_data.users
     old_users.clear()
-    old_users.update(new_users)  # Reassigning the dict would break other references to the data, so just update instead
+    # Reassigning the dict would break other references to the data,
+    # so just update instead
+    old_users.update(new_users)
 
 
 @hook.irc_raw(['353', '366'], singlethread=True)
