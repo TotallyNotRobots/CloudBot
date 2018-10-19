@@ -6,6 +6,7 @@ server_info.py
 """
 import gc
 import json
+import weakref
 from collections import Mapping, Iterable, namedtuple
 from contextlib import suppress
 from numbers import Number
@@ -70,20 +71,36 @@ class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
 
 
 class ChanDict(KeyFoldDict):
+    def __init__(self, conn):
+        """
+        :type conn: cloudbot.client.Client
+        """
+        super().__init__()
+
+        self.conn = weakref.ref(conn)
+
     def getchan(self, name):
         try:
             return self[name]
         except KeyError:
-            self[name] = value = Channel(name)
+            self[name] = value = Channel(name, self.conn())
             return value
 
 
 class UsersDict(KeyFoldWeakValueDict):
+    def __init__(self, conn):
+        """
+        :type conn: cloudbot.client.Client
+        """
+        super().__init__()
+
+        self.conn = weakref.ref(conn)
+
     def getuser(self, nick):
         try:
             return self[nick]
         except KeyError:
-            self[nick] = value = User(nick)
+            self[nick] = value = User(nick, self.conn())
             return value
 
 
@@ -109,14 +126,15 @@ class Channel(MappingAttributeAdapter):
         def __init__(self, user, channel):
             self.user = user
             self.channel = channel
+            self.conn = user.conn
             self.status = []
             super().__init__()
 
         def add_status(self, status, sort=True):
             if status in self.status:
                 logger.warning(
-                    "[chantrack] Attempted to add existing status to channel member: %s %s",
-                    self, status
+                    "[%s|chantrack] Attempted to add existing status to channel member: %s %s",
+                    self.conn.name, self, status
                 )
             else:
                 self.status.append(status)
@@ -126,8 +144,8 @@ class Channel(MappingAttributeAdapter):
         def remove_status(self, status):
             if status not in self.status:
                 logger.warning(
-                    "[chantrack] Attempted to remove status not set on member: %s %s",
-                    self, status
+                    "[%s|chantrack] Attempted to remove status not set on member: %s %s",
+                    self.conn.name, self, status
                 )
             else:
                 self.status.remove(status)
@@ -137,8 +155,13 @@ class Channel(MappingAttributeAdapter):
             status.sort(key=attrgetter("level"), reverse=True)
             self.status = status
 
-    def __init__(self, name):
+    def __init__(self, name, conn):
+        """
+        :type name: str
+        :type conn: cloudbot.client.Client
+        """
         self.name = name
+        self.conn = weakref.proxy(conn)
         self.users = KeyFoldDict()
         self.receiving_names = False
         super().__init__()
@@ -161,8 +184,13 @@ class Channel(MappingAttributeAdapter):
 
 
 class User(MappingAttributeAdapter):
-    def __init__(self, name):
+    def __init__(self, name, conn):
+        """
+        :type name: str
+        :type conn: cloudbot.client.Client
+        """
         self.mask = Prefix(name)
+        self.conn = weakref.proxy(conn)
         self.realname = None
         self._account = None
         self.server = None
@@ -226,7 +254,7 @@ def get_users(conn):
     :type conn: cloudbot.client.Client
     :rtype: UsersDict
     """
-    return conn.memory.setdefault("users", UsersDict())
+    return conn.memory.setdefault("users", UsersDict(conn))
 
 
 def get_chans(conn):
@@ -234,7 +262,7 @@ def get_chans(conn):
     :type conn: cloudbot.client.Client
     :rtype: ChanDict
     """
-    return conn.memory.setdefault("chan_data", ChanDict())
+    return conn.memory.setdefault("chan_data", ChanDict(conn))
 
 
 # endregion util functions
@@ -298,9 +326,7 @@ def clean_user_data(user):
     :type user: User
     """
     for memb in user.channels.values():
-        status = list(set(memb.status))
-        status.sort(key=attrgetter("level"), reverse=True)
-        memb.status = status
+        memb.sort_status()
 
 
 def clean_chan_data(chan):
