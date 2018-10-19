@@ -11,7 +11,6 @@ from collections import Mapping, Iterable, namedtuple
 from contextlib import suppress
 from numbers import Number
 from operator import attrgetter
-from weakref import WeakValueDictionary
 
 import cloudbot.bot
 from cloudbot import hook
@@ -88,7 +87,7 @@ class KeyFoldDict(KeyFoldMixin, dict):
     pass
 
 
-class KeyFoldWeakValueDict(KeyFoldMixin, WeakValueDictionary):
+class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
     """
     KeyFolded WeakValueDictionary
     """
@@ -460,6 +459,8 @@ def init_chan_data(conn, _clear=True):
     if _clear:
         chan_data.clear()
         users.clear()
+
+    return None
 
 
 def parse_names_item(item, statuses, has_multi_prefix, has_userhost):
