@@ -112,6 +112,31 @@ class Channel(MappingAttributeAdapter):
             self.status = []
             super().__init__()
 
+        def add_status(self, status, sort=True):
+            if status in self.status:
+                logger.warning(
+                    "[chantrack] Attempted to add existing status to channel member: %s %s",
+                    self, status
+                )
+            else:
+                self.status.append(status)
+                if sort:
+                    self.sort_status()
+
+        def remove_status(self, status):
+            if status not in self.status:
+                logger.warning(
+                    "[chantrack] Attempted to remove status not set on member: %s %s",
+                    self, status
+                )
+            else:
+                self.status.remove(status)
+
+        def sort_status(self):
+            status = list(set(self.status))
+            status.sort(key=attrgetter("level"), reverse=True)
+            self.status = status
+
     def __init__(self, name):
         self.name = name
         self.users = KeyFoldDict()
@@ -266,15 +291,6 @@ def get_chan_data(bot):
         if conn.connected:
             init_chan_data(conn, False)
             update_conn_data(conn)
-
-
-def sort_member_status(member):
-    """
-    :type member: Channel.Member
-    """
-    status = list(set(member.status))
-    status.sort(key=attrgetter("level"), reverse=True)
-    member.status = status
 
 
 def clean_user_data(user):
@@ -612,21 +628,14 @@ def on_mode(chan, irc_paramlist, conn):
         user = get_users(conn).getuser(nick)
         memb = chan_data.get_member(user, create=True)
         status = statuses[status_char]
-        memb_status = memb.status
         if change.adding:
-            memb_status.append(status)
+            memb.add_status(status, sort=False)
             to_sort[user.nick] = memb
         else:
-            if status in memb_status:
-                memb_status.remove(status)
-            else:
-                logger.debug(
-                    "[%s|chantrack] Attempt to remove status %s from user %s in channel %s",
-                    conn.name, status, user['nick'], chan
-                )
+            memb.remove_status(status)
 
     for member in to_sort.values():
-        sort_member_status(member)
+        member.sort_status()
 
 
 @hook.irc_raw('PART')
