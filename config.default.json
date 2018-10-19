@@ -121,6 +121,7 @@
         "config_reloading": true,
         "plugin_reloading": false
     },
+    "repo_link": "https://github.com/snoonetIRC/CloudBot/",
     "logging": {
         "console_debug": false,
         "file_debug": false,
