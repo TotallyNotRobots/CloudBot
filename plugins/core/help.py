@@ -4,7 +4,7 @@ import re
 from operator import attrgetter
 
 from cloudbot import hook
-from cloudbot.util import formatting
+from cloudbot.util import formatting, web
 
 
 @hook.command("help", autohelp=False)
@@ -147,10 +147,4 @@ def generatehelp(conn, bot):
             message = message[:-2]
             message += " ( *Permission required:* {})\n\n".format(permission)
     # toss the markdown text into a paste
-    # out = web.paste(message.encode('utf-8'), ext="md")
-    docs = os.path.join(os.path.abspath(os.path.curdir), "docs")
-    docs = os.path.join(docs, "user")
-    f = open(os.path.join(docs, "commands.md"), 'w')
-    f.write(message)
-    f.close()
-    return  # out
+    return web.paste(message)
