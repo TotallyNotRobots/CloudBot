@@ -14,17 +14,20 @@ License:
 """
 
 import json
+import logging
 
 import requests
-# Constants
 from requests import RequestException
 
+# Constants
 DEFAULT_SHORTENER = 'is.gd'
 DEFAULT_PASTEBIN = 'snoonet'
 
 HASTEBIN_SERVER = 'https://hastebin.com'
 
 SNOONET_PASTE = 'https://paste.snoonet.org'
+
+logger = logging.getLogger('cloudbot')
 
 
 # Shortening / pasting
@@ -59,8 +62,20 @@ def expand(url, service=None):
 
 
 def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
-    impl = pastebins[service]
-    return impl.paste(data, ext)
+    bins = pastebins.copy()
+    impl = bins.pop(service, None)
+    while impl:
+        try:
+            return impl.paste(data, ext)
+        except ServiceError:
+            logger.exception("Paste failed")
+
+        try:
+            _, impl = bins.popitem()
+        except LookupError:
+            impl = None
+
+    return "Unable to paste data"
 
 
 class ServiceError(Exception):
