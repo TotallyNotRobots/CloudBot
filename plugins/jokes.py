@@ -39,11 +39,13 @@ def load_jokes(bot):
 
 
 @hook.command()
-def yomomma(text):
+def yomomma(text, nick, conn, is_nick_valid):
     """<nick> - Tells a yo momma joke to <nick>."""
     target = text.strip()
-    return '{}, {}'.format(target, random.choice(yo_momma).lower())
-
+    if not is_nick_valid(target) or target.lower() == conn.nick.lower():
+        target = nick
+    joke = random.choice(yo_momma).lower()
+    return '{}, {}'.format(target, joke)
 
 
 @hook.command(autohelp=False)
