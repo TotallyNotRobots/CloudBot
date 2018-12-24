@@ -1,8 +1,19 @@
-import codecs
-import os
 import random
+from pathlib import Path
 
 from cloudbot import hook
+
+
+def load_joke_file(path):
+    """
+    Loads all the lines from a file, excluding blanks and lines that have been 'commented out'.
+    :type path: Path
+    :rtype: List[str]
+    """
+    with path.open(encoding='utf-8') as f:
+        return [line.strip() for line in f
+                if line.strip()
+                and not line.startswith('//')]
 
 
 @hook.on_start()
@@ -12,32 +23,17 @@ def load_jokes(bot):
     """
     global yo_momma, do_it, pun, confucious, one_liner, wisdom, book_puns, lawyerjoke, kero_sayings
 
-    with codecs.open(os.path.join(bot.data_dir, "yo_momma.txt"), encoding="utf-8") as f:
-        yo_momma = [line.strip() for line in f.readlines() if not line.startswith("//")]
+    data_directory = Path(bot.data_dir)
 
-    with codecs.open(os.path.join(bot.data_dir, "do_it.txt"), encoding="utf-8") as f:
-        do_it = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "puns.txt"), encoding="utf-8") as f:
-        pun = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "confucious.txt"), encoding="utf-8") as f:
-        confucious = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "one_liners.txt"), encoding="utf-8") as f:
-        one_liner = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "wisdom.txt"), encoding="utf-8") as f:
-        wisdom = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "book_puns.txt"), encoding="utf-8") as f:
-        book_puns = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "lawyerjoke.txt"), encoding="utf-8") as f:
-        lawyerjoke = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "kero.txt"), encoding="utf-8") as f:
-        kero_sayings = [line.strip() for line in f.readlines() if not line.startswith("//")]
+    yo_momma = load_joke_file(data_directory / 'yo_momma.txt')
+    do_it = load_joke_file(data_directory / 'do_it.txt')
+    pun = load_joke_file(data_directory / 'puns.txt')
+    confucious = load_joke_file(data_directory / 'confucious.txt')
+    one_liner = load_joke_file(data_directory / 'one_liners.txt')
+    wisdom = load_joke_file(data_directory / 'wisdom.txt')
+    book_puns = load_joke_file(data_directory / 'book_puns.txt')
+    lawyerjoke = load_joke_file(data_directory / 'lawyerjoke.txt')
+    kero_sayings = load_joke_file(data_directory / 'kero.txt')
 
 
 @hook.command()
