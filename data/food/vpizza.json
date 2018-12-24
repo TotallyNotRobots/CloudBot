@@ -1,0 +1,76 @@
+{
+    "templates": [
+        "{gives} {user} {sauce} {crust} pizza with {topping}, {topping} and {cheese}, finished with {garnish}!",
+        "{gives} {user} {sauce} cheeseless {crust} pizza with {topping}, {topping} and {topping}, finished with {garnish}!",
+        "{gives} {user} {sauce} {crust} pizza with {topping}, {cheese}, and {garnish}!",
+        "{gives} {user} {sauce} {crust} pizza with {topping}, {topping} and {cheese}, with some {garnish} to bring everything together!",
+        "{gives} {user} {sauce} {crust} pizza with {topping}, {cheese} and {cheese}, finished with {garnish}!",
+        "{gives} {user} {sauce} {crust} pizza with {cheese}, {cheese}, {cheese}, and no vegetables in sight!"
+    ],
+    "parts": {
+        "gives": [
+            "hands",
+            "gives",
+            "makes",
+            "passes",
+            "delivers to",
+            "declines to share with",
+            "eats in front of"
+        ],
+        "crust": [
+            "traditional",
+            "cauliflower crust",
+            "whole wheat",
+            "gluten-free",
+            "polenta",
+            "pita",
+            "sourdough",
+            "thin crust",
+            "wood-grilled"
+        ],
+        "sauce": [
+            "a pesto",
+            "an alfredo",
+            "an olive oil",
+            "a marinara",
+            "a BBQ"
+        ],
+        "cheese": [
+            "walnut parmesan",
+            "macadamia ricotta salata",
+            "almond bechamel",
+            "cashew mozzarella",
+            "fresh almond ricotta",
+            "Miyoko's smoked mozzarella",
+            "tofu feta",
+            "no cheese"
+        ],
+        "topping": [
+            "spinach",
+            "olives",
+            "fresh garlic",
+            "roasted garlic",
+            "seitan pepperoni",
+            "smoked tofu",
+            "peppers",
+            "onions",
+            "pineapple",
+            "pickled shallot",
+            "walnuts",
+            "roasted red pepper",
+            "eggplant",
+            "spicy fennel soy crumbles",
+            "spicy chickpeas",
+            "roasted cauliflower"
+        ],
+        "garnish": [
+            "aleppo chile oil",
+            "garlic sauce",
+            "arugula",
+            "chiffonade of basil",
+            "fried sage",
+            "nutritional yeast",
+            "fried pickles"
+        ]
+    }
+}
