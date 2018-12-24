@@ -40,14 +40,15 @@ def load_jokes(bot):
 
 @hook.command()
 def yomomma(text):
-    """<nick> - tells a yo momma joke to <nick>"""
+    """<nick> - Tells a yo momma joke to <nick>."""
     target = text.strip()
     return '{}, {}'.format(target, random.choice(yo_momma).lower())
 
 
+
 @hook.command(autohelp=False)
 def doit(message):
-    """- prints a do it line, example: mathmaticians do with a pencil"""
+    """- Prints a do it line, example: mathematicians do with a pencil."""
     message(random.choice(do_it))
 
 
@@ -59,19 +60,21 @@ def pun(message):
 
 @hook.command(autohelp=False)
 def confucious(message):
-    """- confucious say man standing on toilet is high on pot."""
+    """- Confucious say man standing on toilet is high on pot.
+    (Note that the spelling is deliberate: https://www.urbandictionary.com/define.php?term=Confucious)
+    """
     message('Confucious say {}'.format(random.choice(confucious_say).lower()))
 
 
 @hook.command(autohelp=False)
 def dadjoke(message):
-    """- love em or hate em, bring on the dad jokes."""
+    """- Love em or hate em, bring on the dad jokes."""
     message(random.choice(one_liner))
 
 
 @hook.command(autohelp=False)
 def wisdom(message):
-    """- words of wisdom from various bathroom stalls."""
+    """- Words of wisdom from various bathroom stalls."""
     message(random.choice(wise_quotes))
 
 
@@ -87,7 +90,7 @@ def bookpun(message):
 
 @hook.command("boobs", "boobies")
 def boobies(text):
-    """- prints boobies!"""
+    """<text> - Everything is better with boobies!"""
     boob = "\u2299"
     out = text.strip()
     out = out.replace('o', boob).replace('O', boob).replace('0', boob)
@@ -98,14 +101,14 @@ def boobies(text):
 
 @hook.command("zombs", autohelp=False)
 def zombs():
-    """- prints some fucked up shit."""
+    """- Prints some fucked up shit."""
     out = "\u2299\u2299\u0505\u0F0D\u0020\u0E88\u0020\u25DE\u0C6A\u25DF\u0E88\u0020\u0F0D\u0648"
     return out
 
 
 @hook.command("awesome", "iscool", "cool")
 def awesome(text, is_nick_valid):
-    """- Prints a webpage to show <nick> how awesome they are."""
+    """<nick> - Prints a link to show <nick> how awesome they are."""
     link = 'http://is-awesome.cool/{}'
     nick = text.split(' ')[0]
     if is_nick_valid(nick):
@@ -118,7 +121,7 @@ def awesome(text, is_nick_valid):
 
 @hook.command(autohelp=False)
 def triforce(message):
-    """- returns a triforce!"""
+    """- Peturns a triforce!"""
     top = ["\u00a0\u25b2", "\u00a0\u00a0\u25b2", "\u25b2", "\u00a0\u25b2"]
     bottom = ["\u25b2\u00a0\u25b2", "\u25b2 \u25b2", "\u25b2\u25b2"]
     message(random.choice(top))
@@ -127,7 +130,7 @@ def triforce(message):
 
 @hook.command("kero", "kerowhack")
 def kero(text):
-    """- Returns the text input the way kerouac5 would say it."""
+    """<text> - Returns the text input the way kerouac5 would say it."""
     keror = random.choice(kero_sayings).upper()
     if keror == "???? WTF IS":
         out = keror + " " + text.upper()
@@ -138,11 +141,11 @@ def kero(text):
 
 @hook.command(autohelp=False)
 def lawyerjoke(message):
-    """- returns a lawyer joke, so lawyers know how much we hate them"""
+    """- Returns a lawyer joke, so lawyers know how much we hate them."""
     message(random.choice(lawyer_jokes))
 
 
 @hook.command("fuck", autohelp=False)
 def fuck():
-    """- returns something funny."""
+    """- Returns something funny."""
     return "something funny."
