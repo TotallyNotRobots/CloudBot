@@ -1,0 +1,40 @@
+{
+    "templates": [
+        "{method} {user} a {flavor} {size} piece of {type} birthday cake and sings them Happy Birthday!"
+    ],
+    "parts": {
+        "method": [
+            "gives"
+        ],
+        "flavor": [
+            "tasty",
+            "delectable",
+            "delicious",
+            "yummy",
+            "scrumptious",
+            "luscious"
+        ],
+        "size": [
+            "small",
+            "medium-sized",
+            "large"
+        ],
+        "type": [
+            "Chocolate",
+            "Ice Cream",
+            "Angel",
+            "Boston Cream",
+            "Bundt",
+            "Carrot",
+            "Coffee",
+            "Devils",
+            "Fruit",
+            "Gingerbread",
+            "Pound",
+            "Red Velvet",
+            "Stack",
+            "Welsh",
+            "Yokan"
+        ]
+    }
+}

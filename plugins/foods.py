@@ -56,6 +56,7 @@ BASIC_FOOD = (
     BasicFood("soup", "Some Soup"),
     BasicFood("halal", "food", "halal", "halaal"),
     BasicFood("kosher", "food"),
+    BasicFood("birthday", "birthday cake"),
 )
 
 basic_food_data = defaultdict(dict)
