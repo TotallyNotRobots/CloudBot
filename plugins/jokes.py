@@ -3,6 +3,8 @@ from pathlib import Path
 
 from cloudbot import hook
 
+yo_momma = do_it = puns = confucious_say = one_liner = wise_quotes = book_puns = lawyer_jokes = kero_sayings = ['']
+
 
 def load_joke_file(path):
     """
@@ -21,18 +23,18 @@ def load_jokes(bot):
     """
     :type bot: cloudbot.bot.Cloudbot
     """
-    global yo_momma, do_it, pun, confucious, one_liner, wisdom, book_puns, lawyerjoke, kero_sayings
+    global yo_momma, do_it, puns, confucious_say, one_liner, wise_quotes, book_puns, lawyer_jokes, kero_sayings
 
     data_directory = Path(bot.data_dir)
 
     yo_momma = load_joke_file(data_directory / 'yo_momma.txt')
     do_it = load_joke_file(data_directory / 'do_it.txt')
-    pun = load_joke_file(data_directory / 'puns.txt')
-    confucious = load_joke_file(data_directory / 'confucious.txt')
+    puns = load_joke_file(data_directory / 'puns.txt')
+    confucious_say = load_joke_file(data_directory / 'confucious.txt')
     one_liner = load_joke_file(data_directory / 'one_liners.txt')
-    wisdom = load_joke_file(data_directory / 'wisdom.txt')
+    wise_quotes = load_joke_file(data_directory / 'wisdom.txt')
     book_puns = load_joke_file(data_directory / 'book_puns.txt')
-    lawyerjoke = load_joke_file(data_directory / 'lawyerjoke.txt')
+    lawyer_jokes = load_joke_file(data_directory / 'lawyerjoke.txt')
     kero_sayings = load_joke_file(data_directory / 'kero.txt')
 
 
@@ -52,13 +54,13 @@ def doit(message):
 @hook.command(autohelp=False)
 def pun(message):
     """- Come on everyone loves puns right?"""
-    message(random.choice(pun))
+    message(random.choice(puns))
 
 
 @hook.command(autohelp=False)
 def confucious(message):
     """- confucious say man standing on toilet is high on pot."""
-    message('Confucious say {}'.format(random.choice(confucious).lower()))
+    message('Confucious say {}'.format(random.choice(confucious_say).lower()))
 
 
 @hook.command(autohelp=False)
@@ -70,7 +72,7 @@ def dadjoke(message):
 @hook.command(autohelp=False)
 def wisdom(message):
     """- words of wisdom from various bathroom stalls."""
-    message(random.choice(wisdom))
+    message(random.choice(wise_quotes))
 
 
 @hook.command(autohelp=False)
@@ -137,7 +139,7 @@ def kero(text):
 @hook.command(autohelp=False)
 def lawyerjoke(message):
     """- returns a lawyer joke, so lawyers know how much we hate them"""
-    message(random.choice(lawyerjoke))
+    message(random.choice(lawyer_jokes))
 
 
 @hook.command("fuck", autohelp=False)
