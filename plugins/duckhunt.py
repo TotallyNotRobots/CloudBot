@@ -169,7 +169,7 @@ def set_game_state(db, conn, chan, active=None, duck_kick=None):
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def incrementMsgCounter(event, conn):
+def increment_msg_counter(event, conn):
     """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking.
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
