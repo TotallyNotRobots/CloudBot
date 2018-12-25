@@ -68,7 +68,7 @@ MASK_REQ = 3
 scripters = defaultdict(int)
 chan_locks = defaultdict(lambda: defaultdict(Lock))
 game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-opt_out = []
+opt_out = defaultdict(list)
 
 
 @hook.on_start()
@@ -76,11 +76,18 @@ def load_optout(db):
     """load a list of channels duckhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
     opt_out.clear()
-    chans = db.execute(select([optout.c.chan]))
-    if chans:
-        for row in chans:
-            chan = row["chan"]
-            opt_out.append(chan)
+    chans = db.execute(optout.select())
+    for row in chans:
+        chan = row["chan"]
+        opt_out[row["network"].casefold()].append(chan.casefold())
+
+
+def is_opt_out(network, chan):
+    """
+    :type network: str
+    :type chan: str
+    """
+    return chan.casefold() in opt_out[network]
 
 
 @hook.on_start
@@ -174,7 +181,7 @@ def increment_msg_counter(event, conn):
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
     """
-    if event.chan in opt_out:
+    if is_opt_out(conn.name, event.chan):
         return
     status = get_state_table(conn.name, event.chan)
     if status['game_on'] == 1 and status['duck_status'] == 0:
@@ -186,7 +193,7 @@ def increment_msg_counter(event, conn):
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def start_hunt(db, chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
     elif not chan.startswith("#"):
         return "No hunting by yourself, that isn't safe."
@@ -224,7 +231,7 @@ def stop_hunt(db, chan, conn):
     :type chan: str
     :type conn: cloudbot.client.Client
     """
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
     if get_state_table(conn.name, chan)['game_on']:
         set_game_state(db, conn, chan, active=False)
@@ -242,7 +249,7 @@ def no_duck_kick(db, text, chan, conn, notice_doc):
     :type conn: cloudbot.client.Client
     :type notice_doc: function
     """
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
     if text.lower() == 'enable':
         set_game_state(db, conn, chan, duck_kick=True)
@@ -398,7 +405,7 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
     :type notice: function
     :type attack_type: str
     """
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
 
     network = conn.name
@@ -528,7 +535,7 @@ def friends(text, chan, conn, db):
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
     friends = defaultdict(int)
     chancount = defaultdict(int)
@@ -576,7 +583,7 @@ def killers(text, chan, conn, db):
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
     killers = defaultdict(int)
     chancount = defaultdict(int)
@@ -637,20 +644,24 @@ def hunt_opt_out(text, chan, db, conn):
     :type conn: cloudbot.client.Client
     """
     if not text:
-        if chan in opt_out:
+        if is_opt_out(conn.name, chan):
             return "Duck hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(chan)
         else:
             return "Duck hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(chan)
+
     if text == "list":
         return ", ".join(opt_out)
+
     if len(text.split(' ')) < 2:
         return "please specify add or remove and a valid channel name"
+
     command = text.split()[0]
     channel = text.split()[1]
     if not channel.startswith('#'):
         return "Please specify a valid channel."
+
     if command.lower() == "add":
-        if channel in opt_out:
+        if is_opt_out(conn.name, channel):
             return "Duck hunt has already been disabled in {}.".format(channel)
         query = optout.insert().values(
             network=conn.name,
@@ -660,7 +671,7 @@ def hunt_opt_out(text, chan, db, conn):
         load_optout(db)
         return "The duckhunt has been successfully disabled in {}.".format(channel)
     if command.lower() == "remove":
-        if not channel in opt_out:
+        if not is_opt_out(conn.name, channel):
             return "Duck hunt is already enabled in {}.".format(channel)
         delete = optout.delete(optout.c.chan == channel.lower())
         db.execute(delete)
