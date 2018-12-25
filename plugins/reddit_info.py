@@ -212,9 +212,6 @@ def moderates(text, chan, conn, reply):
         reply(statuscheck(e.response.status_code, user))
         raise
 
-    if r.status_code != 200:
-        return statuscheck(r.status_code, user)
-
     data = r.json()
     subs = data['data']
     out = colors.parse("$(b){}$(b) moderates these public subreddits: ".format(user))
@@ -239,9 +236,6 @@ def karma(text, reply):
     except HTTPError as e:
         reply(statuscheck(e.response.status_code, user))
         raise
-
-    if r.status_code != 200:
-        return statuscheck(r.status_code, user)
 
     data = r.json()
     data = data['data']
@@ -287,8 +281,6 @@ def cake_day(text, reply):
         reply(statuscheck(e.response.status_code, user))
         raise
 
-    if r.status_code != 200:
-        return statuscheck(r.status_code, user)
     data = r.json()
     out = colors.parse("$(b){}'s$(b) ".format(user))
     out += "cake day is {}, ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d'))
@@ -325,8 +317,6 @@ def submods(text, chan, conn, reply):
         reply(statuscheck(e.response.status_code, 'r/' + sub))
         raise
 
-    if r.status_code != 200:
-        return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()
     moderators = []
     for mod in data['data']['children']:
@@ -361,8 +351,6 @@ def subinfo(text, reply):
         reply(statuscheck(e.response.status_code, 'r/' + sub))
         raise
 
-    if r.status_code != 200:
-        return statuscheck(r.status_code, 'r/' + sub)
     data = r.json()
     if data['kind'] == "Listing":
         return "It appears r/{} does not exist.".format(sub)
