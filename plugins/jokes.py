@@ -3,12 +3,11 @@ from pathlib import Path
 
 from cloudbot import hook
 
-yo_momma = do_it = puns = confucious_say = one_liner = wise_quotes = book_puns = lawyer_jokes = kero_sayings = ['']
+joke_lines = {}
 
 
 def load_joke_file(path):
-    """
-    Loads all the lines from a file, excluding blanks and lines that have been 'commented out'.
+    """Loads all the lines from a file, excluding blanks and lines that have been 'commented out'.
     :type path: Path
     :rtype: List[str]
     """
@@ -20,22 +19,26 @@ def load_joke_file(path):
 
 @hook.on_start()
 def load_jokes(bot):
-    """
+    """Load strings into memory from files in the data directory.
+    Put 'NAME.txt' in `file_list` to make those strings available as `joke_lines['NAME']`.
     :type bot: cloudbot.bot.Cloudbot
     """
-    global yo_momma, do_it, puns, confucious_say, one_liner, wise_quotes, book_puns, lawyer_jokes, kero_sayings
-
+    global joke_lines
     data_directory = Path(bot.data_dir)
-
-    yo_momma = load_joke_file(data_directory / 'yo_momma.txt')
-    do_it = load_joke_file(data_directory / 'do_it.txt')
-    puns = load_joke_file(data_directory / 'puns.txt')
-    confucious_say = load_joke_file(data_directory / 'confucious.txt')
-    one_liner = load_joke_file(data_directory / 'one_liners.txt')
-    wise_quotes = load_joke_file(data_directory / 'wisdom.txt')
-    book_puns = load_joke_file(data_directory / 'book_puns.txt')
-    lawyer_jokes = load_joke_file(data_directory / 'lawyerjoke.txt')
-    kero_sayings = load_joke_file(data_directory / 'kero.txt')
+    file_list = [
+        'yo_momma.txt',
+        'do_it.txt',
+        'puns.txt',
+        'confucious.txt',
+        'one_liners.txt',
+        'wisdom.txt',
+        'book_puns.txt',
+        'lawyerjoke.txt',
+        'kero.txt',
+    ]
+    for file_name in file_list:
+        file_path = data_directory / file_name
+        joke_lines[file_path.stem] = load_joke_file(file_path)
 
 
 @hook.command()
@@ -44,20 +47,20 @@ def yomomma(text, nick, conn, is_nick_valid):
     target = text.strip()
     if not is_nick_valid(target) or target.lower() == conn.nick.lower():
         target = nick
-    joke = random.choice(yo_momma).lower()
+    joke = random.choice(joke_lines['yo_momma']).lower()
     return '{}, {}'.format(target, joke)
 
 
 @hook.command(autohelp=False)
 def doit(message):
     """- Prints a do it line, example: mathematicians do with a pencil."""
-    message(random.choice(do_it))
+    message(random.choice(joke_lines['do_it']))
 
 
 @hook.command(autohelp=False)
 def pun(message):
     """- Come on everyone loves puns right?"""
-    message(random.choice(puns))
+    message(random.choice(joke_lines['puns']))
 
 
 @hook.command(autohelp=False)
@@ -65,26 +68,27 @@ def confucious(message):
     """- Confucious say man standing on toilet is high on pot.
     (Note that the spelling is deliberate: https://www.urbandictionary.com/define.php?term=Confucious)
     """
-    message('Confucious say {}'.format(random.choice(confucious_say).lower()))
+    saying = random.choice(joke_lines['confucious']).lower()
+    message('Confucious say {}'.format(saying))
 
 
 @hook.command(autohelp=False)
 def dadjoke(message):
     """- Love em or hate em, bring on the dad jokes."""
-    message(random.choice(one_liner))
+    message(random.choice(joke_lines['one_liners']))
 
 
 @hook.command(autohelp=False)
 def wisdom(message):
     """- Words of wisdom from various bathroom stalls."""
-    message(random.choice(wise_quotes))
+    message(random.choice(joke_lines['wisdom']))
 
 
 @hook.command(autohelp=False)
 def bookpun(message):
     """- Suggests a pun of a book title/author."""
     # suggestions = ["Why not try", "You should read", "You gotta check out"]
-    book = random.choice(book_puns)
+    book = random.choice(joke_lines['book_puns'])
     title = book.split(':')[0].strip()
     author = book.split(':')[1].strip()
     message("{} by {}".format(title, author))
@@ -132,7 +136,7 @@ def triforce(message):
 @hook.command("kero", "kerowhack")
 def kero(text):
     """<text> - Returns the text input the way kerouac5 would say it."""
-    keror = random.choice(kero_sayings).upper()
+    keror = random.choice(joke_lines['kero']).upper()
     if keror == "???? WTF IS":
         out = keror + " " + text.upper()
     else:
@@ -143,7 +147,7 @@ def kero(text):
 @hook.command(autohelp=False)
 def lawyerjoke(message):
     """- Returns a lawyer joke, so lawyers know how much we hate them."""
-    message(random.choice(lawyer_jokes))
+    message(random.choice(joke_lines['lawyerjoke']))
 
 
 @hook.command(autohelp=False)
