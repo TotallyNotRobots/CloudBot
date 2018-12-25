@@ -45,24 +45,6 @@ status_table = Table(
     PrimaryKeyConstraint('network', 'chan')
 )
 
-"""
-game_status structure 
-{ 
-    'network':{
-        '#chan1':{
-            'duck_status':0|1|2, 
-            'next_duck_time':'integer', 
-            'game_on':0|1,
-            'no_duck_kick': 0|1,
-            'duck_time': 'float', 
-            'shoot_time': 'float',
-            'messages': integer,
-            'masks' : list
-        }
-    }
-}
-"""
-
 
 class ChannelState:
     """
@@ -134,7 +116,8 @@ def load_status(db):
         status = get_state_table(net, chan)
         status.game_on = row['active']
         status.no_duck_kick = row['duck_kick']
-        set_ducktime(chan, net)
+        if status.game_on:
+            set_ducktime(chan, net)
 
 
 def get_state_table(network, chan):
@@ -223,8 +206,10 @@ def start_hunt(db, chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     if is_opt_out(conn.name, chan):
         return
-    elif not chan.startswith("#"):
+
+    if not chan.startswith("#"):
         return "No hunting by yourself, that isn't safe."
+
     check = get_state_table(conn.name, chan).game_on
     if check:
         return "there is already a game running in {}.".format(chan)
