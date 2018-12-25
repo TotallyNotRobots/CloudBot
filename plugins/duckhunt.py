@@ -68,14 +68,14 @@ MASK_REQ = 3
 scripters = defaultdict(int)
 chan_locks = defaultdict(lambda: defaultdict(Lock))
 game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+opt_out = []
 
 
 @hook.on_start()
 def load_optout(db):
     """load a list of channels duckhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
-    global opt_out
-    opt_out = []
+    opt_out.clear()
     chans = db.execute(select([optout.c.chan]))
     if chans:
         for row in chans:
@@ -140,19 +140,18 @@ def set_game_state(db, conn, chan, active=None, duck_kick=None):
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def incrementMsgCounter(event, conn):
     """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking."""
-    global game_status
     if event.chan in opt_out:
         return
-    if game_status[conn.name][event.chan]['game_on'] == 1 and game_status[conn.name][event.chan]['duck_status'] == 0:
-        game_status[conn.name][event.chan]['messages'] += 1
-        if event.host not in game_status[conn.name][event.chan]['masks']:
-            game_status[conn.name][event.chan]['masks'].append(event.host)
+    status = get_state_table(conn.name, event.chan)
+    if status['game_on'] == 1 and status['duck_status'] == 0:
+        status['messages'] += 1
+        if event.host not in status['masks']:
+            status['masks'].append(event.host)
 
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def start_hunt(db, chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
-    global game_status
     if chan in opt_out:
         return
     elif not chan.startswith("#"):
@@ -170,7 +169,6 @@ def start_hunt(db, chan, message, conn):
 
 
 def set_ducktime(chan, conn):
-    global game_status
     game_status[conn][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
     # game_status[conn][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
     game_status[conn][chan]['duck_status'] = 0
@@ -225,7 +223,6 @@ def generate_duck():
 
 @hook.periodic(11, initial_interval=11)
 def deploy_duck(bot):
-    global game_status
     for network in game_status:
         if network not in bot.connections:
             continue
@@ -315,7 +312,6 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
 
 
 def attack(event, nick, chan, message, db, conn, notice, attack):
-    global game_status, scripters
     if chan in opt_out:
         return
 
@@ -506,7 +502,6 @@ def killers(text, chan, conn, db):
 @hook.command("duckforgive", permissions=["op", "ignore"])
 def duckforgive(text):
     """<nick> - Allows people to be removed from the mandatory cooldown period."""
-    global scripters
     if text.lower() in scripters and scripters[text.lower()] > time():
         scripters[text.lower()] = 0
         return "{} has been removed from the mandatory cooldown period.".format(text)
