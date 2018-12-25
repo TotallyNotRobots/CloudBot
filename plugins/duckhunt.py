@@ -89,15 +89,19 @@ def load_status(db):
     for row in rows:
         net = row['network']
         chan = row['chan']
-        status = game_status[net][chan]
+        status = get_state_table(net, chan)
         status["game_on"] = int(row['active'])
         status["no_duck_kick"] = int(row['duck_kick'])
         set_ducktime(chan, net)
 
 
+def get_state_table(network, chan):
+    return game_status[network.casefold()][chan.casefold()]
+
+
 def save_channel_state(db, network, chan, status=None):
     if status is None:
-        status = game_status[network][chan.casefold()]
+        status = get_state_table(network, chan)
 
     active = bool(status['game_on'])
     duck_kick = bool(status['no_duck_kick'])
@@ -127,7 +131,7 @@ def save_status(db, _sleep=True):
 
 
 def set_game_state(db, conn, chan, active=None, duck_kick=None):
-    status = game_status[conn.name][chan]
+    status = get_state_table(conn.name, chan)
     if active is not None:
         status['game_on'] = int(active)
 
@@ -156,7 +160,7 @@ def start_hunt(db, chan, message, conn):
         return
     elif not chan.startswith("#"):
         return "No hunting by yourself, that isn't safe."
-    check = game_status[conn.name][chan]['game_on']
+    check = get_state_table(conn.name, chan)['game_on']
     if check:
         return "there is already a game running in {}.".format(chan)
     else:
@@ -169,22 +173,26 @@ def start_hunt(db, chan, message, conn):
 
 
 def set_ducktime(chan, conn):
-    game_status[conn][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
-    # game_status[conn][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
-    game_status[conn][chan]['duck_status'] = 0
+    """
+    :type chan: str
+    :type conn: str
+    """
+    status = get_state_table(conn, chan)
+    status['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    # status['flyaway'] = status['next_duck_time'] + 600
+    status['duck_status'] = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
-    game_status[conn][chan]['messages'] = 0
-    game_status[conn][chan]['masks'] = []
+    status['messages'] = 0
+    status['masks'] = []
     return
 
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def stop_hunt(db, chan, conn):
     """- This command stops the duck hunt in your channel. Scores will be preserved"""
-    global game_status
     if chan in opt_out:
         return
-    if game_status[conn.name][chan]['game_on']:
+    if get_state_table(conn.name, chan)['game_on']:
         set_game_state(db, conn, chan, active=False)
         return "the game has been stopped."
     else:
@@ -194,7 +202,6 @@ def stop_hunt(db, chan, conn):
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(db, text, chan, conn, notice_doc):
     """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
-    global game_status
     if chan in opt_out:
         return
     if text.lower() == 'enable':
@@ -230,16 +237,17 @@ def deploy_duck(bot):
         if not conn.ready:
             continue
         for chan in game_status[network]:
-            active = game_status[network][chan]['game_on']
-            duck_status = game_status[network][chan]['duck_status']
-            next_duck = game_status[network][chan]['next_duck_time']
-            chan_messages = game_status[network][chan]['messages']
-            chan_masks = game_status[network][chan]['masks']
+            status = get_state_table(network, chan)
+            active = status['game_on']
+            duck_status = status['duck_status']
+            next_duck = status['next_duck_time']
+            chan_messages = status['messages']
+            chan_masks = status['masks']
             if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(
                 chan_masks) >= MASK_REQ:
                 # deploy a duck to channel
-                game_status[network][chan]['duck_status'] = 1
-                game_status[network][chan]['duck_time'] = time()
+                status['duck_status'] = 1
+                status['duck_time'] = time()
                 dtail, dbody, dnoise = generate_duck()
                 conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
             continue
@@ -316,7 +324,7 @@ def attack(event, nick, chan, message, db, conn, notice, attack):
         return
 
     network = conn.name
-    status = game_status[network][chan]
+    status = get_state_table(network, chan)
 
     out = ""
     if attack == "shoot":
