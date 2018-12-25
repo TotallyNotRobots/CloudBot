@@ -89,16 +89,19 @@ def format_output(item, show_url=False):
     item["points"] = formatting.pluralize_auto(item["score"], 'point')
 
     if item["over_18"]:
-        item["warning"] = " \x02NSFW\x02"
+        item["warning"] = colors.parse(" $(b, red)NSFW$(clear)")
     else:
         item["warning"] = ""
 
     if show_url:
-        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
-               " - \x02{author}\x02 {timesince} ago - {link}{warning}".format(**item)
+        item["url"] = " - " + item["link"]
     else:
-        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
-               " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
+        item["url"] = ""
+
+    return colors.parse(
+        "$(b){title} : {subreddit}$(b) - {comments}, {points}"
+        " - $(b){author}$(b) {timesince} ago{url}{warning}"
+    ).format(**item)
 
 
 def statuscheck(status, item):
