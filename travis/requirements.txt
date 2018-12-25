@@ -1,5 +1,5 @@
 pytest==4.0.2
-responses==0.9.0
+responses==0.10.5
 pytest-cov==2.5.1
 pytest-pep8==1.0.6
 pytest-leaks==0.2.2
