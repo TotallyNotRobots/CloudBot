@@ -25,7 +25,6 @@ class WeakDict(dict):
     """
     A subclass of dict to allow it to be weakly referenced
     """
-    pass
 
 
 # noinspection PyUnresolvedReferences
@@ -84,14 +83,12 @@ class KeyFoldDict(KeyFoldMixin, dict):
     """
     KeyFolded dict type
     """
-    pass
 
 
 class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
     """
     KeyFolded WeakValueDictionary
     """
-    pass
 
 
 class ChanDict(KeyFoldDict):
