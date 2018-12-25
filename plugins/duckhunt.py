@@ -13,7 +13,7 @@ from cloudbot.util import database
 from cloudbot.util.formatting import pluralize_auto
 
 duck_tail = "・゜゜・。。・゜゜"
-duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
+duck = ["\\_o< ", "\\_O< ", "\\_0< ", "\\_\u00f6< ", "\\_\u00f8< ", "\\_\u00f3< "]
 duck_noise = ["QUACK!", "FLAP FLAP!", "quack!"]
 
 table = Table(
