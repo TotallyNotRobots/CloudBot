@@ -1,12 +1,14 @@
+import random
 import re
 from collections import defaultdict
 from datetime import datetime
 
 import requests
 from requests import HTTPError
+from yarl import URL
 
 from cloudbot import hook
-from cloudbot.util import colors
+from cloudbot.util import colors, timeformat, formatting
 from cloudbot.util.formatting import pluralize_auto
 from cloudbot.util.pager import paginated_list
 
@@ -16,8 +18,27 @@ sub_re = re.compile(r'^(?:/?r/)?(?P<name>.+)$', re.IGNORECASE)
 
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
+short_url = "https://redd.it/{}"
 # This agent should be unique for your cloudbot instance
 agent = {"User-Agent": "gonzobot a cloudbot (IRCbot) implementation for snoonet.org by /u/bloodygonzo"}
+
+reddit_re = re.compile(
+    r"""
+    https? # Scheme
+    ://
+
+    # Domain
+    (?:
+        redd\.it|
+        (?:www\.)?reddit\.com/r
+    )
+
+    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)*  # Path
+
+    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
+    """,
+    re.IGNORECASE | re.VERBOSE
+)
 
 
 def test_get_user():
@@ -44,6 +65,40 @@ def get_sub(text):
     match = sub_re.match(text)
     if match:
         return match.group('name')
+
+
+def api_request(url):
+    """
+    :type url: yarl.URL
+    """
+    url = url.with_query("").with_scheme("https") / ".json"
+    r = requests.get(str(url), headers=agent)
+    r.raise_for_status()
+    return r.json()
+
+
+def format_output(item, show_url=False):
+    """ takes a reddit post and returns a formatted string """
+    item["title"] = formatting.truncate(item["title"], 70)
+    item["link"] = short_url.format(item["id"])
+
+    raw_time = datetime.fromtimestamp(int(item["created_utc"]))
+    item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
+
+    item["comments"] = formatting.pluralize_auto(item["num_comments"], 'comment')
+    item["points"] = formatting.pluralize_auto(item["score"], 'point')
+
+    if item["over_18"]:
+        item["warning"] = " \x02NSFW\x02"
+    else:
+        item["warning"] = ""
+
+    if show_url:
+        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
+               " - \x02{author}\x02 {timesince} ago - {link}{warning}".format(**item)
+    else:
+        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
+               " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
 
 
 def statuscheck(status, item):
@@ -84,6 +139,63 @@ def moremod(text, chan, conn):
             return page
         else:
             return "All pages have been shown."
+
+
+@hook.regex(reddit_re, singlethread=True)
+def reddit_url(match, bot):
+    url = match.group()
+    url = URL(url).with_scheme("https")
+
+    if url.host.endswith("redd.it"):
+        response = requests.get(url, headers={'User-Agent': bot.user_agent})
+        response.raise_for_status()
+        url = URL(response.url).with_scheme("https")
+
+    data = api_request(url)
+    item = data[0]["data"]["children"][0]["data"]
+
+    return format_output(item)
+
+
+@hook.command(autohelp=False, singlethread=True)
+def reddit(text, bot, reply):
+    """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
+    id_num = None
+
+    if text:
+        # clean and split the input
+        parts = text.lower().strip().split()
+        sub = get_sub(parts.pop(0).strip())
+        url = subreddit_url.format(sub)
+
+        # find the requested post number (if any)
+        if parts:
+            try:
+                id_num = int(parts[0]) - 1
+            except ValueError:
+                return "Invalid post number."
+    else:
+        url = "https://reddit.com"
+
+    try:
+        data = api_request(URL(url))
+    except Exception as e:
+        reply("Error: " + str(e))
+        raise
+
+    data = data["data"]["children"]
+
+    # get the requested/random post
+    if id_num is not None:
+        try:
+            item = data[id_num]
+        except IndexError:
+            length = len(data)
+            return "Invalid post number. Number must be between 1 and {}.".format(length)
+    else:
+        item = random.choice(data)
+
+    return format_output(item["data"], show_url=True)
 
 
 @hook.command("subs", "moderates", singlethread=True)
