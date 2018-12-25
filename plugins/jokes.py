@@ -88,10 +88,7 @@ def wisdom(message):
 def bookpun(message):
     """- Suggests a pun of a book title/author."""
     # suggestions = ["Why not try", "You should read", "You gotta check out"]
-    book = random.choice(joke_lines['book_puns'])
-    title = book.split(':')[0].strip()
-    author = book.split(':')[1].strip()
-    message("{} by {}".format(title, author))
+    message(random.choice(joke_lines['book_puns']))
 
 
 @hook.command("boobs", "boobies")
