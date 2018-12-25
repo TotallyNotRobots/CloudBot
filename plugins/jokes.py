@@ -101,7 +101,7 @@ def boobies(text):
     return out
 
 
-@hook.command("zombs", autohelp=False)
+@hook.command(autohelp=False)
 def zombs():
     """- Prints some fucked up shit."""
     out = "\u2299\u2299\u0505\u0F0D\u0020\u0E88\u0020\u25DE\u0C6A\u25DF\u0E88\u0020\u0F0D\u0648"
@@ -110,20 +110,19 @@ def zombs():
 
 @hook.command("awesome", "iscool", "cool")
 def awesome(text, is_nick_valid):
-    """<nick> - Prints a link to show <nick> how awesome they are."""
-    link = 'http://is-awesome.cool/{}'
-    nick = text.split(' ')[0]
-    if is_nick_valid(nick):
-        return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(
-            nick, link.format(nick)
-        )
-    else:
-        return "Sorry I can't tell {} how awesome they are.".format(nick)
+    """<nick> - Returns a link to show <nick> how awesome they are.
+    See https://github.com/sebastianbarfurth/is-awesome.cool
+    """
+    target = text.split(' ')[0]
+    if not is_nick_valid(target):
+        return "Sorry I can't tell {} how awesome they are.".format(target)
+    link = 'http://{}.is-awesome.cool/'.format(target)
+    return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(target, link)
 
 
 @hook.command(autohelp=False)
 def triforce(message):
-    """- Peturns a triforce!"""
+    """- Returns a triforce!"""
     top = ["\u00a0\u25b2", "\u00a0\u00a0\u25b2", "\u25b2", "\u00a0\u25b2"]
     bottom = ["\u25b2\u00a0\u25b2", "\u25b2 \u25b2", "\u25b2\u25b2"]
     message(random.choice(top))
@@ -147,7 +146,7 @@ def lawyerjoke(message):
     message(random.choice(lawyer_jokes))
 
 
-@hook.command("fuck", autohelp=False)
+@hook.command(autohelp=False)
 def fuck():
     """- Returns something funny."""
     return "something funny."
