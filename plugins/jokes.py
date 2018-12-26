@@ -1,95 +1,98 @@
-import codecs
-import os
 import random
+from pathlib import Path
 
 from cloudbot import hook
+
+joke_lines = {}
+
+
+def load_joke_file(path):
+    """Loads all the lines from a file, excluding blanks and lines that have been 'commented out'.
+    :type path: Path
+    :rtype: List[str]
+    """
+    with path.open(encoding='utf-8') as f:
+        return [line.strip() for line in f
+                if line.strip()
+                and not line.startswith('//')]
 
 
 @hook.on_start()
 def load_jokes(bot):
-    """
+    """Load strings into memory from files in the data directory.
+    Put 'NAME.txt' in `file_list` to make those strings available as `joke_lines['NAME']`.
     :type bot: cloudbot.bot.Cloudbot
     """
-    global yo_momma, do_it, pun, confucious, one_liner, wisdom, book_puns, lawyerjoke, kero_sayings
-
-    with codecs.open(os.path.join(bot.data_dir, "yo_momma.txt"), encoding="utf-8") as f:
-        yo_momma = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "do_it.txt"), encoding="utf-8") as f:
-        do_it = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "puns.txt"), encoding="utf-8") as f:
-        pun = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "confucious.txt"), encoding="utf-8") as f:
-        confucious = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "one_liners.txt"), encoding="utf-8") as f:
-        one_liner = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "wisdom.txt"), encoding="utf-8") as f:
-        wisdom = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "book_puns.txt"), encoding="utf-8") as f:
-        book_puns = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "lawyerjoke.txt"), encoding="utf-8") as f:
-        lawyerjoke = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "kero.txt"), encoding="utf-8") as f:
-        kero_sayings = [line.strip() for line in f.readlines() if not line.startswith("//")]
+    data_directory = Path(bot.data_dir)
+    file_list = [
+        'yo_momma.txt',
+        'do_it.txt',
+        'puns.txt',
+        'confucious.txt',
+        'one_liners.txt',
+        'wisdom.txt',
+        'book_puns.txt',
+        'lawyerjoke.txt',
+        'kero.txt',
+    ]
+    for file_name in file_list:
+        file_path = data_directory / file_name
+        joke_lines[file_path.stem] = load_joke_file(file_path)
 
 
 @hook.command()
-def yomomma(text):
-    """<nick> - tells a yo momma joke to <nick>"""
+def yomomma(text, nick, conn, is_nick_valid):
+    """<nick> - Tells a yo momma joke to <nick>."""
     target = text.strip()
-    return '{}, {}'.format(target, random.choice(yo_momma).lower())
+    if not is_nick_valid(target) or target.lower() == conn.nick.lower():
+        target = nick
+    joke = random.choice(joke_lines['yo_momma']).lower()
+    return '{}, {}'.format(target, joke)
 
 
 @hook.command(autohelp=False)
 def doit(message):
-    """- prints a do it line, example: mathmaticians do with a pencil"""
-    message(random.choice(do_it))
+    """- Prints a do it line, example: mathematicians do with a pencil."""
+    message(random.choice(joke_lines['do_it']))
 
 
 @hook.command(autohelp=False)
 def pun(message):
     """- Come on everyone loves puns right?"""
-    message(random.choice(pun))
+    message(random.choice(joke_lines['puns']))
 
 
 @hook.command(autohelp=False)
 def confucious(message):
-    """- confucious say man standing on toilet is high on pot."""
-    message('Confucious say {}'.format(random.choice(confucious).lower()))
+    """- Confucious say man standing on toilet is high on pot.
+    (Note that the spelling is deliberate: https://www.urbandictionary.com/define.php?term=Confucious)
+    """
+    saying = random.choice(joke_lines['confucious']).lower()
+    message('Confucious say {}'.format(saying))
 
 
 @hook.command(autohelp=False)
 def dadjoke(message):
-    """- love em or hate em, bring on the dad jokes."""
-    message(random.choice(one_liner))
+    """- Love em or hate em, bring on the dad jokes."""
+    message(random.choice(joke_lines['one_liners']))
 
 
 @hook.command(autohelp=False)
 def wisdom(message):
-    """- words of wisdom from various bathroom stalls."""
-    message(random.choice(wisdom))
+    """- Words of wisdom from various bathroom stalls."""
+    message(random.choice(joke_lines['wisdom']))
 
 
 @hook.command(autohelp=False)
 def bookpun(message):
     """- Suggests a pun of a book title/author."""
     # suggestions = ["Why not try", "You should read", "You gotta check out"]
-    book = random.choice(book_puns)
-    title = book.split(':')[0].strip()
-    author = book.split(':')[1].strip()
-    message("{} by {}".format(title, author))
+    message(random.choice(joke_lines['book_puns']))
 
 
 @hook.command("boobs", "boobies")
 def boobies(text):
-    """- prints boobies!"""
+    """<text> - Everything is better with boobies!"""
     boob = "\u2299"
     out = text.strip()
     out = out.replace('o', boob).replace('O', boob).replace('0', boob)
@@ -98,29 +101,28 @@ def boobies(text):
     return out
 
 
-@hook.command("zombs", autohelp=False)
+@hook.command(autohelp=False)
 def zombs():
-    """- prints some fucked up shit."""
+    """- Prints some fucked up shit."""
     out = "\u2299\u2299\u0505\u0F0D\u0020\u0E88\u0020\u25DE\u0C6A\u25DF\u0E88\u0020\u0F0D\u0648"
     return out
 
 
 @hook.command("awesome", "iscool", "cool")
 def awesome(text, is_nick_valid):
-    """- Prints a webpage to show <nick> how awesome they are."""
-    link = 'http://is-awesome.cool/{}'
-    nick = text.split(' ')[0]
-    if is_nick_valid(nick):
-        return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(
-            nick, link.format(nick)
-        )
-    else:
-        return "Sorry I can't tell {} how awesome they are.".format(nick)
+    """<nick> - Returns a link to show <nick> how awesome they are.
+    See https://github.com/sebastianbarfurth/is-awesome.cool
+    """
+    target = text.split(' ')[0]
+    if not is_nick_valid(target):
+        return "Sorry I can't tell {} how awesome they are.".format(target)
+    link = 'http://{}.is-awesome.cool/'.format(target)
+    return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(target, link)
 
 
 @hook.command(autohelp=False)
 def triforce(message):
-    """- returns a triforce!"""
+    """- Returns a triforce!"""
     top = ["\u00a0\u25b2", "\u00a0\u00a0\u25b2", "\u25b2", "\u00a0\u25b2"]
     bottom = ["\u25b2\u00a0\u25b2", "\u25b2 \u25b2", "\u25b2\u25b2"]
     message(random.choice(top))
@@ -129,8 +131,8 @@ def triforce(message):
 
 @hook.command("kero", "kerowhack")
 def kero(text):
-    """- Returns the text input the way kerouac5 would say it."""
-    keror = random.choice(kero_sayings).upper()
+    """<text> - Returns the text input the way kerouac5 would say it."""
+    keror = random.choice(joke_lines['kero']).upper()
     if keror == "???? WTF IS":
         out = keror + " " + text.upper()
     else:
@@ -140,11 +142,11 @@ def kero(text):
 
 @hook.command(autohelp=False)
 def lawyerjoke(message):
-    """- returns a lawyer joke, so lawyers know how much we hate them"""
-    message(random.choice(lawyerjoke))
+    """- Returns a lawyer joke, so lawyers know how much we hate them."""
+    message(random.choice(joke_lines['lawyerjoke']))
 
 
-@hook.command("fuck", autohelp=False)
+@hook.command(autohelp=False)
 def fuck():
-    """- returns something funny."""
+    """- Returns something funny."""
     return "something funny."
