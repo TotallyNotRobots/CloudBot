@@ -16,5 +16,5 @@ requests==2.20.1
 requests-oauthlib==1.0.0
 SQLAlchemy==1.2.14
 tweepy==3.6.0
-watchdog==0.8.3
+watchdog==0.9.0
 yarl==1.1.1
