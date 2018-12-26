@@ -1,4 +1,4 @@
-beautifulsoup4==4.6.0
+beautifulsoup4==4.6.3
 cleverwrap==0.2.3.6
 feedparser==5.2.1
 future==0.16.0
