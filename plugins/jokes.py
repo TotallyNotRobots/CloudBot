@@ -23,7 +23,6 @@ def load_jokes(bot):
     Put 'NAME.txt' in `file_list` to make those strings available as `joke_lines['NAME']`.
     :type bot: cloudbot.bot.Cloudbot
     """
-    global joke_lines
     data_directory = Path(bot.data_dir)
     file_list = [
         'yo_momma.txt',
