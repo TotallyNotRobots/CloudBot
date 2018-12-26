@@ -1,4 +1,4 @@
-# CloudBot [![Build Status](https://travis-ci.org/snoonetIRC/CloudBot.svg?branch=gonzobot)](https://travis-ci.org/snoonetIRC/CloudBot) [![CodeFactor](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/badge)](https://www.codefactor.io/repository/github/snoonetirc/cloudbot)
+# CloudBot [![Build Status](https://travis-ci.org/snoonetIRC/CloudBot.svg?branch=gonzobot)](https://travis-ci.org/snoonetIRC/CloudBot) [![CodeFactor](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/overview/gonzobot)
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
 
