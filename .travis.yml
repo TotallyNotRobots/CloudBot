@@ -1,9 +1,11 @@
 language: python
+dist: xenial
+sudo: true
 python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "nightly"
+  - "3.7"
   - "pypy3"
 
 cache: pip
@@ -22,15 +24,3 @@ after_success:
 env:
   - PYTHONPATH=.
   - PYTHONPATH=. PYTHONASYNCIODEBUG=1
-
-matrix:
-  allow_failures:
-    - python: "nightly"
-  include:
-    - python: '3.7'
-      dist: xenial
-      sudo: true
-    - python: '3.8-dev'
-      dist: xenial
-      sudo: true
-
