@@ -4,7 +4,7 @@ from collections import defaultdict
 from threading import Lock
 from time import time, sleep
 
-from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
+from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean, and_
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -358,31 +358,24 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
     :type shoot: int
     :type friend: int
     """
-    if shoot and not friend:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(shot=shoot)
-        db.execute(query)
-        db.commit()
-    elif friend and not shoot:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(befriend=friend)
-        db.execute(query)
-        db.commit()
-    elif friend and shoot:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(befriend=friend) \
-            .values(shot=shoot)
-        db.execute(query)
-        db.commit()
+    values = {}
+    if shoot:
+        values['shot'] = shoot
+
+    if friend:
+        values['befriend'] = friend
+
+    if not values:
+        raise ValueError("No new values specified for 'friend' or 'shot'")
+
+    query = table.update().where(and_(
+        table.c.network == conn.name,
+        table.c.chan == chan.lower(),
+        table.c.name == nick.lower(),
+    )).values(**values)
+
+    db.execute(query)
+    db.commit()
 
 
 def update_score(nick, chan, db, conn, shoot=0, friend=0):
