@@ -61,6 +61,10 @@ class ChannelState:
         self.duck_time = 0
         self.shoot_time = 0
 
+    def clear_messages(self):
+        self.messages = 0
+        self.masks.clear()
+
     def should_deploy(self):
         """Should we deploy a duck?"""
         return (
@@ -232,8 +236,7 @@ def set_ducktime(chan, conn):
     # status.flyaway = status.next_duck_time + 600
     status.duck_status = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
-    status.messages = 0
-    status.masks = []
+    status.clear_messages()
     return
 
 
