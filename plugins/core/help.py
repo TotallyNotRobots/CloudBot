@@ -53,6 +53,7 @@ def help_command(text, chan, bot, notice, message, has_permission, triggered_pre
             else:
                 # this is using the new format of `<args> - doc`
                 message = "{}{} {}".format(triggered_prefix, searching_for, doc)
+
             notice(message)
         else:
             notice("Command {} has no additional documentation.".format(searching_for))
