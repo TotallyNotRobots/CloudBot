@@ -92,8 +92,6 @@ def tell_check(conn, nick):
     for _conn, _target in tell_cache:
         if (conn, nick.lower()) == (_conn, _target):
             return True
-        else:
-            continue
 
 
 @hook.event(EventType.message, singlethread=True)

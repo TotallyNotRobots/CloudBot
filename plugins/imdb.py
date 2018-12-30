@@ -31,14 +31,15 @@ def imdb(text, bot):
 
     if content['success'] is False:
         return 'Unknown error'
-    elif len(content['result']) == 0:
+
+    if len(content['result']) == 0:
         return 'No movie found'
-    else:
-        result = content['result']
-        if endpoint == 'search':
-            result = result[0]  # part of the search results, not 1 record
-        url = 'http://www.imdb.com/title/{}'.format(result['id'])
-        return movie_str(result) + ' ' + url
+
+    result = content['result']
+    if endpoint == 'search':
+        result = result[0]  # part of the search results, not 1 record
+    url = 'http://www.imdb.com/title/{}'.format(result['id'])
+    return movie_str(result) + ' ' + url
 
 
 @hook.regex(imdb_re)

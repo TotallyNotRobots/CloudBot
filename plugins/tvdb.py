@@ -124,9 +124,9 @@ def tv_next(text, bot=None):
 
     if len(next_eps) == 1:
         return "The next episode of {} airs {}".format(series_name, next_eps[0])
-    else:
-        next_eps = ', '.join(next_eps)
-        return "The next episodes of {}: {}".format(series_name, next_eps)
+
+    next_eps = ', '.join(next_eps)
+    return "The next episodes of {}: {}".format(series_name, next_eps)
 
 
 @hook.command()

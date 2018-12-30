@@ -41,17 +41,16 @@ def update_db():
             # geoip is outdated, re-download
             fetch_db()
             return geoip2.database.Reader(PATH)
-        else:
-            try:
-                return geoip2.database.Reader(PATH)
-            except geoip2.errors.GeoIP2Error:
-                # issue loading, geo
-                fetch_db()
-                return geoip2.database.Reader(PATH)
-    else:
-        # no geoip file
-        fetch_db()
-        return geoip2.database.Reader(PATH)
+        try:
+            return geoip2.database.Reader(PATH)
+        except geoip2.errors.GeoIP2Error:
+            # issue loading, geo
+            fetch_db()
+            return geoip2.database.Reader(PATH)
+
+    # no geoip file
+    fetch_db()
+    return geoip2.database.Reader(PATH)
 
 
 @asyncio.coroutine

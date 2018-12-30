@@ -30,8 +30,8 @@ def run_func(loop, func, *args, **kwargs):
     part = partial(func, *args, **kwargs)
     if asyncio.iscoroutine(func) or asyncio.iscoroutinefunction(func):
         return (yield from part())
-    else:
-        return (yield from loop.run_in_executor(None, part))
+
+    return (yield from loop.run_in_executor(None, part))
 
 
 @asyncio.coroutine

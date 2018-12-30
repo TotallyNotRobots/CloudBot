@@ -559,7 +559,8 @@ class MappingSerializer:
     def _serialize(self, obj):
         if isinstance(obj, (str, Number, bool)) or obj is None:
             return obj
-        elif isinstance(obj, Mapping):
+
+        if isinstance(obj, Mapping):
             if id(obj) in self._seen_objects:
                 return '<{} with id {}>'.format(type(obj).__name__, id(obj))
 
@@ -569,7 +570,8 @@ class MappingSerializer:
                 self._serialize(k): self._serialize(v)
                 for k, v in obj.items()
             }
-        elif isinstance(obj, Iterable):
+
+        if isinstance(obj, Iterable):
             if id(obj) in self._seen_objects:
                 return '<{} with id {}>'.format(type(obj).__name__, id(obj))
 
@@ -579,8 +581,8 @@ class MappingSerializer:
                 self._serialize(item)
                 for item in obj
             ]
-        else:
-            return repr(obj)
+
+        return repr(obj)
 
     def serialize(self, mapping, **kwargs):
         """

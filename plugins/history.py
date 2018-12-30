@@ -115,7 +115,7 @@ def seen(text, nick, chan, db, event, is_nick_valid):
         reltime = timeformat.time_since(last_seen[1])
         if last_seen[2][0:1] == "\x01":
             return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
-        else:
-            return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
-    else:
-        return "I've never seen {} talking in this channel.".format(text)
+
+        return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
+
+    return "I've never seen {} talking in this channel.".format(text)

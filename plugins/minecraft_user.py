@@ -53,8 +53,8 @@ def mcuser(text, bot, reply):
     if not results['success']:
         if results['error'] == "User is not premium.":
             return "The account \x02{}\x02 is not premium or does not exist.".format(text)
-        else:
-            return results['error']
+
+        return results['error']
 
     username = results['data']['username']
     uid = uuid.UUID(results['data']['uuid'])

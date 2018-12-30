@@ -19,8 +19,8 @@ def is_self(conn, target):
     """ Checks if a string is "****self" or contains conn.name. """
     if re.search("(^..?.?.?self|{})".format(re.escape(conn.nick)), target, re.I):
         return True
-    else:
-        return False
+
+    return False
 
 
 attack_data = defaultdict(dict)

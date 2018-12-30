@@ -40,8 +40,8 @@ def isgd(text, reply):
     try:
         if 'is.gd' in url:
             return web.expand(url, 'is.gd')
-        else:
-            return web.shorten(url, custom, 'is.gd')
+
+        return web.shorten(url, custom, 'is.gd')
     except web.ServiceError as e:
         reply(e.message)
         raise
@@ -58,8 +58,8 @@ def googl(text, reply):
     try:
         if 'goo.gl' in url:
             return web.expand(url, 'goo.gl')
-        else:
-            return web.shorten(url, custom, 'goo.gl')
+
+        return web.shorten(url, custom, 'goo.gl')
     except web.ServiceError as e:
         reply(e.message)
         raise
@@ -76,8 +76,8 @@ def gitio(text, reply):
     try:
         if 'git.io' in url:
             return web.expand(url, 'git.io')
-        else:
-            return web.shorten(url, custom, 'git.io')
+
+        return web.shorten(url, custom, 'git.io')
     except web.ServiceError as e:
         reply(e.message)
         raise

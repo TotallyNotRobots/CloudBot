@@ -65,12 +65,12 @@ def get_encoding(soup):
 
     if meta_charset:
         return meta_charset['charset']
-    else:
-        meta_content_type = soup.find(
-            'meta', {'http-equiv': lambda t: t and t.lower() == 'content-type', 'content': True}
-        )
-        if meta_content_type:
-            return requests.utils.get_encoding_from_headers({'content-type': meta_content_type['content']})
+
+    meta_content_type = soup.find(
+        'meta', {'http-equiv': lambda t: t and t.lower() == 'content-type', 'content': True}
+    )
+    if meta_content_type:
+        return requests.utils.get_encoding_from_headers({'content-type': meta_content_type['content']})
 
     return None
 

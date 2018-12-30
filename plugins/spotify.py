@@ -81,14 +81,16 @@ def _do_format(data, _type):
         album = data["album"]["name"]
 
         return "Spotify Track", "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
-    elif _type == "artist":
+
+    if _type == "artist":
         return "Spotify Artist", "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
             name, data["followers"]["total"], ', '.join(data["genres"])
         )
-    elif _type == "album":
+
+    if _type == "album":
         return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
-    else:
-        raise ValueError("Attempt to format unknown Spotify API type: " + _type)
+
+    raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
 
 def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False):

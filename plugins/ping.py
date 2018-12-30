@@ -59,7 +59,7 @@ def ping(text, reply):
         r = int(m.group(2)) - int(m.group(1))
         return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" \
                % (m.group(1), m.group(2), m.group(3), r, count)
-    else:
-        m = re.search(unix_ping_regex, pingcmd)
-        return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" \
-               % (m.group(1), m.group(3), m.group(2), m.group(4), count)
+
+    m = re.search(unix_ping_regex, pingcmd)
+    return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" \
+           % (m.group(1), m.group(3), m.group(2), m.group(4), count)

@@ -51,7 +51,6 @@ def mcping(text):
         return "{}\x0f - \x02{}\x0f - \x02{:.1f}ms\x02" \
                " - \x02{}/{}\x02 players".format(description, s.version.name_clean, s.latency,
                                                  s.players.online, s.players.max).replace("\n", "\x0f - ")
-    else:
-        return "{}\x0f - \x02{}\x0f" \
-               " - \x02{}/{}\x02 players".format(description, s.version.name_clean,
-                                                 s.players.online, s.players.max).replace("\n", "\x0f - ")
+    return "{}\x0f - \x02{}\x0f" \
+           " - \x02{}/{}\x02 players".format(description, s.version.name_clean,
+                                             s.players.online, s.players.max).replace("\n", "\x0f - ")

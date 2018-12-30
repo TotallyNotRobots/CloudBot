@@ -118,7 +118,8 @@ def note(text, conn, nick, db, notice):
 
         notice("Note added!")
         return
-    elif cmd in ['del', 'delete', 'remove']:
+
+    if cmd in ['del', 'delete', 'remove']:
         # user is deleting a note
         if not len(args):
             return "No note ID provided!"
@@ -136,13 +137,15 @@ def note(text, conn, nick, db, notice):
 
         notice("Note #{} deleted!".format(note_id))
         return
-    elif cmd == 'clear':
+
+    if cmd == 'clear':
         # user is deleting all notes
         delete_all_notes(db, conn.name, nick)
 
         notice("All notes deleted!")
         return
-    elif cmd == 'get':
+
+    if cmd == 'get':
         # user is getting a single note
         if not len(args):
             return "No note ID provided!"
@@ -158,7 +161,8 @@ def note(text, conn, nick, db, notice):
         text = format_note(n)
         notice(text)
         return
-    elif cmd in ['share', 'show']:
+
+    if cmd in ['share', 'show']:
         # user is sharing a single note
         if not len(args):
             return "No note ID provided!"
@@ -173,7 +177,8 @@ def note(text, conn, nick, db, notice):
         # show the note
         text = format_note(n)
         return text
-    elif cmd == 'list':
+
+    if cmd == 'list':
         # user is getting all notes
         notes = read_all_notes(db, conn.name, nick)
 

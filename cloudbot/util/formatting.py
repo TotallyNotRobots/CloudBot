@@ -177,8 +177,8 @@ def ireplace(text, old, new, count=None):
 
     if count:
         return pattern.sub(new, text, count=count)
-    else:
-        return pattern.sub(new, text)
+
+    return pattern.sub(new, text)
 
 
 def multi_replace(text, word_dic):
@@ -207,8 +207,8 @@ def truncate_words(content, length=10, suffix='...'):
     split = content.split()
     if len(split) <= length:
         return " ".join(split[:length])
-    else:
-        return " ".join(split[:length]) + suffix
+
+    return " ".join(split[:length]) + suffix
 
 
 def truncate(content, length=100, suffix='...'):
@@ -219,8 +219,8 @@ def truncate(content, length=100, suffix='...'):
     """
     if len(content) <= length:
         return content
-    else:
-        return content[:length].rsplit(' ', 1)[0] + suffix
+
+    return content[:length].rsplit(' ', 1)[0] + suffix
 
 
 # compatibility
@@ -288,22 +288,29 @@ pluralise_select = pluralize_select
 def pluralize_auto(count, thing):
     if thing.endswith(('s', 'ss', 'sh', 'ch', 'x', 'z')):
         return pluralize_suffix(count, thing, 'es')
-    elif thing.endswith(('f', 'fe')):
+
+    if thing.endswith(('f', 'fe')):
         return pluralize_select(count, thing, thing.rsplit('f', 1)[0] + 'ves')
-    elif thing.endswith('y') and thing[-2:-1].lower() not in "aeiou":
+
+    if thing.endswith('y') and thing[-2:-1].lower() not in "aeiou":
         return pluralize_select(count, thing, thing[:-1] + 'ies')
-    elif thing.endswith('y') and thing[-2:-1].lower() in "aeiou":
+
+    if thing.endswith('y') and thing[-2:-1].lower() in "aeiou":
         return pluralize_suffix(count, thing)
-    elif thing.endswith('o'):
+
+    if thing.endswith('o'):
         return pluralize_suffix(count, thing, 'es')
-    elif thing.endswith('us'):
+
+    if thing.endswith('us'):
         return pluralize_select(count, thing, thing[:-2] + 'i')
-    elif thing.endswith('is'):
+
+    if thing.endswith('is'):
         return pluralize_select(count, thing, thing[:-2] + 'es')
-    elif thing.endswith('on'):
+
+    if thing.endswith('on'):
         return pluralize_select(count, thing, thing[:-2] + 'a')
-    else:
-        return pluralize_suffix(count, thing)
+
+    return pluralize_suffix(count, thing)
 
 
 pluralise_auto = pluralize_auto
@@ -372,8 +379,10 @@ def get_text_list(list_, last_word='or'):
     """
     if len(list_) == 0:
         return ''
+
     if len(list_) == 1:
         return list_[0]
+
     return '%s %s %s' % (
         # Translators: This string is used as a separator between list elements
         ', '.join([i for i in list_][:-1]),

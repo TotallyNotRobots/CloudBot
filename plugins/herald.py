@@ -39,7 +39,8 @@ def herald(text, nick, chan, db, reply):
             return "you don't have a herald set try .herald <message> to set your greeting."
 
         return greeting
-    elif text.lower() in ["delete", "remove"]:
+
+    if text.lower() in ["delete", "remove"]:
         greeting = herald_cache[chan.casefold()].get(nick.casefold())
         if greeting is None:
             return "no herald set, unable to delete."

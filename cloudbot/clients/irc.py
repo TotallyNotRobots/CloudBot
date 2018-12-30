@@ -97,8 +97,8 @@ class IrcClient(Client):
     def describe_server(self):
         if self.use_ssl:
             return "+{}:{}".format(self.server, self.port)
-        else:
-            return "{}:{}".format(self.server, self.port)
+
+        return "{}:{}".format(self.server, self.port)
 
     @asyncio.coroutine
     def auto_reconnect(self):

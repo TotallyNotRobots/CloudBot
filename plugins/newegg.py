@@ -70,9 +70,9 @@ def format_item(item, show_url=True):
         url = web.try_shorten(ITEM_URL.format(item["NeweggItemNumber"]))
         return "\x02{}\x02 ({}) - {} - {} - {}".format(title, price, rating,
                                                        tag_text, url)
-    else:
-        return "\x02{}\x02 ({}) - {} - {}".format(title, price, rating,
-                                                  tag_text)
+
+    return "\x02{}\x02 ({}) - {} - {}".format(title, price, rating,
+                                              tag_text)
 
 
 # HOOK FUNCTIONS
@@ -129,13 +129,13 @@ def newegg(text, admin_log, reply):
             url = web.paste(msg)
             admin_log("Newegg API Error: {ExceptionType}: {url}".format(url=url, **r))
             return "Newegg Error: {Message} (\x02{code}\x02)".format(code=request.status_code, **r)
-        else:
-            reply("Unknown error occurred.")
-            request.raise_for_status()
-            return
+
+        reply("Unknown error occurred.")
+        request.raise_for_status()
+        return
 
     # get the first result
     if r["ProductListItems"]:
         return format_item(r["ProductListItems"][0])
-    else:
-        return "No results found."
+
+    return "No results found."

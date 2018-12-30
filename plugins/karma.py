@@ -134,8 +134,8 @@ def points(text, chan, db):
             return "{} has a total score of {} (+{}/{}) across all channels I know about.".format(thing, score, pos,
                                                                                                   neg)
         return "{} has a total score of {} (+{}/{}) in {}.".format(text, score, pos, neg, chan)
-    else:
-        return "I couldn't find {} in the database.".format(text)
+
+    return "I couldn't find {} in the database.".format(text)
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)

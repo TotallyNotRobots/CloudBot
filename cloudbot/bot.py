@@ -304,8 +304,10 @@ class CloudBot:
             if hook.action is Action.HALTALL:
                 halted = True
                 return False
-            elif hook.action is Action.HALTTYPE:
+
+            if hook.action is Action.HALTTYPE:
                 return False
+
             return True
 
         # Raw IRC hook
