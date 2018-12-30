@@ -404,6 +404,7 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
                        .where(table.c.network == conn.name)
                        .where(table.c.chan == chan.lower())
                        .where(table.c.name == nick.lower())).fetchone()
+
     if score:
         dbupdate(nick, chan, db, conn, score[0] + shoot, score[1] + friend)
         return {'shoot': score[0] + shoot, 'friend': score[1] + friend}
