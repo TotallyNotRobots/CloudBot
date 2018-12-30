@@ -4,7 +4,7 @@ from collections import defaultdict
 from threading import Lock
 from time import time, sleep
 
-from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean
+from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean, and_
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -13,7 +13,7 @@ from cloudbot.util import database
 from cloudbot.util.formatting import pluralize_auto
 
 duck_tail = "・゜゜・。。・゜゜"
-duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
+duck = ["\\_o< ", "\\_O< ", "\\_0< ", "\\_\u00f6< ", "\\_\u00f8< ", "\\_\u00f3< "]
 duck_noise = ["QUACK!", "FLAP FLAP!", "quack!"]
 
 table = Table(
@@ -45,62 +45,105 @@ status_table = Table(
     PrimaryKeyConstraint('network', 'chan')
 )
 
-"""
-game_status structure 
-{ 
-    'network':{
-        '#chan1':{
-            'duck_status':0|1|2, 
-            'next_duck_time':'integer', 
-            'game_on':0|1,
-            'no_duck_kick': 0|1,
-            'duck_time': 'float', 
-            'shoot_time': 'float',
-            'messages': integer,
-            'masks' : list
-        }
-    }
-}
-"""
+
+class ChannelState:
+    """
+    Represents the state of the hunt in a single channel
+    """
+
+    def __init__(self):
+        self.masks = []
+        self.messages = 0
+        self.game_on = False
+        self.no_duck_kick = False
+        self.duck_status = 0
+        self.next_duck_time = 0
+        self.duck_time = 0
+        self.shoot_time = 0
+
+    def clear_messages(self):
+        self.messages = 0
+        self.masks.clear()
+
+    def should_deploy(self):
+        """Should we deploy a duck?"""
+        return (
+            self.game_on and self.duck_status == 0 and
+            self.next_duck_time <= time() and
+            self.messages <= MSG_DELAY and
+            len(self.masks) <= MASK_REQ
+        )
+
+    def handle_message(self, event):
+        if self.game_on and self.duck_status == 0:
+            self.messages += 1
+            if event.host not in self.masks:
+                self.masks.append(event.host)
+
 
 MSG_DELAY = 10
 MASK_REQ = 3
 scripters = defaultdict(int)
 chan_locks = defaultdict(lambda: defaultdict(Lock))
-game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+game_status = defaultdict(lambda: defaultdict(ChannelState))
+opt_out = defaultdict(list)
 
 
 @hook.on_start()
 def load_optout(db):
     """load a list of channels duckhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
-    global opt_out
-    opt_out = []
-    chans = db.execute(select([optout.c.chan]))
-    if chans:
-        for row in chans:
-            chan = row["chan"]
-            opt_out.append(chan)
+    opt_out.clear()
+    chans = db.execute(optout.select())
+    for row in chans:
+        chan = row["chan"]
+        opt_out[row["network"].casefold()].append(chan.casefold())
+
+
+def is_opt_out(network, chan):
+    """
+    :type network: str
+    :type chan: str
+    """
+    return chan.casefold() in opt_out[network]
 
 
 @hook.on_start
 def load_status(db):
+    """
+    :type db: sqlalchemy.orm.Session
+    """
     rows = db.execute(status_table.select())
     for row in rows:
         net = row['network']
         chan = row['chan']
-        status = game_status[net][chan]
-        status["game_on"] = int(row['active'])
-        status["no_duck_kick"] = int(row['duck_kick'])
-        set_ducktime(chan, net)
+        status = get_state_table(net, chan)
+        status.game_on = row['active']
+        status.no_duck_kick = row['duck_kick']
+        if status.game_on:
+            set_ducktime(chan, net)
+
+
+def get_state_table(network, chan):
+    """
+    :type network: str
+    :type chan: str
+    """
+    return game_status[network.casefold()][chan.casefold()]
 
 
 def save_channel_state(db, network, chan, status=None):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type network: str
+    :type chan: str
+    :type status: ChannelState
+    """
     if status is None:
-        status = game_status[network][chan.casefold()]
+        status = get_state_table(network, chan)
 
-    active = bool(status['game_on'])
-    duck_kick = bool(status['no_duck_kick'])
+    active = status.game_on
+    duck_kick = status.no_duck_kick
     res = db.execute(status_table.update().where(status_table.c.network == network).where(
         status_table.c.chan == chan).values(
         active=active, duck_kick=duck_kick
@@ -113,11 +156,18 @@ def save_channel_state(db, network, chan, status=None):
 
 @hook.on_unload
 def save_on_exit(db):
+    """
+    :type db: sqlalchemy.orm.Session
+    """
     return save_status(db, False)
 
 
 # @hook.periodic(8 * 3600, singlethread=True)  # Run every 8 hours
 def save_status(db, _sleep=True):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type _sleep: bool
+    """
     for network in game_status:
         for chan, status in game_status[network].items():
             save_channel_state(db, network, chan, status)
@@ -127,203 +177,261 @@ def save_status(db, _sleep=True):
 
 
 def set_game_state(db, conn, chan, active=None, duck_kick=None):
-    status = game_status[conn.name][chan]
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type chan: str
+    :type active: bool
+    :type duck_kick: bool
+    """
+    status = get_state_table(conn.name, chan)
     if active is not None:
-        status['game_on'] = int(active)
+        status.game_on = active
 
     if duck_kick is not None:
-        status['no_duck_kick'] = int(duck_kick)
+        status.no_duck_kick = duck_kick
 
     save_channel_state(db, conn.name, chan, status)
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def incrementMsgCounter(event, conn):
-    """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking."""
-    global game_status
-    if event.chan in opt_out:
+def increment_msg_counter(event, conn):
+    """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking.
+    :type event: cloudbot.event.Event
+    :type conn: cloudbot.client.Client
+    """
+    if is_opt_out(conn.name, event.chan):
         return
-    if game_status[conn.name][event.chan]['game_on'] == 1 and game_status[conn.name][event.chan]['duck_status'] == 0:
-        game_status[conn.name][event.chan]['messages'] += 1
-        if event.host not in game_status[conn.name][event.chan]['masks']:
-            game_status[conn.name][event.chan]['masks'].append(event.host)
+
+    get_state_table(conn.name, event.chan).handle_message(event)
 
 
 @hook.command("starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def start_hunt(db, chan, message, conn):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
-    global game_status
-    if chan in opt_out:
+    if is_opt_out(conn.name, chan):
         return
-    elif not chan.startswith("#"):
+
+    if not chan.startswith("#"):
         return "No hunting by yourself, that isn't safe."
-    check = game_status[conn.name][chan]['game_on']
+
+    check = get_state_table(conn.name, chan).game_on
     if check:
         return "there is already a game running in {}.".format(chan)
-    else:
-        set_game_state(db, conn, chan, active=True)
 
+    set_game_state(db, conn, chan, active=True)
     set_ducktime(chan, conn.name)
     message(
-        "Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.",
-        chan)
+        "Ducks have been spotted nearby. "
+        "See how many you can shoot or save. "
+        "use .bang to shoot or .befriend to save them. "
+        "NOTE: Ducks now appear as a function of time and channel activity.",
+        chan
+    )
 
 
 def set_ducktime(chan, conn):
-    global game_status
-    game_status[conn][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
-    # game_status[conn][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
-    game_status[conn][chan]['duck_status'] = 0
+    """
+    :type chan: str
+    :type conn: str
+    """
+    status = get_state_table(conn, chan)  # type: ChannelState
+    status.next_duck_time = random.randint(int(time()) + 480, int(time()) + 3600)
+    # status.flyaway = status.next_duck_time + 600
+    status.duck_status = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
-    game_status[conn][chan]['messages'] = 0
-    game_status[conn][chan]['masks'] = []
+    status.clear_messages()
     return
 
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def stop_hunt(db, chan, conn):
-    """- This command stops the duck hunt in your channel. Scores will be preserved"""
-    global game_status
-    if chan in opt_out:
+    """- This command stops the duck hunt in your channel. Scores will be preserved
+    :type db: sqlalchemy.orm.Session
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    """
+    if is_opt_out(conn.name, chan):
         return
-    if game_status[conn.name][chan]['game_on']:
+
+    if get_state_table(conn.name, chan).game_on:
         set_game_state(db, conn, chan, active=False)
         return "the game has been stopped."
-    else:
-        return "There is no game running in {}.".format(chan)
+
+    return "There is no game running in {}.".format(chan)
 
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(db, text, chan, conn, notice_doc):
-    """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
-    global game_status
-    if chan in opt_out:
+    """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off.
+    :type db: sqlalchemy.orm.Session
+    :type text: str
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type notice_doc: function
+    """
+    if is_opt_out(conn.name, chan):
         return
+
     if text.lower() == 'enable':
         set_game_state(db, conn, chan, duck_kick=True)
         return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
-    elif text.lower() == 'disable':
+
+    if text.lower() == 'disable':
         set_game_state(db, conn, chan, duck_kick=False)
         return "kicking for non-existent ducks has been disabled."
-    else:
-        notice_doc()
-        return
+
+    notice_doc()
+    return None
 
 
 def generate_duck():
     """Try and randomize the duck message so people can't highlight on it/script against it."""
     rt = random.randint(1, len(duck_tail) - 1)
     dtail = duck_tail[:rt] + u' \u200b ' + duck_tail[rt:]
+
     dbody = random.choice(duck)
     rb = random.randint(1, len(dbody) - 1)
     dbody = dbody[:rb] + u'\u200b' + dbody[rb:]
+
     dnoise = random.choice(duck_noise)
     rn = random.randint(1, len(dnoise) - 1)
     dnoise = dnoise[:rn] + u'\u200b' + dnoise[rn:]
+
     return dtail, dbody, dnoise
 
 
 @hook.periodic(11, initial_interval=11)
 def deploy_duck(bot):
-    global game_status
+    """
+    :type bot: cloudbot.bot.CloudBot
+    """
     for network in game_status:
         if network not in bot.connections:
             continue
+
         conn = bot.connections[network]
         if not conn.ready:
             continue
+
         for chan in game_status[network]:
-            active = game_status[network][chan]['game_on']
-            duck_status = game_status[network][chan]['duck_status']
-            next_duck = game_status[network][chan]['next_duck_time']
-            chan_messages = game_status[network][chan]['messages']
-            chan_masks = game_status[network][chan]['masks']
-            if active == 1 and duck_status == 0 and next_duck <= time() and chan_messages >= MSG_DELAY and len(
-                chan_masks) >= MASK_REQ:
-                # deploy a duck to channel
-                game_status[network][chan]['duck_status'] = 1
-                game_status[network][chan]['duck_time'] = time()
-                dtail, dbody, dnoise = generate_duck()
-                conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
-            continue
-        continue
+            status = get_state_table(network, chan)
+            if not status.should_deploy():
+                continue
+
+            # deploy a duck to channel
+            status.duck_status = 1
+            status.duck_time = time()
+            dtail, dbody, dnoise = generate_duck()
+            conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
 
 
 def hit_or_miss(deploy, shoot):
-    """This function calculates if the befriend or bang will be successful."""
+    """This function calculates if the befriend or bang will be successful.
+    :type deploy: float
+    :type shoot: float
+    """
     if shoot - deploy < 1:
         return .05
-    elif 1 <= shoot - deploy <= 7:
+
+    if 1 <= shoot - deploy <= 7:
         out = random.uniform(.60, .75)
         return out
-    else:
-        return 1
+
+    return 1
 
 
 def dbadd_entry(nick, chan, db, conn, shoot, friend):
-    """Takes care of adding a new row to the database."""
+    """Takes care of adding a new row to the database.
+    :type nick: str
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type shoot: int
+    :type friend: int
+    """
     query = table.insert().values(
         network=conn.name,
         chan=chan.lower(),
         name=nick.lower(),
         shot=shoot,
-        befriend=friend)
+        befriend=friend
+    )
+
     db.execute(query)
     db.commit()
 
 
 def dbupdate(nick, chan, db, conn, shoot, friend):
-    """update a db row"""
-    if shoot and not friend:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(shot=shoot)
-        db.execute(query)
-        db.commit()
-    elif friend and not shoot:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(befriend=friend)
-        db.execute(query)
-        db.commit()
-    elif friend and shoot:
-        query = table.update() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.chan == chan.lower()) \
-            .where(table.c.name == nick.lower()) \
-            .values(befriend=friend) \
-            .values(shot=shoot)
-        db.execute(query)
-        db.commit()
+    """update a db row
+    :type nick: str
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type shoot: int
+    :type friend: int
+    """
+    values = {}
+    if shoot:
+        values['shot'] = shoot
+
+    if friend:
+        values['befriend'] = friend
+
+    if not values:
+        raise ValueError("No new values specified for 'friend' or 'shot'")
+
+    query = table.update().where(and_(
+        table.c.network == conn.name,
+        table.c.chan == chan.lower(),
+        table.c.name == nick.lower(),
+    )).values(**values)
+
+    db.execute(query)
+    db.commit()
 
 
 def update_score(nick, chan, db, conn, shoot=0, friend=0):
+    """
+    :type nick: str
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type shoot: int
+    :type friend: int
+    """
     score = db.execute(select([table.c.shot, table.c.befriend])
                        .where(table.c.network == conn.name)
                        .where(table.c.chan == chan.lower())
                        .where(table.c.name == nick.lower())).fetchone()
+
     if score:
         dbupdate(nick, chan, db, conn, score[0] + shoot, score[1] + friend)
         return {'shoot': score[0] + shoot, 'friend': score[1] + friend}
-    else:
-        dbadd_entry(nick, chan, db, conn, shoot, friend)
-        return {'shoot': shoot, 'friend': friend}
+
+    dbadd_entry(nick, chan, db, conn, shoot, friend)
+    return {'shoot': shoot, 'friend': friend}
 
 
-def attack(event, nick, chan, message, db, conn, notice, attack):
-    global game_status, scripters
-    if chan in opt_out:
+def attack(event, nick, chan, message, db, conn, notice, attack_type):
+    """
+    :type event: cloudbot.event.Event
+    :type nick: str
+    :type chan: str
+    :type message: function
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type notice: function
+    :type attack_type: str
+    """
+    if is_opt_out(conn.name, chan):
         return
 
     network = conn.name
-    status = game_status[network][chan]
+    status = get_state_table(network, chan)
 
     out = ""
-    if attack == "shoot":
+    if attack_type == "shoot":
         miss = [
             "WHOOSH! You missed the duck completely!", "Your gun jammed!",
             "Better luck next time.",
@@ -345,83 +453,108 @@ def attack(event, nick, chan, message, db, conn, notice, attack):
         scripter_msg = "You tried friending that duck in {:.3f} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down."
         attack_type = "friend"
 
-    if not status['game_on']:
+    if not status.game_on:
         return "There is no hunt right now. Use .starthunt to start a game."
-    elif status['duck_status'] != 1:
-        if status['no_duck_kick'] == 1:
+
+    if status.duck_status != 1:
+        if status.no_duck_kick == 1:
             conn.cmd("KICK", chan, nick, no_duck)
             return
 
         return no_duck
-    else:
-        status['shoot_time'] = time()
-        deploy = status['duck_time']
-        shoot = status['shoot_time']
-        if nick.lower() in scripters:
-            if scripters[nick.lower()] > shoot:
-                notice(
-                    "You are in a cool down period, you can try again in {:.3f} seconds.".format(
-                        scripters[nick.lower()] - shoot
-                    )
+
+    status.shoot_time = time()
+    deploy = status.duck_time
+    shoot = status.shoot_time
+    if nick.lower() in scripters:
+        if scripters[nick.lower()] > shoot:
+            notice(
+                "You are in a cool down period, you can try again in {:.3f} seconds.".format(
+                    scripters[nick.lower()] - shoot
                 )
-                return
+            )
+            return
 
-        chance = hit_or_miss(deploy, shoot)
-        if not random.random() <= chance and chance > .05:
-            out = random.choice(miss) + " You can try again in 7 seconds."
-            scripters[nick.lower()] = shoot + 7
-            return out
+    chance = hit_or_miss(deploy, shoot)
+    if not random.random() <= chance and chance > .05:
+        out = random.choice(miss) + " You can try again in 7 seconds."
+        scripters[nick.lower()] = shoot + 7
+        return out
 
-        if chance == .05:
-            out += scripter_msg.format(shoot - deploy)
-            scripters[nick.lower()] = shoot + 7200
-            if not random.random() <= chance:
-                return random.choice(miss) + " " + out
-            else:
-                message(out)
+    if chance == .05:
+        out += scripter_msg.format(shoot - deploy)
+        scripters[nick.lower()] = shoot + 7200
+        return random.choice(miss) + " " + out
 
-        status['duck_status'] = 2
-        try:
-            args = {
-                attack_type: 1
-            }
+    status.duck_status = 2
+    try:
+        args = {
+            attack_type: 1
+        }
 
-            score = update_score(nick, chan, db, conn, **args)[attack_type]
-        except Exception:
-            status['duck_status'] = 1
-            event.reply("An unknown error has occurred.")
-            raise
+        score = update_score(nick, chan, db, conn, **args)[attack_type]
+    except Exception:
+        status.duck_status = 1
+        event.reply("An unknown error has occurred.")
+        raise
 
-        message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
-        set_ducktime(chan, conn.name)
+    message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
+    set_ducktime(chan, conn.name)
 
 
 @hook.command("bang", autohelp=False)
 def bang(nick, chan, message, db, conn, notice, event):
-    """- when there is a duck on the loose use this command to shoot it."""
+    """- when there is a duck on the loose use this command to shoot it.
+    :type event: cloudbot.event.Event
+    :type nick: str
+    :type chan: str
+    :type message: function
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type notice: function
+    """
     with chan_locks[conn.name][chan.casefold()]:
         return attack(event, nick, chan, message, db, conn, notice, "shoot")
 
 
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice, event):
-    """- when there is a duck on the loose use this command to befriend it before someone else shoots it."""
+    """- when there is a duck on the loose use this command to befriend it before someone else shoots it.
+    :type event: cloudbot.event.Event
+    :type nick: str
+    :type chan: str
+    :type message: function
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type notice: function
+    """
     with chan_locks[conn.name][chan.casefold()]:
         return attack(event, nick, chan, message, db, conn, notice, "befriend")
 
 
 def smart_truncate(content, length=320, suffix='...'):
+    """
+    :type content: str
+    :type length: int
+    :type suffix: str
+    """
     if len(content) <= length:
         return content
-    else:
-        return content[:length].rsplit(' • ', 1)[0] + suffix
+
+    return content[:length].rsplit(' • ', 1)[0] + suffix
 
 
 @hook.command("friends", autohelp=False)
 def friends(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included."""
-    if chan in opt_out:
+    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included.
+    :type text: str
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type db: sqlalchemy.orm.Session
+    """
+    if is_opt_out(conn.name, chan):
         return
+
     friends = defaultdict(int)
     chancount = defaultdict(int)
     if text.lower() == 'global' or text.lower() == 'average':
@@ -433,8 +566,10 @@ def friends(text, chan, conn, db):
             for row in scores:
                 if row[1] == 0:
                     continue
+
                 chancount[row[0]] += 1
                 friends[row[0]] += row[1]
+
             if text.lower() == 'average':
                 for k, v in friends.items():
                     friends[k] = int(v / chancount[k])
@@ -462,9 +597,15 @@ def friends(text, chan, conn, db):
 
 @hook.command("killers", autohelp=False)
 def killers(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included."""
-    if chan in opt_out:
+    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included.
+    :type text: str
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type db: sqlalchemy.orm.Session
+    """
+    if is_opt_out(conn.name, chan):
         return
+
     killers = defaultdict(int)
     chancount = defaultdict(int)
     if text.lower() == 'global' or text.lower() == 'average':
@@ -476,8 +617,10 @@ def killers(text, chan, conn, db):
             for row in scores:
                 if row[1] == 0:
                     continue
+
                 chancount[row[0]] += 1
                 killers[row[0]] += row[1]
+
             if text.lower() == 'average':
                 for k, v in killers.items():
                     killers[k] = int(v / chancount[k])
@@ -493,6 +636,7 @@ def killers(text, chan, conn, db):
             for row in scores:
                 if row[1] == 0:
                     continue
+
                 killers[row[0]] += row[1]
         else:
             return "it appears no on has killed any ducks yet."
@@ -505,44 +649,58 @@ def killers(text, chan, conn, db):
 
 @hook.command("duckforgive", permissions=["op", "ignore"])
 def duckforgive(text):
-    """<nick> - Allows people to be removed from the mandatory cooldown period."""
-    global scripters
+    """<nick> - Allows people to be removed from the mandatory cooldown period.
+    :type text: str
+    """
     if text.lower() in scripters and scripters[text.lower()] > time():
         scripters[text.lower()] = 0
         return "{} has been removed from the mandatory cooldown period.".format(text)
-    else:
-        return "I couldn't find anyone banned from the hunt by that nick"
+
+    return "I couldn't find anyone banned from the hunt by that nick"
 
 
 @hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
-    """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
+    """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel.
+    :type text: str
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    """
     if not text:
-        if chan in opt_out:
+        if is_opt_out(conn.name, chan):
             return "Duck hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(chan)
-        else:
-            return "Duck hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(chan)
+
+        return "Duck hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(chan)
+
     if text == "list":
         return ", ".join(opt_out)
+
     if len(text.split(' ')) < 2:
         return "please specify add or remove and a valid channel name"
+
     command = text.split()[0]
     channel = text.split()[1]
     if not channel.startswith('#'):
         return "Please specify a valid channel."
+
     if command.lower() == "add":
-        if channel in opt_out:
+        if is_opt_out(conn.name, channel):
             return "Duck hunt has already been disabled in {}.".format(channel)
+
         query = optout.insert().values(
             network=conn.name,
-            chan=channel.lower())
+            chan=channel.lower()
+        )
         db.execute(query)
         db.commit()
         load_optout(db)
         return "The duckhunt has been successfully disabled in {}.".format(channel)
+
     if command.lower() == "remove":
-        if not channel in opt_out:
+        if not is_opt_out(conn.name, channel):
             return "Duck hunt is already enabled in {}.".format(channel)
+
         delete = optout.delete(optout.c.chan == channel.lower())
         db.execute(delete)
         db.commit()
@@ -551,16 +709,24 @@ def hunt_opt_out(text, chan, db, conn):
 
 @hook.command("duckmerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
-    """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
+    """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone.
+    :type text: str
+    :type conn: cloudbot.client.Client
+    :type db: sqlalchemy.orm.Session
+    :type message: function
+    """
     oldnick, newnick = text.lower().split()
     if not oldnick or not newnick:
         return "Please specify two nicks for this command."
+
     oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
                               .where(table.c.network == conn.name)
                               .where(table.c.name == oldnick)).fetchall()
+
     newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
                               .where(table.c.network == conn.name)
                               .where(table.c.name == newnick)).fetchall()
+
     duckmerge = defaultdict(lambda: defaultdict(int))
     duckmerge["TKILLS"] = 0
     duckmerge["TFRIENDS"] = 0
@@ -570,6 +736,7 @@ def duck_merge(text, conn, db, message):
             for row in newnickscore:
                 duckmerge[row["chan"]]["shot"] = row["shot"]
                 duckmerge[row["chan"]]["befriend"] = row["befriend"]
+
             for row in oldnickscore:
                 if row["chan"] in duckmerge:
                     duckmerge[row["chan"]]["shot"] = duckmerge[row["chan"]]["shot"] + row["shot"]
@@ -589,13 +756,17 @@ def duck_merge(text, conn, db, message):
                 duckmerge[row["chan"]]["befriend"] = row["befriend"]
                 channelkey["insert"].append(row["chan"])
                 # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
+
         for channel in channelkey["insert"]:
             dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["shot"], duckmerge[channel]["befriend"])
+
         for channel in channelkey["update"]:
             dbupdate(newnick, channel, db, conn, duckmerge[channel]["shot"], duckmerge[channel]["befriend"])
-        query = table.delete() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.name == oldnick)
+
+        query = table.delete().where(
+            and_(table.c.network == conn.name, table.c.name == oldnick)
+        )
+
         db.execute(query)
         db.commit()
         message("Migrated {} and {} from {} to {}".format(
@@ -608,18 +779,32 @@ def duck_merge(text, conn, db, message):
 
 @hook.command("ducks", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
-    """<nick> - Prints a users duck stats. If no nick is input it will check the calling username."""
+    """<nick> - Prints a users duck stats. If no nick is input it will check the calling username.
+    :type text: str
+    :type nick: str
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type db: sqlalchemy.orm.Session
+    :type message: function
+    """
     name = nick.lower()
     if text:
         name = text.split()[0].lower()
+
     ducks = defaultdict(int)
-    scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-                        .where(table.c.network == conn.name)
-                        .where(table.c.name == name)).fetchall()
+    scores = db.execute(select(
+        [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
+        and_(
+            table.c.network == conn.name,
+            table.c.name == name,
+        )
+    )).fetchall()
+
     if text:
         name = text.split()[0]
     else:
         name = nick
+
     if scores:
         has_hunted_in_chan = False
         for row in scores:
@@ -627,15 +812,18 @@ def ducks_user(text, nick, chan, conn, db, message):
                 has_hunted_in_chan = True
                 ducks["chankilled"] += row["shot"]
                 ducks["chanfriends"] += row["befriend"]
+
             ducks["killed"] += row["shot"]
             ducks["friend"] += row["befriend"]
             ducks["chans"] += 1
+
         # Check if the user has only participated in the hunt in this channel
         if ducks["chans"] == 1 and has_hunted_in_chan:
             message("{} has killed {} and befriended {} in {}.".format(
                 name, pluralize_auto(ducks["chankilled"], "duck"), pluralize_auto(ducks["chanfriends"], "duck"), chan
             ))
             return
+
         kill_average = int(ducks["killed"] / ducks["chans"])
         friend_average = int(ducks["friend"] / ducks["chans"])
         message(
@@ -652,10 +840,18 @@ def ducks_user(text, nick, chan, conn, db, message):
 
 @hook.command("duckstats", autohelp=False)
 def duck_stats(chan, conn, db, message):
-    """- Prints duck statistics for the entire channel and totals for the network."""
+    """- Prints duck statistics for the entire channel and totals for the network.
+    :type chan: str
+    :type conn: cloudbot.client.Client
+    :type db: sqlalchemy.orm.Session
+    :type message: function
+    """
     ducks = defaultdict(int)
-    scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-                        .where(table.c.network == conn.name)).fetchall()
+    scores = db.execute(select(
+        [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
+        table.c.network == conn.name
+    )).fetchall()
+
     if scores:
         ducks["friendchan"] = defaultdict(int)
         ducks["killchan"] = defaultdict(int)
@@ -666,9 +862,12 @@ def duck_stats(chan, conn, db, message):
             if row["chan"].lower() == chan.lower():
                 ducks["chankilled"] += row["shot"]
                 ducks["chanfriends"] += row["befriend"]
+
             ducks["killed"] += row["shot"]
             ducks["friend"] += row["befriend"]
+
         ducks["chans"] = int((len(ducks["friendchan"]) + len(ducks["killchan"])) / 2)
+
         killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         message(
