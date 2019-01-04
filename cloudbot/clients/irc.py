@@ -414,6 +414,12 @@ class _IrcProtocol(asyncio.Protocol):
             command = message.command
             command_params = message.parameters
 
+            has_trail = command_params.has_trail
+            command_params = list(command_params)
+
+            if command_params and command_params[-1].startswith(':'):
+                command_params[-1] = command_params[-1][1:]
+
             # Reply to pings immediately
 
             if command == "PING":
@@ -422,7 +428,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Parse the command and params
 
             # Content
-            if command_params.has_trail:
+            if has_trail:
                 content_raw = command_params[-1]
                 content = irc_clean(content_raw)
             else:
@@ -466,7 +472,7 @@ class _IrcProtocol(asyncio.Protocol):
                     channel = command_params[0]
                 elif command == "INVITE":
                     channel = command_params[1]
-                elif len(command_params) > 2 or not (command_params.has_trail and len(command_params) == 1):
+                elif len(command_params) > 2 or not (has_trail and len(command_params) == 1):
                     channel = command_params[0]
 
             prefix = message.prefix
