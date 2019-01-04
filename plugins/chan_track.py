@@ -16,7 +16,7 @@ import cloudbot.bot
 from cloudbot import hook
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
-from cloudbot.util.parsers.irc import Prefix
+from irclib.parser import Prefix
 
 logger = cloudbot.bot.logger
 

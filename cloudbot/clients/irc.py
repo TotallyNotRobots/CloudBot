@@ -7,10 +7,11 @@ import ssl
 import traceback
 from functools import partial
 
+from irclib.parser import Message
+
 from cloudbot.client import Client, client, ClientConnectError
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
-from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
 
