@@ -128,10 +128,6 @@ def cap_del(logger, conn, caplist):
 def on_cap(irc_paramlist, event):
     args = {}
     if len(irc_paramlist) > 2:
-        capstr = irc_paramlist[-1].strip()
-        if capstr[0] == ':':
-            capstr = capstr[1:]
-
-        args["caplist"] = CapList.parse(capstr)
+        args["caplist"] = CapList.parse(irc_paramlist[-1])
 
     yield from _launch_handler(irc_paramlist[1], event, **args)

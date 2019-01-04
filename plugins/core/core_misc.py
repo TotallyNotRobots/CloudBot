@@ -17,8 +17,6 @@ def invite(irc_paramlist, conn):
     """
     invite_join = conn.config.get('invite_join', True)
     chan = irc_paramlist[-1]
-    if chan.startswith(':'):
-        chan = chan[1:]
 
     if invite_join:
         conn.join(chan)

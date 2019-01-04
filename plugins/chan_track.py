@@ -541,9 +541,7 @@ def on_names(conn, irc_paramlist, irc_command):
         chan_data.receiving_names = True
         users.clear()
 
-    names = irc_paramlist[-1]
-    if names.startswith(':'):
-        names = names[1:].strip()
+    names = irc_paramlist[-1].strip()
 
     users.extend(names.split())
 
@@ -688,9 +686,6 @@ def on_join(nick, user, host, conn, irc_paramlist):
     """
     chan, *other_data = irc_paramlist
 
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     users = get_users(conn)
 
     user_data = users.getuser(nick)
@@ -743,9 +738,6 @@ def on_mode(chan, irc_paramlist, conn):
     :type conn: cloudbot.client.Client
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
     """
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     if irc_paramlist[0].casefold() == conn.nick.casefold():
         # this is a user mode line
         return
@@ -785,9 +777,6 @@ def on_part(chan, nick, conn):
     :type nick: str
     :type conn: cloudbot.client.Client
     """
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     channels = get_chans(conn)
     if nick.casefold() == conn.nick.casefold():
         del channels[chan]
@@ -829,8 +818,6 @@ def on_nick(nick, irc_paramlist, conn):
     """
     users = get_users(conn)
     new_nick = irc_paramlist[0]
-    if new_nick.startswith(':'):
-        new_nick = new_nick[1:]
 
     user = users.pop(nick)
     users[new_nick] = user
