@@ -66,7 +66,7 @@ class IrcClient(Client):
         super().__init__(bot, name, nick, channels=channels, config=config)
 
         self.use_ssl = config['connection'].get('ssl', False)
-        self._ignore_cert_errors = config['connection']['ignore_cert']
+        self._ignore_cert_errors = config['connection'].get('ignore_cert', False)
         self._timeout = config['connection'].get('timeout', 300)
         self.server = config['connection']['server']
         self.port = config['connection'].get('port', 6667)
