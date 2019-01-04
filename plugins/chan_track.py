@@ -299,7 +299,7 @@ class User(MappingAttributeAdapter):
 
     @nick.setter
     def nick(self, value):
-        self.mask.nick = value
+        self.mask = Prefix(value, self.ident, self.host)
 
     @property
     def ident(self):
@@ -310,7 +310,7 @@ class User(MappingAttributeAdapter):
 
     @ident.setter
     def ident(self, value):
-        self.mask.user = value
+        self.mask = Prefix(self.nick, value, self.host)
 
     @property
     def host(self):
@@ -321,7 +321,7 @@ class User(MappingAttributeAdapter):
 
     @host.setter
     def host(self, value):
-        self.mask.host = value
+        self.mask = Prefix(self.nick, self.ident, value)
 
 
 # region util functions
