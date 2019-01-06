@@ -5,9 +5,7 @@ import re
 import socket
 import ssl
 import traceback
-from _ssl import PROTOCOL_SSLv23
 from functools import partial
-from ssl import SSLContext
 
 from cloudbot.client import Client, client, ClientConnectError
 from cloudbot.event import Event, EventType, IrcOutEvent
@@ -68,7 +66,7 @@ class IrcClient(Client):
         super().__init__(bot, name, nick, channels=channels, config=config)
 
         self.use_ssl = config['connection'].get('ssl', False)
-        self._ignore_cert_errors = config['connection']['ignore_cert']
+        self._ignore_cert_errors = config['connection'].get('ignore_cert', False)
         self._timeout = config['connection'].get('timeout', 300)
         self.server = config['connection']['server']
         self.port = config['connection'].get('port', 6667)
@@ -80,7 +78,7 @@ class IrcClient(Client):
         self.local_bind = local_bind
         # create SSL context
         if self.use_ssl:
-            self.ssl_context = SSLContext(PROTOCOL_SSLv23)
+            self.ssl_context = ssl.create_default_context()
             if self._ignore_cert_errors:
                 self.ssl_context.verify_mode = ssl.CERT_NONE
             else:
