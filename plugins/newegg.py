@@ -71,8 +71,7 @@ def format_item(item, show_url=True):
         return "\x02{}\x02 ({}) - {} - {} - {}".format(title, price, rating,
                                                        tag_text, url)
 
-    return "\x02{}\x02 ({}) - {} - {}".format(title, price, rating,
-                                              tag_text)
+    return "\x02{}\x02 ({}) - {} - {}".format(title, price, rating, tag_text)
 
 
 # HOOK FUNCTIONS

@@ -35,8 +35,10 @@ def spell(text):
     suggestions = en_dict.suggest(text)
     s_string = ', '.join(suggestions[:10])
     if is_correct:
-        return '"{}" appears to be \x02valid\x02! ' \
-               '(suggestions: {})'.format(text, s_string)
+        return '"{}" appears to be \x02valid\x02! (suggestions: {})'.format(
+            text, s_string
+        )
 
-    return '"{}" appears to be \x02invalid\x02! ' \
-           '(suggestions: {})'.format(text, s_string)
+    return '"{}" appears to be \x02invalid\x02! (suggestions: {})'.format(
+        text, s_string
+    )
