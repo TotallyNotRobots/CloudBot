@@ -58,7 +58,7 @@ def amazon(text, reply, _parsed=False):
         if not _parsed:
             return "No results found."
 
-        return
+        return None
 
     # get the first item from the results on the amazon page
     results = results.find('ul', {'id': 's-results-list-atf'}).find_all('li', {'class': 's-result-item'})
