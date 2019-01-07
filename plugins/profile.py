@@ -70,9 +70,9 @@ def moreprofile(text, chan, nick, notice):
         if page is None:
             notice("Please specify a valid page number between 1 and {}.".format(len(pages)))
             return
-        else:
-            for line in page:
-                notice(line)
+
+        for line in page:
+            notice(line)
     else:
         page = pages.next()
         if page is not None:
@@ -149,13 +149,12 @@ def profileadd(text, chan, nick, notice, db):
             load_cache(db)
             return "Created new profile category {}".format(cat)
 
-        else:
-            db.execute(table.update().values(text=data).where((and_(table.c.nick == nick.casefold(),
-                                                                    table.c.chan == chan.casefold(),
-                                                                    table.c.category == cat.casefold()))))
-            db.commit()
-            load_cache(db)
-            return "Updated profile category {}".format(cat)
+        db.execute(table.update().values(text=data).where((and_(table.c.nick == nick.casefold(),
+                                                                table.c.chan == chan.casefold(),
+                                                                table.c.category == cat.casefold()))))
+        db.commit()
+        load_cache(db)
+        return "Updated profile category {}".format(cat)
 
 
 @hook.command()
@@ -194,12 +193,12 @@ def profileclear(nick, chan, text, notice, db):
             db.commit()
             load_cache(db)
             return "Profile data cleared for {}.".format(nick)
-        else:
-            notice("Invalid confirm key")
-            return
-    else:
-        key = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
-        confirm_keys[chan.casefold()][nick.casefold()] = key
-        notice("Are you sure you want to clear all of your profile data in {}? use \".profileclear {}\" to confirm"
-               .format(chan, key))
+
+        notice("Invalid confirm key")
         return
+
+    key = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+    confirm_keys[chan.casefold()][nick.casefold()] = key
+    notice("Are you sure you want to clear all of your profile data in {}? use \".profileclear {}\" to confirm"
+           .format(chan, key))
+    return

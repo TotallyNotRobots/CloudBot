@@ -25,8 +25,8 @@ def get_video_description(video_id):
     if json.get('error'):
         if json['error']['code'] == 403:
             return err_no_api
-        else:
-            return
+
+        return
 
     data = json['items']
     snippet = data[0]['snippet']
@@ -99,8 +99,8 @@ def youtube(text, reply):
     if json.get('error'):
         if json['error']['code'] == 403:
             return err_no_api
-        else:
-            return 'Error performing search.'
+
+        return 'Error performing search.'
 
     if json['pageInfo']['totalResults'] == 0:
         return 'No results found.'
@@ -128,8 +128,8 @@ def youtime(text, reply):
     if json.get('error'):
         if json['error']['code'] == 403:
             return err_no_api
-        else:
-            return 'Error performing search.'
+
+        return 'Error performing search.'
 
     if json['pageInfo']['totalResults'] == 0:
         return 'No results found.'
@@ -182,8 +182,8 @@ def ytplaylist_url(match, reply):
     if json.get('error'):
         if json['error']['code'] == 403:
             return err_no_api
-        else:
-            return 'Error looking up playlist.'
+
+        return 'Error looking up playlist.'
 
     data = json['items']
     snippet = data[0]['snippet']

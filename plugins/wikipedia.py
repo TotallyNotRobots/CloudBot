@@ -38,8 +38,8 @@ def wiki(text, reply):
     if not items:
         if x.find('error') is not None:
             return 'Could not get Wikipedia page: %(code)s: %(info)s' % x.find('error').attrib
-        else:
-            return 'No results found.'
+
+        return 'No results found.'
 
     def extract(item):
         return [item.find(ns + i).text for i in

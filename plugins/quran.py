@@ -18,9 +18,9 @@ def statuscheck(status, item):
 def smart_truncate(content, length=425, suffix='...\n'):
     if len(content) <= length:
         return content
-    else:
-        return content[:length].rsplit(' ', 1)[0] + suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(
-            content[length:])
+
+    return content[:length].rsplit(' ', 1)[0] + suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(
+        content[length:])
 
 
 @hook.command("quran", "verse", singlethread=True)

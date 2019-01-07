@@ -56,8 +56,8 @@ def load_api(bot):
         # Either the client id or secret aren't specified
         imgur_api = None
         return
-    else:
-        imgur_api = ImgurClient(client_id, client_secret)
+
+    imgur_api = ImgurClient(client_id, client_secret)
 
 
 @hook.command(autohelp=False)
@@ -148,5 +148,5 @@ def imguralbum(text, conn):
 
     if nsfw:
         return "[\x02nsfw\x02] https://imgur.com/a/" + album["id"]
-    else:
-        return "https://imgur.com/a/" + album["id"]
+
+    return "https://imgur.com/a/" + album["id"]

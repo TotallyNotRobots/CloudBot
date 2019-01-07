@@ -57,8 +57,8 @@ def amazon(text, reply, _parsed=False):
     if not results:
         if not _parsed:
             return "No results found."
-        else:
-            return
+
+        return None
 
     # get the first item from the results on the amazon page
     results = results.find('ul', {'id': 's-results-list-atf'}).find_all('li', {'class': 's-result-item'})
@@ -117,5 +117,5 @@ def amazon(text, reply, _parsed=False):
         return colors.parse(
             "".join("$(b){}$(b) ({}) - {}{} - {}".format(title, price, rating_str, tag_str, url).splitlines())
         )
-    else:
-        return colors.parse("".join("$(b){}$(b) ({}) - {}{}".format(title, price, rating_str, tag_str).splitlines()))
+
+    return colors.parse("".join("$(b){}$(b) ({}) - {}{}".format(title, price, rating_str, tag_str).splitlines()))

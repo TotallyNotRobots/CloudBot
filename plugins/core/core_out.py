@@ -24,8 +24,8 @@ def strip_newlines(line, conn):
     do_strip = conn.config.get("strip_newlines", True)
     if do_strip:
         return line.translate(NEW_LINE_TRANS_TBL)
-    else:
-        return line
+
+    return line
 
 
 @hook.irc_out(priority=Priority.HIGH)

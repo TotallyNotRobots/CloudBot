@@ -51,8 +51,8 @@ def define(text):
         data['url'] = web.try_shorten(WEB_URL.format(data['word']))
         data['attrib'] = ATTRIB_NAMES[data['sourceDictionary']]
         return "\x02{word}\x02: {text} - {url} ({attrib})".format(**data)
-    else:
-        return "I could not find a definition for \x02{}\x02.".format(text)
+
+    return "I could not find a definition for \x02{}\x02.".format(text)
 
 
 @hook.command("wordusage", "wordexample", "usage")
@@ -73,8 +73,8 @@ def word_usage(text):
         example = random.choice(json['examples'])
         out += "{} ".format(example['text'])
         return " ".join(out.split())
-    else:
-        return "I could not find any usage examples for \x02{}\x02.".format(text)
+
+    return "I could not find any usage examples for \x02{}\x02.".format(text)
 
 
 @hook.command("pronounce", "sounditout")
@@ -132,8 +132,8 @@ def synonym(text):
         out = "\x02{}\x02: ".format(text)
         out += " • ".join(json[0]['words'])
         return " ".join(out.split())
-    else:
-        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
+
+    return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
 
 
 @hook.command()
@@ -157,8 +157,8 @@ def antonym(text):
         out += " • ".join(json[0]['words'])
         out = out[:-2]
         return " ".join(out.split())
-    else:
-        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
+
+    return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
 
 
 # word of the day
@@ -196,8 +196,8 @@ def wordoftheday(text):
         out += "\x0310{}\x0310 ".format(note)
         out += "\x02Definition:\x02 \x0303{}\x0303".format(definition)
         return " ".join(out.split())
-    else:
-        return "Sorry I couldn't find the word of the day, check out this awesome otter instead {}".format(
+
+    return "Sorry I couldn't find the word of the day, check out this awesome otter instead {}".format(
             "http://i.imgur.com/pkuWlWx.gif")
 
 
@@ -217,5 +217,5 @@ def random_word():
     if json:
         word = json['word']
         return "Your random word is \x02{}\x02.".format(word)
-    else:
-        return "There was a problem contacting the Wordnik API."
+
+    return "There was a problem contacting the Wordnik API."

@@ -37,15 +37,20 @@ def check_status(status):
     """
     if status == 'REQUEST_DENIED':
         return 'The geocode API is off in the Google Developers Console.'
-    elif status == 'ZERO_RESULTS':
+
+    if status == 'ZERO_RESULTS':
         return 'No results found.'
-    elif status == 'OVER_QUERY_LIMIT':
+
+    if status == 'OVER_QUERY_LIMIT':
         return 'The geocode API quota has run out.'
-    elif status == 'UNKNOWN_ERROR':
+
+    if status == 'UNKNOWN_ERROR':
         return 'Unknown Error.'
-    elif status == 'INVALID_REQUEST':
+
+    if status == 'INVALID_REQUEST':
         return 'Invalid Request.'
-    elif status == 'OK':
+
+    if status == 'OK':
         return None
 
 
@@ -106,8 +111,8 @@ def get_location(nick):
     location = [row[1] for row in location_cache if nick.lower() == row[0]]
     if not location:
         return
-    else:
-        location = location[0]
+
+    location = location[0]
     return location
 
 
@@ -116,6 +121,7 @@ def weather(text, reply, db, nick, notice_doc):
     """<location> - Gets weather data for <location>."""
     if not wunder_key:
         return "This command requires a Weather Underground API key."
+
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

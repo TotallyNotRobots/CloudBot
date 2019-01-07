@@ -21,19 +21,24 @@ def check_status(status, api):
         Returns None if no errors found """
     if status == 'REQUEST_DENIED':
         return 'The ' + api + ' API is off in the Google Developers Console.'
-    elif status == 'ZERO_RESULTS':
+
+    if status == 'ZERO_RESULTS':
         return 'No results found.'
-    elif status == 'OVER_QUERY_LIMIT':
+
+    if status == 'OVER_QUERY_LIMIT':
         return 'The ' + api + ' API quota has run out.'
-    elif status == 'UNKNOWN_ERROR':
+
+    if status == 'UNKNOWN_ERROR':
         return 'Unknown Error.'
-    elif status == 'INVALID_REQUEST':
+
+    if status == 'INVALID_REQUEST':
         return 'Invalid Request.'
-    elif status == 'OK':
+
+    if status == 'OK':
         return None
-    else:
-        # !!!
-        return 'Unknown Demons.'
+
+    # !!!
+    return 'Unknown Demons.'
 
 
 @hook.on_start
@@ -120,7 +125,8 @@ def beats(text):
                "ter midnight. So, @248 would indicate a time 248 .beats after midni" \
                "ght representing 248/1000 of a day, just over 5 hours and 57 minute" \
                "s. There are no timezones."
-    elif text.lower() == "guide":
+
+    if text.lower() == "guide":
         return "1 day = 1000 .beats, 1 hour = 41.666 .beats, 1 min = 0.6944 .beats, 1 second = 0.01157 .beats"
 
     t = time.gmtime()

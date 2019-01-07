@@ -126,22 +126,24 @@ def moremod(text, chan, conn):
     pages = search_pages[conn.name].get(chan_cf)
     if not pages:
         return "There are modlist pages to show."
+
     if text:
         try:
             index = int(text)
         except ValueError:
             return "Please specify an integer value."
+
         page = pages[index - 1]
         if page is None:
             return "please specify a valid page number between 1 and {}.".format(len(pages))
-        else:
-            return page
-    else:
-        page = pages.next()
-        if page is not None:
-            return page
-        else:
-            return "All pages have been shown."
+
+        return page
+
+    page = pages.next()
+    if page is not None:
+        return page
+
+    return "All pages have been shown."
 
 
 @hook.regex(reddit_re, singlethread=True)

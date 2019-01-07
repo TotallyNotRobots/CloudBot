@@ -27,10 +27,11 @@ def get_group_permissions(text, conn, notice):
     group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_permissions:
         return "Group {} has permissions {}".format(group, group_permissions)
-    elif group_users:
+
+    if group_users:
         return "Group {} exists, but has no permissions".format(group)
-    else:
-        notice("Unknown group '{}'".format(group))
+
+    notice("Unknown group '{}'".format(group))
 
 
 @hook.command("gusers", permissions=["permissions_users"])
@@ -46,10 +47,11 @@ def get_group_users(text, conn, notice):
     group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_users:
         return "Group {} has members: {}".format(group, group_users)
-    elif group_permissions:
+
+    if group_permissions:
         return "Group {} exists, but has no members".format(group, group_permissions)
-    else:
-        notice("Unknown group '{}'".format(group))
+
+    notice("Unknown group '{}'".format(group))
 
 
 @hook.command("uperms", autohelp=False)
@@ -73,8 +75,8 @@ def get_user_permissions(text, conn, mask, has_permission, notice):
     user_permissions = permission_manager.get_user_permissions(user.lower())
     if user_permissions:
         return "User {} has permissions: {}".format(user, user_permissions)
-    else:
-        return "User {} has no elevated permissions".format(user)
+
+    return "User {} has no elevated permissions".format(user)
 
 
 @hook.command("ugroups", autohelp=False)
@@ -98,8 +100,8 @@ def get_user_groups(text, conn, mask, has_permission, notice):
     user_groups = permission_manager.get_user_groups(user.lower())
     if user_groups:
         return "User {} is in groups: {}".format(user, user_groups)
-    else:
-        return "User {} is in no permission groups".format(user)
+
+    return "User {} is in no permission groups".format(user)
 
 
 @hook.command("deluser", permissions=["permissions_users"])
@@ -114,7 +116,8 @@ def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log):
     if len(split) > 2:
         notice("Too many arguments")
         return
-    elif len(split) < 1:
+
+    if len(split) < 1:
         notice("Not enough arguments")
         return
 
@@ -176,7 +179,8 @@ def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
     if len(split) > 2:
         notice("Too many arguments")
         return
-    elif len(split) < 2:
+
+    if len(split) < 2:
         notice("Not enough arguments")
         return
 

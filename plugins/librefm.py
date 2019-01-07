@@ -38,8 +38,8 @@ def get_account(nick):
     last_account = [row[1] for row in last_cache if nick.lower() == row[0]]
     if not last_account:
         return
-    else:
-        last_account = last_account[0]
+
+    last_account = last_account[0]
     return last_account
 
 
@@ -154,8 +154,8 @@ def getartisttags(artist):
     if isinstance(tag_list, list):
         tag_list = tag_list[0:4]
         return ', '.join(tag_list)
-    else:
-        return tag_list
+
+    return tag_list
 
 
 @hook.command("libreplays")

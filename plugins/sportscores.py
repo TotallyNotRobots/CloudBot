@@ -47,14 +47,14 @@ def morescore(text, chan, conn):
         page = pages[index - 1]
         if page is None:
             return "please specify a valid page number between 1 and {}.".format(len(pages))
-        else:
-            return page
-    else:
-        page = pages.next()
-        if page is not None:
-            return page
-        else:
-            return "All pages have been shown."
+
+        return page
+
+    page = pages.next()
+    if page is not None:
+        return page
+
+    return "All pages have been shown."
 
 
 def page_scores(conn, chan, scores):

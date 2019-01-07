@@ -100,13 +100,13 @@ def format_irc_event(event, args):
         if ctcp_command in ("VERSION", "PING", "TIME", "FINGER"):
             if ctcp_message:
                 return ctcp_known_with_message.format(**args)
-            else:
-                return ctcp_known.format(**args)
-        else:
-            if ctcp_message:
-                return ctcp_unknown_with_message.format(**args)
-            else:
-                return ctcp_unknown.format(**args)
+
+            return ctcp_known.format(**args)
+
+        if ctcp_message:
+            return ctcp_unknown_with_message.format(**args)
+
+        return ctcp_unknown.format(**args)
 
     # No formats have been found, resort to the default
 
@@ -116,10 +116,12 @@ def format_irc_event(event, args):
 
     if not logging_config.get("show_motd", True) and event.irc_command in ("375", "372", "376"):
         return None
-    elif not logging_config.get("show_server_info", True) and event.irc_command in (
+
+    if not logging_config.get("show_server_info", True) and event.irc_command in (
         "003", "005", "250", "251", "252", "253", "254", "255", "256"):
         return None
-    elif event.irc_command == "PING":
+
+    if event.irc_command == "PING":
         return None
 
     # Format using the default raw format

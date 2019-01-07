@@ -159,16 +159,15 @@ def time_parse(string, granularity='seconds'):
             if all(v.isdigit() for v in list(mdict.values()) if v):
                 return sign * sum([MULTIPLIERS[k] * int(v, 10) for (k, v) in
                                    list(mdict.items()) if v is not None])
+
             # if SECS is an integer number
-            elif ('secs' not in mdict or
-                  mdict['secs'] is None or
-                  mdict['secs'].isdigit()):
+            if mdict.get('secs') is None or mdict['secs'].isdigit():
                 # we will return an integer
                 return (
                     sign * int(sum([MULTIPLIERS[k] * float(v) for (k, v) in
                                     list(mdict.items()) if k != 'secs' and v is not None])) +
                     (int(mdict['secs'], 10) if mdict['secs'] else 0))
-            else:
-                # SECS is a float, we will return a float
-                return sign * sum([MULTIPLIERS[k] * float(v) for (k, v) in
-                                   list(mdict.items()) if v is not None])
+
+            # SECS is a float, we will return a float
+            return sign * sum([MULTIPLIERS[k] * float(v) for (k, v) in
+                               list(mdict.items()) if v is not None])

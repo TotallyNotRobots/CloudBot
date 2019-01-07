@@ -99,13 +99,14 @@ def chainallow(text, db, notice_doc, bot):
             return "Added '{}' as an allowed command".format(hook_name)
 
         return "Added '{}' as a denied command".format(hook_name)
-    elif subcmd == "del":
+
+    if subcmd == "del":
         res = db.execute(commands.delete().where(commands.c.hook == hook_name))
         db.commit()
         load_cache(db)
         return "Deleted {}.".format(pluralize_auto(res.rowcount, "row"))
-    else:
-        return notice_doc()
+
+    return notice_doc()
 
 
 def parse_chain(text, bot):

@@ -112,9 +112,9 @@ def forget(text, chan, db, notice):
         del_factoid(db, chan, text)
         notice('"{}" has been forgotten.'.format(data.replace('`', "'")))
         return
-    else:
-        notice("I don't know about that.")
-        return
+
+    notice("I don't know about that.")
+    return
 
 
 @hook.command()

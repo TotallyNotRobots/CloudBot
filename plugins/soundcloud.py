@@ -32,8 +32,8 @@ def get_with_search(endpoint, term):
 
     if not json:
         return None
-    else:
-        return json[0]
+
+    return json[0]
 
 
 def get_with_url(url):
@@ -53,8 +53,8 @@ def get_with_url(url):
 
     if not json:
         return None
-    else:
-        return json
+
+    return json
 
 
 # DATA FORMATTING
@@ -203,9 +203,12 @@ def soundcloud_url(match):
 
     if item['kind'] == 'track':
         return format_track(item, show_url=False)
-    elif item['kind'] == 'user':
+
+    if item['kind'] == 'user':
         return format_user(item, show_url=False)
-    elif item['kind'] == 'playlist':
+
+    if item['kind'] == 'playlist':
         return format_playlist(item, show_url=False)
-    elif item['kind'] == 'group':
+
+    if item['kind'] == 'group':
         return format_group(item, show_url=False)

@@ -39,11 +39,15 @@ def translate(word):
                 break
         else:  # no vowels
             assert 0
+
         if i == 0:  # starts with a vowel
             return word + "way"
-        elif "y" in word:  # allow 'y' as a vowel for known words
+
+        if "y" in word:  # allow 'y' as a vowel for known words
             return translate_basic(word, vowels="aeiouy", start=i)
+
         break  # use only the first pronunciation
+
     return translate_basic(word, start=i)
 
 
@@ -94,5 +98,5 @@ def piglatin(text):
 
     if text.isupper():
         return " ".join(words).upper()
-    else:
-        return " ".join(words)
+
+    return " ".join(words)

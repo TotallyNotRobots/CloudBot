@@ -24,11 +24,11 @@ def load_api(bot):
     if not all((consumer_key, consumer_secret, oauth_token, oauth_secret)):
         tw_api = None
         return
-    else:
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-        auth.set_access_token(oauth_token, oauth_secret)
 
-        tw_api = tweepy.API(auth)
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(oauth_token, oauth_secret)
+
+    tw_api = tweepy.API(auth)
 
 
 @hook.regex(TWITTER_RE)
