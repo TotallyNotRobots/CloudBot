@@ -41,7 +41,7 @@ def help_command(text, chan, bot, notice, message, has_permission, triggered_pre
 
         if len(cmds) > 1:
             notice("Possible matches: {}".format(
-                formatting.get_text_list(sorted([command for command, plugin in cmds]))))
+                formatting.get_text_list(sorted([command for command, _ in cmds]))))
             return
 
         doc = cmds[0][1].doc
