@@ -1,3 +1,4 @@
+import asyncio
 from collections import defaultdict
 from datetime import datetime
 
@@ -254,26 +255,54 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     notice("Your message has been saved, and {} will be notified once they are active.".format(target))
 
 
-@hook.command("tellignore", permissions=["botcontrol", "ignore"])
-def tell_ignore(conn, db, text, nick):
-    """<nick> - Disallow tells being sent to [nick]"""
+def check_permissions(event, *perms):
+    return any(event.has_permission(perm) for perm in perms)
+
+
+@hook.command("tellignore", autohelp=False)
+def tell_ignore(conn, db, text, nick, event):
+    """[nick] - Disallow tells being sent to [nick]"""
+    is_self = False
+    if not text or text.casefold() == nick.casefold():
+        text = nick
+        is_self = True
+    elif not check_permissions(event, 'botcontrol', 'ignore'):
+        event.notice("Sorry, you are not allowed to use this command.")
+        return None
+
     target = text.split()[0]
     if is_ignored(conn, target):
-        return "{!r} is already ignored.".format(target)
+        return "{!r} will already not receive any tells.".format(
+            "You" if is_self else target
+        )
 
     add_ignore(db, conn, nick, target)
-    return "{!r} can no longer be sent tells.".format(target)
+    return "{!r} can no longer be sent tells.".format(
+        "You" if is_self else target
+    )
 
 
-@hook.command("tellunignore", permissions=["botcontrol", "ignore"])
-def tell_unignore(conn, db, text):
-    """<nick> - Removes [nick] from the tellignore list"""
+@hook.command("tellunignore", autohelp=False)
+def tell_unignore(conn, db, text, event, nick):
+    """[nick] - Removes [nick] from the tellignore list"""
+    is_self = False
+    if not text or text.casefold() == nick.casefold():
+        text = nick
+        is_self = True
+    elif not check_permissions(event, 'botcontrol', 'ignore'):
+        event.notice("Sorry, you are not allowed to use this command.")
+        return None
+
     target = text.split()[0]
     if not is_ignored(conn, target):
-        return "{!r} is not currently ignored.".format(target)
+        return "{!r} will already receive tells.".format(
+            "You" if is_self else target
+        )
 
     del_ignore(db, conn, target)
-    return "{!r} can now be sent tells.".format(target)
+    return "{!r} can now be sent tells.".format(
+        "You" if is_self else target
+    )
 
 
 @hook.command("listtellignores", permissions=["botcontrol", "ignore"])
