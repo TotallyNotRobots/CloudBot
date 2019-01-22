@@ -746,7 +746,7 @@ def on_mode(chan, irc_paramlist, conn):
     if chan.startswith(':'):
         chan = chan[1:]
 
-    if chan.casefold() == conn.nick.casefold():
+    if irc_paramlist[0].casefold() == conn.nick.casefold():
         # this is a user mode line
         return
 
