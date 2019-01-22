@@ -21,11 +21,9 @@ from requests import RequestException
 
 # Constants
 DEFAULT_SHORTENER = 'is.gd'
-DEFAULT_PASTEBIN = 'snoonet'
+DEFAULT_PASTEBIN = 'hastebin'
 
 HASTEBIN_SERVER = 'https://hastebin.com'
-
-SNOONET_PASTE = 'https://paste.snoonet.org'
 
 logger = logging.getLogger('cloudbot')
 
@@ -252,20 +250,3 @@ class Hastebin(Pastebin):
                 return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
 
             raise ServiceError(j['message'], r)
-
-
-@_pastebin('snoonet')
-class SnoonetPaste(Pastebin):
-    def paste(self, data, ext):
-        params = {
-            'text': data,
-            'expire': '1d'
-        }
-        r = requests.post(SNOONET_PASTE + '/paste/new', data=params)
-        try:
-            r.raise_for_status()
-        except RequestException as e:
-            r = e.response
-            raise ServiceError(r.reason, r)
-        else:
-            return '{}'.format(r.url)
