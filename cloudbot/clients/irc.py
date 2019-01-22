@@ -436,7 +436,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Target (for KICK, INVITE)
             if event_type is EventType.kick:
                 target = command_params[1]
-            elif command == "INVITE":
+            elif command in ("INVITE", "MODE"):
                 target = command_params[0]
             else:
                 # TODO: Find more commands which give a target
