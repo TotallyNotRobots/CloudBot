@@ -272,13 +272,13 @@ def tell_ignore(conn, db, text, nick, event):
 
     target = text.split()[0]
     if is_ignored(conn, target):
-        return "{!r} will already not receive any tells.".format(
-            "You" if is_self else target
+        return "{} already on the tell ignore list and will not receive tells.".format(
+            "You are" if is_self else "{!r} is".format(target)
         )
 
     add_ignore(db, conn, nick, target)
-    return "{!r} can no longer be sent tells.".format(
-        "You" if is_self else target
+    return "{} now on the tell ignore list and will no longer receive tells.".format(
+        "You are" if is_self else "{!r} is".format(target)
     )
 
 
@@ -295,13 +295,13 @@ def tell_unignore(conn, db, text, event, nick):
 
     target = text.split()[0]
     if not is_ignored(conn, target):
-        return "{!r} will already receive tells.".format(
-            "You" if is_self else target
+        return "{} already not on the tell ignore list and will receive tells.".format(
+            "You are" if is_self else "{!r} is".format(target)
         )
 
     del_ignore(db, conn, target)
-    return "{!r} can now be sent tells.".format(
-        "You" if is_self else target
+    return "{} now no longer on the tell ignore list and will receive tells.".format(
+        "You are" if is_self else "{!r} is".format(target)
     )
 
 
