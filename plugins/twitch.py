@@ -66,7 +66,6 @@ def multitwitch_url(match, reply):
     out = ""
     for i in usernames:
         if not test_name(i):
-            print("Not a valid username")
             return None
         if out == "":
             out = twitch_lookup(i, reply)
@@ -80,7 +79,6 @@ def twitch_url(match, reply):
     bit = match.group(4).split("#")[0]
     location = "/".join(bit.split("/")[1:])
     if not test_name(location):
-        print("Not a valid username")
         return None
     return twitch_lookup(location, reply)
 
