@@ -55,9 +55,9 @@ def mfp(text, reply):
 
         output += " ({})".format(scrape_url.format(text))
 
-    except Exception as e:
-        print(e)
-        output = "Error parsing results."
+    except Exception:
+        reply("Error parsing results.")
+        raise
 
     return output
 

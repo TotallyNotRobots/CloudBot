@@ -61,7 +61,6 @@ def brew(text, reply):
                 .format(**content)
 
     except Exception as e:
-        print(e)
         reply("Error parsing results.")
         raise
 

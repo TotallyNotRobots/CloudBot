@@ -60,14 +60,12 @@ def voat_url(match, bot):
     headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
     url = match.group(1)
     url = url.split('/')
-    print(url)
     url = "https://voat.co/api/singlesubmission?id={}".format(url[4])
 
     # the voat API gets grumpy if we don't include headers
     r = requests.get(url, headers=headers)
     r.raise_for_status()
     data = r.json()
-    print(data)
 
     return format_output(data)
 
