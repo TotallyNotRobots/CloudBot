@@ -1,43 +1,62 @@
 import asyncio
 import os
-import re
 from operator import attrgetter
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
 
 
+def get_potential_commands(bot, cmd_name):
+    """
+    :type bot: cloudbot.bot.CloudBot
+    :type cmd_name: str
+    """
+    cmd_name = cmd_name.lower().strip()
+    try:
+        yield bot.plugin_manager.commands[cmd_name]
+    except LookupError:
+        for name, _hook in bot.plugin_manager.commands.items():
+            if name.startswith(cmd_name):
+                yield name, _hook
+
+
 @hook.command("help", autohelp=False)
 @asyncio.coroutine
-def help_command(text, chan, conn, bot, notice, message, has_permission, triggered_prefix):
+def help_command(text, chan, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
+    :type chan: str
     :type text: str
-    :type conn: cloudbot.client.Client
     :type bot: cloudbot.bot.CloudBot
     """
     if text:
         searching_for = text.lower().strip()
-        if not re.match(r'^\w+$', searching_for):
-            notice("Invalid command name '{}'".format(text))
-            return
     else:
         searching_for = None
 
-    if searching_for:
-        if searching_for in bot.plugin_manager.commands:
-            doc = bot.plugin_manager.commands[searching_for].doc
-            if doc:
-                if doc.split()[0].isalpha():
-                    # this is using the old format of `name <args> - doc`
-                    message = "{}{}".format(triggered_prefix, doc)
-                else:
-                    # this is using the new format of `<args> - doc`
-                    message = "{}{} {}".format(triggered_prefix, searching_for, doc)
-                notice(message)
+    if text:
+        cmds = list(get_potential_commands(bot, text))
+        if not cmds:
+            notice("Unknown command '{}'".format(text))
+            return
+
+        if len(cmds) > 1:
+            notice("Possible matches: {}".format(
+                formatting.get_text_list(sorted([command for command, _ in cmds]))))
+            return
+
+        doc = cmds[0][1].doc
+
+        if doc:
+            if doc.split()[0].isalpha():
+                # this is using the old format of `name <args> - doc`
+                message = "{}{}".format(triggered_prefix, doc)
             else:
-                notice("Command {} has no additional documentation.".format(searching_for))
+                # this is using the new format of `<args> - doc`
+                message = "{}{} {}".format(triggered_prefix, searching_for, doc)
+
+            notice(message)
         else:
-            notice("Unknown command '{}'".format(searching_for))
+            notice("Command {} has no additional documentation.".format(searching_for))
     else:
         commands = []
 
@@ -78,29 +97,18 @@ def help_command(text, chan, conn, bot, notice, message, has_permission, trigger
 @asyncio.coroutine
 def cmdinfo(text, bot, notice):
     """<command> - Gets various information about a command"""
-    cmd = text.split()[0].lower().strip()
-
-    if cmd in bot.plugin_manager.commands:
-        cmd_hook = bot.plugin_manager.commands[cmd]
-    else:
-        potentials = []
-        for potential_match, plugin in bot.plugin_manager.commands.items():
-            if potential_match.startswith(cmd):
-                potentials.append((potential_match, plugin))
-
-        if potentials:
-            if len(potentials) == 1:
-                cmd_hook = potentials[0][1]
-            else:
-                notice("Possible matches: {}".format(
-                    formatting.get_text_list(sorted([command for command, plugin in potentials]))))
-                return
-        else:
-            cmd_hook = None
-
-    if cmd_hook is None:
-        notice("Unknown command: '{}'".format(cmd))
+    name = text.split()[0]
+    cmds = list(get_potential_commands(bot, name))
+    if not cmds:
+        notice("Unknown command: '{}'".format(name))
         return
+
+    if len(cmds) > 1:
+        notice("Possible matches: {}".format(
+            formatting.get_text_list(sorted([command for command, plugin in cmds]))))
+        return
+
+    cmd_hook = cmds[0][1]
 
     hook_name = cmd_hook.plugin.title + "." + cmd_hook.function_name
     info = "Command: {}, Aliases: [{}], Hook name: {}".format(
