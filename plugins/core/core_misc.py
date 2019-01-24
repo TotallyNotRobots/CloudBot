@@ -103,6 +103,10 @@ def onjoin(conn, bot):
         bot.logger.info("[{}|misc] Bot is setting mode on itself: {}".format(conn.name, mode))
         conn.cmd('MODE', conn.nick, mode)
 
+    log_chan = conn.config.get('log_channel')
+    if log_chan:
+        conn.join(log_chan)
+
     conn.ready = True
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
 
