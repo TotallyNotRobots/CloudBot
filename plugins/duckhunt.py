@@ -70,8 +70,8 @@ class ChannelState:
         return (
             self.game_on and self.duck_status == 0 and
             self.next_duck_time <= time() and
-            self.messages <= MSG_DELAY and
-            len(self.masks) <= MASK_REQ
+            self.messages > MSG_DELAY and
+            len(self.masks) > MASK_REQ
         )
 
     def handle_message(self, event):
