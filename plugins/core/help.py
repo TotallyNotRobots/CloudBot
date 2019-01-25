@@ -13,7 +13,7 @@ def get_potential_commands(bot, cmd_name):
     """
     cmd_name = cmd_name.lower().strip()
     try:
-        yield bot.plugin_manager.commands[cmd_name]
+        yield cmd_name, bot.plugin_manager.commands[cmd_name]
     except LookupError:
         for name, _hook in bot.plugin_manager.commands.items():
             if name.startswith(cmd_name):
