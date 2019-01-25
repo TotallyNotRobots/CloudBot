@@ -92,14 +92,20 @@ def onjoin(conn, bot):
     oper_pw = conn.config.get('oper_pw', False)
     oper_user = conn.config.get('oper_user', False)
     if oper_pw and oper_user:
-        out = "oper {} {}".format(oper_user, oper_pw)
+        out = "OPER {} {}".format(oper_user, oper_pw)
         conn.send(out)
+        # Make sure we finish oper-ing before continuing
+        yield from asyncio.sleep(1)
 
     # Set bot modes
     mode = conn.config.get('mode')
     if mode:
         bot.logger.info("[{}|misc] Bot is setting mode on itself: {}".format(conn.name, mode))
         conn.cmd('MODE', conn.nick, mode)
+
+    log_chan = conn.config.get('log_channel')
+    if log_chan:
+        conn.join(log_chan)
 
     conn.ready = True
     bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
@@ -108,6 +114,9 @@ def onjoin(conn, bot):
 @hook.irc_raw('376')
 @asyncio.coroutine
 def do_joins(logger, conn):
+    while not conn.ready:
+        yield from asyncio.sleep(1)
+
     chans = copy(conn.channels)
 
     # Join config-defined channels
