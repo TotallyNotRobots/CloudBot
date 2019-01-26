@@ -477,10 +477,16 @@ class _IrcProtocol(asyncio.Protocol):
 
             prefix = message.prefix
 
-            nick = prefix.nick
-            user = prefix.user
-            host = prefix.host
-            mask = prefix.mask
+            if prefix is None:
+                nick = None
+                user = None
+                host = None
+                mask = None
+            else:
+                nick = prefix.nick
+                user = prefix.user
+                host = prefix.host
+                mask = prefix.mask
 
             if channel:
                 # TODO Migrate plugins to accept the original case of the channel
