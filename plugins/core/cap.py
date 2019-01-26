@@ -11,14 +11,14 @@ from irclib.parser import CapList
 @hook.connect(priority=-10, clients="irc")
 def send_cap_ls(conn):
     conn.cmd("CAP", "LS", "302")
-    conn.memory.setdefault("available_caps", set()).clear()
+    conn.memory.setdefault("available_caps", CapList()).clear()
     conn.memory.setdefault("cap_queue", {}).clear()
 
 
 @asyncio.coroutine
 def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
-    available_caps = conn.memory["available_caps"]
-    available_caps.update(caplist)
+    available_caps = conn.memory["available_caps"]  # type: CapList
+    available_caps.extend(caplist)
     cap_queue = conn.memory["cap_queue"]
     for cap in caplist:
         name = cap.name
