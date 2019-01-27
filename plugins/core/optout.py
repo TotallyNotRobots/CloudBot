@@ -267,7 +267,7 @@ def list_optout(conn, event, async_call):
     opts = yield from async_call(get_channel_optouts, conn.name, chan)
     table = yield from async_call(format_optout_list, opts)
 
-    return web.paste(table, "md", "hastebin")
+    return (yield from async_call(web.paste, table, "md", "hastebin"))
 
 
 @hook.command("clearoptout", autohelp=False)
