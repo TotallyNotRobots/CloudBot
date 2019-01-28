@@ -70,8 +70,8 @@ class ChannelState:
         return (
             self.game_on and self.duck_status == 0 and
             self.next_duck_time <= time() and
-            self.messages > MSG_DELAY and
-            len(self.masks) > MASK_REQ
+            self.messages >= MSG_DELAY and
+            len(self.masks) >= MASK_REQ
         )
 
     def handle_message(self, event):
@@ -82,7 +82,7 @@ class ChannelState:
 
 
 MSG_DELAY = 10
-MASK_REQ = 3
+MASK_REQ = 5
 scripters = defaultdict(int)
 chan_locks = defaultdict(lambda: defaultdict(Lock))
 game_status = defaultdict(lambda: defaultdict(ChannelState))
@@ -201,6 +201,10 @@ def increment_msg_counter(event, conn):
     :type conn: cloudbot.client.Client
     """
     if is_opt_out(conn.name, event.chan):
+        return
+
+    ignore = event.bot.plugin_manager.find_plugin("ignore")
+    if ignore and ignore.code.is_ignored(conn.name, event.chan, event.mask):
         return
 
     get_state_table(conn.name, event.chan).handle_message(event)
