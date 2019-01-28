@@ -13,7 +13,7 @@ pyenchant==2.0.0
 pythonwhois==2.4.3
 requests==2.21.0
 requests-oauthlib==1.2.0
-SQLAlchemy==1.2.16
+SQLAlchemy==1.2.17
 tweepy==3.7.0
 watchdog==0.9.0
 yarl==1.1.1
