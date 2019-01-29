@@ -80,6 +80,7 @@ class IrcClient(Client):
         if self.use_ssl:
             self.ssl_context = ssl.create_default_context()
             if self._ignore_cert_errors:
+                self.ssl_context.check_hostname = False
                 self.ssl_context.verify_mode = ssl.CERT_NONE
             else:
                 self.ssl_context.verify_mode = ssl.CERT_REQUIRED
