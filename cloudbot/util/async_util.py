@@ -11,18 +11,12 @@ from cloudbot.util.func_utils import call_with_args
 
 def wrap_future(fut, *, loop=None):
     """
-    Wraps asyncio.async()/asyncio.ensure_future() depending on the python version
+    Wraps asyncio.ensure_future()
     :param fut: The awaitable, future, or coroutine to wrap
     :param loop: The loop to run in
     :return: The wrapped future
     """
-    if sys.version_info < (3, 4, 4):
-        # This is to avoid a SyntaxError on 3.7.0a2+
-        func = getattr(asyncio, "async")
-    else:
-        func = asyncio.ensure_future
-
-    return func(fut, loop=loop)  # pylint: disable=locally-disabled, deprecated-method
+    return asyncio.ensure_future(fut, loop=loop)
 
 
 @asyncio.coroutine
