@@ -82,9 +82,6 @@ def api_request(method, api_key, **params):
     params.update({"method": method, "api_key": api_key})
     request = requests.get(api_url, params=params)
 
-    if request.status_code != requests.codes.ok:
-        return {}, "Failed to fetch info ({})".format(request.status_code)
-
     data = request.json()
     if 'error' in data:
         return data, "Error: {}.".format(data["message"])
