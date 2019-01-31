@@ -19,17 +19,15 @@ def wrap_future(fut, *, loop=None):
     return asyncio.ensure_future(fut, loop=loop)
 
 
-@asyncio.coroutine
-def run_func(loop, func, *args, **kwargs):
+async def run_func(loop, func, *args, **kwargs):
     part = partial(func, *args, **kwargs)
     if asyncio.iscoroutine(func) or asyncio.iscoroutinefunction(func):
-        return (yield from part())
+        return await part()
 
-    return (yield from loop.run_in_executor(None, part))
+    return await loop.run_in_executor(None, part)
 
 
-@asyncio.coroutine
-def run_func_with_args(loop, func, arg_data, executor=None):
+async def run_func_with_args(loop, func, arg_data, executor=None):
     if asyncio.iscoroutine(func):
         raise TypeError('A coroutine function or a normal, non-async callable are required')
 
@@ -38,7 +36,7 @@ def run_func_with_args(loop, func, arg_data, executor=None):
     else:
         coro = loop.run_in_executor(executor, call_with_args, func, arg_data)
 
-    return (yield from coro)
+    return await coro
 
 
 def run_coroutine_threadsafe(coro, loop):

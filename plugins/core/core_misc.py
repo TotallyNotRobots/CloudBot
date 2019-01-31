@@ -9,8 +9,7 @@ socket.setdefaulttimeout(10)
 
 # Auto-join on Invite (Configurable, defaults to True)
 @hook.irc_raw('INVITE')
-@asyncio.coroutine
-def invite(irc_paramlist, conn):
+async def invite(irc_paramlist, conn):
     """
     :type irc_paramlist: list[str]
     :type conn: cloudbot.client.Client
@@ -60,8 +59,7 @@ def on_mode_change(conn, irc_paramlist, message):
 
 # Identify to NickServ (or other service)
 @hook.irc_raw('004')
-@asyncio.coroutine
-def onjoin(conn, bot):
+async def onjoin(conn, bot):
     """
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
@@ -84,7 +82,7 @@ def onjoin(conn, bot):
                 conn.message(nickserv_name, "{} {}".format(nickserv_command, nickserv_password))
             if "censored_strings" in bot.config:
                 bot.config['censored_strings'].append(nickserv_password)
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
 
     # Should we oper up?
     oper_pw = conn.config.get('oper_pw', False)
@@ -93,7 +91,7 @@ def onjoin(conn, bot):
         out = "OPER {} {}".format(oper_user, oper_pw)
         conn.send(out)
         # Make sure we finish oper-ing before continuing
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
 
     # Set bot modes
     mode = conn.config.get('mode')
@@ -110,10 +108,9 @@ def onjoin(conn, bot):
 
 
 @hook.irc_raw('376')
-@asyncio.coroutine
-def do_joins(logger, conn):
+async def do_joins(logger, conn):
     while not conn.ready:
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
 
     chans = copy(conn.channels)
 
@@ -122,12 +119,11 @@ def do_joins(logger, conn):
     logger.info("[%s|misc] Bot is joining channels for network.", conn.name)
     for channel in chans:
         conn.join(channel)
-        yield from asyncio.sleep(join_throttle)
+        await asyncio.sleep(join_throttle)
 
 
 @hook.irc_raw('004')
-@asyncio.coroutine
-def keep_alive(conn):
+async def keep_alive(conn):
     """
     :type conn: cloudbot.clients.clients.IrcClient
     """
@@ -135,7 +131,7 @@ def keep_alive(conn):
     if keepalive:
         while True:
             conn.cmd('PING', conn.nick)
-            yield from asyncio.sleep(60)
+            await asyncio.sleep(60)
 
 
 @hook.irc_raw('433')
@@ -145,9 +141,8 @@ def on_nick_in_use(conn, irc_paramlist):
 
 
 @hook.irc_raw('432', singlethread=True)
-@asyncio.coroutine
-def on_invalid_nick(conn):
+async def on_invalid_nick(conn):
     nick = conn.config['nick']
     conn.nick = nick
     conn.cmd("NICK", conn.nick)
-    yield from asyncio.sleep(30)  # Just in case, we make sure to wait at least 30 seconds between sending this
+    await asyncio.sleep(30)  # Just in case, we make sure to wait at least 30 seconds between sending this

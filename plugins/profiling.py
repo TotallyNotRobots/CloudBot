@@ -65,8 +65,7 @@ def get_thread_dump():
 
 
 @hook.command("threaddump", autohelp=False, permissions=["botcontrol"])
-@asyncio.coroutine
-def threaddump_command():
+async def threaddump_command():
     return get_thread_dump()
 
 

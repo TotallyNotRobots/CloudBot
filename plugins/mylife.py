@@ -12,12 +12,11 @@ fml_cache = []
 mlia_cache = []
 
 
-@asyncio.coroutine
-def refresh_fml_cache(loop):
+async def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
     url = 'http://www.fmylife.com/random/'
     _func = functools.partial(requests.get, url, timeout=6)
-    request = yield from loop.run_in_executor(None, _func)
+    request = await loop.run_in_executor(None, _func)
     soup = BeautifulSoup(request.text)
 
     for e in soup.find_all('p', {'class': 'block'}):
@@ -36,12 +35,11 @@ def refresh_fml_cache(loop):
         fml_cache.append((fml_id, text))
 
 
-@asyncio.coroutine
-def refresh_mlia_cache(loop):
+async def refresh_mlia_cache(loop):
     """ gets a page of random MLIAs and puts them into a dictionary """
     url = 'http://mylifeisaverage.com/{}'.format(random.randint(1, 11000))
     _func = functools.partial(requests.get, url, timeout=6)
-    request = yield from loop.run_in_executor(None, _func)
+    request = await loop.run_in_executor(None, _func)
     soup = BeautifulSoup(request.text)
 
     for story in soup.find_all('div', {'class': 'story '}):
@@ -52,16 +50,14 @@ def refresh_mlia_cache(loop):
 
 
 @hook.on_start()
-@asyncio.coroutine
-def initial_refresh(loop):
+async def initial_refresh(loop):
     # do an initial refresh of the caches
-    yield from refresh_fml_cache(loop)
-    yield from refresh_mlia_cache(loop)
+    await refresh_fml_cache(loop)
+    await refresh_mlia_cache(loop)
 
 
 @hook.command(autohelp=False)
-@asyncio.coroutine
-def fml(reply, loop):
+async def fml(reply, loop):
     """- gets a random quote from fmylife.com"""
 
     if fml_cache:
@@ -70,16 +66,15 @@ def fml(reply, loop):
         # reply with the fml we grabbed
         reply('(#{}) {}'.format(fml_id, text))
     else:
-        yield from refresh_fml_cache(loop)
+        await refresh_fml_cache(loop)
 
     # refresh fml cache if its getting empty
     if len(fml_cache) < 3:
-        yield from refresh_fml_cache(loop)
+        await refresh_fml_cache(loop)
 
 
 @hook.command(autohelp=False)
-@asyncio.coroutine
-def mlia(reply, loop):
+async def mlia(reply, loop):
     """- gets a random quote from MyLifeIsAverage.com"""
 
     if mlia_cache:
@@ -88,8 +83,8 @@ def mlia(reply, loop):
         # reply with the mlia we grabbed
         reply('({}) {}'.format(mlia_id, text))
     else:
-        yield from refresh_mlia_cache(loop)
+        await refresh_mlia_cache(loop)
 
     # refresh mlia cache if its getting empty
     if len(mlia_cache) < 3:
-        yield from refresh_mlia_cache(loop)
+        await refresh_mlia_cache(loop)

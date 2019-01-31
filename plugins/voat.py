@@ -71,8 +71,7 @@ def voat_url(match, bot):
 
 
 @hook.command(autohelp=False)
-@asyncio.coroutine
-def voat(text, bot, loop, reply):
+async def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None
     headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
@@ -95,7 +94,7 @@ def voat(text, bot, loop, reply):
 
     try:
         # Again, identify with Voat using an User Agent
-        inquiry = yield from loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
+        inquiry = await loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
         inquiry.raise_for_status()
         data = inquiry.json()
     except Exception as e:

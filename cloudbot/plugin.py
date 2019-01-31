@@ -114,8 +114,7 @@ class PluginManager:
         """
         return self._plugin_name_map.get(title)
 
-    @asyncio.coroutine
-    def load_all(self, plugin_dir):
+    async def load_all(self, plugin_dir):
         """
         Load a plugin from each *.py file in the given directory.
 
@@ -128,16 +127,14 @@ class PluginManager:
         # But ignore files starting with _
         path_list = plugin_dir.rglob("[!_]*.py")
         # Load plugins asynchronously :O
-        yield from asyncio.gather(*[self.load_plugin(path) for path in path_list], loop=self.bot.loop)
+        await asyncio.gather(*[self.load_plugin(path) for path in path_list], loop=self.bot.loop)
 
-    @asyncio.coroutine
-    def unload_all(self):
-        yield from asyncio.gather(
+    async def unload_all(self):
+        await asyncio.gather(
             *[self.unload_plugin(path) for path in self.plugins.keys()], loop=self.bot.loop
         )
 
-    @asyncio.coroutine
-    def load_plugin(self, path):
+    async def load_plugin(self, path):
         """
         Loads a plugin from the given path and plugin object, then registers all hooks from that plugin.
 
@@ -167,7 +164,7 @@ class PluginManager:
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
         if str(file_path) in self.plugins:
-            yield from self.unload_plugin(file_path)
+            await self.unload_plugin(file_path)
 
         module_name = "plugins.{}".format(title)
         try:
@@ -185,11 +182,11 @@ class PluginManager:
         # proceed to register hooks
 
         # create database tables
-        yield from plugin.create_tables(self.bot)
+        await plugin.create_tables(self.bot)
 
         # run on_start hooks
         for on_start_hook in plugin.hooks["on_start"]:
-            success = yield from self.launch(on_start_hook, Event(bot=self.bot, hook=on_start_hook))
+            success = await self.launch(on_start_hook, Event(bot=self.bot, hook=on_start_hook))
             if not success:
                 logger.warning("Not registering hooks from plugin {}: on_start hook errored".format(plugin.title))
 
@@ -293,8 +290,7 @@ class PluginManager:
         # we don't need this anymore
         del plugin.hooks["on_start"]
 
-    @asyncio.coroutine
-    def unload_plugin(self, path):
+    async def unload_plugin(self, path):
         """
         Unloads the plugin from the given path, unregistering all hooks from the plugin.
 
@@ -381,7 +377,7 @@ class PluginManager:
         # Run on_stop hooks
         for on_stop_hook in plugin.hooks["on_stop"]:
             event = Event(bot=self.bot, hook=on_stop_hook)
-            yield from self.launch(on_stop_hook, event)
+            await self.launch(on_stop_hook, event)
 
         # unregister databases
         plugin.unregister_tables(self.bot)
@@ -424,21 +420,19 @@ class PluginManager:
         finally:
             event.close_threaded()
 
-    @asyncio.coroutine
-    def _execute_hook_sync(self, hook, event):
+    async def _execute_hook_sync(self, hook, event):
         """
         :type hook: Hook
         :type event: cloudbot.event.Event
         """
-        yield from event.prepare()
+        await event.prepare()
 
         try:
-            return (yield from call_with_args(hook.function, event))
+            return await call_with_args(hook.function, event)
         finally:
-            yield from event.close()
+            await event.close()
 
-    @asyncio.coroutine
-    def internal_launch(self, hook, event):
+    async def internal_launch(self, hook, event):
         """
         Launches a hook with the data from [event]
         :param hook: The hook to launch
@@ -453,7 +447,7 @@ class PluginManager:
         task = async_util.wrap_future(coro)
         hook.plugin.tasks.append(task)
         try:
-            out = yield from task
+            out = await task
             ok = True
         except Exception:
             logger.exception("Error in hook {}".format(hook.description))
@@ -464,8 +458,7 @@ class PluginManager:
 
         return ok, out
 
-    @asyncio.coroutine
-    def _execute_hook(self, hook, event):
+    async def _execute_hook(self, hook, event):
         """
         Runs the specific hook with the given bot and event.
 
@@ -475,7 +468,7 @@ class PluginManager:
         :type event: cloudbot.event.Event
         :rtype: bool
         """
-        ok, out = yield from self.internal_launch(hook, event)
+        ok, out = await self.internal_launch(hook, event)
         result, error = None, None
         if ok is True:
             result = out
@@ -487,14 +480,13 @@ class PluginManager:
             conn=event.conn, result=result, error=error
         )
         for post_hook in self.hook_hooks["post"]:
-            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
+            success, res = await self.internal_launch(post_hook, post_event(hook=post_hook))
             if success and res is False:
                 break
 
         return ok
 
-    @asyncio.coroutine
-    def _sieve(self, sieve, event, hook):
+    async def _sieve(self, sieve, event, hook):
         """
         :type sieve: cloudbot.plugin.Hook
         :type event: cloudbot.event.Event
@@ -510,7 +502,7 @@ class PluginManager:
         task = async_util.wrap_future(coro)
         sieve.plugin.tasks.append(task)
         try:
-            result = yield from task
+            result = await task
         except Exception:
             logger.exception("Error running sieve {} on {}:".format(sieve.description, hook.description))
             error = sys.exc_info()
@@ -522,25 +514,23 @@ class PluginManager:
             conn=event.conn, result=result, error=error
         )
         for post_hook in self.hook_hooks["post"]:
-            success, res = yield from self.internal_launch(post_hook, post_event(hook=post_hook))
+            success, res = await self.internal_launch(post_hook, post_event(hook=post_hook))
             if success and res is False:
                 break
 
         return result
 
-    @asyncio.coroutine
-    def _start_periodic(self, hook):
+    async def _start_periodic(self, hook):
         interval = hook.interval
         initial_interval = hook.initial_interval
-        yield from asyncio.sleep(initial_interval)
+        await asyncio.sleep(initial_interval)
 
         while True:
             event = Event(bot=self.bot, hook=hook)
-            yield from self.launch(hook, event)
-            yield from asyncio.sleep(interval)
+            await self.launch(hook, event)
+            await asyncio.sleep(interval)
 
-    @asyncio.coroutine
-    def launch(self, hook, event):
+    async def launch(self, hook, event):
         """
         Dispatch a given event to a given hook using a given bot object.
 
@@ -553,7 +543,7 @@ class PluginManager:
 
         if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
             for sieve in self.bot.plugin_manager.sieves:
-                event = yield from self._sieve(sieve, event, hook)
+                event = await self._sieve(sieve, event, hook)
                 if event is None:
                     return False
 
@@ -573,14 +563,14 @@ class PluginManager:
                 future = async_util.create_future(self.bot.loop)
                 queue.put_nowait(future)
                 # wait until the last task is completed
-                yield from future
+                await future
             else:
                 # set to None to signify that this hook is running, but there's no need to create a full queue
                 # in case there are no more hooks that will wait
                 self._hook_waiting_queues[key] = None
 
             # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
+            result = await self._execute_hook(hook, event)
 
             queue = self._hook_waiting_queues[key]
             if queue is None or queue.empty():
@@ -588,11 +578,11 @@ class PluginManager:
                 del self._hook_waiting_queues[key]
             else:
                 # set the result for the next task's future, so they can execute
-                next_future = yield from queue.get()
+                next_future = await queue.get()
                 next_future.set_result(None)
         else:
             # Run the plugin with the message, and wait for it to finish
-            result = yield from self._execute_hook(hook, event)
+            result = await self._execute_hook(hook, event)
 
         # Return the result
         return result
@@ -626,8 +616,7 @@ class Plugin:
         # Keep a reference to this in case another plugin needs to access it
         self.code = code
 
-    @asyncio.coroutine
-    def create_tables(self, bot):
+    async def create_tables(self, bot):
         """
         Creates all sqlalchemy Tables that are registered in this plugin
 
@@ -639,8 +628,8 @@ class Plugin:
             logger.info("Registering tables for {}".format(self.title))
 
             for table in self.tables:
-                if not (yield from bot.loop.run_in_executor(None, table.exists, bot.db_engine)):
-                    yield from bot.loop.run_in_executor(None, table.create, bot.db_engine)
+                if not (await bot.loop.run_in_executor(None, table.exists, bot.db_engine)):
+                    await bot.loop.run_in_executor(None, table.create, bot.db_engine)
 
     def unregister_tables(self, bot):
         """

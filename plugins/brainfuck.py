@@ -12,8 +12,7 @@ MAX_STEPS = 1000000
 
 
 @hook.command("brainfuck", "bf")
-@asyncio.coroutine
-def bf(text):
+async def bf(text):
     """<prog> - executes <prog> as Brainfuck code
     :type text: str
     """

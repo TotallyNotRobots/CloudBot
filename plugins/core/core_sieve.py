@@ -19,8 +19,7 @@ def task_clear(loop):
 
 
 @hook.irc_raw('004')
-@asyncio.coroutine
-def init_tasks(loop, conn):
+async def init_tasks(loop, conn):
     global ready
     if ready:
         # tasks already started
@@ -32,8 +31,7 @@ def init_tasks(loop, conn):
 
 
 @hook.sieve(priority=100)
-@asyncio.coroutine
-def sieve_suite(bot, event, _hook):
+async def sieve_suite(bot, event, _hook):
     global buckets
 
     conn = event.conn
@@ -61,7 +59,7 @@ def sieve_suite(bot, event, _hook):
     if allowed_permissions:
         allowed = False
         for perm in allowed_permissions:
-            if (yield from event.check_permission(perm)):
+            if await event.check_permission(perm):
                 allowed = True
                 break
 
