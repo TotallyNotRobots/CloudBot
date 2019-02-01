@@ -10,30 +10,15 @@ buckets = {}
 logger = logging.getLogger("cloudbot")
 
 
-def task_clear(loop):
-    global buckets
+@hook.periodic(600)
+def task_clear():
     for uid, _bucket in buckets.copy().items():
         if (time() - _bucket.timestamp) > 600:
             del buckets[uid]
-    loop.call_later(600, task_clear, loop)
-
-
-@hook.irc_raw('004')
-async def init_tasks(loop, conn):
-    global ready
-    if ready:
-        # tasks already started
-        return
-
-    logger.info("[{}|sieve] Bot is starting ratelimiter cleanup task.".format(conn.name))
-    loop.call_later(600, task_clear, loop)
-    ready = True
 
 
 @hook.sieve(priority=100)
 async def sieve_suite(bot, event, _hook):
-    global buckets
-
     conn = event.conn
 
     # check acls
