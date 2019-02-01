@@ -46,6 +46,14 @@ class BotInstanceHolder:
         # type: (CloudBot) -> None
         self._instance = value
 
+    @property
+    def config(self):
+        # type: () -> Config
+        if not self.get():
+            raise ValueError("No bot instance available")
+
+        return self.get().config
+
 
 # Store a global instance of the bot to allow easier access to global data
 bot = BotInstanceHolder()
