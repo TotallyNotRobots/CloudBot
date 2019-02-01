@@ -4,6 +4,7 @@ from requests import HTTPError
 from cloudbot import hook
 
 api_url = "http://api.brewerydb.com/v2/search?format=json"
+api_key = None
 
 
 @hook.on_start()

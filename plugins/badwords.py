@@ -17,6 +17,7 @@ table = Table(
 )
 
 badcache = defaultdict(list)
+badword_re = None
 
 
 @hook.on_start()

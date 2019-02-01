@@ -8,6 +8,8 @@ from cloudbot.util import web, formatting, timeformat
 SC_RE = re.compile(r'(.*:)//(www.)?(soundcloud.com|snd.sc)(.*)', re.I)
 API_BASE = 'http://api.soundcloud.com/{}/'
 
+api_key = None
+
 
 class APIError(Exception):
     pass

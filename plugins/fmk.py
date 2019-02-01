@@ -4,16 +4,17 @@ import random
 
 from cloudbot import hook
 
+fmklist = []
+
 
 @hook.on_start()
 def load_fmk(bot):
     """
     :type bot: cloudbot.bot.Cloudbot
     """
-    global fmklist
-
+    fmklist.clear()
     with codecs.open(os.path.join(bot.data_dir, "fmk.txt"), encoding="utf-8") as f:
-        fmklist = [line.strip() for line in f.readlines() if not line.startswith("//")]
+        fmklist.extend(line.strip() for line in f.readlines() if not line.startswith("//"))
 
 
 @hook.command("fmk", autohelp=False)

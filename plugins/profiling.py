@@ -25,6 +25,8 @@ except ImportError:
 from cloudbot import hook
 from cloudbot.util import web
 
+tr = None
+
 
 def get_name(thread_id):
     current_thread = threading.current_thread()

@@ -5,6 +5,7 @@ import requests
 from cloudbot import hook
 
 api_url = 'http://api.giphy.com/v1/gifs'
+api_key = None
 
 
 @hook.on_start()

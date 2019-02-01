@@ -18,6 +18,8 @@ ATTRIB_NAMES = {
     'wordnet': 'Wordnet/Wordnik'
 }
 
+api_key = None
+
 
 def sanitize(text):
     return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))

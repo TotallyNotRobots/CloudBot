@@ -19,6 +19,8 @@ table = Table(
     PrimaryKeyConstraint('nick')
 )
 
+last_cache = []
+
 
 def api_request(method, **params):
     params.update(method=method)
@@ -36,8 +38,7 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global last_cache
-    last_cache = []
+    last_cache.clear()
     for row in db.execute(table.select()):
         nick = row["nick"]
         account = row["acc"]

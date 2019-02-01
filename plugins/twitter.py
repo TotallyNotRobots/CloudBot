@@ -10,6 +10,8 @@ from cloudbot.util import timeformat
 
 TWITTER_RE = re.compile(r"(?:(?:www.twitter.com|twitter.com)/(?:[-_a-zA-Z0-9]+)/status/)([0-9]+)", re.I)
 
+tw_api = None
+
 
 @hook.on_start()
 def load_api(bot):

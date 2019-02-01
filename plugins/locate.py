@@ -9,6 +9,7 @@ geocode_api = base_url + 'geocode/json'
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
+dev_key = None
 
 
 def check_status(status):

@@ -44,6 +44,7 @@ ignore_table = Table(
 
 disable_cache = defaultdict(set)
 ignore_cache = defaultdict(lambda: defaultdict(list))
+tell_cache = []
 
 
 @hook.on_start
@@ -51,8 +52,7 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global tell_cache
-    tell_cache = []
+    tell_cache.clear()
     for row in db.execute(table.select().where(table.c.is_read == 0)):
         conn = row["connection"]
         target = row["target"]

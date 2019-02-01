@@ -6,6 +6,7 @@ from cloudbot.util import formatting, web
 
 base_url = 'https://www.googleapis.com/books/v1/'
 book_search_api = base_url + 'volumes?'
+dev_key = None
 
 
 @hook.on_start()

@@ -15,6 +15,8 @@ __version__ = "1.0.9"
 __all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
            "logging_dir"]
 
+logging_dir = "logs"
+
 
 def _setup():
     if os.path.exists(os.path.abspath("config.json")):

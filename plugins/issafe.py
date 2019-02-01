@@ -18,6 +18,7 @@ import cloudbot
 from cloudbot import hook
 
 API_SB = "https://sb-ssl.google.com/safebrowsing/api/lookup"
+dev_key = None
 
 
 @hook.on_start()

@@ -17,14 +17,15 @@ table = Table(
     PrimaryKeyConstraint("connection", "channel", "mask")
 )
 
+ignore_cache = []
+
 
 @hook.on_start
 def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global ignore_cache
-    ignore_cache = []
+    ignore_cache.clear()
     for row in db.execute(table.select()):
         conn = row["connection"]
         chan = row["channel"]

@@ -28,6 +28,9 @@ wunder_api = "http://api.wunderground.com/api/{}/forecast/geolookup/conditions/q
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
+location_cache = []
+dev_key = None
+wunder_key = None
 
 
 def check_status(status):
@@ -76,8 +79,7 @@ def find_location(location):
 
 
 def load_cache(db):
-    global location_cache
-    location_cache = []
+    location_cache.clear()
     for row in db.execute(table.select()):
         nick = row["nick"]
         location = row["loc"]

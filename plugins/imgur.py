@@ -13,6 +13,7 @@ from cloudbot.util import web
 ImgurClient.logged_in = lambda x: None
 
 NO_NSFW = False
+imgur_api = None
 
 
 def get_items(text):

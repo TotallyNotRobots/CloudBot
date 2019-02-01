@@ -18,6 +18,7 @@ import requests
 from cloudbot import hook
 
 API_URL = "http://octopart.com/api/v3/parts/search"
+api_key = None
 
 
 @hook.on_start()

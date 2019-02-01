@@ -17,6 +17,8 @@ from cloudbot import hook
 from cloudbot.util import formatting, filesize
 
 API_CS = 'https://www.googleapis.com/customsearch/v1'
+dev_key = None
+cx = None
 
 
 @hook.on_start()

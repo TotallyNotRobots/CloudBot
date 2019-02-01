@@ -5,11 +5,14 @@ from cloudbot import hook
 from cloudbot.util import web
 
 api_url = "https://translate.yandex.net/api/v1.5/tr.json/"
+api_key = None
+lang_dict = {}
+lang_dir = []
 
 
 @hook.on_start()
 def load_key(bot):
-    global api_key, lang_dict, lang_dir
+    global api_key
     api_key = bot.config.get("api_keys", {}).get("yandex_translate", None)
     url = api_url + "getLangs"
     params = {
@@ -19,8 +22,10 @@ def load_key(bot):
     r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
-    lang_dict = dict((v, k) for k, v in data['langs'].items())
-    lang_dir = data['dirs']
+    lang_dict.clear()
+    lang_dir.clear()
+    lang_dict.update(dict((v, k) for k, v in data['langs'].items()))
+    lang_dir.extend(data['dirs'])
 
 
 def check_code(code):

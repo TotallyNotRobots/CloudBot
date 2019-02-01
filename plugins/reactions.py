@@ -11,13 +11,14 @@ deal_with_it_phrases = [
     'Looks like \x02{}\x02 needs to',
     'Ever think that \x02{}\x02 just needs to'
 ]
+reaction_macros = {}
 
 
 @hook.on_start()
 def load_macros(bot):
-    global reaction_macros
+    reaction_macros.clear()
     with codecs.open(os.path.join(bot.data_dir, "reaction_macros.json"), encoding="utf-8") as macros:
-        reaction_macros = json.load(macros)
+        reaction_macros.update(json.load(macros))
 
 
 @hook.command('dwi', 'dealwithit')
