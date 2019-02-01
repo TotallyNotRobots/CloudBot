@@ -5,6 +5,7 @@ import urllib.parse
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web
 
 API_URL = 'http://api.wordnik.com/v4/'
@@ -18,17 +19,11 @@ ATTRIB_NAMES = {
     'wordnet': 'Wordnet/Wordnik'
 }
 
-api_key = None
+api_key = bot.config.get_api_key('wordnik')
 
 
 def sanitize(text):
     return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
-
-
-@hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("wordnik", None)
 
 
 @hook.command("define", "dictionary")

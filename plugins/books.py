@@ -2,17 +2,12 @@ import requests
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import formatting, web
 
 base_url = 'https://www.googleapis.com/books/v1/'
 book_search_api = base_url + 'volumes?'
-dev_key = None
-
-
-@hook.on_start()
-def load_key(bot):
-    global dev_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
+dev_key = bot.config.get_api_key('google_dev_key')
 
 
 @hook.command("books", "gbooks")

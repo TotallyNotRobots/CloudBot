@@ -6,9 +6,11 @@ import requests
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import timeformat, web, database
 
 api_url = "http://ws.audioscrobbler.com/2.0/?format=json"
+api_key = bot.config.get_api_key("lastfm")
 
 table = Table(
     "lastfm",
@@ -78,7 +80,7 @@ def get_account(nick, text=None):
     return last_cache.get(nick.lower(), text)
 
 
-def api_request(method, api_key, **params):
+def api_request(method, **params):
     params.update({"method": method, "api_key": api_key})
     request = requests.get(api_url, params=params)
 
@@ -89,9 +91,9 @@ def api_request(method, api_key, **params):
     return data, None
 
 
-def get_tags(api_key, method, artist, **params):
+def get_tags(method, artist, **params):
     tag_list = []
-    tags, err = api_request(method + ".getTopTags", api_key, artist=artist, autocorrect=1, **params)
+    tags, err = api_request(method + ".getTopTags", artist=artist, autocorrect=1, **params)
 
     # if artist doesn't exist return no tags
     if tags.get("error") == 6:
@@ -106,19 +108,19 @@ def get_tags(api_key, method, artist, **params):
     return ', '.join(tag_list) if tag_list else 'no tags'
 
 
-def getartisttags(api_key, artist):
+def getartisttags(artist):
     """Get tags for [artist]"""
-    return get_tags(api_key, "artist", artist)
+    return get_tags("artist", artist)
 
 
-def gettracktags(api_key, artist, title):
+def gettracktags(artist, title):
     """Get tags for [title] by [artist]"""
-    return get_tags(api_key, "track", artist, track=title)
+    return get_tags("track", artist, track=title)
 
 
-def getsimilarartists(api_key, artist):
+def getsimilarartists(artist):
     artist_list = []
-    similar, err = api_request('artist.getsimilar', api_key, artist=artist, autocorrect=1)
+    similar, err = api_request('artist.getsimilar', artist=artist, autocorrect=1)
 
     # check it's a list
     if isinstance(similar['similarartists']['artist'], list):
@@ -130,8 +132,8 @@ def getsimilarartists(api_key, artist):
     return ', '.join(artist_list) if artist_list else 'no similar artists'
 
 
-def getusertrackplaycount(api_key, artist, track, user):
-    track_info, err = api_request("track.getInfo", api_key, artist=artist, track=track, username=user)
+def getusertrackplaycount(artist, track, user):
+    track_info, err = api_request("track.getInfo", artist=artist, track=track, username=user)
     if err and not track_info:
         return err
 
@@ -142,16 +144,15 @@ def getusertrackplaycount(api_key, artist, track, user):
     return track_info['track'].get('userplaycount')
 
 
-def getartistinfo(api_key, artist, user=''):
+def getartistinfo(artist, user=''):
     params = {}
     if user:
         params['username'] = user
-    artist, err = api_request("artist.getInfo", api_key, artist=artist, autocorrect=1, **params)
+    artist, err = api_request("artist.getInfo", artist=artist, autocorrect=1, **params)
     return artist
 
 
-def _topartists(bot, text, nick, period=None, limit=10):
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
+def _topartists(text, nick, period=None, limit=10):
     if not api_key:
         return "error: no api key set"
 
@@ -167,7 +168,7 @@ def _topartists(bot, text, nick, period=None, limit=10):
     if period:
         params['period'] = period
 
-    data, err = api_request("user.gettopartists", api_key, user=username, limit=limit, **params)
+    data, err = api_request("user.gettopartists", user=username, limit=limit, **params)
     if err:
         return err
 
@@ -182,9 +183,8 @@ def _topartists(bot, text, nick, period=None, limit=10):
 
 
 @hook.command("lastfm", "last", "np", "l", autohelp=False)
-def lastfm(event, db, text, nick, bot):
+def lastfm(event, db, text, nick):
     """[user] [dontsave] - displays the now playing (or last played) track of LastFM user [user]"""
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -201,7 +201,7 @@ def lastfm(event, db, text, nick, bot):
             event.notice_doc()
             return
 
-    response, err = api_request('user.getrecenttracks', api_key, user=user, limit=1)
+    response, err = api_request('user.getrecenttracks', user=user, limit=1)
     if err:
         return err
 
@@ -235,11 +235,11 @@ def lastfm(event, db, text, nick, bot):
     artist = track["artist"]["#text"]
     url = web.try_shorten(track["url"])
 
-    tags = gettracktags(api_key, artist, title)
+    tags = gettracktags(artist, title)
     if tags == "no tags":
-        tags = getartisttags(api_key, artist)
+        tags = getartisttags(artist)
 
-    playcount = getusertrackplaycount(api_key, artist, title, user)
+    playcount = getusertrackplaycount(artist, title, user)
 
     out = '{} {} "{}"'.format(format_user(user), status, title)
     if artist:
@@ -271,9 +271,8 @@ def lastfm(event, db, text, nick, bot):
 
 
 @hook.command("plays")
-def getuserartistplaycount(event, bot, text, nick):
+def getuserartistplaycount(event, text, nick):
     """[artist] - displays the current user's playcount for [artist]. You must have your username saved."""
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -282,7 +281,7 @@ def getuserartistplaycount(event, bot, text, nick):
         event.notice_doc()
         return
 
-    artist_info = getartistinfo(api_key, text, user)
+    artist_info = getartistinfo(text, user)
 
     if 'error' in artist_info:
         return 'No such artist.'
@@ -298,20 +297,19 @@ def getuserartistplaycount(event, bot, text, nick):
 
 
 @hook.command("band", "la")
-def displaybandinfo(bot, text):
+def displaybandinfo(text):
     """[artist] - displays information about [artist]."""
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
-    artist = getartistinfo(api_key, text)
+    artist = getartistinfo(text)
 
     if 'error' in artist:
         return 'No such artist.'
 
     a = artist['artist']
-    similar = getsimilarartists(api_key, text)
-    tags = getartisttags(api_key, text)
+    similar = getsimilarartists(text)
+    tags = getartisttags(text)
 
     out = "{} has {:,} plays and {:,} listeners.".format(text, int(a['stats']['playcount']),
                                                          int(a['stats']['listeners']))
@@ -321,9 +319,8 @@ def displaybandinfo(bot, text):
 
 
 @hook.command("lastfmcompare", "compare", "lc")
-def lastfmcompare(bot, text, nick):
+def lastfmcompare(text, nick):
     """<user1> [user2] - displays the now playing (or last played) track of LastFM user [user]"""
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -347,7 +344,7 @@ def lastfmcompare(bot, text, nick):
     if user1_check:
         user1 = user1_check
 
-    data, err = api_request('tasteometer.compare', api_key, type1="user", value1=user1, type2="user", value2=user2)
+    data, err = api_request('tasteometer.compare', type1="user", value1=user1, type2="user", value2=user2)
     if err:
         return err
 
@@ -385,9 +382,8 @@ def lastfmcompare(bot, text, nick):
 
 
 @hook.command("ltop", "ltt", autohelp=False)
-def toptrack(bot, text, nick):
+def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a last.fm username"""
-    api_key = bot.config.get("api_keys", {}).get("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -400,7 +396,7 @@ def toptrack(bot, text, nick):
     if not username:
         return "No last.fm username specified and no last.fm username is set in the database."
 
-    data, err = api_request("user.gettoptracks", api_key, user=username, limit=5)
+    data, err = api_request("user.gettoptracks", user=username, limit=5)
     if err:
         return err
 
@@ -417,22 +413,22 @@ def toptrack(bot, text, nick):
 @hook.command("lta", "topartist", autohelp=False)
 def topartists(bot, text, nick):
     """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
-    return _topartists(bot, text, nick)
+    return _topartists(text, nick)
 
 
 @hook.command("ltw", "topweek", autohelp=False)
-def topweek(bot, text, nick):
+def topweek(text, nick):
     """[username] - Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
-    return _topartists(bot, text, nick, '7day')
+    return _topartists(text, nick, '7day')
 
 
 @hook.command("ltm", "topmonth", autohelp=False)
-def topmonth(bot, text, nick):
+def topmonth(text, nick):
     """[username] - Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
-    return _topartists(bot, text, nick, '1month')
+    return _topartists(text, nick, '1month')
 
 
 @hook.command("lty", "topyear", autohelp=False)
-def topall(bot, text, nick):
+def topall(text, nick):
     """[username] - Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
-    return _topartists(bot, text, nick, '1year')
+    return _topartists(text, nick, '1year')

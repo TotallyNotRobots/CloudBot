@@ -6,6 +6,7 @@ from lxml import etree
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web, formatting
 
 # security
@@ -14,11 +15,12 @@ parser = etree.XMLParser(resolve_entities=False, no_network=True)
 api_url = 'http://api.wolframalpha.com/v2/query'
 query_url = 'http://www.wolframalpha.com/input/?i={}'
 
+api_key = bot.config.get_api_key("wolframalpha")
+
 
 @hook.command("wolframalpha", "wa", "calc", "ca", "math", "convert")
 def wolframalpha(text, bot, reply):
     """<query> -- Computes <query> using Wolfram Alpha."""
-    api_key = bot.config.get("api_keys", {}).get("wolframalpha", None)
     if not api_key:
         return "error: missing api key"
 

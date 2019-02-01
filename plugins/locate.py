@@ -3,13 +3,15 @@ import requests
 from cloudbot import hook
 
 # Define some constants
+from cloudbot.bot import bot
+
 base_url = 'https://maps.googleapis.com/maps/api/'
 geocode_api = base_url + 'geocode/json'
 
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
-dev_key = None
+dev_key = bot.config.get_api_key("google_dev_key")
 
 
 def check_status(status):
@@ -32,13 +34,6 @@ def check_status(status):
 
     if status == 'OK':
         return None
-
-
-@hook.on_start
-def load_key(bot):
-    """ Loads the API key for Google APIs """
-    global dev_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
 
 
 @hook.command("locate", "maps")

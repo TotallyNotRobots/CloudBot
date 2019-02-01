@@ -10,6 +10,7 @@ from decimal import Decimal
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import colors
 
 
@@ -53,22 +54,17 @@ class AVApi:
         return current_data
 
 
-api = None
-
-
-@hook.onload
-def create_api(bot):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
-    global api
+def create_api():
+    _bot = bot.get()
     try:
-        key = bot.config["api_keys"]["alphavantage"]
+        key = _bot.config.get_api_key("alphavantage")
     except LookupError:
-        return
+        return None
 
-    api = AVApi(key, user_agent=bot.user_agent)
+    return AVApi(key, user_agent=_bot.user_agent)
 
+
+api = create_api()
 
 number_suffixes = "TBM"
 

@@ -16,15 +16,10 @@ License:
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 
 API_URL = "http://octopart.com/api/v3/parts/search"
-api_key = None
-
-
-@hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("octopart", None)
+api_key = bot.config.get_api_key("octopart")
 
 
 @hook.command("octopart", "octo")

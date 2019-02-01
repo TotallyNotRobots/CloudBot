@@ -5,6 +5,7 @@ import isodate
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import timeformat
 from cloudbot.util.formatting import pluralize_auto
 
@@ -17,7 +18,7 @@ playlist_api_url = base_url + 'playlists?part=snippet%2CcontentDetails%2Cstatus'
 video_url = "http://youtu.be/%s"
 err_no_api = "The YouTube API is off in the Google Developers Console."
 
-dev_key = None
+dev_key = bot.config.get_api_key("google_dev_key")
 
 
 def get_video_description(video_id):
@@ -70,12 +71,6 @@ def get_video_description(video_id):
         out += ' - \x034NSFW\x02'
 
     return out
-
-
-@hook.on_start()
-def load_key(bot):
-    global dev_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
 
 
 @hook.regex(youtube_re)

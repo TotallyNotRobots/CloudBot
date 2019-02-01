@@ -2,18 +2,17 @@ import requests
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web
 
 api_url = "https://translate.yandex.net/api/v1.5/tr.json/"
-api_key = None
+api_key = bot.config.get_api_key("yandex_translate")
 lang_dict = {}
 lang_dir = []
 
 
 @hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("yandex_translate", None)
+def load_key():
     url = api_url + "getLangs"
     params = {
         'key': api_key,

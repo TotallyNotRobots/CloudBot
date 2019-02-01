@@ -2,6 +2,7 @@ import requests
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web, database
 
 
@@ -29,8 +30,8 @@ wunder_api = "http://api.wunderground.com/api/{}/forecast/geolookup/conditions/q
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
 location_cache = []
-dev_key = None
-wunder_key = None
+dev_key = bot.config.get_api_key("google_dev_key")
+wunder_key = bot.config.get_api_key("wunderground")
 
 
 def check_status(status):
@@ -78,14 +79,6 @@ def find_location(location):
     return json['results'][0]['geometry']['location']
 
 
-def load_cache(db):
-    location_cache.clear()
-    for row in db.execute(table.select()):
-        nick = row["nick"]
-        location = row["loc"]
-        location_cache.append((nick, location))
-
-
 def add_location(nick, location, db):
     test = dict(location_cache)
     location = str(location)
@@ -100,12 +93,12 @@ def add_location(nick, location, db):
 
 
 @hook.on_start
-def on_start(bot, db):
-    """ Loads API keys """
-    global dev_key, wunder_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
-    wunder_key = bot.config.get("api_keys", {}).get("wunderground", None)
-    load_cache(db)
+def load_cache(db):
+    location_cache.clear()
+    for row in db.execute(table.select()):
+        nick = row["nick"]
+        location = row["loc"]
+        location_cache.append((nick, location))
 
 
 def get_location(nick):

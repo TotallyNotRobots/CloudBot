@@ -4,11 +4,13 @@ import requests
 from lxml import etree
 
 from cloudbot import hook
+from cloudbot.bot import bot
 
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)
 
 base_url = "http://thetvdb.com/api/"
+api_key = bot.config.get_api_key("tvdb")
 
 
 def get_episodes_for_series(series_name, api_key):
@@ -81,10 +83,8 @@ def get_episode_info(episode):
 
 @hook.command()
 @hook.command('tv')
-def tv_next(text, bot=None):
+def tv_next(text):
     """<series> - Get the next episode of <series>."""
-
-    api_key = bot.config.get("api_keys", {}).get("tvdb", None)
     if api_key is None:
         return "error: no api key set"
     episodes = get_episodes_for_series(text, api_key)
@@ -131,10 +131,8 @@ def tv_next(text, bot=None):
 
 @hook.command()
 @hook.command('tv_prev')
-def tv_last(text, bot=None):
+def tv_last(text):
     """<series> - Gets the most recently aired episode of <series>."""
-
-    api_key = bot.config.get("api_keys", {}).get("tvdb", None)
     if api_key is None:
         return "error: no api key set"
     episodes = get_episodes_for_series(text, api_key)

@@ -1,16 +1,9 @@
 from cleverwrap import CleverWrap
 
 from cloudbot import hook
+from cloudbot.bot import bot
 
-api = None
-
-
-@hook.on_start()
-def get_key(bot):
-    global api
-    api_key = bot.config.get("api_keys", {}).get("cleverbot", None)
-    if api_key:
-        api = CleverWrap(api_key)
+api = CleverWrap(bot.config.get_api_key("cleverbot"))
 
 
 @hook.command("ask", "gonzo", "gonzobot", "cleverbot", "cb")

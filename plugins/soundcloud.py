@@ -3,12 +3,13 @@ import re
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web, formatting, timeformat
 
 SC_RE = re.compile(r'(.*:)//(www.)?(soundcloud.com|snd.sc)(.*)', re.I)
 API_BASE = 'http://api.soundcloud.com/{}/'
 
-api_key = None
+api_key = bot.config.get_api_key("soundcloud")
 
 
 class APIError(Exception):
@@ -147,12 +148,6 @@ def format_group(group, show_url=True):
 
 
 # CLOUDBOT HOOKS
-@hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("soundcloud", None)
-
-
 @hook.command("soundcloud", "sc")
 def soundcloud(text):
     """<query> -- Searches for tracks on SoundCloud."""

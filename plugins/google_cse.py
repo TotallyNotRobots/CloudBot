@@ -14,20 +14,12 @@ License:
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import formatting, filesize
 
 API_CS = 'https://www.googleapis.com/customsearch/v1'
-dev_key = None
-cx = None
-
-
-@hook.on_start()
-def load_api(bot):
-    global dev_key
-    global cx
-
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
-    cx = bot.config.get("api_keys", {}).get("google_cse_id", None)
+dev_key = bot.config.get_api_key("google_dev_key")
+cx = bot.config.get_api_key("google_cse_id")
 
 
 @hook.command('gse')

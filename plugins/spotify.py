@@ -8,8 +8,7 @@ from requests.auth import HTTPBasicAuth
 from yarl import URL
 
 from cloudbot import hook
-
-api = None
+from cloudbot.bot import bot
 
 spotify_re = re.compile(
     r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))', re.I
@@ -60,6 +59,12 @@ class SpotifyAPI:
             auth = r.json()
             self._access_token = auth["access_token"]
             self._token_expires = datetime.now() + timedelta(seconds=auth["expires_in"])
+
+
+api = SpotifyAPI(
+    bot.config.get_api_key('spotify_client_id'),
+    bot.config.get_api_key('spotify_client_secret')
+)
 
 
 def _search(text, _type, reply):
@@ -117,15 +122,6 @@ def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False
 def _format_search(text, _type, reply):
     data = _search(text, _type, reply)
     return _format_response(data, _type, show_url=True, show_uri=True)
-
-
-@hook.onload
-def create_api(bot):
-    keys = bot.config['api_keys']
-    client_id = keys['spotify_client_id']
-    client_secret = keys['spotify_client_secret']
-    global api
-    api = SpotifyAPI(client_id, client_secret)
 
 
 @hook.command('spotify', 'sptrack')
