@@ -30,8 +30,18 @@ class Config(OrderedDict):
         # populate self with config data
         self.load_config()
 
+        self._api_keys = {}
+
+    def get_api_key(self, name, default=None):
+        try:
+            return self._api_keys[name]
+        except LookupError:
+            self._api_keys[name] = value = self.get('api_keys', {}).get(name, default)
+            return value
+
     def load_config(self):
         """(re)loads the bot config from the config file"""
+        self._api_keys.clear()
         if not os.path.exists(self.path):
             # if there is no config, show an error and die
             logger.critical("No config file found, bot shutting down!")
