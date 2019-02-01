@@ -152,18 +152,38 @@ def getartistinfo(artist, user=''):
     return artist
 
 
-def _topartists(text, nick, period=None, limit=10):
+def check_key_and_user(nick, text, lookup=False):
+    """
+    Verify an API key is set and perform basic user lookups
+
+    Used as a prerequisite for multiple API commands
+    :param nick: The nick of the calling user
+    :param text: The text passed to the command, possibly a different username to use
+    :param lookup: Whether to look up `text` as another user's nick in the user table
+    :return: The parsed username and any error message that occurred
+    """
     if not api_key:
-        return "error: no api key set"
+        return None, "Error: No API key set."
 
     if text:
-        username = get_account(text)
-        if not username:
+        if lookup:
+            username = get_account(text, text)
+        else:
             username = text
     else:
         username = get_account(nick)
+
     if not username:
-        return "No last.fm username specified and no last.fm username is set in the database."
+        return None, "No last.fm username specified and no last.fm username is set in the database."
+
+    return username, None
+
+
+def _topartists(text, nick, period=None, limit=10):
+    username, err = check_key_and_user(nick, text, True)
+    if err:
+        return err
+
     params = {}
     if period:
         params['period'] = period
@@ -384,17 +404,9 @@ def lastfmcompare(text, nick):
 @hook.command("ltop", "ltt", autohelp=False)
 def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a last.fm username"""
-    if not api_key:
-        return "error: no api key set"
-
-    if text:
-        username = get_account(text)
-        if not username:
-            username = text
-    else:
-        username = get_account(nick)
-    if not username:
-        return "No last.fm username specified and no last.fm username is set in the database."
+    username, err = check_key_and_user(nick, text, True)
+    if err:
+        return err
 
     data, err = api_request("user.gettoptracks", user=username, limit=5)
     if err:
@@ -411,7 +423,7 @@ def toptrack(text, nick):
 
 
 @hook.command("lta", "topartist", autohelp=False)
-def topartists(bot, text, nick):
+def topartists(text, nick):
     """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
     return _topartists(text, nick)
 
