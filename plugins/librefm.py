@@ -44,7 +44,7 @@ def get_account(nick):
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
-def librefm(text, nick, db, notice):
+def librefm(text, nick, db, event):
     """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
 
     # check if the user asked us not to save his details
@@ -57,7 +57,7 @@ def librefm(text, nick, db, notice):
     if not user:
         user = get_account(nick)
         if not user:
-            notice(librefm.__doc__)
+            event.notice_doc()
             return
 
     params = {'method': 'user.getrecenttracks',

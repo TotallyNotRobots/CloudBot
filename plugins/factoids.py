@@ -71,13 +71,14 @@ def del_factoid(db, chan, word):
 
 
 @hook.command("r", "remember", permissions=["op", "chanop"])
-def remember(text, nick, db, chan, notice):
+def remember(text, nick, db, chan, notice, event):
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
     global factoid_cache
     try:
         word, data = text.split(None, 1)
     except ValueError:
-        return remember.__doc__
+        event.notice_doc()
+        return
 
     word = word.lower()
     try:

@@ -147,7 +147,7 @@ def get_quote_by_chan(db, chan, num=False):
 
 
 @hook.command('q', 'quote')
-def quote(text, nick, chan, db, notice):
+def quote(text, nick, chan, db, notice, event):
     """[#chan] [nick] [#n] OR add <nick> <message> - gets the [#n]th quote by <nick> (defaulting to random)
     OR adds <message> as a quote for <nick> in the caller's channel"""
 
@@ -172,4 +172,4 @@ def quote(text, nick, chan, db, notice):
         chan, nick, num = retrieve_chan.groups()
         return get_quote_by_nick_chan(db, chan, nick, num)
 
-    notice(quote.__doc__)
+    event.notice_doc()
