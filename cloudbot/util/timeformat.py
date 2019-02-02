@@ -68,10 +68,10 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
     """
 
     # Convert int or float (unix epoch) to datetime.datetime for comparison
-    if isinstance(d, int) or isinstance(d, float):
+    if isinstance(d, (int, float)):
         d = datetime.datetime.fromtimestamp(d)
 
-    if isinstance(now, int) or isinstance(now, float):
+    if isinstance(now, (int, float)):
         now = datetime.datetime.fromtimestamp(now)
 
     # Convert datetime.date to datetime.datetime for comparison.
