@@ -197,7 +197,7 @@ class PermissionManager(object):
             return False
         # We're going to act like the group keys are all lowercase.
         # The user has been warned (above) if they aren't.
-        groups = self.config.get("permissions", {})
+        groups = self.config.setdefault("permissions", {})
         if group in groups:
             group_dict = groups.get(group)
             users = group_dict["users"]
