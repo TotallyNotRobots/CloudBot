@@ -29,7 +29,6 @@ def test_manager_load():
     user_mask = 'user!*@host??om'
 
     other_user = 'user1!b@hosaacom'
-    other_user_mask = 'normaluser!*@*'
 
     cloudbot.permissions.backdoor = None
     manager = PermissionManager(MockConn('testconn', {
