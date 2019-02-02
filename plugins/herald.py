@@ -100,9 +100,8 @@ def welcome(nick, message, bot, chan):
     else:
         floodcheck[chan] = time.time()
 
-    welcome = herald_cache[chan.casefold()].get(nick.casefold())
-    if welcome:
-        greet = welcome
+    greet = herald_cache[chan.casefold()].get(nick.casefold())
+    if greet:
         stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
         stripped = colors_re.sub("", stripped)
         greet = re.sub(bino_re, 'flenny', greet)

@@ -175,11 +175,11 @@ async def chain(text, bot, event):
 
         _target = target
 
-    def action(message, target=None):
+    def action(msg, target=None):
         nonlocal buffer
         nonlocal out_func
         nonlocal _target
-        buffer += (" " if buffer else "") + message
+        buffer += (" " if buffer else "") + msg
         if out_func is None:
             out_func = event.action
 

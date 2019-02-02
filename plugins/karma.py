@@ -108,7 +108,7 @@ def re_rmpt(match, nick, chan, db, notice):
 
 
 @hook.command("points", autohelp=False)
-def points(text, chan, db):
+def points_cmd(text, chan, db):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0
     thing = ""

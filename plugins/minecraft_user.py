@@ -9,12 +9,12 @@ HIST_API = "http://api.fishbans.com/history/{}"
 UUID_API = "http://api.goender.net/api/uuids/{}/"
 
 
-def get_name(uuid):
+def get_name(user_uuid):
     # submit the profile request
-    request = requests.get(UUID_API.format(uuid))
+    request = requests.get(UUID_API.format(user_uuid))
     request.raise_for_status()
     data = request.json()
-    return data[uuid]
+    return data[user_uuid]
 
 
 @hook.command("mcuser", "mcpaid", "haspaid")

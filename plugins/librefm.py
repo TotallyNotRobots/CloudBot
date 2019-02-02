@@ -274,22 +274,19 @@ def libretopartists(text, nick):
 @hook.command("libreltw", "libretopweek", autohelp=False)
 def topweek(text, nick):
     """[username] - Grabs a list of the top artists in the last week for a libre.fm username. You can set your librefm username with .l username"""
-    topweek = topartists(text, nick, '7day')
-    return topweek
+    return topartists(text, nick, '7day')
 
 
 @hook.command("libreltm", "libretopmonth", autohelp=False)
 def topmonth(text, nick):
     """[username] - Grabs a list of the top artists in the last month for a libre.fm username. You can set your librefm username with .l username"""
-    topmonth = topartists(text, nick, '1month')
-    return topmonth
+    return topartists(text, nick, '1month')
 
 
 @hook.command("librelibrelta", "libretopall", autohelp=False)
 def topall(text, nick):
     """[username] - Grabs a list of the top artists in the last year for a libre.fm username. You can set your librefm username with .l username"""
-    topall = topartists(text, nick, '12month')
-    return topall
+    return topartists(text, nick, '12month')
 
 
 def topartists(text, nick, period):

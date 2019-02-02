@@ -14,8 +14,8 @@ def load_drinks(bot):
         drinks = json.load(json_data)
 
 
-@hook.command()
-def drink(text, chan, action):
+@hook.command('drink')
+def drink_cmd(text, chan, action):
     """<nick> - makes the user a random cocktail."""
     index = random.randint(0, len(drinks) - 1)
     drink = drinks[index]['title']
