@@ -147,8 +147,8 @@ def get_weather(text, reply):
     if not (len(days) == len(highs) == len(lows) == len(forecasts)):
         raise ParseError("forecast counts don't match up")
 
-    for i in range(len(days)):
-        return_val["forecast"].append({"day": days[i],
+    for i, name in enumerate(days):
+        return_val["forecast"].append({"day": name,
                                        "high": highs[i],
                                        "low": lows[i],
                                        "weather": forecasts[i]})

@@ -22,10 +22,10 @@ async def bf(text):
     # create a dict of brackets pairs, for speed later on
     brackets = {}
     open_brackets = []
-    for pos in range(len(program)):
-        if program[pos] == '[':
+    for pos, c in enumerate(program):
+        if c == '[':
             open_brackets.append(pos)
-        elif program[pos] == ']':
+        elif c == ']':
             if open_brackets:
                 brackets[pos] = open_brackets[-1]
                 brackets[open_brackets[-1]] = pos

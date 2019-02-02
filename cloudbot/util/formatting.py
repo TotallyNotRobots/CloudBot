@@ -157,8 +157,8 @@ def munge(text, count=0):
     :rtype str
     """
     reps = 0
-    for n in range(len(text)):
-        rep = REPLACEMENTS.get(text[n])
+    for n, c in enumerate(text):
+        rep = REPLACEMENTS.get(c)
         if rep:
             text = text[:n] + rep + text[n + 1:]
             reps += 1

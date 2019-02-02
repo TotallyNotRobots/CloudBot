@@ -27,9 +27,9 @@ def encode(password, text):
     :type text: str
     """
     enc = []
-    for i in range(len(text)):
+    for i, c in enumerate(text):
         key_c = password[i % len(password)]
-        enc_c = chr((ord(text[i]) + ord(key_c)) % 256)
+        enc_c = chr((ord(c) + ord(key_c)) % 256)
         enc.append(enc_c)
     return base64.urlsafe_b64encode("".join(enc).encode()).decode()
 
@@ -45,9 +45,9 @@ def decode(password, encoded, notice):
     except binascii.Error:
         notice("Invalid input '{}'".format(encoded))
         return
-    for i in range(len(encoded_bytes)):
+    for i, c in enumerate(encoded_bytes):
         key_c = password[i % len(password)]
-        dec_c = chr((256 + ord(encoded_bytes[i]) - ord(key_c)) % 256)
+        dec_c = chr((256 + ord(c) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
 
