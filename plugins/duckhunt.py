@@ -245,7 +245,6 @@ def set_ducktime(chan, conn):
     status.duck_status = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
     status.clear_messages()
-    return
 
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
