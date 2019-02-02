@@ -88,8 +88,6 @@ async def check_reminders(bot, async_call, db):
         if remind_time <= current_time:
             if network not in bot.connections:
                 # connection is invalid
-                await add_reminder(async_call, db, network, remind_time, user)
-                await load_cache(async_call, db)
                 continue
 
             conn = bot.connections[network]
