@@ -33,8 +33,10 @@ def validate(text):
     response = response['messages']
 
     for mess in response:
-        if mess.get("subType", None) == "warning": warning_count += 1
-        if mess.get("type", None) == "error": error_count += 1
+        if mess.get("subType", None) == "warning":
+            warning_count += 1
+        if mess.get("type", None) == "error":
+            error_count += 1
 
     out_warning = "warnings" if warning_count > 1 else "warning"
     out_error = "errors" if error_count > 1 else "error"
