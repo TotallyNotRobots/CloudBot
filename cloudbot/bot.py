@@ -125,7 +125,7 @@ class CloudBot:
         self.db_engine = create_engine(db_path)
         self.db_factory = sessionmaker(bind=self.db_engine)
         self.db_session = scoped_session(self.db_factory)
-        self.db_metadata = MetaData()
+        self.db_metadata = database.metadata
         self.db_base = declarative_base(metadata=self.db_metadata, bind=self.db_engine)
 
         # create web interface
@@ -133,7 +133,6 @@ class CloudBot:
             self.web = WebInterface(self)
 
         # set botvars so plugins can access when loading
-        database.metadata = self.db_metadata
         database.base = self.db_base
 
         logger.debug("Database system initialised.")
