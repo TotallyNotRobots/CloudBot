@@ -441,17 +441,28 @@ class _IrcProtocol(asyncio.Protocol):
                 target = None
 
             # Parse for CTCP
-            if event_type is EventType.message and content_raw.count("\x01") >= 2 and content_raw.startswith("\x01"):
-                # Remove the first \x01, then rsplit to remove the last one, and ignore text after the last \x01
-                ctcp_text = content_raw[1:].rsplit("\x01", 1)[0]
-                ctcp_text_split = ctcp_text.split(None, 1)
-                if ctcp_text_split[0] == "ACTION":
-                    # this is a CTCP ACTION, set event_type and content accordingly
-                    event_type = EventType.action
-                    content = ctcp_text_split[1]
+            if event_type is EventType.message and content_raw.startswith("\x01"):
+                possible_ctcp = content_raw[1:]
+                if content_raw.endswith('\x01'):
+                    possible_ctcp = possible_ctcp[:-1]
+
+                if '\x01' in possible_ctcp:
+                    logger.debug(
+                        "[%s] Invalid CTCP message received, "
+                        "treating it as a mornal message",
+                        self.conn.name
+                    )
+                    ctcp_text = None
                 else:
-                    # this shouldn't be considered a regular message
-                    event_type = EventType.other
+                    ctcp_text = possible_ctcp
+                    ctcp_text_split = ctcp_text.split(None, 1)
+                    if ctcp_text_split[0] == "ACTION":
+                        # this is a CTCP ACTION, set event_type and content accordingly
+                        event_type = EventType.action
+                        content = irc_clean(ctcp_text_split[1])
+                    else:
+                        # this shouldn't be considered a regular message
+                        event_type = EventType.other
             else:
                 ctcp_text = None
 
@@ -462,7 +473,7 @@ class _IrcProtocol(asyncio.Protocol):
                     channel = command_params[0]
                 elif command == "INVITE":
                     channel = command_params[1]
-                elif len(command_params) > 2 or not (has_trail and len(command_params) == 1):
+                elif len(command_params) > 2 or not (command_params.has_trail and len(command_params) == 1):
                     channel = command_params[0]
 
             prefix = message.prefix
