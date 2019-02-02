@@ -51,7 +51,7 @@ def drama(text, reply):
     for p in page.xpath('//div[@id="bodyContent"]/p'):
         if p.text_content():
             summary = " ".join(p.text_content().splitlines())
-            summary = re.sub("\[\d+\]", "", summary)
+            summary = re.sub(r"\[\d+\]", "", summary)
             summary = formatting.truncate(summary, 220)
             return "{} - {}".format(summary, url)
 

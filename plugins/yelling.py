@@ -5,7 +5,7 @@ from cloudbot.event import EventType
 
 OPT_IN = ["#yelling"]
 YELL_RE = re.compile('[^a-zA-Z]')
-URL_RE = re.compile('[a-z]+://\S+', re.IGNORECASE)  # Ignore possible URLs as they are case-sensitive
+URL_RE = re.compile(r'[a-z]+://\S+', re.IGNORECASE)  # Ignore possible URLs as they are case-sensitive
 
 
 @hook.event([EventType.message, EventType.action], clients=["irc"])
