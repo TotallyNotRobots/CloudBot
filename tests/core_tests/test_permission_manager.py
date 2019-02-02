@@ -53,6 +53,7 @@ def test_manager_load():
     assert not manager.get_user_permissions(other_user)
     assert manager.has_perm_mask(user, 'testperm')
     assert manager.user_in_group(user, 'admins')
+    assert not manager.user_in_group(other_user, 'admins')
 
     assert manager.remove_group_user('admins', user) == [user_mask]
     manager.reload()
@@ -62,3 +63,37 @@ def test_manager_load():
     assert 'testperm' not in manager.get_user_permissions(user)
     assert not manager.has_perm_mask(user, 'testperm')
     assert not manager.user_in_group(user, 'admins')
+
+
+def test_mix_case_group():
+    from cloudbot.permissions import PermissionManager
+    manager = PermissionManager(MockConn('testconn', {
+        'permissions': {
+            'Admins': {
+                'users': [
+                    '*!*@host'
+                ],
+                'perms': [
+                    'testperm'
+                ]
+            }
+        }
+    }))
+
+    assert manager.group_exists('admins')
+    manager.remove_group_user('admins', 'user!name@host')
+    manager.reload()
+    assert manager.user_in_group('user!name@host', 'admins')
+
+
+def test_add_user_to_group():
+    from cloudbot.permissions import PermissionManager
+    manager = PermissionManager(MockConn('testconn', {}))
+    manager.add_user_to_group('*!*@host', 'admins')
+    manager.add_user_to_group('*!*@mask', 'admins')
+    manager.reload()
+    assert manager.user_in_group('user!name@host', 'admins')
+    assert manager.user_in_group('otheruser!name@mask', 'admins')
+    manager.add_user_to_group('*!*@mask', 'admins')
+    manager.reload()
+    assert len(manager.get_group_users('admins')) == 2
