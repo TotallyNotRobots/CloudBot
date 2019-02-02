@@ -377,7 +377,7 @@ def get_text_list(list_, last_word='or'):
     >> get_text_list([])
     ''
     """
-    if len(list_) == 0:
+    if not list_:
         return ''
 
     if len(list_) == 1:

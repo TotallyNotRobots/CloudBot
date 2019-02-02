@@ -26,13 +26,13 @@ async def bf(text):
         if program[pos] == '[':
             open_brackets.append(pos)
         elif program[pos] == ']':
-            if len(open_brackets) > 0:
+            if open_brackets:
                 brackets[pos] = open_brackets[-1]
                 brackets[open_brackets[-1]] = pos
                 open_brackets.pop()
             else:
                 return "Unbalanced brackets"
-    if len(open_brackets) != 0:
+    if open_brackets:
         return "Unbalanced brackets"
 
     # now we can start interpreting

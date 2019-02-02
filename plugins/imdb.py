@@ -32,7 +32,7 @@ def imdb(text, bot):
     if content['success'] is False:
         return 'Unknown error'
 
-    if len(content['result']) == 0:
+    if not content['result']:
         return 'No movie found'
 
     result = content['result']

@@ -111,7 +111,7 @@ async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log
         notice("Too many arguments")
         return
 
-    if len(split) < 1:
+    if not split:
         notice("Not enough arguments")
         return
 
