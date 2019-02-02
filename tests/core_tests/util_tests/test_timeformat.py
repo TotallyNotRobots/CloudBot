@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from cloudbot.util.timeformat import format_time, time_since, time_until
 
@@ -28,6 +28,10 @@ def test_timesince():
     # future
     assert time_since(then_future, now) == "0 minutes"
 
+    assert time_since(then.date(), now.date()) == "1 month and 3 days"
+
+    assert time_since(datetime.now() - timedelta(hours=2)) == "2 hours"
+
 
 def test_timeuntil():
     now = datetime(2010, 4, 12, 12, 30, 0)
@@ -36,3 +40,5 @@ def test_timeuntil():
     assert time_until(future, now) == "1 month and 2 days"
     # count
     assert time_until(future, now, count=3) == "1 month, 2 days and 13 hours"
+
+    assert time_until(datetime.now() + timedelta(hours=2)) == "2 hours"
