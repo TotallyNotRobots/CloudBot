@@ -257,11 +257,7 @@ class IrcClient(Client):
         :type params: (str)
         """
         params = list(map(str, params))  # turn the tuple of parameters into a list
-        if params:
-            params[-1] = ':' + params[-1]
-            self.send("{} {}".format(command, ' '.join(params)))
-        else:
-            self.send(command)
+        self.send(str(Message(None, None, command, params)))
 
     def send(self, line, log=True):
         """
@@ -414,12 +410,6 @@ class _IrcProtocol(asyncio.Protocol):
             command = message.command
             command_params = message.parameters
 
-            has_trail = command_params.has_trail
-            command_params = list(command_params)
-
-            if command_params and command_params[-1].startswith(':'):
-                command_params[-1] = command_params[-1][1:]
-
             # Reply to pings immediately
 
             if command == "PING":
@@ -428,7 +418,7 @@ class _IrcProtocol(asyncio.Protocol):
             # Parse the command and params
 
             # Content
-            if has_trail:
+            if command_params.has_trail:
                 content_raw = command_params[-1]
                 content = irc_clean(content_raw)
             else:
