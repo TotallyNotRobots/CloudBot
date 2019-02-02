@@ -48,7 +48,7 @@ def _subcmd_handler(*types):
 
         return func
 
-    return lambda func: _decorate(func)
+    return _decorate
 
 
 async def _launch_handler(subcmd, event, **kwargs):
