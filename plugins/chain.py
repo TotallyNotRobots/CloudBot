@@ -22,9 +22,12 @@ allow_cache = {}
 
 @hook.on_start
 def load_cache(db):
-    allow_cache.clear()
+    new_cache = {}
     for row in db.execute(commands.select()):
-        allow_cache[row["hook"]] = row["allowed"]
+        new_cache[row["hook"]] = row["allowed"]
+
+    allow_cache.clear()
+    allow_cache.update(new_cache)
 
 
 def format_hook_name(_hook):

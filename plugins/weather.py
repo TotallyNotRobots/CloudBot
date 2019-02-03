@@ -94,11 +94,14 @@ def add_location(nick, location, db):
 
 @hook.on_start
 def load_cache(db):
-    location_cache.clear()
+    new_cache = []
     for row in db.execute(table.select()):
         nick = row["nick"]
         location = row["loc"]
-        location_cache.append((nick, location))
+        new_cache.append((nick, location))
+
+    location_cache.clear()
+    location_cache.extend(new_cache)
 
 
 def get_location(nick):

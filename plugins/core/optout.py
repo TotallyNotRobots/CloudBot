@@ -137,13 +137,16 @@ _STR_TO_BOOL = {
 
 @hook.onload
 def load_cache(db):
+    new_cache = defaultdict(list)
+    for row in db.execute(optout_table.select()):
+        new_cache[row["network"]].append(OptOut(row["chan"], row["hook"], row["allow"]))
+
+    for opts in new_cache.values():
+        opts.sort(reverse=True)
+
     with cache_lock:
         optout_cache.clear()
-        for row in db.execute(optout_table.select()):
-            optout_cache[row["network"]].append(OptOut(row["chan"], row["hook"], row["allow"]))
-
-        for opts in optout_cache.values():
-            opts.sort(reverse=True)
+        optout_cache.update(new_cache)
 
 
 # noinspection PyUnusedLocal

@@ -30,15 +30,20 @@ matcher = BadwordMatcher()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
 def load_bad(db):
     """- Should run on start of bot to load the existing words into the regex"""
-    badcache.clear()
     words = []
+    new_cache = defaultdict(list)
     for chan, word in db.execute(select([table.c.chan, table.c.word])):
-        badcache[chan.casefold()].append(word)
+        new_cache[chan.casefold()].append(word)
         words.append(word)
 
-    matcher.regex = re.compile(
+    new_regex = re.compile(
         r'(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format('|'.join(words)), re.IGNORECASE
     )
+
+    matcher.regex = new_regex
+
+    badcache.clear()
+    badcache.update(new_cache)
 
 
 @hook.command("addbad", permissions=["badwords"])

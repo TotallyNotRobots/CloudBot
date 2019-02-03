@@ -25,12 +25,15 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    ignore_cache.clear()
+    new_cache = []
     for row in db.execute(table.select()):
         conn = row["connection"]
         chan = row["channel"]
         mask = row["mask"]
-        ignore_cache.append((conn, chan, mask))
+        new_cache.append((conn, chan, mask))
+
+    ignore_cache.clear()
+    ignore_cache.extend(new_cache)
 
 
 def add_ignore(db, conn, chan, mask):

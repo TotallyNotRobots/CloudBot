@@ -93,11 +93,14 @@ opt_out = defaultdict(list)
 def load_optout(db):
     """load a list of channels duckhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
-    opt_out.clear()
+    new_data = defaultdict(list)
     chans = db.execute(optout.select())
     for row in chans:
         chan = row["chan"]
-        opt_out[row["network"].casefold()].append(chan.casefold())
+        new_data[row["network"].casefold()].append(chan.casefold())
+
+    opt_out.clear()
+    opt_out.update(new_data)
 
 
 def is_opt_out(network, chan):

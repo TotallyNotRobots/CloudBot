@@ -52,11 +52,14 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    tell_cache.clear()
+    new_cache = []
     for row in db.execute(table.select().where(table.c.is_read == 0)):
         conn = row["connection"]
         target = row["target"]
-        tell_cache.append((conn, target))
+        new_cache.append((conn, target))
+
+    tell_cache.clear()
+    tell_cache.extend(new_cache)
 
 
 @hook.on_start
@@ -64,9 +67,12 @@ def load_disabled(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    disable_cache.clear()
+    new_cache = defaultdict(set)
     for row in db.execute(disable_table.select()):
-        disable_cache[row['conn']].add(row['target'].lower())
+        new_cache[row['conn']].add(row['target'].lower())
+
+    disable_cache.clear()
+    disable_cache.update(new_cache)
 
 
 @hook.on_start
@@ -74,9 +80,12 @@ def load_ignores(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    ignore_cache.clear()
+    new_cache = defaultdict(lambda: defaultdict(list))
     for row in db.execute(ignore_table.select()):
-        ignore_cache[row['conn'].lower()][row['nick'].lower()].append(row['mask'])
+        new_cache[row['conn'].lower()][row['nick'].lower()].append(row['mask'])
+
+    ignore_cache.clear()
+    ignore_cache.update(new_cache)
 
 
 def is_disable(conn, target):

@@ -68,11 +68,14 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    last_cache.clear()
+    new_cache = {}
     for row in db.execute(table.select()):
         nick = row["nick"]
         account = row["acc"]
-        last_cache[nick] = account
+        new_cache[nick] = account
+
+    last_cache.clear()
+    last_cache.update(new_cache)
 
 
 def get_account(nick, text=None):

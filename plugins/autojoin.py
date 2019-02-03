@@ -26,10 +26,13 @@ def get_channels(db, conn):
 
 @hook.on_start
 def load_cache(db):
+    new_cache = defaultdict(set)
+    for row in db.execute(table.select()):
+        new_cache[row['conn']].add(row['chan'])
+
     with db_lock:
         chan_cache.clear()
-        for row in db.execute(table.select()):
-            chan_cache[row['conn']].add(row['chan'])
+        chan_cache.update(new_cache)
 
 
 @hook.irc_raw('376')
