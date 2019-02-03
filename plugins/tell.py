@@ -316,7 +316,7 @@ def showtells(nick, notice, db, conn):
 
 
 @hook.command("tell")
-def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
+def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid, mask):
     """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
 
@@ -328,7 +328,7 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     message = query[1].strip()
     sender = nick
 
-    if not can_send_to_user(conn, sender, target):
+    if not can_send_to_user(conn, mask, target):
         notice("You may not send a tell to that user.")
         return
 
