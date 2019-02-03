@@ -96,7 +96,7 @@ def api_request(method, **params):
 
 def get_tags(method, artist, **params):
     tag_list = []
-    tags, err = api_request(method + ".getTopTags", artist=artist, autocorrect=1, **params)
+    tags, _ = api_request(method + ".getTopTags", artist=artist, autocorrect=1, **params)
 
     # if artist doesn't exist return no tags
     if tags.get("error") == 6:
@@ -123,7 +123,7 @@ def gettracktags(artist, title):
 
 def getsimilarartists(artist):
     artist_list = []
-    similar, err = api_request('artist.getsimilar', artist=artist, autocorrect=1)
+    similar, _ = api_request('artist.getsimilar', artist=artist, autocorrect=1)
 
     # check it's a list
     if isinstance(similar['similarartists']['artist'], list):
@@ -151,7 +151,7 @@ def getartistinfo(artist, user=''):
     params = {}
     if user:
         params['username'] = user
-    artist, err = api_request("artist.getInfo", artist=artist, autocorrect=1, **params)
+    artist, _ = api_request("artist.getInfo", artist=artist, autocorrect=1, **params)
     return artist
 
 
