@@ -19,7 +19,6 @@ from cloudbot import hook
 from cloudbot.bot import bot
 
 API_SB = "https://sb-ssl.google.com/safebrowsing/api/lookup"
-dev_key = bot.config.get_api_key("google_dev_key")
 
 
 @hook.command()
@@ -28,6 +27,7 @@ def issafe(text):
     if urlparse(text).scheme not in ['https', 'http']:
         return "Check your URL (it should be a complete URI)."
 
+    dev_key = bot.config.get_api_key("google_dev_key")
     parsed = requests.get(API_SB, params={"url": text, "client": "cloudbot", "key": dev_key, "pver": "3.1",
                                           "appver": str(cloudbot.__version__)})
     parsed.raise_for_status()

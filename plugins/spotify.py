@@ -35,6 +35,13 @@ class SpotifyAPI:
         self._token_expires = datetime.min
         self._lock = RLock()  # Make sure only one requests is parsed at a time
 
+    def set_keys(self, client_id, client_secret):
+        self._client_id = client_id
+        self._client_secret = client_secret
+
+    def __bool__(self):
+        return self._client_id and self._client_secret
+
     def request(self, endpoint, params=None):
         with self._lock:
             if datetime.now() >= self._token_expires:
@@ -61,10 +68,7 @@ class SpotifyAPI:
             self._token_expires = datetime.now() + timedelta(seconds=auth["expires_in"])
 
 
-api = SpotifyAPI(
-    bot.config.get_api_key('spotify_client_id'),
-    bot.config.get_api_key('spotify_client_secret')
-)
+api = SpotifyAPI()
 
 
 def _search(text, _type, reply):
@@ -122,6 +126,14 @@ def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False
 def _format_search(text, _type, reply):
     data = _search(text, _type, reply)
     return _format_response(data, _type, show_url=True, show_uri=True)
+
+
+@hook.on_start
+def set_keys():
+    api.set_keys(
+        bot.config.get_api_key('spotify_client_id'),
+        bot.config.get_api_key('spotify_client_secret')
+    )
 
 
 @hook.command('spotify', 'sptrack')

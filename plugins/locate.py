@@ -11,7 +11,6 @@ geocode_api = base_url + 'geocode/json'
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
-dev_key = bot.config.get_api_key("google_dev_key")
 
 
 def check_status(status):
@@ -39,6 +38,7 @@ def check_status(status):
 @hook.command("locate", "maps")
 def locate(text):
     """<location> -- Finds <location> on Google Maps."""
+    dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

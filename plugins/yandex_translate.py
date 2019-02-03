@@ -6,13 +6,13 @@ from cloudbot.bot import bot
 from cloudbot.util import web
 
 api_url = "https://translate.yandex.net/api/v1.5/tr.json/"
-api_key = bot.config.get_api_key("yandex_translate")
 lang_dict = {}
 lang_dir = []
 
 
 @hook.on_start()
 def load_key():
+    api_key = bot.config.get_api_key("yandex_translate")
     url = api_url + "getLangs"
     params = {
         'key': api_key,
@@ -48,6 +48,7 @@ def check_code(code):
 @hook.command("langlist", "tlist", autohelp=False)
 def list_langs():
     """- List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
+    api_key = bot.config.get_api_key("yandex_translate")
     url = api_url + "getLangs"
     params = {
         'key': api_key,
@@ -68,6 +69,7 @@ def list_langs():
 @hook.command("tran", "translate")
 def trans(text, reply):
     """<language or language code> - text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
+    api_key = bot.config.get_api_key("yandex_translate")
     inp = text.split(' ', 1)
     lang = inp[0].replace(':', '')
     text = inp[1]

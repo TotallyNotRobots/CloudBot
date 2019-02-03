@@ -30,8 +30,6 @@ wunder_api = "http://api.wunderground.com/api/{}/forecast/geolookup/conditions/q
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
 location_cache = []
-dev_key = bot.config.get_api_key("google_dev_key")
-wunder_key = bot.config.get_api_key("wunderground")
 
 
 def check_status(status):
@@ -64,6 +62,7 @@ def find_location(location):
     :param location: string
     :return: dict
     """
+    dev_key = bot.config.get_api_key("google_dev_key")
     params = {"address": location, "key": dev_key}
     if bias:
         params['region'] = bias
@@ -117,6 +116,8 @@ def get_location(nick):
 @hook.command("weather", "we", autohelp=False)
 def weather(text, reply, db, nick, notice_doc):
     """<location> - Gets weather data for <location>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
+    wunder_key = bot.config.get_api_key("wunderground")
     if not wunder_key:
         return "This command requires a Weather Underground API key."
 

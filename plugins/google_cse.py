@@ -18,13 +18,13 @@ from cloudbot.bot import bot
 from cloudbot.util import formatting, filesize
 
 API_CS = 'https://www.googleapis.com/customsearch/v1'
-dev_key = bot.config.get_api_key("google_dev_key")
-cx = bot.config.get_api_key("google_cse_id")
 
 
 @hook.command('gse')
 def gse(text):
     """<query> -- Returns first Google search result for <query>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
+    cx = bot.config.get_api_key("google_cse_id")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
     if not cx:
@@ -51,6 +51,8 @@ def gse(text):
 @hook.command('gseis', 'image')
 def gse_gis(text):
     """<query> -- Returns first Google Images result for <query>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
+    cx = bot.config.get_api_key("google_cse_id")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
     if not cx:

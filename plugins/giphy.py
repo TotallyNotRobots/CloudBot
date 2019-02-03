@@ -6,12 +6,12 @@ from cloudbot import hook
 from cloudbot.bot import bot
 
 api_url = 'http://api.giphy.com/v1/gifs'
-api_key = bot.config.get_api_key("giphy")
 
 
 @hook.command("gif", "giphy")
 def giphy(text):
     """<query> - Searches giphy.com for a gif using the provided search term."""
+    api_key = bot.config.get_api_key("giphy")
     term = text.strip()
     search_url = api_url + '/search'
     params = {

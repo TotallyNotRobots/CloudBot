@@ -10,7 +10,6 @@ from cloudbot.bot import bot
 from cloudbot.util import timeformat, web, database
 
 api_url = "http://ws.audioscrobbler.com/2.0/?format=json"
-api_key = bot.config.get_api_key("lastfm")
 
 table = Table(
     "lastfm",
@@ -84,6 +83,7 @@ def get_account(nick, text=None):
 
 
 def api_request(method, **params):
+    api_key = bot.config.get_api_key("lastfm")
     params.update({"method": method, "api_key": api_key})
     request = requests.get(api_url, params=params)
 
@@ -165,6 +165,7 @@ def check_key_and_user(nick, text, lookup=False):
     :param lookup: Whether to look up `text` as another user's nick in the user table
     :return: The parsed username and any error message that occurred
     """
+    api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return None, "Error: No API key set."
 
@@ -208,6 +209,7 @@ def _topartists(text, nick, period=None, limit=10):
 @hook.command("lastfm", "last", "np", "l", autohelp=False)
 def lastfm(event, db, text, nick):
     """[user] [dontsave] - displays the now playing (or last played) track of LastFM user [user]"""
+    api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -296,6 +298,7 @@ def lastfm(event, db, text, nick):
 @hook.command("plays")
 def getuserartistplaycount(event, text, nick):
     """[artist] - displays the current user's playcount for [artist]. You must have your username saved."""
+    api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -322,6 +325,7 @@ def getuserartistplaycount(event, text, nick):
 @hook.command("band", "la")
 def displaybandinfo(text):
     """[artist] - displays information about [artist]."""
+    api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return "error: no api key set"
 
@@ -344,6 +348,7 @@ def displaybandinfo(text):
 @hook.command("lastfmcompare", "compare", "lc")
 def lastfmcompare(text, nick):
     """<user1> [user2] - displays the now playing (or last played) track of LastFM user [user]"""
+    api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return "error: no api key set"
 

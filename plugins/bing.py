@@ -17,7 +17,6 @@ API_URL = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
 # the default config just sets the filter to Moderate for all queries
 DEFAULT_FILTER = "Moderate"
 NSFW_FILTER = "Off"
-api_key = bot.config.get_api_key('bing_azure')
 
 
 def unescape(s):
@@ -42,6 +41,7 @@ def bing(text, reply):
 
     rating = NSFW_FILTER if show_nsfw else DEFAULT_FILTER
 
+    api_key = bot.config.get_api_key('bing_azure')
     if not api_key:
         return "Error: No Bing Azure API details."
 
@@ -91,6 +91,7 @@ def bingimage(text, reply):
 
     rating = NSFW_FILTER if show_nsfw else DEFAULT_FILTER
 
+    api_key = bot.config.get_api_key('bing_azure')
     if not api_key:
         return "Error: No Bing Azure API details."
 

@@ -16,7 +16,6 @@ timezone_api = base_url + 'timezone/json'
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
-dev_key = bot.config.get_api_key("google_dev_key")
 
 
 def check_status(status, api):
@@ -47,6 +46,7 @@ def check_status(status, api):
 @hook.command("time")
 def time_command(text, reply):
     """<location> - Gets the current time in <location>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

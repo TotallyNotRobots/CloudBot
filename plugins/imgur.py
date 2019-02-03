@@ -16,6 +16,13 @@ ImgurClient.logged_in = lambda x: None
 NO_NSFW = False
 
 
+class APIContainer:
+    api = None
+
+
+container = APIContainer()
+
+
 def make_api():
     client_id = bot.config.get_api_key("imgur_client_id")
     client_secret = bot.config.get_api_key("imgur_client_secret")
@@ -26,8 +33,9 @@ def make_api():
 
     return ImgurClient(client_id, client_secret)
 
-
-imgur_api = make_api()
+@hook.on_start
+def set_api():
+    container.api = make_api()
 
 
 def get_items(text):
@@ -37,21 +45,21 @@ def get_items(text):
 
         if reddit_search:
             subreddit = reddit_search.groups()[0]
-            items = imgur_api.subreddit_gallery(subreddit)
+            items = container.api.subreddit_gallery(subreddit)
         elif user_search:
             user = user_search.groups()[0]
-            items = imgur_api.get_account_submissions(user)
+            items = container.api.get_account_submissions(user)
         elif text in ("meme", "memes"):
-            items = imgur_api.memes_subgallery()
+            items = container.api.memes_subgallery()
         elif text == "random":
             page = random.randint(1, 50)
-            items = imgur_api.gallery_random(page=page)
+            items = container.api.gallery_random(page=page)
         else:
             page = random.randint(1, 5)
-            items = imgur_api.gallery_search(text, page=page)
+            items = container.api.gallery_search(text, page=page)
     else:
         reddit_search = False
-        items = imgur_api.gallery()
+        items = container.api.gallery()
 
     if NO_NSFW:
         items = [item for item in items if not item.nsfw]
@@ -65,11 +73,11 @@ def imgur(text):
      on your input. if no input is given the bot will get an image from the imgur frontpage """
     text = text.strip().lower()
 
-    if not imgur_api:
+    if not container.api:
         return "No imgur API details"
 
     if text == "apicredits":
-        return imgur_api.credits
+        return container.api.credits
 
     items, is_reddit = get_items(text)
 
@@ -121,11 +129,11 @@ def imguralbum(text, conn):
     based on your input. if no input is given the bot will get images from the imgur frontpage """
     text = text.strip().lower()
 
-    if not imgur_api:
+    if not container.api:
         return "No imgur API details"
 
     if text == "apicredits":
-        return imgur_api.credits
+        return container.api.credits
 
     items, is_reddit = get_items(text)
 
@@ -143,7 +151,7 @@ def imguralbum(text, conn):
         'layout': 'blog',
         'account_url': None
     }
-    album = imgur_api.create_album(params)
+    album = container.api.create_album(params)
 
     if nsfw:
         return "[\x02nsfw\x02] https://imgur.com/a/" + album["id"]

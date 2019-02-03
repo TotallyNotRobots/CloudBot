@@ -7,12 +7,12 @@ from cloudbot.util import formatting, web
 
 base_url = 'https://www.googleapis.com/books/v1/'
 book_search_api = base_url + 'volumes?'
-dev_key = bot.config.get_api_key('google_dev_key')
 
 
 @hook.command("books", "gbooks")
 def books(text, reply):
     """<query> - Searches Google Books for <query>."""
+    dev_key = bot.config.get_api_key('google_dev_key')
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

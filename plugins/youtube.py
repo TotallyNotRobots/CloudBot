@@ -18,10 +18,9 @@ playlist_api_url = base_url + 'playlists?part=snippet%2CcontentDetails%2Cstatus'
 video_url = "http://youtu.be/%s"
 err_no_api = "The YouTube API is off in the Google Developers Console."
 
-dev_key = bot.config.get_api_key("google_dev_key")
-
 
 def get_video_description(video_id):
+    dev_key = bot.config.get_api_key("google_dev_key")
     request = requests.get(api_url.format(video_id, dev_key))
     json = request.json()
 
@@ -81,6 +80,7 @@ def youtube_url(match):
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text, reply):
     """<query> - Returns the first YouTube search result for <query>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
@@ -110,6 +110,7 @@ def youtube(text, reply):
 @hook.command("youtime", "ytime")
 def youtime(text, reply):
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
@@ -167,6 +168,7 @@ ytpl_re = re.compile(r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[
 @hook.regex(ytpl_re)
 def ytplaylist_url(match, reply):
     location = match.group(4).split("=")[-1]
+    dev_key = bot.config.get_api_key("google_dev_key")
     try:
         request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
         request.raise_for_status()
