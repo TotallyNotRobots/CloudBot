@@ -281,7 +281,7 @@ async def cycle(text, conn, chan, notice):
         conn.join(target)
 
 
-@hook.command('nick', permissions=["botcontrol"])
+@hook.command('nick', permissions=['botcontrol'])
 async def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
     :type text: str

@@ -148,10 +148,10 @@ def get_weather(text, reply):
         raise ParseError("forecast counts don't match up")
 
     for i, name in enumerate(days):
-        return_val["forecast"].append({"day": name,
-                                       "high": highs[i],
-                                       "low": lows[i],
-                                       "weather": forecasts[i]})
+        return_val['forecast'].append({'day': name,
+                                       'high': highs[i],
+                                       'low': lows[i],
+                                       'weather': forecasts[i]})
 
     tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + (
     "{0}{1}?! {2}".format(return_val["current"]["temperature"],

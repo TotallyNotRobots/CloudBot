@@ -73,8 +73,8 @@ def librefm(text, nick, db, event):
         # return "libre.fm Error: {}.".format(response["message"])
         return "libre.fm Error: {} Code: {}.".format(response["error"]["#text"], response["error"]["code"])
 
-    if "track" not in response["recenttracks"] or response["recenttracks"]["track"]:
-        return 'No recent tracks for user "{}" found.'.format(user)
+    if 'track' not in response['recenttracks'] or response['recenttracks']['track']:
+        return "No recent tracks for user \"{}\" found.".format(user)
 
     tracks = response["recenttracks"]["track"]
 

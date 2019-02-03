@@ -181,4 +181,4 @@ def listdetailedfactoids(chan):
     headers = ("Command", "Output")
     data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
     tbl = gen_markdown_table(headers, data).encode('UTF-8')
-    return web.paste(tbl, "md", "hastebin")
+    return web.paste(tbl, 'md', 'hastebin')

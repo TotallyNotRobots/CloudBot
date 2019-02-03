@@ -53,7 +53,7 @@ def mcwiki(text, reply):
     for p in page.xpath('//div[@class="mw-content-ltr"]/p'):
         if p.text_content():
             summary = " ".join(p.text_content().splitlines())
-            summary = re.sub(r"\[\d+\]", "", summary)
+            summary = re.sub(r'\[\d+\]', '', summary)
             summary = formatting.truncate(summary, 200)
             return "{} :: {}".format(summary, url)
 
