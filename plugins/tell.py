@@ -1,6 +1,6 @@
-import asyncio
 from collections import defaultdict
 from datetime import datetime
+from fnmatch import fnmatch
 
 from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint
 from sqlalchemy.sql import select
@@ -22,7 +22,7 @@ table = Table(
     Column('time_read', DateTime)
 )
 
-ignore_table = Table(
+disable_table = Table(
     'tell_ignores',
     database.metadata,
     Column('conn', String),
@@ -32,7 +32,18 @@ ignore_table = Table(
     PrimaryKeyConstraint('conn', 'target'),
 )
 
-ignore_cache = defaultdict(set)
+ignore_table = Table(
+    'tell_user_ignores',
+    database.metadata,
+    Column('conn', String),
+    Column('set_at', DateTime),
+    Column('nick', String),
+    Column('mask', String),
+    PrimaryKeyConstraint('conn', 'nick', 'mask'),
+)
+
+disable_cache = defaultdict(set)
+ignore_cache = defaultdict(lambda: defaultdict(list))
 
 
 @hook.on_start
@@ -49,25 +60,62 @@ def load_cache(db):
 
 
 @hook.on_start
+def load_disabled(db):
+    """
+    :type db: sqlalchemy.orm.Session
+    """
+    disable_cache.clear()
+    for row in db.execute(disable_table.select()):
+        disable_cache[row['conn']].add(row['target'].lower())
+
+
+@hook.on_start
 def load_ignores(db):
     """
     :type db: sqlalchemy.orm.Session
     """
     ignore_cache.clear()
     for row in db.execute(ignore_table.select()):
-        ignore_cache[row['conn']].add(row['target'].lower())
+        ignore_cache[row['conn'].lower()][row['nick'].lower()].append(row['mask'])
 
 
-def is_ignored(conn, target):
+def is_disable(conn, target):
     """
     :type conn: cloudbot.client.Client
     :type target: str
     :rtype: bool
     """
-    return target.lower() in ignore_cache[conn.name.lower()]
+    return target.lower() in disable_cache[conn.name.lower()]
 
 
-def add_ignore(db, conn, setter, target, now=None):
+def ignore_exists(conn, nick, mask):
+    """
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    :rtype: bool
+    """
+    return mask in ignore_cache[conn.name.lower()][nick.lower()]
+
+
+def can_send_to_user(conn, sender, target):
+    """
+    :type conn: cloudbot.client.Client
+    :type sender: str
+    :type target: str
+    :rtype: bool
+    """
+    if target.lower() in disable_cache[conn.name.lower()]:
+        return False
+
+    for mask in ignore_cache[conn.name.lower()][target.lower()]:
+        if fnmatch(sender, mask):
+            return False
+
+    return True
+
+
+def add_disable(db, conn, setter, target, now=None):
     """
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
@@ -78,32 +126,77 @@ def add_ignore(db, conn, setter, target, now=None):
     if now is None:
         now = datetime.now()
 
-    db.execute(ignore_table.insert().values(conn=conn.name.lower(), setter=setter, set_at=now, target=target.lower()))
+    db.execute(disable_table.insert().values(conn=conn.name.lower(), setter=setter, set_at=now, target=target.lower()))
     db.commit()
-    load_ignores(db)
+    load_disabled(db)
 
 
-def del_ignore(db, conn, target):
+def del_disable(db, conn, target):
     """
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
     :type target: str
     """
     db.execute(
-        ignore_table.delete().where(ignore_table.c.conn == conn.name.lower())
-            .where(ignore_table.c.target == target.lower())
+        disable_table.delete().where(disable_table.c.conn == conn.name.lower())
+            .where(disable_table.c.target == target.lower())
+    )
+    db.commit()
+    load_disabled(db)
+
+
+def list_disabled(db, conn):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    """
+    for row in db.execute(disable_table.select().where(disable_table.c.conn == conn.name.lower())):
+        yield (row['conn'], row['target'], row['setter'], row['set_at'].ctime())
+
+
+def add_ignore(db, conn, nick, mask, now=None):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    :type now: datetime
+    """
+    if now is None:
+        now = datetime.now()
+
+    db.execute(ignore_table.insert().values(
+        conn=conn.name.lower(), set_at=now,
+        nick=nick.lower(), mask=mask.lower()
+    ))
+    db.commit()
+    load_ignores(db)
+
+
+def del_ignore(db, conn, nick, mask):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    """
+    db.execute(
+        ignore_table.delete()
+            .where(ignore_table.c.conn == conn.name.lower())
+            .where(ignore_table.c.nick == nick.lower())
+            .where(ignore_table.c.mask == mask.lower())
     )
     db.commit()
     load_ignores(db)
 
 
-def list_ignores(db, conn):
+def list_ignores(conn, nick):
     """
-    :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
+    :type nick: str
     """
-    for row in db.execute(ignore_table.select().where(ignore_table.c.conn == conn.name.lower())):
-        yield (row['conn'], row['target'], row['setter'], row['set_at'].ctime())
+    for mask in ignore_cache[conn.name.lower()][nick.lower()]:
+        yield mask
 
 
 def get_unread(db, server, target):
@@ -223,7 +316,7 @@ def showtells(nick, notice, db, conn):
 
 
 @hook.command("tell")
-def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
+def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid, mask):
     """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
 
@@ -235,7 +328,7 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     message = query[1].strip()
     sender = nick
 
-    if is_ignored(conn, target):
+    if not can_send_to_user(conn, mask, target):
         notice("You may not send a tell to that user.")
         return
 
@@ -259,9 +352,9 @@ def check_permissions(event, *perms):
     return any(event.has_permission(perm) for perm in perms)
 
 
-@hook.command("tellignore", autohelp=False)
-def tell_ignore(conn, db, text, nick, event):
-    """[nick] - Disallow tells being sent to [nick]"""
+@hook.command("telldisable", autohelp=False)
+def tell_disable(conn, db, text, nick, event):
+    """[nick] - Disable the sending of tells to [nick]"""
     is_self = False
     if not text or text.casefold() == nick.casefold():
         text = nick
@@ -271,20 +364,20 @@ def tell_ignore(conn, db, text, nick, event):
         return None
 
     target = text.split()[0]
-    if is_ignored(conn, target):
-        return "{} already on the tell ignore list and will not receive tells.".format(
-            "You are" if is_self else "{!r} is".format(target)
+    if is_disable(conn, target):
+        return "Tells are already disabled for {}.".format(
+            "you" if is_self else "{!r}".format(target)
         )
 
-    add_ignore(db, conn, nick, target)
-    return "{} now on the tell ignore list and will no longer receive tells.".format(
-        "You are" if is_self else "{!r} is".format(target)
+    add_disable(db, conn, nick, target)
+    return "Tells are now disabled for {}.".format(
+        "you" if is_self else "{!r}".format(target)
     )
 
 
-@hook.command("tellunignore", autohelp=False)
-def tell_unignore(conn, db, text, event, nick):
-    """[nick] - Removes [nick] from the tellignore list"""
+@hook.command("tellenable", autohelp=False)
+def tell_enable(conn, db, text, event, nick):
+    """[nick] - Enable the sending of tells to [nick]"""
     is_self = False
     if not text or text.casefold() == nick.casefold():
         text = nick
@@ -294,20 +387,56 @@ def tell_unignore(conn, db, text, event, nick):
         return None
 
     target = text.split()[0]
-    if not is_ignored(conn, target):
-        return "{} already not on the tell ignore list and will receive tells.".format(
-            "You are" if is_self else "{!r} is".format(target)
+    if not is_disable(conn, target):
+        return "Tells are already enabled for {}.".format(
+            "you" if is_self else "{!r}".format(target)
         )
 
-    del_ignore(db, conn, target)
-    return "{} now no longer on the tell ignore list and will receive tells.".format(
-        "You are" if is_self else "{!r} is".format(target)
+    del_disable(db, conn, target)
+    return "Tells are now enabled for {}.".format(
+        "you" if is_self else "{!r}".format(target)
     )
 
 
-@hook.command("listtellignores", permissions=["botcontrol", "ignore"])
-def tell_list_ignores(conn, db):
+@hook.command("listtelldisabled", permissions=["botcontrol", "ignore"], autohelp=False)
+def list_tell_disabled(conn, db):
     """- Returns the current list of people who are not able to recieve tells"""
-    ignores = list(list_ignores(db, conn))
+    ignores = list(list_disabled(db, conn))
     md = gen_markdown_table(["Connection", "Target", "Setter", "Set At"], ignores)
     return web.paste(md, 'md', 'hastebin')
+
+
+@hook.command("tellignore")
+def tell_ignore(db, conn, nick, text, notice):
+    """<mask> - Disallow users matching <mask> from sending you tells"""
+    mask = text.split()[0].lower()
+    if ignore_exists(conn, nick, mask):
+        notice("You are already ignoring tells from {!r}".format(mask))
+        return
+
+    add_ignore(db, conn, nick, mask)
+    notice("You are now ignoring tells from {!r}".format(mask))
+
+
+@hook.command("tellunignore")
+def tell_unignore(db, conn, nick, text, notice):
+    """<mask> - Remove a tell ignore"""
+    mask = text.split()[0].lower()
+    if not ignore_exists(conn, nick, mask):
+        notice("No ignore matching {!r} exists.".format(mask))
+        return
+
+    del_ignore(db, conn, nick, mask)
+    notice("{!r} has been unignored".format(mask))
+
+
+@hook.command("listtellignores", permissions=["botcontrol", "ignore"], autohelp=False)
+def list_tell_ignores(conn, nick):
+    """- Returns the current list of masks who may not send you tells"""
+    ignores = list(list_ignores(conn, nick))
+    if not ignores:
+        return "You are not ignoring tells from any users"
+
+    return "You are ignoring tell from: {}".format(
+        ', '.join(map(repr, ignores))
+    )
