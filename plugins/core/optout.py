@@ -3,10 +3,10 @@ Bot wide hook opt-out for channels
 """
 import asyncio
 from collections import defaultdict
-from fnmatch import fnmatch
 from functools import total_ordering
 from threading import RLock
 
+from irclib.util.compare import match_mask
 from sqlalchemy import Table, Column, String, Boolean, PrimaryKeyConstraint, and_
 
 from cloudbot import hook
@@ -53,10 +53,10 @@ class OptOut:
         return "{}({}, {}, {})".format(self.__class__.__name__, self.channel, self.hook, self.allow)
 
     def match(self, channel, hook_name):
-        return self.match_chan(channel) and fnmatch(hook_name.casefold(), self.hook)
+        return self.match_chan(channel) and match_mask(hook_name.casefold(), self.hook)
 
     def match_chan(self, channel):
-        return fnmatch(channel.casefold(), self.channel)
+        return match_mask(channel.casefold(), self.channel)
 
 
 @asyncio.coroutine

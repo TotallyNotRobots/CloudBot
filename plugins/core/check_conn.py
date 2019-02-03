@@ -141,7 +141,7 @@ def reconnect_loop(bot):
 def on_pong(conn, irc_paramlist):
     now = time.time()
     conn.memory["ping_recv"] = now
-    timestamp = irc_paramlist[-1].lstrip(':')
+    timestamp = irc_paramlist[-1]
     is_lag = False
     if timestamp.startswith('LAGCHECK'):
         timestamp = timestamp[8:]

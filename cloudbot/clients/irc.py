@@ -7,10 +7,11 @@ import ssl
 import traceback
 from functools import partial
 
+from irclib.parser import Message
+
 from cloudbot.client import Client, client, ClientConnectError
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
-from cloudbot.util.parsers.irc import Message
 
 logger = logging.getLogger("cloudbot")
 
@@ -256,11 +257,7 @@ class IrcClient(Client):
         :type params: (str)
         """
         params = list(map(str, params))  # turn the tuple of parameters into a list
-        if params:
-            params[-1] = ':' + params[-1]
-            self.send("{} {}".format(command, ' '.join(params)))
-        else:
-            self.send(command)
+        self.send(str(Message(None, None, command, params)))
 
     def send(self, line, log=True):
         """
@@ -444,17 +441,28 @@ class _IrcProtocol(asyncio.Protocol):
                 target = None
 
             # Parse for CTCP
-            if event_type is EventType.message and content_raw.count("\x01") >= 2 and content_raw.startswith("\x01"):
-                # Remove the first \x01, then rsplit to remove the last one, and ignore text after the last \x01
-                ctcp_text = content_raw[1:].rsplit("\x01", 1)[0]
-                ctcp_text_split = ctcp_text.split(None, 1)
-                if ctcp_text_split[0] == "ACTION":
-                    # this is a CTCP ACTION, set event_type and content accordingly
-                    event_type = EventType.action
-                    content = ctcp_text_split[1]
+            if event_type is EventType.message and content_raw.startswith("\x01"):
+                possible_ctcp = content_raw[1:]
+                if content_raw.endswith('\x01'):
+                    possible_ctcp = possible_ctcp[:-1]
+
+                if '\x01' in possible_ctcp:
+                    logger.debug(
+                        "[%s] Invalid CTCP message received, "
+                        "treating it as a mornal message",
+                        self.conn.name
+                    )
+                    ctcp_text = None
                 else:
-                    # this shouldn't be considered a regular message
-                    event_type = EventType.other
+                    ctcp_text = possible_ctcp
+                    ctcp_text_split = ctcp_text.split(None, 1)
+                    if ctcp_text_split[0] == "ACTION":
+                        # this is a CTCP ACTION, set event_type and content accordingly
+                        event_type = EventType.action
+                        content = irc_clean(ctcp_text_split[1])
+                    else:
+                        # this shouldn't be considered a regular message
+                        event_type = EventType.other
             else:
                 ctcp_text = None
 
@@ -470,10 +478,16 @@ class _IrcProtocol(asyncio.Protocol):
 
             prefix = message.prefix
 
-            nick = prefix.nick
-            user = prefix.user
-            host = prefix.host
-            mask = prefix.mask
+            if prefix is None:
+                nick = None
+                user = None
+                host = None
+                mask = None
+            else:
+                nick = prefix.nick
+                user = prefix.user
+                host = prefix.host
+                mask = prefix.mask
 
             if channel:
                 # TODO Migrate plugins to accept the original case of the channel

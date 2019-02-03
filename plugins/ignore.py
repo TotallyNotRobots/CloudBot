@@ -1,6 +1,6 @@
 import asyncio
-from fnmatch import fnmatch
 
+from irclib.util.compare import match_mask
 from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
 
 from cloudbot import hook
@@ -55,13 +55,13 @@ def is_ignored(conn, chan, mask):
         _mask_cf = _mask.casefold()
         if _chan == "*":
             # this is a global ignore
-            if fnmatch(mask_cf, _mask_cf):
+            if match_mask(mask_cf, _mask_cf):
                 return True
         else:
             # this is a channel-specific ignore
             if not (conn, chan) == (_conn, _chan):
                 continue
-            if fnmatch(mask_cf, _mask_cf):
+            if match_mask(mask_cf, _mask_cf):
                 return True
 
 

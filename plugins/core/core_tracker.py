@@ -54,10 +54,6 @@ def on_nick(irc_paramlist, conn, nick):
     old_nick = nick
     new_nick = str(irc_paramlist[0])
 
-    # get rid of :
-    if new_nick.startswith(":"):
-        new_nick = new_nick[1:]
-
     if old_nick == conn.nick:
         conn.nick = new_nick
         logger.info("[{}|tracker] Bot nick changed from '{}' to '{}'.".format(conn.name, old_nick, new_nick))

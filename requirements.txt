@@ -9,6 +9,7 @@ lxml==4.3.0
 microdata==0.6.1
 nltk==3.2.5
 psutil==5.5.0
+py-irclib==0.2.1
 pyenchant==2.0.0
 pythonwhois==2.4.3
 requests==2.21.0

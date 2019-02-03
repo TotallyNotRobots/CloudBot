@@ -1,5 +1,6 @@
 import logging
-from fnmatch import fnmatch
+
+from irclib.util.compare import match_mask
 
 logger = logging.getLogger("cloudbot")
 
@@ -72,7 +73,7 @@ class PermissionManager(object):
         """
 
         if backdoor:
-            if fnmatch(user_mask.lower(), backdoor.lower()):
+            if match_mask(user_mask.lower(), backdoor.lower()):
                 return True
 
         if not perm.lower() in self.perm_users:
@@ -82,7 +83,7 @@ class PermissionManager(object):
         allowed_users = self.perm_users[perm.lower()]
 
         for allowed_mask in allowed_users:
-            if fnmatch(user_mask.lower(), allowed_mask):
+            if match_mask(user_mask.lower(), allowed_mask):
                 if notice:
                     logger.info("[{}|permissions] Allowed user {} access to {}".format(self.name, user_mask, perm))
                 return True
@@ -114,7 +115,7 @@ class PermissionManager(object):
         permissions = set()
         for permission, users in self.perm_users.items():
             for mask_to_check in users:
-                if fnmatch(user_mask.lower(), mask_to_check):
+                if match_mask(user_mask.lower(), mask_to_check):
                     permissions.add(permission)
         return permissions
 
@@ -126,7 +127,7 @@ class PermissionManager(object):
         groups = []
         for group, users in self.group_users.items():
             for mask_to_check in users:
-                if fnmatch(user_mask.lower(), mask_to_check):
+                if match_mask(user_mask.lower(), mask_to_check):
                     groups.append(group)
                     continue
         return groups
@@ -150,7 +151,7 @@ class PermissionManager(object):
         if not users:
             return False
         for mask_to_check in users:
-            if fnmatch(user_mask.lower(), mask_to_check):
+            if match_mask(user_mask.lower(), mask_to_check):
                 return True
         return False
 
@@ -168,7 +169,7 @@ class PermissionManager(object):
         config_groups = self.config.get("permissions", {})
 
         for mask_to_check in list(self.group_users[group.lower()]):
-            if fnmatch(user_mask.lower(), mask_to_check):
+            if match_mask(user_mask.lower(), mask_to_check):
                 masks_removed.append(mask_to_check)
                 # We're going to act like the group keys are all lowercase.
                 # The user has been warned (above) if they aren't.

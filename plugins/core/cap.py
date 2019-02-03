@@ -5,20 +5,20 @@ from functools import partial
 from cloudbot import hook
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
-from cloudbot.util.parsers.irc import CapList
+from irclib.parser import CapList
 
 
 @hook.connect(priority=-10, clients="irc")
 def send_cap_ls(conn):
     conn.cmd("CAP", "LS", "302")
-    conn.memory.setdefault("available_caps", set()).clear()
+    conn.memory.setdefault("available_caps", CapList()).clear()
     conn.memory.setdefault("cap_queue", {}).clear()
 
 
 @asyncio.coroutine
 def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
-    available_caps = conn.memory["available_caps"]
-    available_caps.update(caplist)
+    available_caps = conn.memory["available_caps"]  # type: CapList
+    available_caps.extend(caplist)
     cap_queue = conn.memory["cap_queue"]
     for cap in caplist:
         name = cap.name
@@ -128,10 +128,6 @@ def cap_del(logger, conn, caplist):
 def on_cap(irc_paramlist, event):
     args = {}
     if len(irc_paramlist) > 2:
-        capstr = irc_paramlist[-1].strip()
-        if capstr[0] == ':':
-            capstr = capstr[1:]
-
-        args["caplist"] = CapList.parse(capstr)
+        args["caplist"] = CapList.parse(irc_paramlist[-1])
 
     yield from _launch_handler(irc_paramlist[1], event, **args)

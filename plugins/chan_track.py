@@ -16,7 +16,7 @@ import cloudbot.bot
 from cloudbot import hook
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
-from cloudbot.util.parsers.irc import Prefix
+from irclib.parser import Prefix
 
 logger = cloudbot.bot.logger
 
@@ -299,7 +299,7 @@ class User(MappingAttributeAdapter):
 
     @nick.setter
     def nick(self, value):
-        self.mask.nick = value
+        self.mask = Prefix(value, self.ident, self.host)
 
     @property
     def ident(self):
@@ -310,7 +310,7 @@ class User(MappingAttributeAdapter):
 
     @ident.setter
     def ident(self, value):
-        self.mask.user = value
+        self.mask = Prefix(self.nick, value, self.host)
 
     @property
     def host(self):
@@ -321,7 +321,7 @@ class User(MappingAttributeAdapter):
 
     @host.setter
     def host(self, value):
-        self.mask.host = value
+        self.mask = Prefix(self.nick, self.ident, value)
 
 
 # region util functions
@@ -541,9 +541,7 @@ def on_names(conn, irc_paramlist, irc_command):
         chan_data.receiving_names = True
         users.clear()
 
-    names = irc_paramlist[-1]
-    if names.startswith(':'):
-        names = names[1:].strip()
+    names = irc_paramlist[-1].strip()
 
     users.extend(names.split())
 
@@ -688,9 +686,6 @@ def on_join(nick, user, host, conn, irc_paramlist):
     """
     chan, *other_data = irc_paramlist
 
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     users = get_users(conn)
 
     user_data = users.getuser(nick)
@@ -743,9 +738,6 @@ def on_mode(chan, irc_paramlist, conn):
     :type conn: cloudbot.client.Client
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
     """
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     if irc_paramlist[0].casefold() == conn.nick.casefold():
         # this is a user mode line
         return
@@ -785,9 +777,6 @@ def on_part(chan, nick, conn):
     :type nick: str
     :type conn: cloudbot.client.Client
     """
-    if chan.startswith(':'):
-        chan = chan[1:]
-
     channels = get_chans(conn)
     if nick.casefold() == conn.nick.casefold():
         del channels[chan]
@@ -829,8 +818,6 @@ def on_nick(nick, irc_paramlist, conn):
     """
     users = get_users(conn)
     new_nick = irc_paramlist[0]
-    if new_nick.startswith(':'):
-        new_nick = new_nick[1:]
 
     user = users.pop(nick)
     users[new_nick] = user
