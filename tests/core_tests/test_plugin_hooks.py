@@ -8,14 +8,10 @@ import re
 from numbers import Number
 from pathlib import Path
 
-from sqlalchemy import MetaData
-
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import Plugin, Hook
-from cloudbot.util import database
 
-database.metadata = MetaData()
 Hook.original_init = Hook.__init__
 
 DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
