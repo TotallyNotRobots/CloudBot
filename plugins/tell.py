@@ -1,4 +1,3 @@
-import asyncio
 from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
@@ -75,8 +74,8 @@ def load_ignores(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    disable_cache.clear()
-    for row in db.execute(disable_table.select()):
+    ignore_cache.clear()
+    for row in db.execute(ignore_table.select()):
         ignore_cache[row['conn'].lower()][row['nick'].lower()].append(row['mask'])
 
 
@@ -399,7 +398,7 @@ def tell_enable(conn, db, text, event, nick):
     )
 
 
-@hook.command("listtelldisabled", permissions=["botcontrol", "ignore"])
+@hook.command("listtelldisabled", permissions=["botcontrol", "ignore"], autohelp=False)
 def list_tell_disabled(conn, db):
     """- Returns the current list of people who are not able to recieve tells"""
     ignores = list(list_disabled(db, conn))
@@ -431,7 +430,7 @@ def tell_unignore(db, conn, nick, text, notice):
     notice("{!r} has been unignored".format(mask))
 
 
-@hook.command("listtellignores", permissions=["botcontrol", "ignore"])
+@hook.command("listtellignores", permissions=["botcontrol", "ignore"], autohelp=False)
 def list_tell_ignores(conn, nick):
     """- Returns the current list of masks who may not send you tells"""
     ignores = list(list_ignores(conn, nick))
