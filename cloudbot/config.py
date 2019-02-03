@@ -27,10 +27,10 @@ class Config(OrderedDict):
         self.bot = bot
         self.update(*args, **kwargs)
 
+        self._api_keys = {}
+
         # populate self with config data
         self.load_config()
-
-        self._api_keys = {}
 
     def get_api_key(self, name, default=None):
         try:
