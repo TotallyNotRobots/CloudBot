@@ -35,7 +35,7 @@ def issue_cmd(text):
     j = r.json()
 
     count = len(j)
-    if count is 0:
+    if count == 0:
         return 'Repository has no open issues.'
 
     return 'Repository has {} open issues.'.format(count)
