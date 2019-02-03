@@ -1,6 +1,7 @@
 import asyncio
 from collections import defaultdict
 from datetime import datetime
+from fnmatch import fnmatch
 
 from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint
 from sqlalchemy.sql import select
@@ -32,7 +33,18 @@ disable_table = Table(
     PrimaryKeyConstraint('conn', 'target'),
 )
 
+ignore_table = Table(
+    'tell_user_ignores',
+    database.metadata,
+    Column('conn', String),
+    Column('set_at', DateTime),
+    Column('nick', String),
+    Column('mask', String),
+    PrimaryKeyConstraint('conn', 'nick', 'mask'),
+)
+
 disable_cache = defaultdict(set)
+ignore_cache = defaultdict(lambda: defaultdict(list))
 
 
 @hook.on_start
@@ -58,6 +70,16 @@ def load_disabled(db):
         disable_cache[row['conn']].add(row['target'].lower())
 
 
+@hook.on_start
+def load_ignores(db):
+    """
+    :type db: sqlalchemy.orm.Session
+    """
+    disable_cache.clear()
+    for row in db.execute(disable_table.select()):
+        ignore_cache[row['conn'].lower()][row['nick'].lower()].append(row['mask'])
+
+
 def is_disable(conn, target):
     """
     :type conn: cloudbot.client.Client
@@ -65,6 +87,33 @@ def is_disable(conn, target):
     :rtype: bool
     """
     return target.lower() in disable_cache[conn.name.lower()]
+
+
+def ignore_exists(conn, nick, mask):
+    """
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    :rtype: bool
+    """
+    return mask in ignore_cache[conn.name.lower()][nick.lower()]
+
+
+def can_send_to_user(conn, sender, target):
+    """
+    :type conn: cloudbot.client.Client
+    :type sender: str
+    :type target: str
+    :rtype: bool
+    """
+    if target.lower() in disable_cache[conn.name.lower()]:
+        return False
+
+    for mask in ignore_cache[conn.name.lower()][target.lower()]:
+        if fnmatch(sender, mask):
+            return False
+
+    return True
 
 
 def add_disable(db, conn, setter, target, now=None):
@@ -104,6 +153,51 @@ def list_disabled(db, conn):
     """
     for row in db.execute(disable_table.select().where(disable_table.c.conn == conn.name.lower())):
         yield (row['conn'], row['target'], row['setter'], row['set_at'].ctime())
+
+
+def add_ignore(db, conn, nick, mask, now=None):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    :type now: datetime
+    """
+    if now is None:
+        now = datetime.now()
+
+    db.execute(ignore_table.insert().values(
+        conn=conn.name.lower(), set_at=now,
+        nick=nick.lower(), mask=mask.lower()
+    ))
+    db.commit()
+    load_ignores(db)
+
+
+def del_ignore(db, conn, nick, mask):
+    """
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    :type mask: str
+    """
+    db.execute(
+        ignore_table.delete()
+            .where(ignore_table.c.conn == conn.name.lower())
+            .where(ignore_table.c.nick == nick.lower())
+            .where(ignore_table.c.mask == mask.lower())
+    )
+    db.commit()
+    load_ignores(db)
+
+
+def list_ignores(conn, nick):
+    """
+    :type conn: cloudbot.client.Client
+    :type nick: str
+    """
+    for mask in ignore_cache[conn.name.lower()][nick.lower()]:
+        yield mask
 
 
 def get_unread(db, server, target):
@@ -235,7 +329,7 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid):
     message = query[1].strip()
     sender = nick
 
-    if is_disable(conn, target):
+    if not can_send_to_user(conn, sender, target):
         notice("You may not send a tell to that user.")
         return
 
@@ -311,3 +405,39 @@ def list_tell_disabled(conn, db):
     ignores = list(list_disabled(db, conn))
     md = gen_markdown_table(["Connection", "Target", "Setter", "Set At"], ignores)
     return web.paste(md, 'md', 'hastebin')
+
+
+@hook.command("tellignore")
+def tell_ignore(db, conn, nick, text, notice):
+    """<mask> - Disallow users matching <mask> from sending you tells"""
+    mask = text.split()[0].lower()
+    if ignore_exists(conn, nick, mask):
+        notice("You are already ignoring tells from {!r}".format(mask))
+        return
+
+    add_ignore(db, conn, nick, mask)
+    notice("You are now ignoring tells from {!r}".format(mask))
+
+
+@hook.command("tellunignore")
+def tell_unignore(db, conn, nick, text, notice):
+    """<mask> - Remove a tell ignore"""
+    mask = text.split()[0].lower()
+    if not ignore_exists(conn, nick, mask):
+        notice("No ignore matching {!r} exists.".format(mask))
+        return
+
+    del_ignore(db, conn, nick, mask)
+    notice("{!r} has been unignored".format(mask))
+
+
+@hook.command("listtellignores", permissions=["botcontrol", "ignore"])
+def list_tell_ignores(conn, nick):
+    """- Returns the current list of masks who may not send you tells"""
+    ignores = list(list_ignores(conn, nick))
+    if not ignores:
+        return "You are not ignoring tells from any users"
+
+    return "You are ignoring tell from: {}".format(
+        ', '.join(map(repr, ignores))
+    )
