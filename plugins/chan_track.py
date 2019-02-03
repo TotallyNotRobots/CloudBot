@@ -647,6 +647,7 @@ def updateusers(bot):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def cleanusers(bot):
     """
+
     :type bot: cloudbot.bot.CloudBot
     """
     clean_data(bot)
@@ -657,6 +658,7 @@ def cleanusers(bot):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def clearusers(bot):
     """
+
     :type bot: cloudbot.bot.CloudBot
     """
     for conn in bot.connections.values():

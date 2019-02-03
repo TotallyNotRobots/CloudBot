@@ -1,6 +1,7 @@
 import collections
 import inspect
 import re
+import textwrap
 from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType
@@ -65,7 +66,9 @@ class _CommandHook(_Hook):
         self.main_alias = None
 
         if function.__doc__:
-            self.doc = function.__doc__.split('\n', 1)[0]
+            doc = textwrap.dedent(function.__doc__)
+            # Split on the first entirely blank line
+            self.doc = ' '.join(doc.split('\n\n', 1)[0].strip('\n').split('\n'))
         else:
             self.doc = None
 

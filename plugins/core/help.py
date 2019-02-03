@@ -46,14 +46,7 @@ async def help_command(text, chan, bot, notice, message, has_permission, trigger
         doc = cmds[0][1].doc
 
         if doc:
-            if doc.split()[0].isalpha():
-                # this is using the old format of `name <args> - doc`
-                message = "{}{}".format(triggered_prefix, doc)
-            else:
-                # this is using the new format of `<args> - doc`
-                message = "{}{} {}".format(triggered_prefix, searching_for, doc)
-
-            notice(message)
+            notice("{}{} {}".format(triggered_prefix, searching_for, doc))
         else:
             notice("Command {} has no additional documentation.".format(searching_for))
     else:

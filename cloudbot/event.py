@@ -427,12 +427,7 @@ class CommandEvent(Event):
         if self.hook.doc is None:
             message = "{}{} requires additional arguments.".format(self.triggered_prefix, self.triggered_command)
         else:
-            if self.hook.doc.split()[0].isalpha():
-                # this is using the old format of `name <args> - doc`
-                message = "{}{}".format(self.triggered_prefix, self.hook.doc)
-            else:
-                # this is using the new format of `<args> - doc`
-                message = "{}{} {}".format(self.triggered_prefix, self.triggered_command, self.hook.doc)
+            message = "{}{} {}".format(self.triggered_prefix, self.triggered_command, self.hook.doc)
 
         self.notice(message, target=target)
 
