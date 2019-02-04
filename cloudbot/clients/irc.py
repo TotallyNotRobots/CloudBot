@@ -100,8 +100,7 @@ class IrcClient(Client):
 
         return "{}:{}".format(self.server, self.port)
 
-    @asyncio.coroutine
-    def auto_reconnect(self):
+    async def auto_reconnect(self):
         """
         This method should be called by code that attempts to automatically reconnect to a server
 
@@ -112,13 +111,12 @@ class IrcClient(Client):
         if not self._active:
             return
 
-        yield from self.try_connect()
+        await self.try_connect()
 
-    @asyncio.coroutine
-    def try_connect(self):
+    async def try_connect(self):
         while self.active and not self.connected:
             try:
-                yield from self.connect(self._timeout)
+                await self.connect(self._timeout)
             except (TimeoutError, asyncio.TimeoutError):
                 logger.error("[%s] Timeout occurred while connecting to %s", self.name, self.describe_server())
             except (socket.error, socket.gaierror, OSError, ssl.SSLError):
@@ -135,14 +133,13 @@ class IrcClient(Client):
             sleep_time = random.randrange(self._timeout)
             canceller = asyncio.shield(self.cancelled_future)
             try:
-                yield from asyncio.wait_for(
+                await asyncio.wait_for(
                     canceller, timeout=sleep_time
                 )
             except asyncio.CancelledError:
                 pass
 
-    @asyncio.coroutine
-    def connect(self, timeout=None):
+    async def connect(self, timeout=None):
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -151,12 +148,11 @@ class IrcClient(Client):
 
         self._connecting = True
         try:
-            return (yield from self._connect(timeout))
+            return await self._connect(timeout)
         finally:
             self._connecting = False
 
-    @asyncio.coroutine
-    def _connect(self, timeout=None):
+    async def _connect(self, timeout=None):
         # connect to the clients server
         if self.connected:
             logger.info("[{}] Reconnecting".format(self.name))
@@ -177,7 +173,7 @@ class IrcClient(Client):
         if timeout is not None:
             coro = asyncio.wait_for(coro, timeout)
 
-        self._transport, self._protocol = yield from coro
+        self._transport, self._protocol = await coro
 
         tasks = [
             self.bot.plugin_manager.launch(hook, Event(bot=self.bot, conn=self, hook=hook))
@@ -185,7 +181,7 @@ class IrcClient(Client):
             if not hook.clients or self.type in hook.clients
         ]
         # TODO stop connecting if a connect hook fails?
-        yield from asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
     def quit(self, reason=None, set_inactive=True):
         if set_inactive:
@@ -346,12 +342,11 @@ class _IrcProtocol(asyncio.Protocol):
             if not fut.done():
                 fut.cancel()
 
-    @asyncio.coroutine
-    def send(self, line, log=True):
+    async def send(self, line, log=True):
         # make sure we are connected before sending
         if not self.connected:
             if self._connecting:
-                yield from self._connected_future
+                await self._connected_future
             else:
                 raise ValueError("Attempted to send data to a closed connection")
 
@@ -363,7 +358,7 @@ class _IrcProtocol(asyncio.Protocol):
                 bot=self.bot, hook=out_sieve, conn=self.conn, irc_raw=line
             )
 
-            ok, new_line = yield from self.bot.plugin_manager.internal_launch(out_sieve, event)
+            ok, new_line = await self.bot.plugin_manager.internal_launch(out_sieve, event)
             if not ok:
                 logger.warning("Error occurred in outgoing sieve, falling back to old behavior")
                 logger.debug("Line was: %s", line)

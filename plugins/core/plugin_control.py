@@ -21,8 +21,7 @@ def pluginlist(bot):
 
 
 @hook.command(permissions=["botcontrol"])
-@asyncio.coroutine
-def pluginload(bot, text, reply):
+async def pluginload(bot, text, reply):
     """<plugin path> - (Re)load <plugin> manually"""
     manager = bot.plugin_manager
     path = str(Path(text.strip()).resolve())
@@ -30,7 +29,7 @@ def pluginload(bot, text, reply):
     coro = bot.plugin_manager.load_plugin(path)
 
     try:
-        yield from coro
+        await coro
     except Exception:
         reply("Plugin failed to load.")
         raise
@@ -39,8 +38,7 @@ def pluginload(bot, text, reply):
 
 
 @hook.command(permissions=["botcontrol"])
-@asyncio.coroutine
-def pluginunload(bot, text):
+async def pluginunload(bot, text):
     """<plugin path> - Unload <plugin> manually"""
     manager = bot.plugin_manager
     path = str(Path(text.strip()).resolve())
@@ -49,7 +47,7 @@ def pluginunload(bot, text):
     if not is_loaded:
         return "Plugin not loaded, unable to unload."
 
-    if (yield from manager.unload_plugin(path)):
+    if await manager.unload_plugin(path):
         return "Plugin unloaded successfully."
 
     return "Plugin failed to unload."

@@ -76,8 +76,7 @@ def chat_tracker(event, db, conn):
 
 
 @hook.command(autohelp=False)
-@asyncio.coroutine
-def resethistory(event, conn):
+async def resethistory(event, conn):
     """- resets chat history for the current channel
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client

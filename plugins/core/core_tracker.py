@@ -28,8 +28,7 @@ def bot_joined_channel(conn, chan):
 
 
 @hook.irc_raw("KICK")
-@asyncio.coroutine
-def on_kick(conn, chan, target, loop):
+async def on_kick(conn, chan, target, loop):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
@@ -44,8 +43,7 @@ def on_kick(conn, chan, target, loop):
 
 
 @hook.irc_raw("NICK")
-@asyncio.coroutine
-def on_nick(irc_paramlist, conn, nick):
+async def on_nick(irc_paramlist, conn, nick):
     """
     :type irc_paramlist: list[str]
     :type conn: cloudbot.client.Client
@@ -62,8 +60,7 @@ def on_nick(irc_paramlist, conn, nick):
 # for channels the host tells us we're joining without us joining it ourselves
 # mostly when using a BNC which saves channels
 @hook.irc_raw("JOIN")
-@asyncio.coroutine
-def on_join(conn, chan, nick):
+async def on_join(conn, chan, nick):
     """
     :type conn: cloudbot.client.Client
     :type chan: str
@@ -74,8 +71,7 @@ def on_join(conn, chan, nick):
 
 
 @hook.irc_raw("PART")
-@asyncio.coroutine
-def on_part(conn, chan, nick):
+async def on_part(conn, chan, nick):
     """
     :type conn: cloudbot.client.Client
     :type chan: str

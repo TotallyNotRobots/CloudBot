@@ -15,7 +15,6 @@ def load_fortunes(bot):
 
 
 @hook.command(autohelp=False)
-@asyncio.coroutine
-def fortune():
+async def fortune():
     """- hands out a fortune cookie"""
     return random.choice(fortunes)

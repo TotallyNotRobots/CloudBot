@@ -21,8 +21,7 @@ def get_potential_commands(bot, cmd_name):
 
 
 @hook.command("help", autohelp=False)
-@asyncio.coroutine
-def help_command(text, chan, bot, notice, message, has_permission, triggered_prefix):
+async def help_command(text, chan, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
     :type chan: str
     :type text: str
@@ -94,8 +93,7 @@ def help_command(text, chan, bot, notice, message, has_permission, triggered_pre
 
 
 @hook.command
-@asyncio.coroutine
-def cmdinfo(text, bot, notice):
+async def cmdinfo(text, bot, notice):
     """<command> - Gets various information about a command"""
     name = text.split()[0]
     cmds = list(get_potential_commands(bot, name))

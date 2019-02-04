@@ -5,11 +5,10 @@ from cloudbot import hook
 from cloudbot.util import colors
 
 
-@asyncio.coroutine
-def do_reconnect(conn, auto=True):
+async def do_reconnect(conn, auto=True):
     if conn.connected:
         conn.quit("Reconnecting...")
-        yield from asyncio.sleep(5)
+        await asyncio.sleep(5)
         did_quit = True
     else:
         did_quit = False
@@ -20,7 +19,7 @@ def do_reconnect(conn, auto=True):
         coro = conn.connect(30)
 
     try:
-        yield from coro
+        await coro
     except asyncio.TimeoutError:
         if auto:
             raise
@@ -31,8 +30,7 @@ def do_reconnect(conn, auto=True):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
-@asyncio.coroutine
-def reconnect(conn, text, bot):
+async def reconnect(conn, text, bot):
     """[connection] - Reconnects to [connection] or the current connection if not specified"""
     if not text:
         to_reconnect = conn
@@ -42,18 +40,17 @@ def reconnect(conn, text, bot):
         except KeyError:
             return "Connection '{}' not found".format(text)
 
-    return (yield from do_reconnect(to_reconnect, False))
+    return await do_reconnect(to_reconnect, False)
 
 
 @hook.periodic(120, singlethread=True)
-@asyncio.coroutine
-def check_conns(bot):
+async def check_conns(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
     for conn in bot.connections.values():
         if conn.active and not conn.connected:
-            yield from do_reconnect(conn)
+            await do_reconnect(conn)
 
 
 def format_conn(conn):
@@ -130,11 +127,10 @@ def lag_check(bot, admin_log):
 
 
 @hook.periodic(30, singlethread=True)
-@asyncio.coroutine
-def reconnect_loop(bot):
+async def reconnect_loop(bot):
     for conn in bot.connections.values():
         if conn.memory.get("needs_reconnect"):
-            yield from do_reconnect(conn)
+            await do_reconnect(conn)
 
 
 @hook.irc_raw('PONG')
@@ -157,7 +153,6 @@ def on_pong(conn, irc_paramlist):
 
 
 @hook.irc_raw('*')
-@asyncio.coroutine
-def on_act(conn):
+async def on_act(conn):
     now = time.time()
     conn.memory['last_activity'] = now

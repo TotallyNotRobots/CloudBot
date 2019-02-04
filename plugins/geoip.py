@@ -53,8 +53,7 @@ def update_db():
     return geoip2.database.Reader(PATH)
 
 
-@asyncio.coroutine
-def check_db(loop):
+async def check_db(loop):
     """
     runs update_db in an executor thread and sets geoip_reader to the result
     if this is run while update_db is already executing bad things will happen
@@ -62,20 +61,18 @@ def check_db(loop):
     global geoip_reader
     if not geoip_reader:
         logger.info("Loading GeoIP database")
-        db = yield from loop.run_in_executor(None, update_db)
+        db = await loop.run_in_executor(None, update_db)
         logger.info("Loaded GeoIP database")
         geoip_reader = db
 
 
 @hook.on_start
-@asyncio.coroutine
-def load_geoip(loop):
+async def load_geoip(loop):
     async_util.wrap_future(check_db(loop), loop=loop)
 
 
 @hook.command
-@asyncio.coroutine
-def geoip(text, reply, loop):
+async def geoip(text, reply, loop):
     """<host|ip> - Looks up the physical location of <host|ip> using Maxmind GeoLite """
     global geoip_reader
 
@@ -83,12 +80,12 @@ def geoip(text, reply, loop):
         return "GeoIP database is still loading, please wait a minute"
 
     try:
-        ip = yield from loop.run_in_executor(None, socket.gethostbyname, text)
+        ip = await loop.run_in_executor(None, socket.gethostbyname, text)
     except socket.gaierror:
         return "Invalid input."
 
     try:
-        location_data = yield from loop.run_in_executor(None, geoip_reader.city, ip)
+        location_data = await loop.run_in_executor(None, geoip_reader.city, ip)
     except geoip2.errors.AddressNotFoundError:
         return "Sorry, I can't locate that in my database."
 

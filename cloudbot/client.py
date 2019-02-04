@@ -84,28 +84,25 @@ class Client:
     def describe_server(self):
         raise NotImplementedError
 
-    @asyncio.coroutine
-    def auto_reconnect(self):
+    async def auto_reconnect(self):
         if not self._active:
             return
 
-        yield from self.try_connect()
+        await self.try_connect()
 
-    @asyncio.coroutine
-    def try_connect(self):
+    async def try_connect(self):
         timeout = 30
         while self.active and not self.connected:
             try:
-                yield from self.connect(timeout)
+                await self.connect(timeout)
             except Exception:
                 logger.exception("[%s] Error occurred while connecting.", self.name)
             else:
                 break
 
-            yield from asyncio.sleep(random.randrange(timeout))
+            await asyncio.sleep(random.randrange(timeout))
 
-    @asyncio.coroutine
-    def connect(self, timeout=None):
+    async def connect(self, timeout=None):
         """
         Connects to the server, or reconnects if already connected.
         """

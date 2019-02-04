@@ -55,21 +55,19 @@ class PluginReloader(Reloader):
         path = Path(path).resolve()
         async_util.run_coroutine_threadsafe(self._unload(path), self.bot.loop)
 
-    @asyncio.coroutine
-    def _reload(self, path):
+    async def _reload(self, path):
         if path in self.reloading:
             # we already have a coroutine reloading
             return
         self.reloading.add(path)
         # we don't want to reload more than once every 200 milliseconds, so wait that long to make sure there
         # are no other file changes in that time.
-        yield from asyncio.sleep(0.2)
+        await asyncio.sleep(0.2)
         self.reloading.remove(path)
-        yield from self.bot.plugin_manager.load_plugin(path)
+        await self.bot.plugin_manager.load_plugin(path)
 
-    @asyncio.coroutine
-    def _unload(self, path):
-        yield from self.bot.plugin_manager.unload_plugin(path)
+    async def _unload(self, path):
+        await self.bot.plugin_manager.unload_plugin(path)
 
 
 class ConfigReloader(Reloader):

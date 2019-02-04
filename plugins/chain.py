@@ -132,8 +132,7 @@ def wrap_event(_hook, event, cmd, args):
 
 
 @hook.command
-@asyncio.coroutine
-def chain(text, bot, event):
+async def chain(text, bot, event):
     """<cmd1> [args...] | <cmd2> [args...] | ... - Runs commands in a chain, piping the output from previous commands to tne next"""
     cmds = parse_chain(text, bot)
 
@@ -146,7 +145,7 @@ def chain(text, bot, event):
             return
 
         if _hook.permissions:
-            allowed = yield from event.check_permissions(_hook.permissions)
+            allowed = await event.check_permissions(_hook.permissions)
             if not allowed:
                 event.notice("Sorry, you are not allowed to use '{}'.".format(format_hook_name(_hook)))
                 return
@@ -198,7 +197,7 @@ def chain(text, bot, event):
             cmd_event.notice_doc()
             return "Invalid syntax."
 
-        ok, res = yield from bot.plugin_manager.internal_launch(_hook, cmd_event)
+        ok, res = await bot.plugin_manager.internal_launch(_hook, cmd_event)
         if not ok:
             return "Error occurred."
 

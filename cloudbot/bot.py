@@ -184,8 +184,7 @@ class CloudBot:
             self.connections[name] = CLIENTS[_type](self, name, nick, config=config, channels=config['channels'])
             logger.debug("[{}] Created connection.".format(name))
 
-    @asyncio.coroutine
-    def stop(self, reason=None, *, restart=False):
+    async def stop(self, reason=None, *, restart=False):
         """quits all networks and shuts the bot down"""
         logger.info("Stopping bot.")
 
@@ -215,7 +214,7 @@ class CloudBot:
         logger.debug("Done.")
 
         logger.debug("Sleeping to let clients quit")
-        yield from asyncio.sleep(1.0)  # wait for 'QUIT' calls to take affect
+        await asyncio.sleep(1.0)  # wait for 'QUIT' calls to take affect
         logger.debug("Sleep done.")
 
         logger.debug("Closing clients")
@@ -229,15 +228,13 @@ class CloudBot:
         logger.debug("Setting future result for shutdown")
         self.stopped_future.set_result(restart)
 
-    @asyncio.coroutine
-    def restart(self, reason=None):
+    async def restart(self, reason=None):
         """shuts the bot down and restarts it"""
-        yield from self.stop(reason=reason, restart=True)
+        await self.stop(reason=reason, restart=True)
 
-    @asyncio.coroutine
-    def _init_routine(self):
+    async def _init_routine(self):
         # Load plugins
-        yield from self.plugin_manager.load_all(os.path.abspath("plugins"))
+        await self.plugin_manager.load_all(os.path.abspath("plugins"))
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -257,7 +254,7 @@ class CloudBot:
             conn.active = True
 
         # Connect to servers
-        yield from asyncio.gather(*[conn.try_connect() for conn in self.connections.values()], loop=self.loop)
+        await asyncio.gather(*[conn.try_connect() for conn in self.connections.values()], loop=self.loop)
         logger.debug("Connections created.")
 
         # Activate web interface.
@@ -277,8 +274,7 @@ class CloudBot:
             mod_path = '.'.join(rel_path.parts).rsplit('.', 1)[0]
             importlib.import_module(mod_path)
 
-    @asyncio.coroutine
-    def process(self, event):
+    async def process(self, event):
         """
         :type event: Event
         """
@@ -385,5 +381,5 @@ class CloudBot:
                         break
 
         # Run the tasks
-        yield from asyncio.gather(*run_before_tasks, loop=self.loop)
-        yield from asyncio.gather(*tasks, loop=self.loop)
+        await asyncio.gather(*run_before_tasks, loop=self.loop)
+        await asyncio.gather(*tasks, loop=self.loop)
