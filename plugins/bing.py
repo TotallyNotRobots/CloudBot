@@ -30,9 +30,7 @@ def bingify(s):
     return "'{}'".format(s)
 
 
-@hook.command("bing", "b")
-def bing(text, reply):
-    """<query> - returns the first bing search result for <query>"""
+def do_lookup(bot, text, reply, key):
     # handle NSFW
     show_nsfw = text.endswith(" nsfw")
     # remove "nsfw" from the input string after checking for it
@@ -43,11 +41,12 @@ def bing(text, reply):
 
     api_key = bot.config.get_api_key('bing_azure')
     if not api_key:
-        return "Error: No Bing Azure API details."
+        reply("Error: No Bing Azure API details.")
+        return
 
     # why are these all differing formats and why does format have a $? ask microsoft
     params = {
-        "Sources": bingify("web"),
+        "Sources": bingify(key.lower()),
         "Query": bingify(text),
         "Adult": bingify(rating),
         "$format": "json"
@@ -64,10 +63,21 @@ def bing(text, reply):
     # I'm not even going to pretend to know why results are in ['d']['results'][0]
     j = request.json()['d']['results'][0]
 
-    if not j["Web"]:
-        return "No results."
+    if not j[key]:
+        reply("No results.")
+        return
 
-    result = j["Web"][0]
+    return j[key]
+
+
+@hook.command("bing", "b")
+def bing(text, bot, reply):
+    """<query> - returns the first bing search result for <query>"""
+    data = do_lookup(bot, text, reply, 'Web')
+    if not data:
+        return
+
+    result = data[0]
 
     # not entirely sure this even needs un-escaping, but it wont hurt to leave it in
     title = formatting.truncate(unescape(result["Title"]), 60)
@@ -82,43 +92,12 @@ def bing(text, reply):
 @hook.command("bingimage", "bis")
 def bingimage(text, reply):
     """<query> - returns the first bing image search result for <query>"""
-    # handle NSFW
-    show_nsfw = text.endswith(" nsfw")
-
-    # remove "nsfw" from the input string after checking for it
-    if show_nsfw:
-        text = text[:-5].strip().lower()
-
-    rating = NSFW_FILTER if show_nsfw else DEFAULT_FILTER
-
-    api_key = bot.config.get_api_key('bing_azure')
-    if not api_key:
-        return "Error: No Bing Azure API details."
-
-    # why are these all differing formats and why does format have a $? ask microsoft
-    params = {
-        "Sources": bingify("image"),
-        "Query": bingify(text),
-        "Adult": bingify(rating),
-        "$format": "json"
-    }
-
-    request = requests.get(API_URL, params=params, auth=(api_key, api_key))
-
-    try:
-        request.raise_for_status()
-    except HTTPError:
-        reply("Bing API error occurred.")
-        raise
-
-    # I'm not even going to pretend to know why results are in ['d']['results'][0]
-    j = request.json()['d']['results'][0]
-
-    if not j["Image"]:
-        return "No results."
+    data = do_lookup(bot, text, reply, 'Image')
+    if not data:
+        return
 
     # grab a random result from the top 10
-    result = random.choice(j["Image"][:10])
+    result = random.choice(data[:10])
 
     # output stuff
     tags = [
