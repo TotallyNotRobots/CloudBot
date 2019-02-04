@@ -227,11 +227,8 @@ def moderates(text, chan, conn, reply):
     return page
 
 
-@hook.command("karma", "ruser", singlethread=True)
-def karma(text, reply):
-    """<reddituser> - will return the information about the specified reddit username"""
-    user = get_user(text)
-    url = user_url + "about.json"
+def get_user_data(page, user, reply):
+    url = user_url + page
     r = requests.get(url.format(user), headers=agent)
     try:
         r.raise_for_status()
@@ -239,7 +236,14 @@ def karma(text, reply):
         reply(statuscheck(e.response.status_code, user))
         raise
 
-    data = r.json()
+    return r.json()
+
+
+@hook.command("karma", "ruser", singlethread=True)
+def karma(text, reply):
+    """<reddituser> - will return the information about the specified reddit username"""
+    user = get_user(text)
+    data = get_user_data('about.json', user, reply)
     data = data['data']
 
     out = "$(b){}$(b) ".format(user)
@@ -274,16 +278,7 @@ def karma(text, reply):
 def cake_day(text, reply):
     """<reddituser> - will return the cakeday for the given reddit username."""
     user = get_user(text)
-    url = user_url + "about.json"
-    r = requests.get(url.format(user), headers=agent)
-
-    try:
-        r.raise_for_status()
-    except HTTPError as e:
-        reply(statuscheck(e.response.status_code, user))
-        raise
-
-    data = r.json()
+    data = get_user_data('about.json', user, reply)
     out = colors.parse("$(b){}'s$(b) ".format(user))
     out += "cake day is {}, ".format(datetime.fromtimestamp(data['data']['created_utc']).strftime('%B %d'))
     account_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
@@ -306,11 +301,7 @@ def time_format(numdays):
     return age
 
 
-@hook.command("submods", "mods", "rmods", singlethread=True)
-def submods(text, chan, conn, reply):
-    """<subreddit> - prints the moderators of the specified subreddit."""
-    sub = get_sub(text)
-    url = subreddit_url + "about/moderators.json"
+def get_sub_data(url, sub, reply):
     r = requests.get(url.format(sub), headers=agent)
 
     try:
@@ -319,7 +310,15 @@ def submods(text, chan, conn, reply):
         reply(statuscheck(e.response.status_code, 'r/' + sub))
         raise
 
-    data = r.json()
+    return r.json()
+
+
+@hook.command("submods", "mods", "rmods", singlethread=True)
+def submods(text, chan, conn, reply):
+    """<subreddit> - prints the moderators of the specified subreddit."""
+    sub = get_sub(text)
+    url = subreddit_url + "about/moderators.json"
+    data = get_sub_data(url, sub, reply)
     moderators = []
     for mod in data['data']['children']:
         username = mod['name']
@@ -345,15 +344,7 @@ def subinfo(text, reply):
     """<subreddit> - fetches information about the specified subreddit."""
     sub = get_sub(text)
     url = subreddit_url + "about.json"
-    r = requests.get(url.format(sub), headers=agent)
-
-    try:
-        r.raise_for_status()
-    except HTTPError as e:
-        reply(statuscheck(e.response.status_code, 'r/' + sub))
-        raise
-
-    data = r.json()
+    data = get_sub_data(url, sub, reply)
     if data['kind'] == "Listing":
         return "It appears r/{} does not exist.".format(sub)
     name = data['data']['display_name']
