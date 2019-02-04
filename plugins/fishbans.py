@@ -17,24 +17,24 @@ def get_ban_info(text, bot):
         request = requests.get(api_url.format(quote_plus(user)), headers=headers)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return None, None, "Could not fetch ban data from the Fishbans API: {}".format(e)
+        return None, None, None, "Could not fetch ban data from the Fishbans API: {}".format(e)
 
     try:
         json = request.json()
     except ValueError:
-        return None, None, "Could not fetch ban data from the Fishbans API: Invalid Response"
+        return None, None, None, "Could not fetch ban data from the Fishbans API: Invalid Response"
 
     if not json["success"]:
-        return None, None, "Could not fetch ban data for {}.".format(user)
+        return None, None, None, "Could not fetch ban data for {}.".format(user)
 
     user_url = "http://fishbans.com/u/{}/".format(user)
-    return json["stats"], user_url, None
+    return json["stats"], user, user_url, None
 
 
 @hook.command("bans", "fishbans")
 def fishbans(text, bot):
     """<user> - gets information on <user>'s minecraft bans from fishbans"""
-    data, user_url, err = get_ban_info(text, bot)
+    data, user, user_url, err = get_ban_info(text, bot)
     if err:
         return err
 
@@ -52,7 +52,7 @@ def fishbans(text, bot):
 @hook.command()
 def bancount(text, bot):
     """<user> - gets a count of <user>'s minecraft bans from fishbans"""
-    data, user_url, err = get_ban_info(text, bot)
+    data, user, user_url, err = get_ban_info(text, bot)
     if err:
         return err
 
