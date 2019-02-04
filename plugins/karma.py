@@ -138,60 +138,44 @@ def points_cmd(text, chan, db):
     return "I couldn't find {} in the database.".format(text)
 
 
-@hook.command("topten", "pointstop", "loved", autohelp=False)
-def pointstop(text, chan, db):
-    """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
-    points = defaultdict(int)
+def parse_lookup(text, db, chan, name):
     if text == "global" or text == "-global":
         items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
-        out = "The top {} favorite things in all channels are: "
+        out = "The {{}} most {} things in all channels are: ".format(name)
     else:
         items = db.execute(
             select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
         ).fetchall()
-        out = "The top {} favorite things in {} are: "
+        out = "The {{}} most {} things in {{}} are: ".format(name)
 
+    return out, items
+
+
+def do_list(text, db, chan, loved=True):
+    counts = defaultdict(int)
+    out, items = parse_lookup(text, db, chan, 'loved' if loved else 'hated')
     if items:
         for item in items:
             thing = item[0]
             score = int(item[1])
-            points[thing] += score
-        scores = points.items()
-        sorts = sorted(scores, key=operator.itemgetter(1), reverse=True)
-        ten = str(len(sorts))
-        if int(ten) > 10:
-            ten = "10"
-        out = out.format(ten, chan)
-        for i in range(0, int(ten)):
-            out += "{} with {} points \u2022 ".format(sorts[i][0], sorts[i][1])
-        out = out[:-2]
+            counts[thing] += score
+
+        scores = counts.items()
+        sorts = sorted(scores, key=operator.itemgetter(1), reverse=loved)[:10]
+        out = out.format(len(sorts), chan) + ' \u2022 '.join(
+            "{} with {} points".format(thing[0], thing[1])
+            for thing in sorts
+        )
         return out
+
+
+@hook.command("topten", "pointstop", "loved", autohelp=False)
+def pointstop(text, chan, db):
+    """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
+    return do_list(text, db, chan)
 
 
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
 def pointsbottom(text, chan, db):
     """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
-    points = defaultdict(int)
-    if text == "global" or text == "-global":
-        items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
-        out = "The {} most hated things in all channels are: "
-    else:
-        items = db.execute(
-            select([karma_table.c.thing, karma_table.c.score]).where(karma_table.c.chan == chan)
-        ).fetchall()
-        out = "The {} most hated things in {} are: "
-    if items:
-        for item in items:
-            thing = item[0]
-            score = int(item[1])
-            points[thing] += score
-        scores = points.items()
-        sorts = sorted(scores, key=operator.itemgetter(1))
-        ten = str(len(sorts))
-        if int(ten) > 10:
-            ten = "10"
-        out = out.format(ten, chan)
-        for i in range(0, int(ten)):
-            out += "{} with {} points \u2022 ".format(sorts[i][0], sorts[i][1])
-        out = out[:-2]
-        return out
+    return do_list(text, db, chan, False)
