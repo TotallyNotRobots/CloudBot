@@ -22,17 +22,17 @@ async def bf(text):
     # create a dict of brackets pairs, for speed later on
     brackets = {}
     open_brackets = []
-    for pos in range(len(program)):
-        if program[pos] == '[':
+    for pos, c in enumerate(program):
+        if c == '[':
             open_brackets.append(pos)
-        elif program[pos] == ']':
-            if len(open_brackets) > 0:
+        elif c == ']':
+            if open_brackets:
                 brackets[pos] = open_brackets[-1]
                 brackets[open_brackets[-1]] = pos
                 open_brackets.pop()
             else:
                 return "Unbalanced brackets"
-    if len(open_brackets) != 0:
+    if open_brackets:
         return "Unbalanced brackets"
 
     # now we can start interpreting

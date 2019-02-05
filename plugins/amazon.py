@@ -10,8 +10,8 @@ from cloudbot.util import web, formatting, colors
 SEARCH_URL = "http://www.amazon.{}/s/"
 REGION = "com"
 
-AMAZON_RE = re.compile(""".*ama?zo?n\.(com|co\.uk|com\.au|de|fr|ca|cn|es|it)/.*/(?:exec/obidos/ASIN/|o/|gp/product/|
-(?:(?:[^"\'/]*)/)?dp/|)(B[A-Z0-9]{9})""", re.I)
+AMAZON_RE = re.compile(r'''.*ama?zo?n\.(com|co\.uk|com\.au|de|fr|ca|cn|es|it)/.*/(?:exec/obidos/ASIN/|o/|gp/product/|
+(?:(?:[^"\'/]*)/)?dp/|)(B[A-Z0-9]{9})''', re.I)
 
 # Feel free to set this to None or change it to your own ID.
 # Or leave it in to support CloudBot, it's up to you!

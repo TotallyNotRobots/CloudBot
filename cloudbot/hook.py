@@ -270,7 +270,7 @@ def irc_raw(triggers_param, **kwargs):
         raise TypeError("@irc_raw() must be used as a function that returns a decorator")
 
     # this decorator is being used as a function, so return a decorator
-    return lambda func: _raw_hook(func)
+    return _raw_hook
 
 
 def event(types_param, **kwargs):
@@ -291,7 +291,7 @@ def event(types_param, **kwargs):
         raise TypeError("@irc_raw() must be used as a function that returns a decorator")
 
     # this decorator is being used as a function, so return a decorator
-    return lambda func: _event_hook(func)
+    return _event_hook
 
 
 def regex(regex_param, **kwargs):
@@ -313,7 +313,7 @@ def regex(regex_param, **kwargs):
         raise TypeError("@regex() hook must be used as a function that returns a decorator")
 
     # this decorator is being used as a function, so return a decorator
-    return lambda func: _regex_hook(func)
+    return _regex_hook
 
 
 def sieve(param=None, **kwargs):
@@ -336,7 +336,7 @@ def sieve(param=None, **kwargs):
     if callable(param):
         return _sieve_hook(param)
 
-    return lambda func: _sieve_hook(func)
+    return _sieve_hook
 
 
 def periodic(interval, **kwargs):
@@ -357,7 +357,7 @@ def periodic(interval, **kwargs):
         raise TypeError("@periodic() hook must be used as a function that returns a decorator")
 
     # this decorator is being used as a function, so return a decorator
-    return lambda func: _periodic_hook(func)
+    return _periodic_hook
 
 
 def on_start(param=None, **kwargs):
@@ -377,7 +377,7 @@ def on_start(param=None, **kwargs):
     if callable(param):
         return _on_start_hook(param)
 
-    return lambda func: _on_start_hook(func)
+    return _on_start_hook
 
 
 # this is temporary, to ease transition
@@ -400,7 +400,7 @@ def on_stop(param=None, **kwargs):
     if callable(param):
         return _on_stop_hook(param)
 
-    return lambda func: _on_stop_hook(func)
+    return _on_stop_hook
 
 
 on_unload = on_stop
@@ -452,7 +452,7 @@ def on_connect(param=None, **kwargs):
     if callable(param):
         return _on_connect_hook(param)
 
-    return lambda func: _on_connect_hook(func)
+    return _on_connect_hook
 
 
 connect = on_connect
@@ -471,7 +471,7 @@ def irc_out(param=None, **kwargs):
     if callable(param):
         return _decorate(param)
 
-    return lambda func: _decorate(func)
+    return _decorate
 
 
 def post_hook(param=None, **kwargs):
@@ -491,7 +491,7 @@ def post_hook(param=None, **kwargs):
     if callable(param):
         return _decorate(param)
 
-    return lambda func: _decorate(func)
+    return _decorate
 
 
 def permission(*perms, **kwargs):
@@ -504,4 +504,4 @@ def permission(*perms, **kwargs):
         hook.add_hook(perms, kwargs)
         return func
 
-    return lambda func: _perm_hook(func)
+    return _perm_hook

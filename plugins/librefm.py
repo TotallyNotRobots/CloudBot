@@ -20,6 +20,17 @@ table = Table(
 )
 
 
+def api_request(method, **params):
+    params.update(method=method)
+    request = requests.get(api_url, params=params)
+
+    if request.status_code != requests.codes.ok:
+        return None, "Failed to fetch info ({})".format(request.status_code)
+
+    response = request.json()
+    return response, None
+
+
 @hook.on_start()
 def load_cache(db):
     """
@@ -44,7 +55,7 @@ def get_account(nick):
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
-def librefm(text, nick, db, notice):
+def librefm(text, nick, db, event):
     """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
 
     # check if the user asked us not to save his details
@@ -57,24 +68,19 @@ def librefm(text, nick, db, notice):
     if not user:
         user = get_account(nick)
         if not user:
-            notice(librefm.__doc__)
+            event.notice_doc()
             return
 
-    params = {'method': 'user.getrecenttracks',
-              'user': user, 'limit': 1}
-    request = requests.get(api_url, params=params)
-
-    if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
-
-    response = request.json()
+    response, err = api_request('user.getrecenttracks', user=user, limit=1)
+    if err:
+        return err
 
     if 'error' in response:
         # return "libre.fm Error: {}.".format(response["message"])
         return "libre.fm Error: {} Code: {}.".format(response["error"]["#text"], response["error"]["code"])
 
-    if "track" not in response["recenttracks"] or len(response["recenttracks"]["track"]) == 0:
-        return 'No recent tracks for user "{}" found.'.format(user)
+    if 'track' not in response['recenttracks'] or response['recenttracks']['track']:
+        return "No recent tracks for user \"{}\" found.".format(user)
 
     tracks = response["recenttracks"]["track"]
 
@@ -133,9 +139,9 @@ def librefm(text, nick, db, notice):
 
 
 def getartisttags(artist):
-    params = {'method': 'artist.getTopTags', 'artist': artist}
-    request = requests.get(api_url, params=params)
-    tags = request.json()
+    tags, err = api_request('artist.getTopTags', artist=artist)
+    if err:
+        return "error returning tags ({})".format(err)
 
     try:
         tag = tags['toptags']['tag']
@@ -167,7 +173,9 @@ def getuserartistplaycount():
 @hook.command("libreband", "librela")
 def displaybandinfo(text, bot):
     """[artist] - displays information about [artist]."""
-    artist = getartistinfo(text, bot)
+    artist, err = getartistinfo(text, bot)
+    if err:
+        return err
 
     if 'error' in artist:
         return 'No such artist.'
@@ -187,13 +195,11 @@ def displaybandinfo(text, bot):
 
 
 def getartistinfo(artist, user=''):
-    params = {'method': 'artist.getInfo', 'artist': artist,
-              'autocorrect': '1'}
+    params = {}
     if user:
         params['username'] = user
-    request = requests.get(api_url, params=params)
-    artist = request.json()
-    return artist
+
+    return api_request('artist.getInfo', artist=artist, autocorrect=1, **params)
 
 
 @hook.command("librecompare", "librelc")
@@ -205,29 +211,23 @@ def librefmcompare():
 @hook.command("libretoptrack", "libretoptracks", "libretop", "librett", autohelp=False)
 def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a libre.fm username"""
-
     if text:
         username = get_account(text)
         if not username:
             username = text
     else:
         username = get_account(nick)
+
     if not username:
         return "No librefm username specified and no librefm username is set in the database."
 
-    params = {
-        'method': 'user.gettoptracks',
-        'user': username,
-        'limit': 5
-    }
-    request = requests.get(api_url, params=params)
+    data, err = api_request('user.gettoptracks', user=username, limit=5)
+    if err:
+        return err
 
-    if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
-
-    data = request.json()
     if 'error' in data:
         return "Error: {}.".format(data["message"])
+
     out = "{}'s favorite songs: ".format(username)
     for r in range(5):
         track_name = data["toptracks"]["track"][r]["name"]
@@ -246,20 +246,14 @@ def libretopartists(text, nick):
             username = text
     else:
         username = get_account(nick)
+
     if not username:
         return "No libre.fm username specified and no libre.fm username is set in the database."
 
-    params = {
-        'method': 'user.gettopartists',
-        'user': username,
-        'limit': 5
-    }
-    request = requests.get(api_url, params=params)
+    data, err = api_request('user.gettopartists', user=username, limit=5)
+    if err:
+        return err
 
-    if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
-
-    data = request.json()
     if 'error' in data:
         return "Error: {}.".format(data["message"])
 
@@ -274,22 +268,19 @@ def libretopartists(text, nick):
 @hook.command("libreltw", "libretopweek", autohelp=False)
 def topweek(text, nick):
     """[username] - Grabs a list of the top artists in the last week for a libre.fm username. You can set your librefm username with .l username"""
-    topweek = topartists(text, nick, '7day')
-    return topweek
+    return topartists(text, nick, '7day')
 
 
 @hook.command("libreltm", "libretopmonth", autohelp=False)
 def topmonth(text, nick):
     """[username] - Grabs a list of the top artists in the last month for a libre.fm username. You can set your librefm username with .l username"""
-    topmonth = topartists(text, nick, '1month')
-    return topmonth
+    return topartists(text, nick, '1month')
 
 
 @hook.command("librelibrelta", "libretopall", autohelp=False)
 def topall(text, nick):
     """[username] - Grabs a list of the top artists in the last year for a libre.fm username. You can set your librefm username with .l username"""
-    topall = topartists(text, nick, '12month')
-    return topall
+    return topartists(text, nick, '12month')
 
 
 def topartists(text, nick, period):
@@ -299,20 +290,17 @@ def topartists(text, nick, period):
             username = text
     else:
         username = get_account(nick)
+
     if not username:
-        return ("No librefm username specified and no librefm username is set in the database.")
-    params = {
-        'method': 'user.gettopartists',
-        'user': username,
-        'period': period,
-        'limit': 10
-    }
-    request = requests.get(api_url, params=params)
+        return "No librefm username specified and no librefm username is set in the database."
 
-    if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
+    data, err = api_request(
+        'user.gettopartists', user=username, period=period, limit=10
+    )
 
-    data = request.json()
+    if err:
+        return err
+
     if 'error' in data:
         return data
         # return "Error: {}.".format(data["message"])

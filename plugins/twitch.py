@@ -38,7 +38,7 @@ def twitch_lookup(location, reply):
             title = data['title']
             playing = data['game']
             views = str(data['views']) + " view"
-            views = views + "s" if not views[0:2] == "1 " else views
+            views = views + "s" if views[0:2] != '1 ' else views
             return html.unescape(fmt.format(title, channel, playing, views))
     else:
         data = http.get_json("https://api.twitch.tv/kraken/streams?channel=" + channel)

@@ -9,7 +9,7 @@ shortcuts = {
 
 
 @hook.command("ghissue", "issue")
-def issue(text):
+def issue_cmd(text):
     """<username|repo> [number] - gets issue [number]'s summary, or the open issue count if no issue is specified"""
     args = text.split()
     repo = args[0] if args[0] not in shortcuts else shortcuts[args[0]]
@@ -35,7 +35,7 @@ def issue(text):
     j = r.json()
 
     count = len(j)
-    if count is 0:
+    if count == 0:
         return 'Repository has no open issues.'
 
     return 'Repository has {} open issues.'.format(count)

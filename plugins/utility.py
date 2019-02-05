@@ -43,7 +43,7 @@ COLORS = collections.OrderedDict([
 
 # helper functions
 
-strip_re = re.compile("[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?")
+strip_re = re.compile(r'[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?')
 
 
 def strip(string):

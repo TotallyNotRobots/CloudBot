@@ -17,7 +17,7 @@ def client(_type):
         cls._type = _type
         return cls
 
-    return lambda cls: _decorate(cls)
+    return _decorate
 
 
 class ClientConnectError(Exception):

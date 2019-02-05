@@ -4,7 +4,7 @@ import requests
 
 from cloudbot import hook
 
-id_re = re.compile("tt\d+")
+id_re = re.compile(r'tt\d+')
 imdb_re = re.compile(r'(.*:)//(imdb.com|www.imdb.com)(:[0-9]+)?(.*)', re.I)
 
 
@@ -32,7 +32,7 @@ def imdb(text, bot):
     if content['success'] is False:
         return 'Unknown error'
 
-    if len(content['result']) == 0:
+    if not content['result']:
         return 'No movie found'
 
     result = content['result']

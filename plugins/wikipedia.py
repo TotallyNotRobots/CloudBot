@@ -16,7 +16,7 @@ api_prefix = "http://en.wikipedia.org/w/api.php"
 search_url = api_prefix + "?action=opensearch&format=xml"
 random_url = api_prefix + "?action=query&format=xml&list=random&rnlimit=1&rnnamespace=0"
 
-paren_re = re.compile('\s*\(.*\)$')
+paren_re = re.compile(r'\s*\(.*\)$')
 
 
 @hook.command("wiki", "wikipedia", "w")

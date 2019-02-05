@@ -157,8 +157,8 @@ def munge(text, count=0):
     :rtype str
     """
     reps = 0
-    for n in range(len(text)):
-        rep = REPLACEMENTS.get(text[n])
+    for n, c in enumerate(text):
+        rep = REPLACEMENTS.get(c)
         if rep:
             text = text[:n] + rep + text[n + 1:]
             reps += 1
@@ -377,7 +377,7 @@ def get_text_list(list_, last_word='or'):
     >> get_text_list([])
     ''
     """
-    if len(list_) == 0:
+    if not list_:
         return ''
 
     if len(list_) == 1:

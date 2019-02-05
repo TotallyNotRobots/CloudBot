@@ -27,9 +27,9 @@ def encode(password, text):
     :type text: str
     """
     enc = []
-    for i in range(len(text)):
+    for i, c in enumerate(text):
         key_c = password[i % len(password)]
-        enc_c = chr((ord(text[i]) + ord(key_c)) % 256)
+        enc_c = chr((ord(c) + ord(key_c)) % 256)
         enc.append(enc_c)
     return base64.urlsafe_b64encode("".join(enc).encode()).decode()
 
@@ -45,19 +45,19 @@ def decode(password, encoded, notice):
     except binascii.Error:
         notice("Invalid input '{}'".format(encoded))
         return
-    for i in range(len(encoded_bytes)):
+    for i, c in enumerate(encoded_bytes):
         key_c = password[i % len(password)]
-        dec_c = chr((256 + ord(encoded_bytes[i]) - ord(key_c)) % 256)
+        dec_c = chr((256 + ord(c) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
 
 
 @hook.command("cypher", "cipher")
-def cypher(text, message, notice):
+def cypher(text, message, event):
     """<pass> <string> -- cyphers <string> with <password>"""
     split = text.split(None, 1)
     if len(split) < 2:
-        notice(cypher.__doc__)
+        event.notice_doc()
         return
     password = split[0]
     plaintext = split[1]
@@ -65,11 +65,11 @@ def cypher(text, message, notice):
 
 
 @hook.command("decypher", "decipher")
-def decypher(text, message, notice):
+def decypher(text, message, notice, event):
     """<pass> <string> - decyphers <string> with <password>"""
     split = text.split(None, 1)
     if len(split) < 2:
-        notice(decypher.__doc__)
+        event.notice_doc()
         return
     password = split[0]
     encoded = split[1]

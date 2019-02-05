@@ -88,8 +88,6 @@ async def check_reminders(bot, async_call, db):
         if remind_time <= current_time:
             if network not in bot.connections:
                 # connection is invalid
-                await add_reminder(async_call, db, network, remind_time, user)
-                await load_cache(async_call, db)
                 continue
 
             conn = bot.connections[network]
@@ -115,7 +113,7 @@ async def check_reminders(bot, async_call, db):
 
 
 @hook.command('remind', 'reminder', 'in')
-async def remind(text, nick, chan, db, conn, notice, async_call):
+async def remind(text, nick, chan, db, conn, event, async_call):
     """<1 minute, 30 seconds>: <do task> -- reminds you to <do task> in <1 minute, 30 seconds>"""
 
     count = len([x for x in reminder_cache if x[0] == conn.name and x[3] == nick.lower()])
@@ -133,7 +131,7 @@ async def remind(text, nick, chan, db, conn, notice, async_call):
 
     if len(parts) == 1:
         # user didn't add a message, send them help
-        notice(remind.__doc__)
+        event.notice_doc()
         return
 
     if count > 10:

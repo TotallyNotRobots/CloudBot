@@ -10,7 +10,7 @@ api_url_taf = "http://api.av-wx.com/taf/"
 def metar(text):
     """[ICAO station code] - returns the metars information for the specified station. A list of station codes can be found here: http://weather.rap.ucar.edu/surface/stations.txt"""
     station = text.split(' ')[0].upper()
-    if not len(station) is 4:
+    if len(station) != 4:
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
 
     request = requests.get(api_url_metar + station)
@@ -24,7 +24,7 @@ def metar(text):
 def taf(text):
     """[ICAO station code] - returns the taf information for the specified station. A list of station codes can be found here: http://weather.rap.ucar.edu/surface/stations.txt"""
     station = text.split(' ')[0].upper()
-    if not len(station) is 4:
+    if len(station) != 4:
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
 
     request = requests.get(api_url_taf + station)

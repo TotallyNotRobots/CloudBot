@@ -111,7 +111,7 @@ async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log
         notice("Too many arguments")
         return
 
-    if len(split) < 1:
+    if not split:
         notice("Not enough arguments")
         return
 
@@ -281,8 +281,8 @@ async def cycle(text, conn, chan, notice):
         conn.join(target)
 
 
-@hook.command(permissions=["botcontrol"])
-async def nick(text, conn, notice, is_nick_valid):
+@hook.command('nick', permissions=['botcontrol'])
+async def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
     :type text: str
     :type conn: cloudbot.client.Client
@@ -325,7 +325,7 @@ async def say(text, conn, chan, nick, admin_log):
 
 
 @hook.command("message", "sayto", permissions=["botcontrol", "snoonetstaff"])
-async def message(text, conn, nick, admin_log):
+async def send_message(text, conn, nick, admin_log):
     """<name> <message> - says <message> to <name>
     :type text: str
     :type conn: cloudbot.client.Client

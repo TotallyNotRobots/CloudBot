@@ -59,7 +59,7 @@ def is_ignored(conn, chan, mask):
                 return True
         else:
             # this is a channel-specific ignore
-            if not (conn, chan) == (_conn, _chan):
+            if (conn, chan) != (_conn, _chan):
                 continue
             if match_mask(mask_cf, _mask_cf):
                 return True

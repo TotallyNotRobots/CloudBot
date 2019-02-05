@@ -245,7 +245,6 @@ def set_ducktime(chan, conn):
     status.duck_status = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
     status.clear_messages()
-    return
 
 
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
@@ -559,7 +558,7 @@ def friends(text, chan, conn, db):
     if is_opt_out(conn.name, chan):
         return
 
-    friends = defaultdict(int)
+    friends_dict = defaultdict(int)
     chancount = defaultdict(int)
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck friend scores across the network: "
@@ -572,11 +571,11 @@ def friends(text, chan, conn, db):
                     continue
 
                 chancount[row[0]] += 1
-                friends[row[0]] += row[1]
+                friends_dict[row[0]] += row[1]
 
             if text.lower() == 'average':
-                for k, v in friends.items():
-                    friends[k] = int(v / chancount[k])
+                for k, v in friends_dict.items():
+                    friends_dict[k] = int(v / chancount[k])
         else:
             return "it appears no on has friended any ducks yet."
     else:
@@ -589,11 +588,11 @@ def friends(text, chan, conn, db):
             for row in scores:
                 if row[1] == 0:
                     continue
-                friends[row[0]] += row[1]
+                friends_dict[row[0]] += row[1]
         else:
             return "it appears no on has friended any ducks yet."
 
-    topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse=True)
+    topfriends = sorted(friends_dict.items(), key=operator.itemgetter(1), reverse=True)
     out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topfriends])
     out = smart_truncate(out)
     return out
@@ -610,7 +609,7 @@ def killers(text, chan, conn, db):
     if is_opt_out(conn.name, chan):
         return
 
-    killers = defaultdict(int)
+    killers_dict = defaultdict(int)
     chancount = defaultdict(int)
     if text.lower() == 'global' or text.lower() == 'average':
         out = "Duck killer scores across the network: "
@@ -623,11 +622,11 @@ def killers(text, chan, conn, db):
                     continue
 
                 chancount[row[0]] += 1
-                killers[row[0]] += row[1]
+                killers_dict[row[0]] += row[1]
 
             if text.lower() == 'average':
-                for k, v in killers.items():
-                    killers[k] = int(v / chancount[k])
+                for k, v in killers_dict.items():
+                    killers_dict[k] = int(v / chancount[k])
         else:
             return "it appears no on has killed any ducks yet."
     else:
@@ -641,11 +640,11 @@ def killers(text, chan, conn, db):
                 if row[1] == 0:
                     continue
 
-                killers[row[0]] += row[1]
+                killers_dict[row[0]] += row[1]
         else:
             return "it appears no on has killed any ducks yet."
 
-    topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse=True)
+    topkillers = sorted(killers_dict.items(), key=operator.itemgetter(1), reverse=True)
     out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topkillers])
     out = smart_truncate(out)
     return out

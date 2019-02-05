@@ -88,7 +88,7 @@ def deleteherald(text, chan, db, reply):
 @hook.irc_raw("JOIN", singlethread=True)
 def welcome(nick, message, bot, chan):
     decoy = re.compile('[Òo○O0öøóȯôőŏᴏōο][<>＜]')
-    colors_re = re.compile("\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
+    colors_re = re.compile(r'\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?', re.UNICODE)
     bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
     offensive_re = re.compile('卐')
 
@@ -100,9 +100,8 @@ def welcome(nick, message, bot, chan):
     else:
         floodcheck[chan] = time.time()
 
-    welcome = herald_cache[chan.casefold()].get(nick.casefold())
-    if welcome:
-        greet = welcome
+    greet = herald_cache[chan.casefold()].get(nick.casefold())
+    if greet:
         stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
         stripped = colors_re.sub("", stripped)
         greet = re.sub(bino_re, 'flenny', greet)

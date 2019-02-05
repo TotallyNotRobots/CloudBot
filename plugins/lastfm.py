@@ -205,8 +205,8 @@ def lastfm(event, db, text, nick, bot):
     if err:
         return err
 
-    if "track" not in response["recenttracks"] or len(response["recenttracks"]["track"]) == 0:
-        return 'No recent tracks for user "{}" found.'.format(format_user(user))
+    if 'track' not in response['recenttracks'] or not response['recenttracks']['track']:
+        return "No recent tracks for user \"{}\" found.".format(format_user(user))
 
     tracks = response["recenttracks"]["track"]
 
