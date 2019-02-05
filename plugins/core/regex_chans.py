@@ -69,8 +69,7 @@ def sieve_regex(bot, event, _hook):
     return event
 
 
-@hook.command(autohelp=False, permissions=["botcontrol"])
-def enableregex(text, db, conn, chan, nick, message, notice):
+def change_status(text, chan, nick, db, conn, message, notice, status):
     text = text.strip().lower()
     if not text:
         channel = chan
@@ -79,26 +78,26 @@ def enableregex(text, db, conn, chan, nick, message, notice):
     else:
         channel = "#{}".format(text)
 
-    message("Enabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
-    notice("Enabling regex matching (youtube, etc) in channel {}".format(channel))
-    set_status(db, conn.name, channel, "ENABLED")
+    action = "Enabling" if status else "Disabling"
+    message(
+        "{} regex matching (youtube, etc) (issued by {})".format(action, nick),
+        target=channel
+    )
+    notice("{} regex matching (youtube, etc) in channel {}".format(
+        action, channel
+    ))
+    set_status(db, conn.name, channel, "ENABLED" if status else "DISABLED")
     load_cache(db)
+
+
+@hook.command(autohelp=False, permissions=["botcontrol"])
+def enableregex(text, db, conn, chan, nick, message, notice):
+    return change_status(text, chan, nick, db, conn, message, notice, True)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def disableregex(text, db, conn, chan, nick, message, notice):
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = "#{}".format(text)
-
-    message("Disabling regex matching (youtube, etc) (issued by {})".format(nick), target=channel)
-    notice("Disabling regex matching (youtube, etc) in channel {}".format(channel))
-    set_status(db, conn.name, channel, "DISABLED")
-    load_cache(db)
+    return change_status(text, chan, nick, db, conn, message, notice, False)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
