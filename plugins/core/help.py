@@ -23,6 +23,7 @@ def get_potential_commands(bot, cmd_name):
 @hook.command("help", autohelp=False)
 async def help_command(text, chan, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
+
     :type chan: str
     :type text: str
     :type bot: cloudbot.bot.CloudBot

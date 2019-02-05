@@ -78,6 +78,7 @@ def chat_tracker(event, db, conn):
 @hook.command(autohelp=False)
 async def resethistory(event, conn):
     """- resets chat history for the current channel
+
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
     """
@@ -92,6 +93,7 @@ async def resethistory(event, conn):
 @hook.command()
 def seen(text, nick, chan, db, event, is_nick_valid):
     """<nick> <channel> - tells when a nickname was last in active in one of my channels
+
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
     """

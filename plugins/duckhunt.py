@@ -253,6 +253,7 @@ def set_ducktime(chan, conn):
 @hook.command("stophunt", autohelp=False, permissions=["chanop", "op", "botcontrol"])
 def stop_hunt(db, chan, conn):
     """- This command stops the duck hunt in your channel. Scores will be preserved
+
     :type db: sqlalchemy.orm.Session
     :type chan: str
     :type conn: cloudbot.client.Client
@@ -270,6 +271,7 @@ def stop_hunt(db, chan, conn):
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(db, text, chan, conn, notice_doc):
     """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off.
+
     :type db: sqlalchemy.orm.Session
     :type text: str
     :type chan: str
@@ -511,6 +513,7 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
 @hook.command("bang", autohelp=False)
 def bang(nick, chan, message, db, conn, notice, event):
     """- when there is a duck on the loose use this command to shoot it.
+
     :type event: cloudbot.event.Event
     :type nick: str
     :type chan: str
@@ -526,6 +529,7 @@ def bang(nick, chan, message, db, conn, notice, event):
 @hook.command("befriend", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice, event):
     """- when there is a duck on the loose use this command to befriend it before someone else shoots it.
+
     :type event: cloudbot.event.Event
     :type nick: str
     :type chan: str
@@ -553,6 +557,7 @@ def smart_truncate(content, length=320, suffix='...'):
 @hook.command("friends", autohelp=False)
 def friends(text, chan, conn, db):
     """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included.
+
     :type text: str
     :type chan: str
     :type conn: cloudbot.client.Client
@@ -604,6 +609,7 @@ def friends(text, chan, conn, db):
 @hook.command("killers", autohelp=False)
 def killers(text, chan, conn, db):
     """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included.
+
     :type text: str
     :type chan: str
     :type conn: cloudbot.client.Client
@@ -656,6 +662,7 @@ def killers(text, chan, conn, db):
 @hook.command("duckforgive", permissions=["op", "ignore"])
 def duckforgive(text):
     """<nick> - Allows people to be removed from the mandatory cooldown period.
+
     :type text: str
     """
     if text.lower() in scripters and scripters[text.lower()] > time():
@@ -668,6 +675,7 @@ def duckforgive(text):
 @hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
     """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel.
+
     :type text: str
     :type chan: str
     :type db: sqlalchemy.orm.Session
@@ -716,6 +724,7 @@ def hunt_opt_out(text, chan, db, conn):
 @hook.command("duckmerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
     """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone.
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
@@ -786,6 +795,7 @@ def duck_merge(text, conn, db, message):
 @hook.command("ducks", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
     """<nick> - Prints a users duck stats. If no nick is input it will check the calling username.
+
     :type text: str
     :type nick: str
     :type chan: str
@@ -847,6 +857,7 @@ def ducks_user(text, nick, chan, conn, db, message):
 @hook.command("duckstats", autohelp=False)
 def duck_stats(chan, conn, db, message):
     """- Prints duck statistics for the entire channel and totals for the network.
+
     :type chan: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session

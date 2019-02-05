@@ -93,6 +93,7 @@ def qrcode(text):
 @hook.command("capitalize", "capitalise")
 def capitalize(text):
     """<string> -- Capitalizes <string>.
+
     :type text: str
     """
     return ". ".join([sentence.capitalize() for sentence in text.split(". ")])

@@ -8,6 +8,7 @@ from cloudbot.util import formatting
 @hook.command("groups", "listgroups", "permgroups", permissions=["permissions_users"], autohelp=False)
 async def get_permission_groups(conn):
     """- lists all valid groups
+
     :type conn: cloudbot.client.Client
     """
     return "Valid groups: {}".format(conn.permissions.get_groups())
@@ -16,6 +17,7 @@ async def get_permission_groups(conn):
 @hook.command("gperms", permissions=["permissions_users"])
 async def get_group_permissions(text, conn, notice):
     """<group> - lists permissions given to <group>
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -35,6 +37,7 @@ async def get_group_permissions(text, conn, notice):
 @hook.command("gusers", permissions=["permissions_users"])
 async def get_group_users(text, conn, notice):
     """<group> - lists users in <group>
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -54,6 +57,7 @@ async def get_group_users(text, conn, notice):
 @hook.command("uperms", autohelp=False)
 async def get_user_permissions(text, conn, mask, has_permission, notice):
     """[user] - lists all permissions given to [user], or the caller if no user is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type mask: str
@@ -78,6 +82,7 @@ async def get_user_permissions(text, conn, mask, has_permission, notice):
 @hook.command("ugroups", autohelp=False)
 async def get_user_groups(text, conn, mask, has_permission, notice):
     """[user] - lists all permissions given to [user], or the caller if no user is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type mask: str
@@ -102,6 +107,7 @@ async def get_user_groups(text, conn, mask, has_permission, notice):
 @hook.command("deluser", permissions=["permissions_users"])
 async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log):
     """<user> [group] - removes <user> from [group], or from all groups if no group is specified
+
     :type text: str
     :type bot: cloudbot.bot.CloudBot
     :type conn: cloudbot.client.Client
@@ -164,6 +170,7 @@ async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log
 @hook.command("adduser", permissions=["permissions_users"])
 async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
     """<user> <group> - adds <user> to <group>
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type bot: cloudbot.bot.CloudBot
@@ -208,6 +215,7 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
 @hook.command("stopthebot", permissions=["botcontrol"])
 async def stop(text, bot):
     """[reason] - stops me with [reason] as its quit message.
+
     :type text: str
     :type bot: cloudbot.bot.CloudBot
     """
@@ -220,6 +228,7 @@ async def stop(text, bot):
 @hook.command(permissions=["botcontrol"])
 async def restart(text, bot):
     """[reason] - restarts me with [reason] as its quit message.
+
     :type text: str
     :type bot: cloudbot.bot.CloudBot
     """
@@ -232,6 +241,7 @@ async def restart(text, bot):
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 async def join(text, conn, nick, notice, admin_log):
     """<channel> - joins <channel>
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -246,6 +256,7 @@ async def join(text, conn, nick, notice, admin_log):
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
 async def part(text, conn, nick, chan, notice, admin_log):
     """[#channel] - parts [#channel], or the caller's channel if no channel is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
@@ -265,6 +276,7 @@ async def part(text, conn, nick, chan, notice, admin_log):
 @hook.command(autohelp=False, permissions=["botcontrol"])
 async def cycle(text, conn, chan, notice):
     """[#channel] - cycles [#channel], or the caller's channel if no channel is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
@@ -284,6 +296,7 @@ async def cycle(text, conn, chan, notice):
 @hook.command('nick', permissions=['botcontrol'])
 async def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -298,6 +311,7 @@ async def change_nick(text, conn, notice, is_nick_valid):
 @hook.command(permissions=["botcontrol"])
 async def raw(text, conn, notice):
     """<command> - sends <command> as a raw IRC command
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -308,6 +322,7 @@ async def raw(text, conn, notice):
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 async def say(text, conn, chan, nick, admin_log):
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
@@ -327,6 +342,7 @@ async def say(text, conn, chan, nick, admin_log):
 @hook.command("message", "sayto", permissions=["botcontrol", "snoonetstaff"])
 async def send_message(text, conn, nick, admin_log):
     """<name> <message> - says <message> to <name>
+
     :type text: str
     :type conn: cloudbot.client.Client
     """
@@ -340,6 +356,7 @@ async def send_message(text, conn, nick, admin_log):
 @hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
 async def me(text, conn, chan, nick, admin_log):
     """[#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
+
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str

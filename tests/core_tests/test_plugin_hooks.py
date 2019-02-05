@@ -120,6 +120,14 @@ def test_hook_doc(hook):
         assert DOC_RE.match(hook.doc), \
             "Invalid docstring '{}' format for command hook".format(hook.doc)
 
+        found_blank = False
+        for line in hook.function.__doc__.strip().splitlines():
+            stripped = line.strip()
+            if stripped.startswith(':'):
+                assert found_blank
+            elif not stripped:
+                found_blank = True
+
 
 def test_hook_args(hook):
     assert 'async' not in hook.required_args, "Use of deprecated function Event.async"
