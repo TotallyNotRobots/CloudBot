@@ -1,5 +1,3 @@
-import asyncio
-import os
 from operator import attrgetter
 
 from cloudbot import hook

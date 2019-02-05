@@ -11,7 +11,6 @@ License:
     GNU General Public License (Version 3)
 """
 
-import asyncio
 import functools
 import random
 import re

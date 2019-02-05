@@ -1,4 +1,3 @@
-import asyncio
 import codecs
 import os
 import random

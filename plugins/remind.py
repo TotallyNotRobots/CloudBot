@@ -11,7 +11,6 @@ License:
     GPL v3
 """
 
-import asyncio
 import time
 from datetime import datetime, timedelta
 

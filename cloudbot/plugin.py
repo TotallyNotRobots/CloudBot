@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import inspect
 import logging
-import re
 import sys
 import time
 import warnings
