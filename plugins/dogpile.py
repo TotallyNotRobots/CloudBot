@@ -1,3 +1,4 @@
+import os
 import random
 import re
 from urllib import parse
@@ -7,11 +8,25 @@ from bs4 import BeautifulSoup
 
 from cloudbot import hook
 
-search_url = "http://dogpile.com/search"
+search_url = "https://www.dogpile.com/search"
 
+CERT_PATH = 'dogpile.crt'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19'
 }
+
+session = requests.Session()
+
+
+@hook.on_start
+def check_certs(bot):
+    try:
+        with requests.get(search_url):
+            pass
+    except requests.exceptions.SSLError:
+        session.verify = os.path.join(str(bot.data_dir), CERT_PATH)
+    else:
+        session.verify = None
 
 
 @hook.command("dpis", "gis")
@@ -19,7 +34,7 @@ def dogpileimage(text):
     """<query> - Uses the dogpile search engine to search for images."""
     image_url = search_url + "/images"
     params = {'q': " ".join(text.split())}
-    r = requests.get(image_url, params=params, headers=HEADERS)
+    r = requests.get(image_url, params=params, headers=HEADERS, verify=session.verify)
     r.raise_for_status()
     soup = BeautifulSoup(r.content)
     data = soup.find_all("script")[6].string
@@ -37,7 +52,7 @@ def dogpile(text):
     """<query> - Uses the dogpile search engine to find shit on the web."""
     web_url = search_url + "/web"
     params = {'q': " ".join(text.split())}
-    r = requests.get(web_url, params=params, headers=HEADERS)
+    r = requests.get(web_url, params=params, headers=HEADERS, verify=session.verify)
     r.raise_for_status()
     soup = BeautifulSoup(r.content)
     results = soup.find('div', id="webResults")
