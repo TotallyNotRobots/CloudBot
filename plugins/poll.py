@@ -64,8 +64,6 @@ class Poll:
 @hook.command()
 def poll(text, conn, nick, chan, message, reply):
     """{<question>[: <option1>, <option2>[, <option3>]...|close} - Creates a poll for [question] with the provided options (default: Yes, No), or closes the poll if the argument is 'close'"""
-    global polls
-
     # get poll ID
     uid = ":".join([conn.name, chan, nick]).lower()
 
@@ -104,8 +102,6 @@ def poll(text, conn, nick, chan, message, reply):
 @hook.command(autohelp=True)
 def vote(text, nick, conn, chan, notice):
     """<poll> <choice> - Vote on a poll; responds on error and silently records on success."""
-    global polls
-
     if len(text.split(' ', 1)) == 2:
         _user, option = text.split(' ', 1)
         uid = ":".join([conn.name, chan, _user]).lower()
@@ -128,8 +124,6 @@ def vote(text, nick, conn, chan, notice):
 @hook.command(autohelp=False)
 def results(text, conn, chan, nick, message, reply):
     """[user] - Shows current results from [user]'s poll. If [user] is empty, it will show results for your poll."""
-    global polls
-
     if text:
         uid = ":".join([conn.name, chan, text]).lower()
         if uid not in polls.keys():

@@ -41,6 +41,8 @@ COLORS = collections.OrderedDict([
     ('maroon', '\x0305')
 ])
 
+leet_text = {}
+
 # helper functions
 
 strip_re = re.compile(r'[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?')
@@ -63,10 +65,9 @@ def load_text(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global leet
-
+    leet_text.clear()
     with codecs.open(os.path.join(bot.data_dir, "leet.json"), encoding="utf-8") as f:
-        leet = json.load(f)
+        leet_text.update(json.load(f))
 
 
 # misc
@@ -220,7 +221,7 @@ def munge(text):
 @hook.command
 def leet(text):
     """<text> -- Makes <text> more 1337h4x0rz."""
-    output = ''.join(random.choice(leet[ch]) if ch.isalpha() else ch for ch in text.lower())
+    output = ''.join(random.choice(leet_text[ch]) if ch.isalpha() else ch for ch in text.lower())
     return output
 
 

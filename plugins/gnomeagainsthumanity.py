@@ -6,12 +6,14 @@ import re
 
 from cloudbot import hook
 
+gnomecards = {}
+
 
 @hook.on_start()
 def shuffle_deck(bot):
-    global gnomecards
+    gnomecards.clear()
     with codecs.open(os.path.join(bot.data_dir, "gnomecards.json"), encoding="utf-8") as f:
-        gnomecards = json.load(f)
+        gnomecards.update(json.load(f))
 
 
 @hook.command('cah')

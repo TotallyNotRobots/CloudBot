@@ -3,6 +3,7 @@ import re
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web, formatting, timeformat
 
 SC_RE = re.compile(r'(.*:)//(www.)?(soundcloud.com|snd.sc)(.*)', re.I)
@@ -21,6 +22,7 @@ def get_with_search(endpoint, term):
     :param term: Term to search for.
     :return:
     """
+    api_key = bot.config.get_api_key("soundcloud")
     try:
         params = {'q': term, 'client_id': api_key}
         request = requests.get(API_BASE.format(endpoint), params=params)
@@ -42,6 +44,7 @@ def get_with_url(url):
     :param url: URL to fetch data on.
     :return:
     """
+    api_key = bot.config.get_api_key("soundcloud")
     try:
         params = {'url': url, 'client_id': api_key}
         request = requests.get(API_BASE.format('resolve'), params=params)
@@ -145,15 +148,10 @@ def format_group(group, show_url=True):
 
 
 # CLOUDBOT HOOKS
-@hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("soundcloud", None)
-
-
 @hook.command("soundcloud", "sc")
 def soundcloud(text):
     """<query> -- Searches for tracks on SoundCloud."""
+    api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
         return "This command requires a SoundCloud API key."
     try:
@@ -173,6 +171,7 @@ def soundcloud(text):
 @hook.command("scuser")
 def soundcloud_user(text):
     """<query> -- Searches for users on SoundCloud."""
+    api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
         return "This command requires a SoundCloud API key."
     try:
@@ -191,6 +190,7 @@ def soundcloud_user(text):
 
 @hook.regex(SC_RE)
 def soundcloud_url(match):
+    api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
         return
 

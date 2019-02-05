@@ -6,14 +6,18 @@ import random
 from cloudbot import hook
 from cloudbot.util import colors
 
+responses = []
+
 
 @hook.on_start()
 def load_responses(bot):
     path = os.path.join(bot.data_dir, "8ball_responses.txt")
-    global responses
+    responses.clear()
     with codecs.open(path, encoding="utf-8") as f:
-        responses = [line.strip() for line in
-                     f.readlines() if not line.startswith("//")]
+        responses.extend(
+            line.strip() for line in f.readlines()
+            if not line.startswith("//")
+        )
 
 
 @hook.command("8ball", "8", "eightball")

@@ -87,11 +87,7 @@ def get_data(user):
 @hook.on_start
 def set_headers(bot):
     """ Runs on initial plugin load and sets the HTTP headers for this plugin. """
-    global headers
-
-    headers = {
-        'User-Agent': bot.user_agent
-    }
+    headers['User-Agent'] = bot.user_agent
 
 
 @hook.command("steamid", "sid", "steamuser", "su")

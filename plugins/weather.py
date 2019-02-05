@@ -2,6 +2,7 @@ import requests
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web, database
 
 
@@ -28,6 +29,7 @@ wunder_api = "http://api.wunderground.com/api/{}/forecast/geolookup/conditions/q
 # Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
 # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
 bias = None
+location_cache = []
 
 
 def check_status(status):
@@ -60,6 +62,7 @@ def find_location(location):
     :param location: string
     :return: dict
     """
+    dev_key = bot.config.get_api_key("google_dev_key")
     params = {"address": location, "key": dev_key}
     if bias:
         params['region'] = bias
@@ -73,15 +76,6 @@ def find_location(location):
         raise APIError(error)
 
     return json['results'][0]['geometry']['location']
-
-
-def load_cache(db):
-    global location_cache
-    location_cache = []
-    for row in db.execute(table.select()):
-        nick = row["nick"]
-        location = row["loc"]
-        location_cache.append((nick, location))
 
 
 def add_location(nick, location, db):
@@ -98,12 +92,15 @@ def add_location(nick, location, db):
 
 
 @hook.on_start
-def on_start(bot, db):
-    """ Loads API keys """
-    global dev_key, wunder_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
-    wunder_key = bot.config.get("api_keys", {}).get("wunderground", None)
-    load_cache(db)
+def load_cache(db):
+    new_cache = []
+    for row in db.execute(table.select()):
+        nick = row["nick"]
+        location = row["loc"]
+        new_cache.append((nick, location))
+
+    location_cache.clear()
+    location_cache.extend(new_cache)
 
 
 def get_location(nick):
@@ -119,6 +116,8 @@ def get_location(nick):
 @hook.command("weather", "we", autohelp=False)
 def weather(text, reply, db, nick, notice_doc):
     """<location> - Gets weather data for <location>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
+    wunder_key = bot.config.get_api_key("wunderground")
     if not wunder_key:
         return "This command requires a Weather Underground API key."
 

@@ -5,6 +5,7 @@ import urllib.parse
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web
 
 API_URL = 'http://api.wordnik.com/v4/'
@@ -23,15 +24,10 @@ def sanitize(text):
     return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
 
 
-@hook.on_start()
-def load_key(bot):
-    global api_key
-    api_key = bot.config.get("api_keys", {}).get("wordnik", None)
-
-
 @hook.command("define", "dictionary")
 def define(text):
     """<word> - Returns a dictionary definition from Wordnik for <word>."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -58,6 +54,7 @@ def define(text):
 @hook.command("wordusage", "wordexample", "usage")
 def word_usage(text):
     """<word> - Returns an example sentence showing the usage of <word>."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -80,6 +77,7 @@ def word_usage(text):
 @hook.command("pronounce", "sounditout")
 def pronounce(text):
     """<word> - Returns instructions on how to pronounce <word> with an audio example."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -116,6 +114,7 @@ def pronounce(text):
 @hook.command()
 def synonym(text):
     """<word> - Returns a list of synonyms for <word>."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -139,6 +138,7 @@ def synonym(text):
 @hook.command()
 def antonym(text):
     """<word> - Returns a list of antonyms for <word>."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     word = sanitize(text)
@@ -165,6 +165,7 @@ def antonym(text):
 @hook.command("word", "wordoftheday", autohelp=False)
 def wordoftheday(text):
     """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd. The specified date must be after 2009-08-10."""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
@@ -205,6 +206,7 @@ def wordoftheday(text):
 @hook.command("wordrandom", "randomword", autohelp=False)
 def random_word():
     """- Grabs a random word from wordnik.com"""
+    api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."
     url = API_URL + "words.json/randomWord"

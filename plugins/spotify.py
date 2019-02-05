@@ -8,8 +8,7 @@ from requests.auth import HTTPBasicAuth
 from yarl import URL
 
 from cloudbot import hook
-
-api = None
+from cloudbot.bot import bot
 
 spotify_re = re.compile(
     r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))', re.I
@@ -36,6 +35,13 @@ class SpotifyAPI:
         self._token_expires = datetime.min
         self._lock = RLock()  # Make sure only one requests is parsed at a time
 
+    def set_keys(self, client_id, client_secret):
+        self._client_id = client_id
+        self._client_secret = client_secret
+
+    def __bool__(self):
+        return self._client_id and self._client_secret
+
     def request(self, endpoint, params=None):
         with self._lock:
             if datetime.now() >= self._token_expires:
@@ -60,6 +66,9 @@ class SpotifyAPI:
             auth = r.json()
             self._access_token = auth["access_token"]
             self._token_expires = datetime.now() + timedelta(seconds=auth["expires_in"])
+
+
+api = SpotifyAPI()
 
 
 def _search(text, _type, reply):
@@ -119,13 +128,12 @@ def _format_search(text, _type, reply):
     return _format_response(data, _type, show_url=True, show_uri=True)
 
 
-@hook.onload
-def create_api(bot):
-    keys = bot.config['api_keys']
-    client_id = keys['spotify_client_id']
-    client_secret = keys['spotify_client_secret']
-    global api
-    api = SpotifyAPI(client_id, client_secret)
+@hook.on_start
+def set_keys():
+    api.set_keys(
+        bot.config.get_api_key('spotify_client_id'),
+        bot.config.get_api_key('spotify_client_secret')
+    )
 
 
 @hook.command('spotify', 'sptrack')

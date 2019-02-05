@@ -16,6 +16,7 @@ table = Table(
 # If True, all channels without a setting will have regex enabled
 # If False, all channels without a setting will have regex disabled
 default_enabled = True
+status_cache = {}
 
 
 @hook.on_start()
@@ -23,13 +24,15 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    global status_cache
-    status_cache = {}
+    new_cache = {}
     for row in db.execute(table.select()):
         conn = row["connection"]
         chan = row["channel"]
         status = row["status"]
-        status_cache[(conn, chan)] = status
+        new_cache[(conn, chan)] = status
+
+    status_cache.clear()
+    status_cache.update(new_cache)
 
 
 def set_status(db, conn, chan, status):

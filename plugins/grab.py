@@ -34,13 +34,16 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
+    new_cache = {}
+    for row in db.execute(table.select().order_by(table.c.time)):
+        name = row["name"].lower()
+        quote = row["quote"]
+        chan = row["chan"]
+        new_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
+
     with cache_lock:
         grab_cache.clear()
-        for row in db.execute(table.select().order_by(table.c.time)):
-            name = row["name"].lower()
-            quote = row["quote"]
-            chan = row["chan"]
-            grab_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
+        grab_cache.update(new_cache)
 
 
 @hook.command("moregrab", autohelp=False)

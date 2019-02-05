@@ -80,7 +80,6 @@ def table(text, message):
 @hook.command
 def fix(text, reply, message, chan):
     """<text> - fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
-    global table_status
     if text in ['table', 'tables']:
         if table_status.pop(chan, False) is True:
             message("┬─┬ノ(ಠ_ಠノ)")

@@ -5,9 +5,11 @@ import asyncio
 import importlib
 import inspect
 import re
+from collections import OrderedDict
 from numbers import Number
 from pathlib import Path
 
+import cloudbot.bot
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import Plugin, Hook
@@ -18,9 +20,17 @@ DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
 PLUGINS = []
 
 
+class MockConfig(OrderedDict):
+    def get_api_key(self, name, default=None):  # pylint: disable=locally-disabled, no-self-use, unused-argument
+        return default
+
+
 class MockBot:
+    loop = None
+    user_agent = None
+
     def __init__(self):
-        self.loop = None
+        self.config = MockConfig()
 
 
 def patch_hook_init(self, _type, plugin, func_hook):
@@ -54,7 +64,9 @@ def load_plugin(plugin_path):
 
 def get_plugins():
     if not PLUGINS:
+        cloudbot.bot.bot.set(MockBot())
         PLUGINS.extend(map(load_plugin, gather_plugins()))
+        cloudbot.bot.bot.set(None)
 
     return PLUGINS
 

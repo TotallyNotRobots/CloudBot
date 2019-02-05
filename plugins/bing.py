@@ -5,6 +5,7 @@ from lxml import html
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import formatting, filesize, colors
 
 API_URL = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
@@ -30,10 +31,8 @@ def bingify(s):
 
 
 @hook.command("bing", "b")
-def bing(text, bot, reply):
+def bing(text, reply):
     """<query> - returns the first bing search result for <query>"""
-    api_key = bot.config.get("api_keys", {}).get("bing_azure")
-
     # handle NSFW
     show_nsfw = text.endswith(" nsfw")
     # remove "nsfw" from the input string after checking for it
@@ -42,6 +41,7 @@ def bing(text, bot, reply):
 
     rating = NSFW_FILTER if show_nsfw else DEFAULT_FILTER
 
+    api_key = bot.config.get_api_key('bing_azure')
     if not api_key:
         return "Error: No Bing Azure API details."
 
@@ -80,10 +80,8 @@ def bing(text, bot, reply):
 
 
 @hook.command("bingimage", "bis")
-def bingimage(text, bot, reply):
+def bingimage(text, reply):
     """<query> - returns the first bing image search result for <query>"""
-    api_key = bot.config.get("api_keys", {}).get("bing_azure")
-
     # handle NSFW
     show_nsfw = text.endswith(" nsfw")
 
@@ -93,6 +91,7 @@ def bingimage(text, bot, reply):
 
     rating = NSFW_FILTER if show_nsfw else DEFAULT_FILTER
 
+    api_key = bot.config.get_api_key('bing_azure')
     if not api_key:
         return "Error: No Bing Azure API details."
 

@@ -2,6 +2,7 @@ import requests
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import web
 
 api_root = 'http://api.rottentomatoes.com/api/public/v1.0/'
@@ -10,9 +11,9 @@ movie_reviews_url = api_root + 'movies/{}/reviews.json'
 
 
 @hook.command('rottentomatoes', 'rt')
-def rotten_tomatoes(text, bot, reply):
+def rotten_tomatoes(text, reply):
     """<title> - gets ratings for <title> from Rotten Tomatoes"""
-    api_key = bot.config.get("api_keys", {}).get("rottentomatoes", None)
+    api_key = bot.config.get_api_key("rottentomatoes")
     if not api_key:
         return "No Rotten Tomatoes API key set."
 

@@ -24,10 +24,13 @@ class StockSymbolNotFoundError(APIError):
 
 
 class AVApi:
-    def __init__(self, api_key, url="https://www.alphavantage.co/query", user_agent=None):
+    def __init__(self, api_key=None, url="https://www.alphavantage.co/query", user_agent=None):
         self.api_key = api_key
         self.url = url
         self.user_agent = user_agent
+
+    def __bool__(self):
+        return bool(self.api_key)
 
     def _request(self, **args):
         args['apikey'] = self.api_key
@@ -53,22 +56,7 @@ class AVApi:
         return current_data
 
 
-api = None
-
-
-@hook.onload
-def create_api(bot):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
-    global api
-    try:
-        key = bot.config["api_keys"]["alphavantage"]
-    except LookupError:
-        return
-
-    api = AVApi(key, user_agent=bot.user_agent)
-
+api = AVApi()
 
 number_suffixes = "TBM"
 
@@ -77,6 +65,12 @@ def format_num(n):
     exp = int(math.floor(math.log10(n)) / 3)
     c = number_suffixes[-(exp - 1):][:1]
     return "{:,.2f}{}".format(n / (10 ** (exp * 3)), c)
+
+
+@hook.on_start
+def setup_api(bot):
+    api.api_key = bot.config.get_api_key("alphavantage")
+    api.user_agent = bot.user_agent
 
 
 @hook.command

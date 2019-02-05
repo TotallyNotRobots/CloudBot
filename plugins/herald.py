@@ -25,9 +25,12 @@ herald_cache = defaultdict(dict)
 
 @hook.on_start
 def load_cache(db):
-    herald_cache.clear()
+    new_cache = defaultdict(dict)
     for row in db.execute(table.select()):
-        herald_cache[row["chan"]][row["name"]] = row["quote"]
+        new_cache[row["chan"]][row["name"]] = row["quote"]
+
+    herald_cache.clear()
+    herald_cache.update(new_cache)
 
 
 @hook.command()

@@ -33,13 +33,16 @@ def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
     """
-    profile_cache.clear()
+    new_cache = {}
     for row in db.execute(table.select().order_by(table.c.category)):
         nick = row["nick"].lower()
         cat = row["category"]
         text = row["text"]
         chan = row["chan"]
-        profile_cache.setdefault(chan, {}).setdefault(nick, {})[cat] = text
+        new_cache.setdefault(chan, {}).setdefault(nick, {})[cat] = text
+
+    profile_cache.clear()
+    profile_cache.update(new_cache)
 
 
 def format_profile(nick, category, text):

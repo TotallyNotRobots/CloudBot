@@ -6,29 +6,38 @@ from datetime import datetime
 import tweepy
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import timeformat
 
 TWITTER_RE = re.compile(r"(?:(?:www.twitter.com|twitter.com)/(?:[-_a-zA-Z0-9]+)/status/)([0-9]+)", re.I)
 
 
-@hook.on_start()
-def load_api(bot):
-    global tw_api
+def make_api():
+    consumer_key = bot.config.get_api_key("twitter_consumer_key")
+    consumer_secret = bot.config.get_api_key("twitter_consumer_secret")
 
-    consumer_key = bot.config.get("api_keys", {}).get("twitter_consumer_key", None)
-    consumer_secret = bot.config.get("api_keys", {}).get("twitter_consumer_secret", None)
-
-    oauth_token = bot.config.get("api_keys", {}).get("twitter_access_token", None)
-    oauth_secret = bot.config.get("api_keys", {}).get("twitter_access_secret", None)
+    oauth_token = bot.config.get_api_key("twitter_access_token")
+    oauth_secret = bot.config.get_api_key("twitter_access_secret")
 
     if not all((consumer_key, consumer_secret, oauth_token, oauth_secret)):
-        tw_api = None
-        return
+        return None
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(oauth_token, oauth_secret)
 
-    tw_api = tweepy.API(auth)
+    return tweepy.API(auth)
+
+
+class APIContainer:
+    api = None
+
+
+container = APIContainer()
+
+
+@hook.on_start
+def set_api():
+    container.api = make_api()
 
 
 @hook.regex(TWITTER_RE)
@@ -37,6 +46,7 @@ def twitter_url(match):
     tweet_id = match.group(1)
 
     # Get the tweet using the tweepy API
+    tw_api = container.api
     if tw_api is None:
         return
 
@@ -50,6 +60,7 @@ def twitter_url(match):
 def twitter(text, reply):
     """<user> [n] - Gets last/[n]th tweet from <user>"""
 
+    tw_api = container.api
     if tw_api is None:
         return "This command requires a twitter API key."
 
@@ -140,6 +151,7 @@ def format_tweet(tweet, user):
 def twuser(text, reply):
     """<user> - Get info on the Twitter user <user>"""
 
+    tw_api = container.api
     if tw_api is None:
         return
 

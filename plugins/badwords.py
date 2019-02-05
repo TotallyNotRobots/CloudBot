@@ -19,20 +19,31 @@ table = Table(
 badcache = defaultdict(list)
 
 
+class BadwordMatcher:
+    regex = None
+
+
+matcher = BadwordMatcher()
+
+
 @hook.on_start()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
 def load_bad(db):
     """- Should run on start of bot to load the existing words into the regex"""
-    global badword_re
-    badcache.clear()
     words = []
+    new_cache = defaultdict(list)
     for chan, word in db.execute(select([table.c.chan, table.c.word])):
-        badcache[chan.casefold()].append(word)
+        new_cache[chan.casefold()].append(word)
         words.append(word)
 
-    badword_re = re.compile(
+    new_regex = re.compile(
         r'(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format('|'.join(words)), re.IGNORECASE
     )
+
+    matcher.regex = new_regex
+
+    badcache.clear()
+    badcache.update(new_cache)
 
 
 @hook.command("addbad", permissions=["badwords"])
@@ -91,7 +102,7 @@ def list_bad(text):
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def test_badwords(conn, message, chan, content, nick):
-    match = badword_re.match(content)
+    match = matcher.regex.match(content)
     if not match:
         return
 

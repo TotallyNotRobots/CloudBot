@@ -26,6 +26,16 @@ from cloudbot import hook
 from cloudbot.util import web
 
 
+def create_tracker():
+    if pympler is None:
+        return None
+
+    return pympler.tracker.SummaryTracker()
+
+
+tr = create_tracker()
+
+
 def get_name(thread_id):
     current_thread = threading.current_thread()
     if thread_id == current_thread._ident:
@@ -93,14 +103,6 @@ def pympler_summary():
     summ = pympler.summary.summarize(all_objects)
     pympler.summary.print_(summ)
     return "Printed to console"
-
-
-@hook.on_start()
-def create_tracker():
-    if pympler is None:
-        return
-    global tr
-    tr = pympler.tracker.SummaryTracker()
 
 
 @hook.command("pymdiff", autohelp=False, permissions=["botcontrol"])

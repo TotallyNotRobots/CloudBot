@@ -34,6 +34,31 @@ except ImportError:
 logger = logging.getLogger("cloudbot")
 
 
+class BotInstanceHolder:
+    def __init__(self):
+        self._instance = None
+
+    def get(self):
+        # type: () -> CloudBot
+        return self._instance
+
+    def set(self, value):
+        # type: (CloudBot) -> None
+        self._instance = value
+
+    @property
+    def config(self):
+        # type: () -> Config
+        if not self.get():
+            raise ValueError("No bot instance available")
+
+        return self.get().config
+
+
+# Store a global instance of the bot to allow easier access to global data
+bot = BotInstanceHolder()
+
+
 def clean_name(n):
     """strip all spaces and capitalization
     :type n: str
@@ -84,6 +109,10 @@ class CloudBot:
     """
 
     def __init__(self, loop=asyncio.get_event_loop()):
+        if bot.get():
+            raise ValueError("There seems to already be a bot running!")
+
+        bot.set(self)
         # basic variables
         self.base_dir = Path().resolve()
         self.loop = loop

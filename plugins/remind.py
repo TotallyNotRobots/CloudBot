@@ -34,6 +34,8 @@ table = Table(
     PrimaryKeyConstraint('network', 'added_user', 'added_time')
 )
 
+reminder_cache = []
+
 
 async def delete_reminder(async_call, db, network, remind_time, user):
     query = table.delete() \
@@ -67,11 +69,13 @@ async def add_reminder(async_call, db, network, added_user, added_chan, message,
 
 @hook.on_start()
 async def load_cache(async_call, db):
-    global reminder_cache
-    reminder_cache = []
+    new_cache = []
 
     for network, remind_time, added_time, user, message in (await async_call(_load_cache_db, db)):
-        reminder_cache.append((network, remind_time, added_time, user, message))
+        new_cache.append((network, remind_time, added_time, user, message))
+
+    reminder_cache.clear()
+    reminder_cache.extend(new_cache)
 
 
 def _load_cache_db(db):

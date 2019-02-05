@@ -7,6 +7,8 @@ import requests
 from cloudbot import hook
 
 # Define some constants
+from cloudbot.bot import bot
+
 base_url = 'https://maps.googleapis.com/maps/api/'
 geocode_api = base_url + 'geocode/json'
 timezone_api = base_url + 'timezone/json'
@@ -41,16 +43,10 @@ def check_status(status, api):
     return 'Unknown Demons.'
 
 
-@hook.on_start
-def load_key(bot):
-    """ Loads the API key for Google APIs """
-    global dev_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
-
-
 @hook.command("time")
 def time_command(text, reply):
     """<location> - Gets the current time in <location>."""
+    dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 

@@ -18,7 +18,13 @@ logger = logging.getLogger("cloudbot")
 DB_URL = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz"
 PATH = "./data/GeoLite2-City.mmdb"
 
-geoip_reader = None
+
+class GeoipReader:
+    def __init__(self):
+        self.reader = None
+
+
+geoip_reader = GeoipReader()
 
 
 def fetch_db():
@@ -58,12 +64,11 @@ async def check_db(loop):
     runs update_db in an executor thread and sets geoip_reader to the result
     if this is run while update_db is already executing bad things will happen
     """
-    global geoip_reader
-    if not geoip_reader:
+    if not geoip_reader.reader:
         logger.info("Loading GeoIP database")
         db = await loop.run_in_executor(None, update_db)
         logger.info("Loaded GeoIP database")
-        geoip_reader = db
+        geoip_reader.reader = db
 
 
 @hook.on_start
@@ -74,9 +79,7 @@ async def load_geoip(loop):
 @hook.command
 async def geoip(text, reply, loop):
     """<host|ip> - Looks up the physical location of <host|ip> using Maxmind GeoLite """
-    global geoip_reader
-
-    if not geoip_reader:
+    if not geoip_reader.reader:
         return "GeoIP database is still loading, please wait a minute"
 
     try:
@@ -85,7 +88,7 @@ async def geoip(text, reply, loop):
         return "Invalid input."
 
     try:
-        location_data = await loop.run_in_executor(None, geoip_reader.city, ip)
+        location_data = await loop.run_in_executor(None, geoip_reader.reader.city, ip)
     except geoip2.errors.AddressNotFoundError:
         return "Sorry, I can't locate that in my database."
 

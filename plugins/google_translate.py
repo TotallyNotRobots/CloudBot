@@ -1,11 +1,13 @@
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 
 max_length = 100
 
 
-def goog_trans(api_key, text, source, target):
+def goog_trans(text, source, target):
+    api_key = bot.config.get_api_key("google_dev_key")
     url = 'https://www.googleapis.com/language/translate/v2'
 
     if len(text) > max_length:
@@ -50,11 +52,10 @@ def match_language(fragment):
 
 
 @hook.command("google_translate")
-def translate(text, bot):
+def translate(text):
     """[source language [target language]] <sentence> - translates <sentence> from source language (default autodetect)
      to target language (default English) using Google Translate"""
-
-    api_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
+    api_key = bot.config.get_api_key("google_dev_key")
     if not api_key:
         return "This command requires a Google Developers Console API key."
 
@@ -64,17 +65,17 @@ def translate(text, bot):
         if len(args) >= 2:
             sl = match_language(args[0])
             if not sl:
-                return goog_trans(api_key, text, '', 'en')
+                return goog_trans(text, '', 'en')
             if len(args) == 2:
-                return goog_trans(api_key, args[1], sl, 'en')
+                return goog_trans(args[1], sl, 'en')
             if len(args) >= 3:
                 tl = match_language(args[1])
                 if not tl:
                     if sl == 'en':
                         return 'unable to determine desired target language'
-                    return goog_trans(api_key, args[1] + ' ' + args[2], sl, 'en')
-                return goog_trans(api_key, args[2], sl, tl)
-        return goog_trans(api_key, text, '', 'en')
+                    return goog_trans(args[1] + ' ' + args[2], sl, 'en')
+                return goog_trans(args[2], sl, tl)
+        return goog_trans(text, '', 'en')
     except IOError as e:
         return e
 

@@ -13,7 +13,21 @@ import os
 __version__ = "1.0.9"
 
 __all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
-           "logging_dir"]
+           "logging_info"]
+
+
+class LoggingInfo:
+    dir = "logs"
+
+    def make_dir(self):
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
+
+    def add_path(self, *paths):
+        return os.path.join(self.dir, *paths)
+
+
+logging_info = LoggingInfo()
 
 
 def _setup():
@@ -27,11 +41,9 @@ def _setup():
     file_log = logging_config.get("file_log", False)
     console_level = "INFO" if logging_config.get("console_log_info", True) else "WARNING"
 
-    global logging_dir
-    logging_dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
+    logging_info.dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
 
-    if not os.path.exists(logging_dir):
-        os.makedirs(logging_dir)
+    logging_info.make_dir()
 
     logging.captureWarnings(True)
 
@@ -71,7 +83,7 @@ def _setup():
             "formatter": "full",
             "level": "INFO",
             "encoding": "utf-8",
-            "filename": os.path.join(logging_dir, "bot.log")
+            "filename": logging_info.add_path("bot.log")
         }
 
         dict_config["loggers"]["cloudbot"]["handlers"].append("file")
@@ -93,7 +105,7 @@ def _setup():
             "formatter": "full",
             "encoding": "utf-8",
             "level": "DEBUG",
-            "filename": os.path.join(logging_dir, "debug.log")
+            "filename": logging_info.add_path("debug.log")
         }
         dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
 

@@ -5,6 +5,7 @@ import isodate
 import requests
 
 from cloudbot import hook
+from cloudbot.bot import bot
 from cloudbot.util import timeformat
 from cloudbot.util.formatting import pluralize_auto
 
@@ -19,6 +20,7 @@ err_no_api = "The YouTube API is off in the Google Developers Console."
 
 
 def get_video_description(video_id):
+    dev_key = bot.config.get_api_key("google_dev_key")
     request = requests.get(api_url.format(video_id, dev_key))
     json = request.json()
 
@@ -70,10 +72,31 @@ def get_video_description(video_id):
     return out
 
 
-@hook.on_start()
-def load_key(bot):
-    global dev_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
+def get_video_id(reply, text):
+    dev_key = bot.config.get_api_key('google_dev_key')
+    if not dev_key:
+        return None, "This command requires a Google Developers Console API key."
+
+    try:
+        request = requests.get(search_api_url, params={'q': text, 'key': dev_key, 'type': 'video'})
+        request.raise_for_status()
+    except Exception:
+        reply("Error performing search.")
+        raise
+
+    json = request.json()
+
+    if json.get('error'):
+        if json['error']['code'] == 403:
+            return None, err_no_api
+
+        return None, "Error performing search."
+
+    if json['pageInfo']['totalResults'] == 0:
+        return None, "No results found."
+
+    video_id = json['items'][0]['id']['videoId']
+    return video_id, None
 
 
 @hook.regex(youtube_re)
@@ -84,28 +107,9 @@ def youtube_url(match):
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text, reply):
     """<query> - Returns the first YouTube search result for <query>."""
-    if not dev_key:
-        return "This command requires a Google Developers Console API key."
-
-    try:
-        request = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"})
-        request.raise_for_status()
-    except Exception:
-        reply("Error performing search.")
-        raise
-
-    json = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"}).json()
-
-    if json.get('error'):
-        if json['error']['code'] == 403:
-            return err_no_api
-
-        return 'Error performing search.'
-
-    if json['pageInfo']['totalResults'] == 0:
-        return 'No results found.'
-
-    video_id = json['items'][0]['id']['videoId']
+    video_id, err = get_video_id(reply, text)
+    if err:
+        return err
 
     return get_video_description(video_id) + " - " + video_url % video_id
 
@@ -113,29 +117,11 @@ def youtube(text, reply):
 @hook.command("youtime", "ytime")
 def youtime(text, reply):
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
-    if not dev_key:
-        return "This command requires a Google Developers Console API key."
+    video_id, err = get_video_id(reply, text)
+    if err:
+        return err
 
-    try:
-        request = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"})
-        request.raise_for_status()
-    except Exception:
-        reply("Error performing search.")
-        raise
-
-    json = requests.get(search_api_url, params={"q": text, "key": dev_key, "type": "video"}).json()
-
-    if json.get('error'):
-        if json['error']['code'] == 403:
-            return err_no_api
-
-        return 'Error performing search.'
-
-    if json['pageInfo']['totalResults'] == 0:
-        return 'No results found.'
-
-    video_id = json['items'][0]['id']['videoId']
-
+    dev_key = bot.config.get_api_key('google_dev_key')
     request = requests.get(api_url.format(video_id, dev_key))
     request.raise_for_status()
 
@@ -170,6 +156,7 @@ ytpl_re = re.compile(r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[
 @hook.regex(ytpl_re)
 def ytplaylist_url(match, reply):
     location = match.group(4).split("=")[-1]
+    dev_key = bot.config.get_api_key("google_dev_key")
     try:
         request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
         request.raise_for_status()
