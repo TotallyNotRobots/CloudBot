@@ -8,6 +8,7 @@ import re
 import time
 from functools import partial
 from pathlib import Path
+from typing import Type
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -201,6 +202,9 @@ class CloudBot:
         self.loop.close()
         return restart
 
+    def get_client(self, name: str) -> Type[Client]:
+        return CLIENTS[name]
+
     def create_connections(self):
         """ Create a BotConnection for all the networks defined in the config """
         for config in self.config['connections']:
@@ -209,7 +213,7 @@ class CloudBot:
             nick = config['nick']
             _type = config.get("type", "irc")
 
-            self.connections[name] = CLIENTS[_type](self, name, nick, config=config, channels=config['channels'])
+            self.connections[name] = self.get_client(_type)(self, name, nick, config=config, channels=config['channels'])
             logger.debug("[{}] Created connection.".format(name))
 
     async def stop(self, reason=None, *, restart=False):

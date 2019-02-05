@@ -1,4 +1,3 @@
-import asyncio
 import concurrent.futures
 import enum
 import logging
@@ -220,9 +219,6 @@ class Event:
 
     @property
     def loop(self):
-        """
-        :rtype: asyncio.events.AbstractEventLoop
-        """
         return self.bot.loop
 
     @property
