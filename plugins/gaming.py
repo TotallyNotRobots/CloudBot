@@ -37,23 +37,19 @@ def n_rolls(count, n):
     :type count: int
     :type n: int | str
     """
-    if n == "F":
+    if n in ('f', 'F'):
         return [random.randint(-1, 1) for _ in range(min(count, 100))]
 
-    if n < 2:  # it's a coin
-        if count < 100:
-            return [random.randint(0, 1) for _ in range(count)]
-
-        # fake it
-        return [int(random.normalvariate(.5 * count, (.75 * count) ** .5))]
-
-    if count < 100:
+    if n < 100:
         return [random.randint(1, n) for _ in range(count)]
 
-    # fake it
-    return [int(random.normalvariate(.5 * (1 + n) * count,
-                                     (((n + 1) * (2 * n + 1) / 6. -
-                                       (.5 * (1 + n)) ** 2) * count) ** .5))]
+    # Calculate a random sum approximated using a randomized normal variate with the midpoint used as the mu
+    # and an approximated standard deviation based on variance as the sigma
+    mid = .5 * (n + 1) * count
+    var = (n ** 2 - 1) / 12
+    adj_var = (var * count) ** 0.5
+
+    return [int(random.normalvariate(mid, adj_var))]
 
 
 @hook.command("roll", "dice")
