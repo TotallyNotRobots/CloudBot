@@ -18,7 +18,9 @@ script:
   - "py.test -v"
 
 after_success:
-  - "coveralls"
+  - 'coverage xml'
+  - 'coveralls'
+  - 'python-codacy-coverage -r coverage.xml'
 
 env:
   - PYTHONPATH=.
