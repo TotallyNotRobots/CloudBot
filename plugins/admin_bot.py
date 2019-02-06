@@ -313,6 +313,14 @@ async def raw(text, conn, notice):
     conn.send(text)
 
 
+def get_chan(chan, text):
+    stripped_text = text.strip()
+    if stripped_text.startswith("#") and ' ' in stripped_text:
+        return stripped_text.split(None, 1)
+
+    return chan, stripped_text
+
+
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 async def say(text, conn, chan, nick, admin_log):
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified
@@ -321,14 +329,7 @@ async def say(text, conn, chan, nick, admin_log):
     :type conn: cloudbot.client.Client
     :type chan: str
     """
-    text = text.strip()
-    if text.startswith("#"):
-        split = text.split(None, 1)
-        channel = split[0]
-        text = split[1]
-    else:
-        channel = chan
-        text = text
+    channel, text = get_chan(chan, text)
     admin_log("{} used SAY to make me SAY \"{}\" in {}.".format(nick, text, channel))
     conn.message(channel, text)
 
@@ -355,14 +356,7 @@ async def me(text, conn, chan, nick, admin_log):
     :type conn: cloudbot.client.Client
     :type chan: str
     """
-    text = text.strip()
-    if text.startswith("#"):
-        split = text.split(None, 1)
-        channel = split[0]
-        text = split[1]
-    else:
-        channel = chan
-        text = text
+    channel, text = get_chan(chan, text)
     admin_log("{} used ME to make me ACT \"{}\" in {}.".format(nick, text, channel))
     conn.ctcp(channel, "ACTION", text)
 
@@ -372,8 +366,6 @@ async def listchans(conn, chan, message, notice):
     """- Lists the current channels the bot is in"""
     chans = ', '.join(sorted(conn.channels, key=lambda x: x.strip('#').lower()))
     lines = formatting.chunk_str("I am currently in: {}".format(chans))
+    func = notice if chan[:1] == "#" else message
     for line in lines:
-        if chan[:1] == "#":
-            notice(line)
-        else:
-            message(line)
+        func(line)
