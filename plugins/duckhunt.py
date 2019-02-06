@@ -65,13 +65,15 @@ class ChannelState:
         self.messages = 0
         self.masks.clear()
 
-    def should_deploy(self):
+    def should_deploy(self, conn):
         """Should we deploy a duck?"""
+        msg_delay = get_config(conn, 'minimum_messages', 10)
+        mask_req = get_config(conn, 'minimum_users', 5)
         return (
             self.game_on and self.duck_status == 0 and
             self.next_duck_time <= time() and
-            self.messages >= MSG_DELAY and
-            len(self.masks) >= MASK_REQ
+            self.messages >= msg_delay and
+            len(self.masks) >= mask_req
         )
 
     def handle_message(self, event):
@@ -81,12 +83,29 @@ class ChannelState:
                 self.masks.append(event.host)
 
 
-MSG_DELAY = 10
-MASK_REQ = 5
 scripters = defaultdict(int)
 chan_locks = defaultdict(lambda: defaultdict(Lock))
 game_status = defaultdict(lambda: defaultdict(ChannelState))
 opt_out = defaultdict(list)
+
+
+def _get_conf_value(conf, field):
+    return conf['plugins']['duckhunt'][field]
+
+
+def get_config(conn, field, default):
+    """
+    :type conn: cloudbot.client.Client
+    :type field: str
+    :type default: Any
+    """
+    try:
+        return _get_conf_value(conn.config, field)
+    except LookupError:
+        try:
+            return _get_conf_value(conn.bot.config, field)
+        except LookupError:
+            return default
 
 
 @hook.on_start()
@@ -322,7 +341,7 @@ def deploy_duck(bot):
 
         for chan in game_status[network]:
             status = get_state_table(network, chan)
-            if not status.should_deploy():
+            if not status.should_deploy(conn):
                 continue
 
             # deploy a duck to channel

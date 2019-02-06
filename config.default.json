@@ -76,6 +76,12 @@
             "command_prefix": "."
         }
     ],
+    "plugins": {
+        "duckhunt": {
+            "minimum_messages": 10,
+            "minimum_users": 5
+        }
+    },
     "api_keys": {
         "tvdb": "",
         "bing_azure": "",
