@@ -197,7 +197,7 @@ def note(text, conn, nick, db, notice):
         notes = read_all_notes(db, conn.name, nick, show_deleted=True)
 
         if not notes:
-            notice("You have no notes.".format(nick))
+            notice("You have no notes.")
             return
 
         notice("All notes for {}:".format(nick))

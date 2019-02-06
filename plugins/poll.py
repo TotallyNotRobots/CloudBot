@@ -72,7 +72,7 @@ def poll(text, conn, nick, chan, message, reply):
             return "You have no active poll to close."
 
         p = polls.get(uid)
-        reply("Your poll has been closed. Final results for \x02\"{}\"\x02:".format(p.question, p.creator))
+        reply("Your poll has been closed. Final results for \x02\"{}\"\x02:".format(p.question))
         message(p.format_results())
         del polls[uid]
         return
