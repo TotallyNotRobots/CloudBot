@@ -46,7 +46,7 @@ async def get_group_users(text, conn, notice):
         return "Group {} has members: {}".format(group, group_users)
 
     if group_permissions:
-        return "Group {} exists, but has no members".format(group, group_permissions)
+        return "Group {} exists, but has no members".format(group)
 
     notice("Unknown group '{}'".format(group))
 
@@ -154,7 +154,7 @@ async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log
                 reply("Removed {} from {}".format(changed_masks[0], group))
                 admin_log("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group))
         if not changed:
-            reply("No masks with elevated permissions matched {}".format(group, user))
+            reply("No masks with elevated permissions matched {}".format(user))
 
     if changed:
         bot.config.save_config()

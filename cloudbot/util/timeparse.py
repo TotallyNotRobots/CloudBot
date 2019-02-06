@@ -53,7 +53,7 @@ HOUR_CLOCK = r'(?P<hours>\d+):(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)'
 DAY_CLOCK = (r'(?P<days>\d+):(?P<hours>\d{2}):'
              r'(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)')
 
-OPT = lambda x: r'(?:{x})?'.format(x=x, SEPARATORS=SEPARATORS)
+OPT = lambda x: r'(?:{x})?'.format(x=x)
 OPT_SEP = lambda x: r'(?:{x}\s*(?:{SEPARATORS}\s*)?)?'.format(
     x=x, SEPARATORS=SEPARATORS)
 
