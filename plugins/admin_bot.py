@@ -22,15 +22,15 @@ async def get_group_permissions(text, conn, notice):
     """
     group = text.strip()
     permission_manager = conn.permissions
-    group_users = permission_manager.get_group_users(group.lower())
+    if not permission_manager.group_exists(group):
+        notice("Unknown group '{}'".format(group))
+        return None
+
     group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_permissions:
         return "Group {} has permissions {}".format(group, group_permissions)
 
-    if group_users:
-        return "Group {} exists, but has no permissions".format(group)
-
-    notice("Unknown group '{}'".format(group))
+    return "Group {} exists, but has no permissions".format(group)
 
 
 @hook.command("gusers", permissions=["permissions_users"])
@@ -42,34 +42,38 @@ async def get_group_users(text, conn, notice):
     """
     group = text.strip()
     permission_manager = conn.permissions
+    if not permission_manager.group_exists(group):
+        notice("Unknown group '{}'".format(group))
+        return None
+
     group_users = permission_manager.get_group_users(group.lower())
-    group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_users:
         return "Group {} has members: {}".format(group, group_users)
 
-    if group_permissions:
-        return "Group {} exists, but has no members".format(group)
+    return "Group {} exists, but has no members".format(group)
 
-    notice("Unknown group '{}'".format(group))
+
+def parse_self(event):
+    if event.text:
+        if not event.has_permission("permissions_users"):
+            event.notice(
+                "Sorry, you are not allowed to use this command on another user"
+            )
+            return None
+
+        return event.text.strip()
+
+    return event.mask
 
 
 @hook.command("uperms", autohelp=False)
-async def get_user_permissions(text, conn, mask, has_permission, notice):
-    """[user] - lists all permissions given to [user], or the caller if no user is specified
+async def get_user_permissions(event):
+    """[user] - lists all permissions given to [user], or the caller if no user is specified"""
+    user = parse_self(event)
+    if not user:
+        return None
 
-    :type text: str
-    :type conn: cloudbot.client.Client
-    :type mask: str
-    """
-    if text:
-        if not has_permission("permissions_users"):
-            notice("Sorry, you are not allowed to use this command on another user")
-            return
-        user = text.strip()
-    else:
-        user = mask
-
-    permission_manager = conn.permissions
+    permission_manager = event.conn.permissions
 
     user_permissions = permission_manager.get_user_permissions(user.lower())
     if user_permissions:
@@ -79,22 +83,13 @@ async def get_user_permissions(text, conn, mask, has_permission, notice):
 
 
 @hook.command("ugroups", autohelp=False)
-async def get_user_groups(text, conn, mask, has_permission, notice):
-    """[user] - lists all permissions given to [user], or the caller if no user is specified
+async def get_user_groups(event):
+    """[user] - lists all permissions given to [user], or the caller if no user is specified"""
+    user = parse_self(event)
+    if not user:
+        return None
 
-    :type text: str
-    :type conn: cloudbot.client.Client
-    :type mask: str
-    """
-    if text:
-        if not has_permission("permissions_users"):
-            notice("Sorry, you are not allowed to use this command on another user")
-            return
-        user = text.strip()
-    else:
-        user = mask
-
-    permission_manager = conn.permissions
+    permission_manager = event.conn.permissions
 
     user_groups = permission_manager.get_user_groups(user.lower())
     if user_groups:
@@ -196,20 +191,19 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
 
     group_exists = permission_manager.group_exists(group)
 
-    changed = permission_manager.add_user_to_group(user.lower(), group.lower())
-
-    if not changed:
+    if not permission_manager.add_user_to_group(user.lower(), group.lower()):
         reply("User {} is already matched in group {}".format(user, group))
-    elif group_exists:
+        return None
+
+    if group_exists:
         reply("User {} added to group {}".format(user, group))
         admin_log("{} used adduser to add {} to {}.".format(nick, user, group))
     else:
         reply("Group {} created with user {}".format(group, user))
         admin_log("{} used adduser to create group {} and add {} to it.".format(nick, group, user))
 
-    if changed:
-        bot.config.save_config()
-        permission_manager.reload()
+    bot.config.save_config()
+    permission_manager.reload()
 
 
 @hook.command("stopthebot", permissions=["botcontrol"])
