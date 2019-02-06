@@ -247,6 +247,15 @@ async def join(text, conn, nick, notice, admin_log):
         conn.join(target)
 
 
+def parse_targets(text, chan):
+    if text:
+        targets = text
+    else:
+        targets = chan
+
+    return targets.split()
+
+
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
 async def part(text, conn, nick, chan, notice, admin_log):
     """[#channel] - parts [#channel], or the caller's channel if no channel is specified
@@ -255,13 +264,7 @@ async def part(text, conn, nick, chan, notice, admin_log):
     :type conn: cloudbot.client.Client
     :type chan: str
     """
-    if text:
-        targets = text
-    else:
-        targets = chan
-    for target in targets.split():
-        if not target.startswith("#"):
-            target = "#{}".format(target)
+    for target in parse_targets(text, chan):
         admin_log("{} used PART to make me leave {}.".format(nick, target))
         notice("Attempting to leave {}...".format(target))
         conn.part(target)
@@ -275,13 +278,7 @@ async def cycle(text, conn, chan, notice):
     :type conn: cloudbot.client.Client
     :type chan: str
     """
-    if text:
-        targets = text
-    else:
-        targets = chan
-    for target in targets.split():
-        if not target.startswith("#"):
-            target = "#{}".format(target)
+    for target in parse_targets(text, chan):
         notice("Attempting to cycle {}...".format(target))
         conn.part(target)
         conn.join(target)
