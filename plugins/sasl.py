@@ -1,4 +1,3 @@
-import asyncio
 import base64
 
 from cloudbot import hook

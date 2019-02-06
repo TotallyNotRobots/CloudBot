@@ -2,10 +2,11 @@ import asyncio
 from collections import ChainMap
 from functools import partial
 
+from irclib.parser import CapList
+
 from cloudbot import hook
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
-from irclib.parser import CapList
 
 
 @hook.connect(priority=-10, clients="irc")

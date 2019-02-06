@@ -1,7 +1,6 @@
 """brainfuck interpreter adapted from (public domain) code at
 http://brainfuck.sourceforge.net/brain.py"""
 
-import asyncio
 import random
 import re
 

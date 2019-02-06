@@ -1,6 +1,5 @@
 # plugin to keep track of bot state
 
-import asyncio
 import logging
 from collections import deque
 

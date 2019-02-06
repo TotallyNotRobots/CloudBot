@@ -1,4 +1,3 @@
-import asyncio
 import gzip
 import logging
 import os.path

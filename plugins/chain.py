@@ -1,4 +1,3 @@
-import asyncio
 import itertools
 from operator import attrgetter
 

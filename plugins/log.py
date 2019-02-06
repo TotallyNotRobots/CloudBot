@@ -1,4 +1,3 @@
-import asyncio
 import codecs
 import os
 import time
@@ -6,11 +5,11 @@ import time
 import cloudbot
 from cloudbot import hook
 from cloudbot.event import EventType
+from cloudbot.util.formatting import strip_colors
+
 # +---------+
 # | Formats |
 # +---------+
-from cloudbot.util.formatting import strip_colors
-
 base_formats = {
     EventType.message: "[{server}:{channel}] <{nick}> {content}",
     EventType.notice: "[{server}:{channel}] -{nick}- {content}",

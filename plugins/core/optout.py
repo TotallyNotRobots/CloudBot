@@ -1,7 +1,6 @@
 """
 Bot wide hook opt-out for channels
 """
-import asyncio
 from collections import defaultdict
 from functools import total_ordering
 from threading import RLock

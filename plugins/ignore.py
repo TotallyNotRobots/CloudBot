@@ -1,5 +1,3 @@
-import asyncio
-
 from irclib.util.compare import match_mask
 from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
 
