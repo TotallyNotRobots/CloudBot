@@ -103,8 +103,25 @@ async def get_user_groups(text, conn, mask, has_permission, notice):
     return "User {} is in no permission groups".format(user)
 
 
+def remove_user_from_group(user, group, event):
+    permission_manager = event.conn.permissions
+    changed_masks = permission_manager.remove_group_user(
+        group.lower(), user.lower()
+    )
+
+    mask_list = formatting.get_text_list(changed_masks, 'and')
+    event.reply("Removed {} from {}".format(
+        mask_list, group
+    ))
+    event.admin_log("{} used deluser remove {} from {}.".format(
+        event.nick, mask_list, group
+    ))
+
+    return bool(changed_masks)
+
+
 @hook.command("deluser", permissions=["permissions_users"])
-async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log):
+async def remove_permission_user(text, event, bot, conn, notice, reply):
     """<user> [group] - removes <user> from [group], or from all groups if no group is specified
 
     :type text: str
@@ -120,50 +137,34 @@ async def remove_permission_user(text, nick, bot, conn, notice, reply, admin_log
         notice("Not enough arguments")
         return
 
+    perm_manager = conn.permissions
+    user = split[0]
     if len(split) > 1:
-        user = split[0]
         group = split[1]
-    else:
-        user = split[0]
-        group = None
 
-    permission_manager = conn.permissions
-    changed = False
-    if group is not None:
-        if not permission_manager.group_exists(group.lower()):
+        if group and not perm_manager.group_exists(group.lower()):
             notice("Unknown group '{}'".format(group))
             return
-        changed_masks = permission_manager.remove_group_user(group.lower(), user.lower())
-        if changed_masks:
-            changed = True
-        if len(changed_masks) > 1:
-            reply("Removed {} and {} from {}".format(", ".join(changed_masks[:-1]), changed_masks[-1], group))
-            admin_log("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]),
-                                                                         changed_masks[-1], group))
-        elif changed_masks:
-            reply("Removed {} from {}".format(changed_masks[0], group))
-            admin_log("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group))
-        else:
-            reply("No masks in {} matched {}".format(group, user))
+
+        groups = [group] if perm_manager.user_in_group(user, group) else []
     else:
-        groups = permission_manager.get_user_groups(user.lower())
-        for group in groups:
-            changed_masks = permission_manager.remove_group_user(group.lower(), user.lower())
-            if changed_masks:
-                changed = True
-            if len(changed_masks) > 1:
-                reply("Removed {} and {} from {}".format(", ".join(changed_masks[:-1]), changed_masks[-1], group))
-                admin_log("{} used deluser remove {} and {} from {}.".format(nick, ", ".join(changed_masks[:-1]),
-                                                                             changed_masks[-1], group))
-            elif changed_masks:
-                reply("Removed {} from {}".format(changed_masks[0], group))
-                admin_log("{} used deluser remove {} from {}.".format(nick, ", ".join(changed_masks[0]), group))
-        if not changed:
-            reply("No masks with elevated permissions matched {}".format(user))
+        group = None
+        groups = perm_manager.get_user_groups(user.lower())
+
+    if not groups:
+        reply("No masks with elevated permissions matched {}".format(
+            group, user
+        ))
+        return
+
+    changed = False
+    for group in groups:
+        if remove_user_from_group(user, group, event):
+            changed = True
 
     if changed:
         bot.config.save_config()
-        permission_manager.reload()
+        perm_manager.reload()
 
 
 @hook.command("adduser", permissions=["permissions_users"])
