@@ -26,9 +26,6 @@ table = Table(
     PrimaryKeyConstraint('nick')
 )
 
-# Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
-# <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
-bias = None
 location_cache = []
 
 
@@ -69,10 +66,11 @@ def mph_to_kph(mph):
     return mph * 1.609344
 
 
-def find_location(location):
+def find_location(location, bias=None):
     """
     Takes a location as a string, and returns a dict of data
     :param location: string
+    :param bias: The region to bias answers towards
     :return: dict
     """
     json = data.maps_api.geocode(location, region=bias)[0]
@@ -144,9 +142,13 @@ def weather(text, reply, db, nick, notice_doc, bot):
     else:
         location = text
 
+    # Change this in the config to a ccTLD code (eg. uk, nz)
+    # to make results more targeted towards that specific country.
+    # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
+    bias = bot.config.get('location_bias_cc')
     # use find_location to get location data from the user input
     try:
-        location_data = find_location(location)
+        location_data = find_location(location, bias=bias)
     except ApiError:
         reply("API Error occurred.")
         raise
