@@ -32,7 +32,7 @@ bias = None
 location_cache = []
 
 
-BEARINGS = [
+BEARINGS = (
     'N', 'NNE',
     'NE', 'ENE',
     'E', 'ESE',
@@ -41,7 +41,12 @@ BEARINGS = [
     'SW', 'WSW',
     'W', 'WNW',
     'NW', 'NNW',
-]
+)
+
+# math constants
+NUM_BEARINGS = len(BEARINGS)
+BEARING_SECTION = 360 / NUM_BEARINGS
+BEARING_RANGE = BEARING_SECTION / 2
 
 
 def bearing_to_card(bearing):
@@ -49,7 +54,7 @@ def bearing_to_card(bearing):
         raise ValueError("Invalid wind bearing: {}".format(bearing))
 
     # Derived from values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
-    index = int(len(BEARINGS) * (((bearing + 11.25) % 360) / 360))
+    index = int(NUM_BEARINGS * (((bearing + BEARING_RANGE) % 360) / 360))
     return BEARINGS[index]
 
 
