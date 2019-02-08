@@ -44,7 +44,7 @@ class WindBearing:
 
     def __contains__(self, item):
         if self._on_boundary:
-            if self.lower <= item < 360:
+            if self.lower <= item <= 360:
                 return True
             return 0 <= item < self.upper
 
@@ -90,6 +90,10 @@ def convert_f2c(temp):
     Convert temperature in Fahrenheit to Celsios
     """
     return (temp - 32) * Fraction(5, 9)
+
+
+def mph_to_kph(mph):
+    return mph * 1.609344
 
 
 def find_location(location):
@@ -191,7 +195,7 @@ def weather(text, reply, db, nick, notice_doc, bot):
         forecast.update(
             wind_direction=bearing_to_card(forecast['windBearing']),
             wind_speed_mph=wind_speed,
-            wind_speed_kph=wind_speed * 1.609344,
+            wind_speed_kph=mph_to_kph(wind_speed),
             summary=forecast['summary'].rstrip('.'),
         )
 
