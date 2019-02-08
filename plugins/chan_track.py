@@ -621,6 +621,7 @@ def perm_check(chan, conn, nick):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def dumpchans(conn):
     """- Dumps all stored channel data for this connection to the console
+
     :type conn: cloudbot.client.Client
     """
     data = get_chans(conn)
@@ -630,6 +631,7 @@ def dumpchans(conn):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def dumpusers(conn):
     """- Dumps all stored user data for this connection to the console
+
     :type conn: cloudbot.client.Client
     """
     data = get_users(conn)
@@ -639,6 +641,7 @@ def dumpusers(conn):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def updateusers(bot):
     """- Forces an update of all /NAMES data for all channels
+
     :type bot: cloudbot.bot.CloudBot
     """
     get_chan_data(bot)
@@ -648,6 +651,7 @@ def updateusers(bot):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def cleanusers(bot):
     """
+
     :type bot: cloudbot.bot.CloudBot
     """
     clean_data(bot)
@@ -658,6 +662,7 @@ def cleanusers(bot):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def clearusers(bot):
     """
+
     :type bot: cloudbot.bot.CloudBot
     """
     for conn in bot.connections.values():

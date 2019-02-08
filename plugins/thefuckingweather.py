@@ -51,7 +51,7 @@ to ian@ianweller.org. Thanks!""".format(lookup))
 @hook.command("tfw", autohelp=False)
 def get_weather(text, reply):
     """
-    Retrieves weather and forecast data for a given location.
+    <text> - Retrieves weather and forecast data for a given location.
 
     Data is presented in a dict with three main elements: "location" (the
     location presented by TFW), "current" (current weather data) and "forecast"

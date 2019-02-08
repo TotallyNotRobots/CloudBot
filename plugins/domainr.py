@@ -22,6 +22,7 @@ def format_domain(domain):
 @hook.command("domain", "domainr")
 def domainr(text):
     """<domain> - uses domain.nr's API to search for a domain, and similar domains
+
     :type text: str
     """
     try:

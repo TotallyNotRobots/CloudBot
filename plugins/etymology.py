@@ -19,6 +19,7 @@ from cloudbot.util import formatting, web
 @hook.command("e", "etymology")
 def etymology(text, reply):
     """<word> - retrieves the etymology of <word>
+
     :type text: str
     """
 

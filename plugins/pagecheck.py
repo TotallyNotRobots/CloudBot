@@ -10,6 +10,7 @@ from cloudbot import hook
 @hook.command("down", "offline", "up")
 def down(text):
     """<url> - checks if <url> is online or offline
+
     :type text: str
     """
 
@@ -30,6 +31,7 @@ def down(text):
 @hook.command()
 def isup(text):
     """<url> - uses isup.me to check if <url> is online or offline
+
     :type text: str
     """
     url = text.strip()

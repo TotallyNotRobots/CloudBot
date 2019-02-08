@@ -21,6 +21,7 @@ def get_potential_commands(bot, cmd_name):
 @hook.command("help", autohelp=False)
 async def help_command(text, chan, bot, notice, message, has_permission, triggered_prefix):
     """[command] - gives help for [command], or lists all available commands if no command is specified
+
     :type chan: str
     :type text: str
     :type bot: cloudbot.bot.CloudBot
@@ -44,14 +45,7 @@ async def help_command(text, chan, bot, notice, message, has_permission, trigger
         doc = cmds[0][1].doc
 
         if doc:
-            if doc.split()[0].isalpha():
-                # this is using the old format of `name <args> - doc`
-                message = "{}{}".format(triggered_prefix, doc)
-            else:
-                # this is using the new format of `<args> - doc`
-                message = "{}{} {}".format(triggered_prefix, searching_for, doc)
-
-            notice(message)
+            notice("{}{} {}".format(triggered_prefix, searching_for, doc))
         else:
             notice("Command {} has no additional documentation.".format(searching_for))
     else:
