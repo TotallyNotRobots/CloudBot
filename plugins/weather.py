@@ -189,13 +189,13 @@ def weather(text, reply, db, nick, notice_doc, bot):
             temp_low_c=convert_f2c(low),
         )
 
-    current_str = "\x02{name}\x02: {summary}, {temp_f:.2f}F/{temp_c:.2f}C " \
+    current_str = "\x02{name}\x02: {summary}, {temp_f:.3g}F/{temp_c:.3g}C " \
                   "{humidity:.0%}, " \
-                  "Wind: {wind_speed_mph:.2f}MPH/{wind_speed_kph:.2f}KPH " \
+                  "Wind: {wind_speed_mph:.3g}MPH/{wind_speed_kph:.3g}KPH " \
                   "{wind_direction}"
     day_str = "\x02{name}\x02: {summary}, " \
-              "High: {temp_high_f:.2f}F/{temp_high_c:.2f}C, " \
-              "Low: {temp_low_f:.2f}F/{temp_low_c:.2f}C"
+              "High: {temp_high_f:.3g}F/{temp_high_c:.3g}C, " \
+              "Low: {temp_low_f:.3g}F/{temp_low_c:.3g}C"
 
     url = web.try_shorten(
         'https://darksky.net/forecast/{lat:.3f},{lng:.3f}'.format_map(
