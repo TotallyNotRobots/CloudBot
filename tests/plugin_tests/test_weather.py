@@ -19,10 +19,12 @@ import pytest
     (150, 'SSE'),
     (165, 'SSE'),
     (180, 'S'),
+    (348.75, 'N'),
+    (348.74, 'NNW'),
 })
 def test_wind_direction(bearing, direction):
     from plugins.weather import bearing_to_card
-    assert bearing_to_card(bearing).name == direction
+    assert bearing_to_card(bearing) == direction
 
 
 @pytest.mark.parametrize('temp_f,temp_c', [

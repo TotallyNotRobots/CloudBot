@@ -32,43 +32,15 @@ bias = None
 location_cache = []
 
 
-class WindBearing:
-    def __init__(self, name, lower, upper):
-        self.name = name
-        self.lower = lower
-        self.upper = upper
-
-        # This is a special case, like for 'N'
-        # Which wraps over the 360/0 degree mark
-        self._on_boundary = lower > upper
-
-    def __contains__(self, item):
-        if self._on_boundary:
-            if self.lower <= item <= 360:
-                return True
-            return 0 <= item < self.upper
-
-        return self.lower <= item < self.upper
-
-
-# Values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
 BEARINGS = [
-    WindBearing('N', 348.75, 11.25),
-    WindBearing('NNE', 11.25, 33.75),
-    WindBearing('NE', 33.75, 56.25),
-    WindBearing('ENE', 56.25, 78.75),
-    WindBearing('E', 78.75, 101.25),
-    WindBearing('ESE', 101.25, 123.75),
-    WindBearing('SE', 123.75, 146.25),
-    WindBearing('SSE', 146.25, 168.75),
-    WindBearing('S', 168.75, 191.25),
-    WindBearing('SSW', 191.25, 213.75),
-    WindBearing('SW', 213.75, 236.25),
-    WindBearing('WSW', 236.25, 258.75),
-    WindBearing('W', 258.75, 281.25),
-    WindBearing('WNW', 281.25, 303.75),
-    WindBearing('NW', 303.75, 326.25),
-    WindBearing('NNW', 326.25, 348.75),
+    'N', 'NNE',
+    'NE', 'ENE',
+    'E', 'ESE',
+    'SE', 'SSE',
+    'S', 'SSW',
+    'SW', 'WSW',
+    'W', 'WNW',
+    'NW', 'NNW',
 ]
 
 
@@ -76,13 +48,9 @@ def bearing_to_card(bearing):
     if bearing > 360 or bearing < 0:
         raise ValueError("Invalid wind bearing: {}".format(bearing))
 
-    for direction in BEARINGS:
-        if bearing in direction:
-            return direction
-
-    raise ValueError(
-        "Unable to find a valid wind direction for bearing {}".format(bearing)
-    )
+    # Derived from values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
+    index = int(len(BEARINGS) * (((bearing + 11.25) % 360) / 360))
+    return BEARINGS[index]
 
 
 def convert_f2c(temp):
@@ -217,7 +185,7 @@ def weather(text, reply, db, nick, notice_doc, bot):
     current_str = "\x02{name}\x02: {summary}, {temp_f:.2f}F/{temp_c:.2f}C " \
                   "{humidity:.0%}, " \
                   "Wind: {wind_speed_mph:.2f}MPH/{wind_speed_kph:.2f}KPH " \
-                  "{wind_direction.name}"
+                  "{wind_direction}"
     day_str = "\x02{name}\x02: {summary}, " \
               "High: {temp_high_f:.2f}F/{temp_high_c:.2f}C, " \
               "Low: {temp_low_f:.2f}F/{temp_low_c:.2f}C"
