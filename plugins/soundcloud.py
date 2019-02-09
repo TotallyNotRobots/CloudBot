@@ -150,7 +150,7 @@ def format_group(group, show_url=True):
 # CLOUDBOT HOOKS
 @hook.command("soundcloud", "sc")
 def soundcloud(text):
-    """<query> -- Searches for tracks on SoundCloud."""
+    """<query> - Searches for tracks on SoundCloud."""
     api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
         return "This command requires a SoundCloud API key."
@@ -170,7 +170,7 @@ def soundcloud(text):
 
 @hook.command("scuser")
 def soundcloud_user(text):
-    """<query> -- Searches for users on SoundCloud."""
+    """<query> - Searches for users on SoundCloud."""
     api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
         return "This command requires a SoundCloud API key."

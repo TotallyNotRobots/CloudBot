@@ -13,7 +13,7 @@ def format_item(item):
 
 @hook.command("feed", "rss", "news")
 def rss(text):
-    """<feed> -- Gets the first three items from the RSS/ATOM feed <feed>."""
+    """<feed> - Gets the first three items from the RSS/ATOM feed <feed>."""
     limit = 3
 
     t = text.lower().strip()

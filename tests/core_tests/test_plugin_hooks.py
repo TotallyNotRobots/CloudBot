@@ -16,7 +16,7 @@ from cloudbot.plugin import Plugin, Hook
 
 Hook.original_init = Hook.__init__
 
-DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
+DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
 PLUGINS = []
 
 

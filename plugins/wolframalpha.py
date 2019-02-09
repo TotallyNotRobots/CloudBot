@@ -17,7 +17,7 @@ query_url = 'http://www.wolframalpha.com/input/?i={}'
 
 @hook.command("wolframalpha", "wa", "calc", "ca", "math", "convert")
 def wolframalpha(text, bot, reply):
-    """<query> -- Computes <query> using Wolfram Alpha."""
+    """<query> - Computes <query> using Wolfram Alpha."""
     api_key = bot.config.get_api_key("wolframalpha")
     if not api_key:
         return "error: missing api key"

@@ -117,7 +117,7 @@ async def check_reminders(bot, async_call, db):
 
 @hook.command('remind', 'reminder', 'in')
 async def remind(text, nick, chan, db, conn, event, async_call):
-    """<1 minute, 30 seconds>: <do task> -- reminds you to <do task> in <1 minute, 30 seconds>"""
+    """<1 minute, 30 seconds>: <do task> - reminds you to <do task> in <1 minute, 30 seconds>"""
 
     count = len([x for x in reminder_cache if x[0] == conn.name and x[3] == nick.lower()])
 
