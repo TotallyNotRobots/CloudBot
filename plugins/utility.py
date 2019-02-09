@@ -251,6 +251,7 @@ def derpify(text):
 # colors
 @hook.command
 def color_parse(text):
+    """<text> - Parse colors and formatting in <text> using $(thing) syntax"""
     return colors.parse(text)
 
 

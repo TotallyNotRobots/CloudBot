@@ -225,6 +225,7 @@ def crypto_command(text):
 
 @hook.command("currencies", "currencylist", autohelp=False)
 def currency_list():
+    """- List all available currencies from the API"""
     currencies = sorted(set((obj["symbol"], obj["id"]) for obj in api.currencies), key=itemgetter(0))
     lst = [
         '{: <10} {}'.format(symbol, name) for symbol, name in currencies

@@ -96,6 +96,7 @@ def on_connect(conn):
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
 @hook.periodic(5)
 def lag_check(bot, admin_log):
+    """- Manually update lag times for all connections"""
     now = time.time()
     for conn in bot.connections.values():
         if conn.connected:

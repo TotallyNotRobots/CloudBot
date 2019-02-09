@@ -75,11 +75,13 @@ def get_thread_dump():
 
 @hook.command("threaddump", autohelp=False, permissions=["botcontrol"])
 async def threaddump_command():
+    """- Return a full thread dump"""
     return get_thread_dump()
 
 
 @hook.command("objtypes", autohelp=False, permissions=["botcontrol"])
 def show_types():
+    """- Print object type data to the console"""
     if objgraph is None:
         return "objgraph not installed"
     objgraph.show_most_common_types(limit=20)
@@ -88,6 +90,7 @@ def show_types():
 
 @hook.command("objgrowth", autohelp=False, permissions=["botcontrol"])
 def show_growth():
+    """- Print object growth data to the console"""
     if objgraph is None:
         return "objgraph not installed"
     objgraph.show_growth(limit=10)
@@ -96,6 +99,7 @@ def show_growth():
 
 @hook.command("pymsummary", autohelp=False, permissions=["botcontrol"])
 def pympler_summary():
+    """- Print object summary data to the console"""
     if pympler is None:
         return "pympler not installed / not enabled"
     all_objects = pympler.muppy.get_objects()
@@ -106,6 +110,7 @@ def pympler_summary():
 
 @hook.command("pymdiff", autohelp=False, permissions=["botcontrol"])
 def pympler_diff():
+    """- Print object diff data to the console"""
     if pympler is None:
         return "pympler not installed / not enabled"
     tr.print_diff()
