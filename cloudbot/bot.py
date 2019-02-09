@@ -213,7 +213,9 @@ class CloudBot:
             nick = config['nick']
             _type = config.get("type", "irc")
 
-            self.connections[name] = self.get_client(_type)(self, name, nick, config=config, channels=config['channels'])
+            self.connections[name] = self.get_client(_type)(
+                self, name, nick, config=config, channels=config['channels']
+            )
             logger.debug("[{}] Created connection.".format(name))
 
     async def stop(self, reason=None, *, restart=False):

@@ -199,7 +199,7 @@ def wordoftheday(text):
         return " ".join(out.split())
 
     return "Sorry I couldn't find the word of the day, check out this awesome otter instead {}".format(
-            "http://i.imgur.com/pkuWlWx.gif")
+        "http://i.imgur.com/pkuWlWx.gif")
 
 
 # random word
