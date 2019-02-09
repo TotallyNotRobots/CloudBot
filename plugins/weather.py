@@ -28,7 +28,6 @@ table = Table(
 
 location_cache = []
 
-
 BEARINGS = (
     'N', 'NNE',
     'NE', 'ENE',

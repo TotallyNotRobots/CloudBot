@@ -33,6 +33,7 @@ def make_api():
 
     return ImgurClient(client_id, client_secret)
 
+
 @hook.on_start
 def set_api():
     container.api = make_api()

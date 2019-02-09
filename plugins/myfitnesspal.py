@@ -51,7 +51,7 @@ def mfp(text, reply):
             }
 
             output += ("{caption}: {total}/{remain}{units} ({pct}%) "
-                .format(**kwargs))
+                       .format(**kwargs))
 
         output += " ({})".format(scrape_url.format(text))
 
