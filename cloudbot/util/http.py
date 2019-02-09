@@ -48,7 +48,11 @@ def get_soup(*args, **kwargs):
 
 def get_xml(*args, **kwargs):
     kwargs["decode"] = False  # we don't want to decode, for etree
-    return etree.fromstring(get(*args, **kwargs), parser=parser)
+    return parse_xml(get(*args, **kwargs))
+
+
+def parse_xml(text):
+    return etree.fromstring(text, parser=parser)  # nosec
 
 
 def get_json(*args, **kwargs):

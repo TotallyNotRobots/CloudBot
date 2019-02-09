@@ -1,13 +1,10 @@
 import datetime
 
 import requests
-from lxml import etree
 
 from cloudbot import hook
 from cloudbot.bot import bot
-
-# security
-parser = etree.XMLParser(resolve_entities=False, no_network=True)
+from cloudbot.util.http import parse_xml
 
 base_url = "http://thetvdb.com/api/"
 
@@ -24,7 +21,7 @@ def get_episodes_for_series(series_name, api_key):
         res["error"] = "error contacting thetvdb.com"
         return res
 
-    query = etree.fromstring(request.content, parser=parser)
+    query = parse_xml(request.content)
     series_id = query.xpath('//seriesid/text()')
 
     if not series_id:
@@ -40,7 +37,7 @@ def get_episodes_for_series(series_name, api_key):
         res["error"] = "error contacting thetvdb.com"
         return res
 
-    series = etree.fromstring(_request.content, parser=parser)
+    series = parse_xml(_request.content)
     try:
         series_name = series.xpath('//SeriesName/text()')[0]
     except LookupError:
