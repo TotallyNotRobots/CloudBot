@@ -116,7 +116,9 @@ def test_hook_kwargs(hook):
 
 
 def test_hook_doc(hook):
-    if hook.type == "command" and hook.doc:
+    if hook.type == "command":
+        assert hook.doc
+
         assert DOC_RE.match(hook.doc), \
             "Invalid docstring '{}' format for command hook".format(hook.doc)
 
