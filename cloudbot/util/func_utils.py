@@ -3,10 +3,13 @@ import inspect
 
 class ParameterError(Exception):
     def __init__(self, name, valid_args):
-        super().__init__(name, list(valid_args))
-
-    def __str__(self):
-        return "'{}' is not a valid parameter, valid parameters are: {}".format(self.args[0], self.args[1])
+        super().__init__(
+            "'{}' is not a valid parameter, valid parameters are: {}".format(
+                name, list(valid_args)
+            )
+        )
+        self.name = name
+        self.valid_args = list(valid_args)
 
 
 def call_with_args(func, arg_data):
