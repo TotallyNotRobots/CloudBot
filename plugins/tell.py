@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
 
-from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint, and_
+from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint, and_, not_
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -53,7 +53,7 @@ def load_cache(db):
     :type db: sqlalchemy.orm.Session
     """
     new_cache = []
-    for row in db.execute(table.select().where(table.c.is_read == 0)):
+    for row in db.execute(table.select().where(not_(table.c.is_read))):
         conn = row["connection"]
         target = row["target"]
         new_cache.append((conn, target))
@@ -220,7 +220,7 @@ def get_unread(db, server, target):
     query = select([table.c.sender, table.c.message, table.c.time_sent]) \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
-        .where(table.c.is_read == 0) \
+        .where(not_(table.c.is_read)) \
         .order_by(table.c.time_sent)
     return db.execute(query).fetchall()
 
@@ -229,7 +229,7 @@ def count_unread(db, server, target):
     query = select([table]) \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
-        .where(table.c.is_read == 0) \
+        .where(not_(table.c.is_read)) \
         .alias("count") \
         .count()
     return db.execute(query).fetchone()[0]
@@ -239,8 +239,8 @@ def read_all_tells(db, server, target):
     query = table.update() \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
-        .where(table.c.is_read == 0) \
-        .values(is_read=1)
+        .where(not_(table.c.is_read)) \
+        .values(is_read=True)
     db.execute(query)
     db.commit()
     load_cache(db)
@@ -251,7 +251,7 @@ def read_tell(db, server, target, message):
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
         .where(table.c.message == message) \
-        .values(is_read=1)
+        .values(is_read=True)
     db.execute(query)
     db.commit()
     load_cache(db)
