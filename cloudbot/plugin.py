@@ -130,7 +130,7 @@ class PluginManager:
 
     async def unload_all(self):
         await asyncio.gather(
-            *[self.unload_plugin(path) for path in self.plugins.keys()], loop=self.bot.loop
+            *[self.unload_plugin(path) for path in self.plugins], loop=self.bot.loop
         )
 
     async def load_plugin(self, path):
