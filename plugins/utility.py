@@ -92,7 +92,7 @@ def qrcode(text):
 
 @hook.command("capitalize", "capitalise")
 def capitalize(text):
-    """<string> -- Capitalizes <string>.
+    """<string> - Capitalizes <string>.
 
     :type text: str
     """
@@ -101,31 +101,31 @@ def capitalize(text):
 
 @hook.command
 def upper(text):
-    """<string> -- Convert string to uppercase."""
+    """<string> - Convert string to uppercase."""
     return text.upper()
 
 
 @hook.command
 def lower(text):
-    """<string> -- Convert string to lowercase."""
+    """<string> - Convert string to lowercase."""
     return text.lower()
 
 
 @hook.command
 def titlecase(text):
-    """<string> -- Convert string to title case."""
+    """<string> - Convert string to title case."""
     return text.title()
 
 
 @hook.command
 def swapcase(text):
-    """<string> -- Swaps the capitalization of <string>."""
+    """<string> - Swaps the capitalization of <string>."""
     return text.swapcase()
 
 
 @hook.command("aesthetic", "vapor", "fw")
 def fullwidth(text):
-    """<string> -- Converts <string> to full width characters."""
+    """<string> - Converts <string> to full width characters."""
     HALFWIDTH_TO_FULLWIDTH = str.maketrans(
         '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&()*+,-./:;<=>?@[]^_`{|}~',
         '０１２３４５６７８９ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ！゛＃＄％＆（）＊＋、ー。／：；〈＝〉？＠［］＾＿‘｛｜｝～'
@@ -137,20 +137,20 @@ def fullwidth(text):
 
 @hook.command("rot13")
 def rot13_encode(text):
-    """<string> -- Encode <string> with rot13."""
+    """<string> - Encode <string> with rot13."""
     encoder = codecs.getencoder("rot-13")
     return encoder(text)[0]
 
 
 @hook.command("base64")
 def base64_encode(text):
-    """<string> -- Encode <string> with base64."""
+    """<string> - Encode <string> with base64."""
     return base64.b64encode(text.encode()).decode()
 
 
 @hook.command("debase64", "unbase64")
 def base64_decode(text, notice):
-    """<string> -- Decode <string> with base64."""
+    """<string> - Decode <string> with base64."""
     try:
         return " ".join(base64.b64decode(text.encode()).decode().splitlines())
     except binascii.Error:
@@ -159,7 +159,7 @@ def base64_decode(text, notice):
 
 @hook.command("isbase64", "checkbase64")
 def base64_check(text):
-    """<string> -- Checks if <string> is a valid base64 encoded string"""
+    """<string> - Checks if <string> is a valid base64 encoded string"""
     try:
         base64.b64decode(text.encode())
     except binascii.Error:
@@ -170,14 +170,14 @@ def base64_check(text):
 
 @hook.command
 def unescape(text):
-    """<string> -- Unicode unescapes <string>."""
+    """<string> - Unicode unescapes <string>."""
     decoder = codecs.getdecoder("unicode_escape")
     return " ".join(decoder(text)[0].splitlines())
 
 
 @hook.command
 def escape(text):
-    """<string> -- Unicode escapes <string>."""
+    """<string> - Unicode escapes <string>."""
     encoder = codecs.getencoder("unicode_escape")
     return " ".join(encoder(text)[0].decode().splitlines())
 
@@ -187,7 +187,7 @@ def escape(text):
 
 @hook.command
 def length(text):
-    """<string> -- Gets the length of <string>"""
+    """<string> - Gets the length of <string>"""
     return "The length of that string is {} characters.".format(len(text))
 
 
@@ -196,7 +196,7 @@ def length(text):
 
 @hook.command
 def reverse(text):
-    """<string> -- Reverses <string>."""
+    """<string> - Reverses <string>."""
     return text[::-1]
 
 
@@ -205,7 +205,7 @@ def reverse(text):
 
 @hook.command("hash")
 def hash_command(text):
-    """<string> -- Returns hashes of <string>."""
+    """<string> - Returns hashes of <string>."""
     return ', '.join(x + ": " + getattr(hashlib, x)(text.encode("utf-8")).hexdigest()
                      for x in ['md5', 'sha1', 'sha256'])
 
@@ -215,13 +215,13 @@ def hash_command(text):
 
 @hook.command
 def munge(text):
-    """<text> -- Munges up <text>."""
+    """<text> - Munges up <text>."""
     return formatting.munge(text)
 
 
 @hook.command
 def leet(text):
-    """<text> -- Makes <text> more 1337h4x0rz."""
+    """<text> - Makes <text> more 1337h4x0rz."""
     output = ''.join(random.choice(leet_text[ch]) if ch.isalpha() else ch for ch in text.lower())
     return output
 
@@ -251,13 +251,14 @@ def derpify(text):
 # colors
 @hook.command
 def color_parse(text):
+    """<text> - Parse colors and formatting in <text> using $(thing) syntax"""
     return colors.parse(text)
 
 
 # colors - based on code by Reece Selwood - <https://github.com/hitzler/homero>
 @hook.command
 def rainbow(text):
-    """<text> -- Gives <text> rainbow colors."""
+    """<text> - Gives <text> rainbow colors."""
     text = str(text)
     text = strip(text)
     col = list(COLORS.items())
@@ -273,7 +274,7 @@ def rainbow(text):
 
 @hook.command
 def wrainbow(text):
-    """<text> -- Gives each word in <text> rainbow colors."""
+    """<text> - Gives each word in <text> rainbow colors."""
     text = str(text)
     col = list(COLORS.items())
     text = strip(text).split(' ')
@@ -286,7 +287,7 @@ def wrainbow(text):
 
 @hook.command
 def usa(text):
-    """<text> -- Makes <text> more patriotic."""
+    """<text> - Makes <text> more patriotic."""
     text = strip(text)
     c = [COLORS['red'], '\x0300', COLORS['blue']]
     l = len(c)
@@ -298,7 +299,7 @@ def usa(text):
 
 @hook.command
 def superscript(text):
-    """<text> -- Makes <text> superscript."""
+    """<text> - Makes <text> superscript."""
     regular = "abcdefghijklmnoprstuvwxyzABDEGHIJKLMNOPRTUVW0123456789+-=()"
     super_script = "ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁⱽᵂ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾"
     result = []

@@ -92,16 +92,19 @@ def change_status(text, chan, nick, db, conn, message, notice, status):
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def enableregex(text, db, conn, chan, nick, message, notice):
+    """[chan] - Enable regex hooks in [chan] (default: current channel)"""
     return change_status(text, chan, nick, db, conn, message, notice, True)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def disableregex(text, db, conn, chan, nick, message, notice):
+    """[chan] - Disable regex hooks in [chan] (default: current channel)"""
     return change_status(text, chan, nick, db, conn, message, notice, False)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def resetregex(text, db, conn, chan, nick, message, notice):
+    """[chan] - Reset regex hook status in [chan] (default: current channel)"""
     text = text.strip().lower()
     if not text:
         channel = chan
@@ -118,6 +121,7 @@ def resetregex(text, db, conn, chan, nick, message, notice):
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def regexstatus(text, conn, chan):
+    """[chan] - Get status of regex hooks in [chan] (default: current channel)"""
     text = text.strip().lower()
     if not text:
         channel = chan
@@ -136,6 +140,7 @@ def regexstatus(text, conn, chan):
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def listregex(conn):
+    """- List non-default regex statuses for channels"""
     values = []
     for (conn_name, chan), status in status_cache.values():
         if conn_name != conn.name:

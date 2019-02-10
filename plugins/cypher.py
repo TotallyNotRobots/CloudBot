@@ -54,7 +54,7 @@ def decode(password, encoded, notice):
 
 @hook.command("cypher", "cipher")
 def cypher(text, message, event):
-    """<pass> <string> -- cyphers <string> with <password>"""
+    """<pass> <string> - cyphers <string> with <password>"""
     split = text.split(None, 1)
     if len(split) < 2:
         event.notice_doc()

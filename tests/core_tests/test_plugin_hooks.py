@@ -9,6 +9,8 @@ from collections import OrderedDict
 from numbers import Number
 from pathlib import Path
 
+import pytest
+
 import cloudbot.bot
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
 from cloudbot.hook import Action
@@ -16,7 +18,7 @@ from cloudbot.plugin import Plugin, Hook
 
 Hook.original_init = Hook.__init__
 
-DOC_RE = re.compile(r"^(?:(?:<.+?>|{.+?}|\[.+?\]).+?)*?-\s.+$")
+DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
 PLUGINS = []
 
 
@@ -99,6 +101,26 @@ HOOK_ATTR_TYPES = {
 }
 
 
+@pytest.mark.parametrize('text', [
+    '- Foo',
+    '<text> - Uses <text>',
+    '[text] - Thing with [text]',
+])
+def test_doc_re_matches(text):
+    assert DOC_RE.match(text)
+
+
+@pytest.mark.parametrize('text', [
+    '-- Foo',
+    '<text> -- Uses <text>',
+    '<text - Uses text>',
+    'Foobar',
+    '-Baz',
+])
+def test_doc_re_no_match(text):
+    assert not DOC_RE.match(text)
+
+
 def test_hook_kwargs(hook):
     assert not hook.func_hook.kwargs, \
         "Unknown arguments '{}' passed during registration of hook '{}'".format(
@@ -116,7 +138,9 @@ def test_hook_kwargs(hook):
 
 
 def test_hook_doc(hook):
-    if hook.type == "command" and hook.doc:
+    if hook.type == "command":
+        assert hook.doc
+
         assert DOC_RE.match(hook.doc), \
             "Invalid docstring '{}' format for command hook".format(hook.doc)
 

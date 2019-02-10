@@ -247,6 +247,7 @@ async def console_log(bot, event):
 
 @hook.command("flushlog", permissions=["botcontrol"])
 def flush_log():
+    """- Flush all log streams"""
     for name, stream in stream_cache.values():
         stream.flush()
     for name, stream in raw_cache.values():

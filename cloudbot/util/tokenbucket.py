@@ -28,8 +28,6 @@ class TokenBucket(object):
         :param _capacity: The total amount of token the bucket can contain
         :param fill_rate: The rate at which tokens regenerate. (fill_rate per second)
         """
-        """tokens is the total tokens in the bucket. fill_rate is the
-        rate in tokens/second that the bucket will be refilled."""
         self.capacity = float(_capacity)
         self._tokens = float(_capacity)
         self.fill_rate = float(fill_rate)
