@@ -329,14 +329,14 @@ def dict_format(args, formats):
             m = f.format(**args)
             # Insert match and number of matched values (max matched values if already in dict)
             matches[m] = max([matches.get(m, 0), len(re.findall(r'({.*?\})', f))])
-        except Exception:
+        except KeyError:
             continue
 
     # Return most complete match, ranked by values matched and then my match length or None
-    try:
-        return max(matches.items(), key=lambda x: (x[1], len(x[0])))[0]
-    except Exception:
+    if not matches:
         return None
+
+    return max(matches.items(), key=lambda x: (x[1], len(x[0])))[0]
 
 
 # DJANGO LICENCE

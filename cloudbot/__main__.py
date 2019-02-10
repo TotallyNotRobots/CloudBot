@@ -81,7 +81,7 @@ def main():
             # close logging, and exit the program.
             logger.debug("Stopping logging engine")
             logging.shutdown()
-            os.execv(sys.executable, [sys.executable] + args)
+            os.execv(sys.executable, [sys.executable] + args)  # nosec
 
     # close logging, and exit the program.
     logger.debug("Stopping logging engine")

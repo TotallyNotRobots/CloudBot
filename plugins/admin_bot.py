@@ -147,9 +147,7 @@ async def remove_permission_user(text, event, bot, conn, notice, reply):
         groups = perm_manager.get_user_groups(user.lower())
 
     if not groups:
-        reply("No masks with elevated permissions matched {}".format(
-            group, user
-        ))
+        reply("No masks with elevated permissions matched {}".format(user))
         return
 
     changed = False

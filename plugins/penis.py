@@ -22,5 +22,5 @@ def penis(text, message):
         person = text.split(' ')[0]
         message("{}{}{}{} all over {}'s {}".format(
             random.choice(balls), random.choice(shaft), random.choice(head),
-            random.choice(emission), person, random.choice(bodypart))
-        )
+            random.choice(emission), person, random.choice(bodypart)
+        ))

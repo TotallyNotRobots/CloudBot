@@ -70,11 +70,11 @@ def get_data(user, currency="us"):
         data["value"] = soup.find("h1", {"class": "calculator-price"}).text
         data["value_sales"] = soup.find("h1", {"class": "calculator-price-lowest"}).text
 
-        data["count"] = int(soup.find("div",
-                                      {"class": "pull-right"
-                                                " price-container"}).find("p").find("span", {"class":
-                                                                                                 "number"}).text.replace(
-            ',', ''))
+        data["count"] = int(soup.find(
+            "div", {"class": "pull-right price-container"}
+        ).find("p").find("span", {"class": "number"}).text.replace(
+            ',', ''
+        ))
 
         played = soup.find('td', text='Games not played').find_next('td').text
         played = PLAYED_RE.search(played).groups()
