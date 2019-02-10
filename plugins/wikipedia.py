@@ -4,13 +4,10 @@ Scaevolus 2009"""
 import re
 
 import requests
-from lxml import etree
 
 from cloudbot import hook
 from cloudbot.util import formatting
-
-# security
-parser = etree.XMLParser(resolve_entities=False, no_network=True)
+from cloudbot.util.http import parse_xml
 
 api_prefix = "http://en.wikipedia.org/w/api.php"
 search_url = api_prefix + "?action=opensearch&format=xml"
@@ -30,7 +27,7 @@ def wiki(text, reply):
         reply("Could not get Wikipedia page: {}".format(e))
         raise
 
-    x = etree.fromstring(request.text, parser=parser)
+    x = parse_xml(request.text)
 
     ns = '{http://opensearch.org/searchsuggest2}'
     items = x.findall(ns + 'Section/' + ns + 'Item')
