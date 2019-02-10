@@ -45,13 +45,13 @@ def system(reply, message):
     reply(
         "OS: \x02{}\x02, "
         "Python: \x02{} {}\x02, "
-        "Architecture: \x02{}\x02 (\x02{}\x02)"
-            .format(
+        "Architecture: \x02{}\x02 (\x02{}\x02)".format(
             sys_os,
             python_implementation,
             python_version,
             sys_architecture,
-            sys_cpu_count)
+            sys_cpu_count
+        )
     )
 
     if psutil:
@@ -67,12 +67,12 @@ def system(reply, message):
             "Uptime: \x02{}\x02, "
             "Threads: \x02{}\x02, "
             "CPU Usage: \x02{}\x02, "
-            "Memory Usage: \x02{}\x02"
-                .format(
+            "Memory Usage: \x02{}\x02".format(
                 uptime,
                 thread_count,
                 cpu_usage,
-                memory_usage)
+                memory_usage
+            )
         )
 
 
