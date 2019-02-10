@@ -36,6 +36,10 @@ ctcp_unknown = "[{server}:{channel}] {nick} [{user}@{host}] has requested unknow
 ctcp_unknown_with_message = ("[{server}:{channel}] {nick} [{user}@{host}] "
                              "has requested unknown CTCP {ctcp_command}: {ctcp_message}")
 
+server_info_numerics = (
+    "003", "005", "250", "251", "252", "253", "254", "255", "256"
+)
+
 
 # +------------+
 # | Formatting |
@@ -116,8 +120,7 @@ def format_irc_event(event, args):
     if not logging_config.get("show_motd", True) and event.irc_command in ("375", "372", "376"):
         return None
 
-    if not logging_config.get("show_server_info", True) and event.irc_command in (
-        "003", "005", "250", "251", "252", "253", "254", "255", "256"):
+    if not logging_config.get("show_server_info", True) and event.irc_command in server_info_numerics:
         return None
 
     if event.irc_command == "PING":
