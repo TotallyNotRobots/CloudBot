@@ -3,8 +3,6 @@ import importlib
 import inspect
 import logging
 import sys
-import time
-import warnings
 from collections import defaultdict
 from functools import partial
 from itertools import chain
@@ -672,14 +670,6 @@ class Hook:
 
         # don't process args starting with "_"
         self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
-        if sys.version_info < (3, 7, 0):
-            if "async" in self.required_args:
-                logger.warning("Use of deprecated function 'async' in %s", self.description)
-                time.sleep(1)
-                warnings.warn(
-                    "event.async() is deprecated, use event.async_call() instead.",
-                    DeprecationWarning, stacklevel=2
-                )
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
             self.threaded = False
