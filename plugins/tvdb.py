@@ -84,14 +84,14 @@ def tv_next(text):
     api_key = bot.config.get_api_key("tvdb")
     if api_key is None:
         return "error: no api key set"
-    episodes = get_episodes_for_series(text, api_key)
+    data = get_episodes_for_series(text, api_key)
 
-    if episodes["error"]:
-        return episodes["error"]
+    if data["error"]:
+        return data["error"]
 
-    series_name = episodes["name"]
-    ended = episodes["ended"]
-    episodes = episodes["episodes"]
+    series_name = data["name"]
+    ended = data["ended"]
+    episodes = data["episodes"]
 
     if ended:
         return "{} has ended.".format(series_name)
@@ -122,8 +122,9 @@ def tv_next(text):
     if len(next_eps) == 1:
         return "The next episode of {} airs {}".format(series_name, next_eps[0])
 
-    next_eps = ', '.join(next_eps)
-    return "The next episodes of {}: {}".format(series_name, next_eps)
+    return "The next episodes of {}: {}".format(
+        series_name, ', '.join(next_eps)
+    )
 
 
 @hook.command()
@@ -133,14 +134,14 @@ def tv_last(text):
     api_key = bot.config.get_api_key("tvdb")
     if api_key is None:
         return "error: no api key set"
-    episodes = get_episodes_for_series(text, api_key)
+    data = get_episodes_for_series(text, api_key)
 
-    if episodes["error"]:
-        return episodes["error"]
+    if data["error"]:
+        return data["error"]
 
-    series_name = episodes["name"]
-    ended = episodes["ended"]
-    episodes = episodes["episodes"]
+    series_name = data["name"]
+    ended = data["ended"]
+    episodes = data["episodes"]
 
     prev_ep = None
     today = datetime.date.today()
