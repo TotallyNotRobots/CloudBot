@@ -2,7 +2,7 @@ import re
 import time
 from collections import deque
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select, and_
 
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -29,13 +29,15 @@ def track_seen(event, db):
     now = time.time()
     if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
         res = db.execute(
-            table.update().values(time=now, quote=event.content, host=str(event.mask))
-                .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
+            table.update().where(and_(
+                table.c.name == event.nick.lower(), table.c.chan == event.chan
+            )).values(time=now, quote=event.content, host=str(event.mask))
         )
         if res.rowcount == 0:
             db.execute(
                 table.insert().values(
-                    name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
+                    name=event.nick.lower(), time=now, quote=event.content,
+                    chan=event.chan, host=str(event.mask)
                 )
             )
 
@@ -107,8 +109,9 @@ def seen(text, nick, chan, db, event, is_nick_valid):
         return "I can't look up that name, its impossible to use!"
 
     last_seen = db.execute(
-        select([table.c.name, table.c.time, table.c.quote])
-            .where(table.c.name == text.lower()).where(table.c.chan == chan)
+        select([table.c.name, table.c.time, table.c.quote]).where(and_(
+            table.c.name == text.lower(), table.c.chan == chan
+        ))
     ).fetchone()
 
     if last_seen:

@@ -166,12 +166,16 @@ def save_channel_state(db, network, chan, status=None):
 
     active = status.game_on
     duck_kick = status.no_duck_kick
-    res = db.execute(status_table.update().where(status_table.c.network == network).where(
-        status_table.c.chan == chan).values(
-        active=active, duck_kick=duck_kick
-    ))
+    res = db.execute(
+        status_table.update().where(and_(
+            status_table.c.network == network,
+            status_table.c.chan == chan
+        )).values(active=active, duck_kick=duck_kick)
+    )
     if not res.rowcount:
-        db.execute(status_table.insert().values(network=network, chan=chan, active=active, duck_kick=duck_kick))
+        db.execute(status_table.insert().values(
+            network=network, chan=chan, active=active, duck_kick=duck_kick
+        ))
 
     db.commit()
 

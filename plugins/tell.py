@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
 
-from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint, and_
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -147,8 +147,10 @@ def del_disable(db, conn, target):
     :type target: str
     """
     db.execute(
-        disable_table.delete().where(disable_table.c.conn == conn.name.lower())
-            .where(disable_table.c.target == target.lower())
+        disable_table.delete().where(and_(
+            disable_table.c.conn == conn.name.lower(),
+            disable_table.c.target == target.lower()
+        ))
     )
     db.commit()
     load_disabled(db)
@@ -190,10 +192,11 @@ def del_ignore(db, conn, nick, mask):
     :type mask: str
     """
     db.execute(
-        ignore_table.delete()
-            .where(ignore_table.c.conn == conn.name.lower())
-            .where(ignore_table.c.nick == nick.lower())
-            .where(ignore_table.c.mask == mask.lower())
+        ignore_table.delete().where(and_(
+            ignore_table.c.conn == conn.name.lower(),
+            ignore_table.c.nick == nick.lower(),
+            ignore_table.c.mask == mask.lower(),
+        ))
     )
     db.commit()
     load_ignores(db)
