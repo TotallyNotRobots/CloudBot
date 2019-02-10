@@ -14,8 +14,8 @@ unsupported_msg = "This feature is not supported in the libre.fm API"
 table = Table(
     "librefm",
     database.metadata,
-    Column('nick', String(25)),
-    Column('acc', String(25)),
+    Column('nick', String),
+    Column('acc', String),
     PrimaryKeyConstraint('nick')
 )
 

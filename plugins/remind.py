@@ -24,11 +24,11 @@ from cloudbot.util.timeparse import time_parse
 table = Table(
     'reminders',
     database.metadata,
-    Column('network', String(50)),
-    Column('added_user', String(30)),
+    Column('network', String),
+    Column('added_user', String),
     Column('added_time', DateTime),
-    Column('added_chan', String(50)),
-    Column('message', String(512)),
+    Column('added_chan', String),
+    Column('message', String),
     Column('remind_time', DateTime),
     PrimaryKeyConstraint('network', 'added_user', 'added_time')
 )

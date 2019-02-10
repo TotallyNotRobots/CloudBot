@@ -13,10 +13,10 @@ from cloudbot.util.formatting import gen_markdown_table
 table = Table(
     'tells',
     database.metadata,
-    Column('connection', String(25)),
-    Column('sender', String(25)),
-    Column('target', String(25)),
-    Column('message', String(500)),
+    Column('connection', String),
+    Column('sender', String),
+    Column('target', String),
+    Column('message', String),
     Column('is_read', Boolean),
     Column('time_sent', DateTime),
     Column('time_read', DateTime)

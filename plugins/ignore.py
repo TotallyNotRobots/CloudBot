@@ -7,9 +7,9 @@ from cloudbot.util import database
 table = Table(
     "ignored",
     database.metadata,
-    Column("connection", String(25)),
-    Column("channel", String(25)),
-    Column("mask", String(250)),
+    Column("connection", String),
+    Column("channel", String),
+    Column("mask", String),
     Column("status", Boolean, default=True),
     UniqueConstraint("connection", "channel", "mask", "status"),
     PrimaryKeyConstraint("connection", "channel", "mask")
