@@ -2,7 +2,7 @@ import random
 import re
 import time
 
-from sqlalchemy import select, Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import select, Table, Column, String, PrimaryKeyConstraint, Boolean, not_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.types import REAL
 
@@ -10,16 +10,61 @@ from cloudbot import hook
 from cloudbot.util import database
 
 qtable = Table(
-    'quote',
+    'new_quote',
     database.metadata,
-    Column('chan', String(25)),
-    Column('nick', String(25)),
-    Column('add_nick', String(25)),
-    Column('msg', String(500)),
+    Column('chan', String),
+    Column('nick', String),
+    Column('add_nick', String),
+    Column('msg', String),
     Column('time', REAL),
-    Column('deleted', String(5), default=0),
-    PrimaryKeyConstraint('chan', 'nick', 'time')
+    Column('deleted', Boolean, default=False),
+    PrimaryKeyConstraint('chan', 'nick', 'msg')
 )
+
+
+@hook.on_start()
+def migrate_table(db, logger):
+    old_table = Table(
+        'quote',
+        database.metadata,
+        Column('chan', String(25)),
+        Column('nick', String(25)),
+        Column('add_nick', String(25)),
+        Column('msg', String(500)),
+        Column('time', REAL),
+        Column('deleted', String(5), default=0),
+        PrimaryKeyConstraint('chan', 'nick', 'time')
+    )
+
+    if not old_table.exists():
+        database.metadata.remove(old_table)
+        return
+
+    old_quotes = db.execute(old_table.select()).fetchall()
+
+    if not old_quotes:
+        return
+
+    logger.info("Migrating quotes table")
+    qtable.drop(checkfirst=True)
+    qtable.create(checkfirst=True)
+
+    db.execute(qtable.insert().values([
+        {
+            'chan': row['chan'],
+            'nick': row['nick'],
+            'add_nick': row['add_nick'],
+            'msg': row['msg'],
+            'time': row['time'],
+            'deleted': row['deleted'] in (1, '1', True)
+        } for row in old_quotes
+    ]))
+
+    logger.info("Migrated all quotes")
+
+    db.commit()
+    old_table.drop()
+    database.metadata.remove(old_table)
 
 
 def format_quote(q, num, n_quotes):
@@ -52,7 +97,7 @@ def del_quote(db, nick, msg):
         .where(qtable.c.chan == 1) \
         .where(qtable.c.nick == nick.lower()) \
         .where(qtable.c.msg == msg) \
-        .values(deleted=1)
+        .values(deleted=True)
     db.execute(query)
     db.commit()
 
@@ -78,8 +123,9 @@ def get_quote_by_nick(db, nick, num=False):
     """Returns a formatted quote from a nick, random or selected by number"""
 
     count_query = select([qtable]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.nick == nick.lower()) \
+        .alias("count") \
         .count()
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -89,7 +135,7 @@ def get_quote_by_nick(db, nick, num=False):
         return error_message
 
     query = select([qtable.c.time, qtable.c.nick, qtable.c.msg]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.nick == nick.lower()) \
         .order_by(qtable.c.time) \
         .limit(1) \
@@ -101,9 +147,10 @@ def get_quote_by_nick(db, nick, num=False):
 def get_quote_by_nick_chan(db, chan, nick, num=False):
     """Returns a formatted quote from a nick in a channel, random or selected by number"""
     count_query = select([qtable]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.chan == chan) \
         .where(qtable.c.nick == nick.lower()) \
+        .alias("count") \
         .count()
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -113,7 +160,7 @@ def get_quote_by_nick_chan(db, chan, nick, num=False):
         return error_message
 
     query = select([qtable.c.time, qtable.c.nick, qtable.c.msg]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.chan == chan) \
         .where(qtable.c.nick == nick.lower()) \
         .order_by(qtable.c.time) \
@@ -126,8 +173,9 @@ def get_quote_by_nick_chan(db, chan, nick, num=False):
 def get_quote_by_chan(db, chan, num=False):
     """Returns a formatted quote from a channel, random or selected by number"""
     count_query = select([qtable]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.chan == chan) \
+        .alias("count") \
         .count()
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -137,7 +185,7 @@ def get_quote_by_chan(db, chan, num=False):
         return error_message
 
     query = select([qtable.c.time, qtable.c.nick, qtable.c.msg]) \
-        .where(qtable.c.deleted != 1) \
+        .where(not_(qtable.c.deleted)) \
         .where(qtable.c.chan == chan) \
         .order_by(qtable.c.time) \
         .limit(1) \
