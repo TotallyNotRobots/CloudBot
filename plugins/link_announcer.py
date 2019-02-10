@@ -1,5 +1,4 @@
 import re
-from contextlib import closing
 
 import requests
 from bs4 import BeautifulSoup
@@ -89,7 +88,7 @@ def parse_content(content, encoding=None):
 
 @hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
 def print_url_title(message, match):
-    with closing(requests.get(match.group(), headers=HEADERS, stream=True, timeout=3)) as r:
+    with requests.get(match.group(), headers=HEADERS, stream=True, timeout=3) as r:
         if not r.encoding or not r.ok:
             return
 
