@@ -9,9 +9,11 @@ from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 from cloudbot import hook
 from cloudbot.util import web, database
 
+Api = Optional[googlemaps.Client]
+
 
 class PluginData:
-    maps_api = None  # type: Optional[googlemaps.Client]
+    maps_api = None  # type: Api
 
 
 data = PluginData()
