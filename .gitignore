@@ -58,3 +58,5 @@ config.json
 *.mmdb
 *.log
 .idea/
+/venv/
+.pytest_cache
