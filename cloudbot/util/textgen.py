@@ -113,7 +113,7 @@ class TextGenerator(object):
 
     def generate_strings(self, amount):
         strings = []
-        for i in range(amount):
+        for _ in range(amount):
             strings.append(self.generate_string())
         return strings
 

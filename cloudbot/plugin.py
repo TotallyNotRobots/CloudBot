@@ -31,7 +31,7 @@ def find_hooks(parent, module):
     # set the loaded flag
     module._cloudbot_loaded = True
     hooks = defaultdict(list)
-    for name, func in module.__dict__.items():
+    for func in module.__dict__.values():
         if hasattr(func, "_cloudbot_hook"):
             # if it has cloudbot hook
             func_hooks = func._cloudbot_hook
@@ -51,7 +51,7 @@ def find_tables(code):
     :rtype: list[sqlalchemy.Table]
     """
     tables = []
-    for name, obj in code.__dict__.items():
+    for obj in code.__dict__.values():
         if isinstance(obj, sqlalchemy.Table) and obj.metadata == database.metadata:
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
