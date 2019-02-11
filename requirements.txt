@@ -7,7 +7,7 @@ git+https://github.com/CloudBotIRC/mcstatus.git@master
 googlemaps==3.0.2
 imgurpython==1.1.7
 isodate==0.6.0
-lxml==4.3.0
+lxml==4.3.1
 microdata==0.6.1
 nltk==3.2.5
 psutil==5.5.0
