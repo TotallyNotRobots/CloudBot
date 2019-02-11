@@ -11,7 +11,7 @@ logger = logging.getLogger("cloudbot")
 # functions called for bot state tracking
 
 def bot_left_channel(conn, chan):
-    logger.info("[{}|tracker] Bot left channel '{}'".format(conn.name, chan))
+    logger.info("[%s|tracker] Bot left channel %r", conn.name, chan)
     if chan in conn.channels:
         conn.channels.remove(chan)
     if chan in conn.history:
@@ -19,7 +19,7 @@ def bot_left_channel(conn, chan):
 
 
 def bot_joined_channel(conn, chan):
-    logger.info("[{}|tracker] Bot joined channel '{}'".format(conn.name, chan))
+    logger.info("[%s|tracker] Bot joined channel %r", conn.name, chan)
     if chan not in conn.channels:
         conn.channels.append(chan)
 
@@ -37,8 +37,8 @@ async def on_kick(conn, chan, target, loop):
         bot_left_channel(conn, chan)
         if conn.config.get('auto_rejoin', False):
             loop.call_later(5, conn.join, chan)
-            loop.call_later(5, logger.info, "[{}|tracker] Bot was kicked from {}, "
-                                            "rejoining channel.".format(conn.name, chan))
+            loop.call_later(5, logger.info, "[%s|tracker] Bot was kicked from %s, "
+                                            "rejoining channel.", conn.name, chan)
 
 
 @hook.irc_raw("NICK")
@@ -53,7 +53,7 @@ async def on_nick(irc_paramlist, conn, nick):
 
     if old_nick == conn.nick:
         conn.nick = new_nick
-        logger.info("[{}|tracker] Bot nick changed from '{}' to '{}'.".format(conn.name, old_nick, new_nick))
+        logger.info("[%s|tracker] Bot nick changed from %r to %r.", conn.name, old_nick, new_nick)
 
 
 # for channels the host tells us we're joining without us joining it ourselves

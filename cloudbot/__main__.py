@@ -50,7 +50,7 @@ def main():
         else:
             async_util.run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
 
-        logger.warning("Bot received Signal Interrupt ({})".format(signum))
+        logger.warning("Bot received Signal Interrupt (%s)", signum)
 
         # restore the original handler so if they do it again it triggers
         signal.signal(signal.SIGINT, original_sigint)
@@ -75,7 +75,7 @@ def main():
             os.chdir(str(original_wd))
             args = sys.argv
             logger.info("Restarting Bot")
-            logger.debug("Restart arguments: {}".format(args))
+            logger.debug("Restart arguments: %s", args)
             for f in [sys.stdout, sys.stderr]:
                 f.flush()
             # close logging, and exit the program.

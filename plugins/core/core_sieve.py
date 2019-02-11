@@ -70,9 +70,11 @@ async def sieve_suite(bot, event, _hook):
         if bucket.consume(message_cost):
             pass
         else:
-            bot.logger.info("[{}|sieve] Refused command from {}. "
-                            "Entity had {} tokens, needed {}.".format(conn.name, uid, bucket.tokens,
-                                                                      message_cost))
+            logger.info(
+                "[%s|sieve] Refused command from %s. "
+                "Entity had %s tokens, needed %s.",
+                conn.name, uid, bucket.tokens, message_cost
+            )
             if strict:
                 # bad person loses all tokens
                 bucket.empty()

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections import ChainMap
 from functools import partial
 
@@ -7,6 +8,8 @@ from irclib.parser import CapList
 from cloudbot import hook
 from cloudbot.event import CapEvent
 from cloudbot.util import async_util
+
+logger = logging.getLogger("cloudbot")
 
 
 @hook.connect(priority=-10, clients="irc")
@@ -64,7 +67,7 @@ async def _launch_handler(subcmd, event, **kwargs):
 
 
 @_subcmd_handler("LS")
-async def cap_ls(conn, caplist, event, irc_paramlist, bot, logger):
+async def cap_ls(conn, caplist, event, irc_paramlist, bot):
     logger.info("[%s|cap] Available capabilities: %s", conn.name, caplist)
     await handle_available_caps(conn, caplist, event, irc_paramlist, bot)
 
@@ -98,18 +101,18 @@ async def cap_nak(conn, caplist, event, bot):
 
 
 @_subcmd_handler("LIST")
-def cap_list(logger, caplist, conn):
+def cap_list(caplist, conn):
     logger.info("[%s|cap] Enabled Capabilities: %s", conn.name, caplist)
 
 
 @_subcmd_handler("NEW")
-async def cap_new(logger, caplist, conn, event, bot, irc_paramlist):
+async def cap_new(caplist, conn, event, bot, irc_paramlist):
     logger.info("[%s|cap] New capabilities advertised: %s", conn.name, caplist)
     await handle_available_caps(conn, caplist, event, irc_paramlist, bot)
 
 
 @_subcmd_handler("DEL")
-def cap_del(logger, conn, caplist):
+def cap_del(conn, caplist):
     # TODO add hooks for CAP removal
     logger.info("[%s|cap] Capabilities removed by server: %s", conn.name, caplist)
     server_caps = conn.memory.setdefault('server_caps', {})

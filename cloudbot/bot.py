@@ -216,7 +216,7 @@ class CloudBot:
             self.connections[name] = self.get_client(_type)(
                 self, name, nick, config=config, channels=config['channels']
             )
-            logger.debug("[{}] Created connection.".format(name))
+            logger.debug("[%s] Created connection.", name)
 
     async def stop(self, reason=None, *, restart=False):
         """quits all networks and shuts the bot down"""
@@ -241,7 +241,7 @@ class CloudBot:
             if not connection.connected:
                 # Don't quit a connection that hasn't connected
                 continue
-            logger.debug("[{}] Closing connection.".format(connection.name))
+            logger.debug("[%s] Closing connection.", connection.name)
 
             connection.quit(reason)
 
