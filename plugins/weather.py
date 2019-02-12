@@ -60,7 +60,7 @@ def convert_f2c(temp):
     """
     Convert temperature in Fahrenheit to Celsios
     """
-    return (temp - 32) * Fraction(5, 9)
+    return float((temp - 32) * Fraction(5, 9))
 
 
 def mph_to_kph(mph):
