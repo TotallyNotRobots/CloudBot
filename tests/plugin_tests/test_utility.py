@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import pytest
-
 # Defined here because we use the same test cases for unescape
 # Except in reverse
+from multidict import MultiDict
 from yarl import URL
 
 from cloudbot.util import web
@@ -29,12 +29,28 @@ def replace_try_shorten():
     web.try_shorten = old
 
 
+def compare_urls(a, b):
+    def _unify(url):
+        return url.with_query(MultiDict(sorted(url.query.items())))
+
+    a_url = _unify(URL(a))
+    b_url = _unify(URL(b))
+    return a_url == b_url
+
+
+@pytest.mark.parametrize('a,b,match', [
+    ('http://example.com/?a=1&b=1', 'http://example.com/?b=1&a=1', True),
+])
+def test_compare_urls(a, b, match):
+    assert compare_urls(a, b) == match
+
+
 @pytest.mark.parametrize('data,url', [
     ('foo bar_baz+bing//', 'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
 ])
 def test_qrcode(data, url, replace_try_shorten):
     from plugins.utility import qrcode
-    assert URL(qrcode(data)) == URL(url)
+    assert compare_urls(qrcode(data), url)
 
 
 @pytest.mark.parametrize('text,output', [
