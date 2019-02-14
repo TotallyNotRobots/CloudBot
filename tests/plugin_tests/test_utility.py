@@ -4,6 +4,8 @@ import pytest
 
 # Defined here because we use the same test cases for unescape
 # Except in reverse
+from yarl import URL
+
 from cloudbot.util import web
 
 ESCAPE_DATA = [
@@ -27,19 +29,12 @@ def replace_try_shorten():
     web.try_shorten = old
 
 
-@pytest.mark.parametrize('data,urls', [
-    ('foo bar_baz+bing//', [
-        'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F',
-        'http://chart.googleapis.com/chart?cht=qr&chl=foo+bar_baz%2Bbing%2F%2F&chs=200x200',
-        'http://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=foo+bar_baz%2Bbing%2F%2F',
-        'http://chart.googleapis.com/chart?chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F&cht=qr',
-        'http://chart.googleapis.com/chart?chl=foo+bar_baz%2Bbing%2F%2F&chs=200x200&cht=qr',
-        'http://chart.googleapis.com/chart?chl=foo+bar_baz%2Bbing%2F%2F&cht=qr&chs=200x200',
-    ]),
+@pytest.mark.parametrize('data,url', [
+    ('foo bar_baz+bing//', 'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
 ])
-def test_qrcode(data, urls, replace_try_shorten):
+def test_qrcode(data, url, replace_try_shorten):
     from plugins.utility import qrcode
-    assert qrcode(data) in urls
+    assert URL(qrcode(data)) == URL(url)
 
 
 @pytest.mark.parametrize('text,output', [
