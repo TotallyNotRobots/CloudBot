@@ -181,4 +181,5 @@ def test_hook_args(hook):
 def test_coroutine_hooks(hook):
     if inspect.isgeneratorfunction(hook.function):
         assert asyncio.iscoroutinefunction(hook.function), \
-            "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the hook/coroutine decorators."
+            "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the " \
+            "hook/coroutine decorators."

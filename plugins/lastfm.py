@@ -432,23 +432,27 @@ def toptrack(text, nick):
 
 @hook.command("lta", "topartist", autohelp=False)
 def topartists(text, nick):
-    """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists for a last.fm username. You can set your lastfm username with
+    .l username"""
     return _topartists(text, nick)
 
 
 @hook.command("ltw", "topweek", autohelp=False)
 def topweek(text, nick):
-    """[username] - Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last week for a last.fm username. You can set your lastfm
+    username with .l username"""
     return _topartists(text, nick, '7day')
 
 
 @hook.command("ltm", "topmonth", autohelp=False)
 def topmonth(text, nick):
-    """[username] - Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last month for a last.fm username. You can set your lastfm
+    username with .l username"""
     return _topartists(text, nick, '1month')
 
 
 @hook.command("lty", "topyear", autohelp=False)
 def topall(text, nick):
-    """[username] - Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm username with .l username"""
+    """[username] - Grabs a list of the top artists in the last year for a last.fm username. You can set your lastfm
+    username with .l username"""
     return _topartists(text, nick, '1year')

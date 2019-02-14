@@ -5,13 +5,55 @@ from plugins.fishbans import fishbans, bancount
 test_user = "notch"
 
 test_api = """
-{"success":true,"stats":{"username":"notch","uuid":"069a79f444e94726a5befca90e38aaf5","totalbans":11,"service":{"mcbans":0,"mcbouncer":11,"mcblockit":0,"minebans":0,"glizer":0}}}
+{
+    "success":true,
+    "stats":{
+        "username":"notch",
+        "uuid":"069a79f444e94726a5befca90e38aaf5",
+        "totalbans":11,
+        "service":{
+            "mcbans":0,
+            "mcbouncer":11,
+            "mcblockit":0,
+            "minebans":0,
+            "glizer":0
+        }
+    }
+}
 """
 test_api_single = """
-{"success":true,"stats":{"username":"notch","uuid":"069a79f444e94726a5befca90e38aaf5","totalbans":1,"service":{"mcbans":0,"mcbouncer":1,"mcblockit":0,"minebans":0,"glizer":0}}}
+{
+    "success":true,
+    "stats":{
+        "username":"notch",
+        "uuid":"069a79f444e94726a5befca90e38aaf5",
+        "totalbans":1,
+        "service":{
+            "mcbans":0,
+            "mcbouncer":1,
+            "mcblockit":0,
+            "minebans":0,
+            "glizer":0
+        }
+    }
+}
 """
 test_api_none = """
-{"success":true,"stats":{"username":"notch","uuid":"069a79f444e94726a5befca90e38aaf5","totalbans":0,"service":{"mcbans":0,"mcbouncer":0,"mcblockit":0,"minebans":0,"glizer":0}}}
+{
+    "success":true,
+    "stats":{
+        "username":"notch",
+        "uuid":"069a79f444e94726a5befca90e38aaf5",
+        "totalbans":0,
+        "service":{
+            "mcbans":0,
+            "mcbouncer":0,
+            "mcblockit":0,
+            "minebans":0,
+            "glizer":0
+        }
+    }
+}
 """
 test_api_failed = """
 {"success":false}

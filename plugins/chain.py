@@ -135,7 +135,8 @@ def wrap_event(_hook, event, cmd, args):
 
 @hook.command
 async def chain(text, bot, event):
-    """<cmd1> [args...] | <cmd2> [args...] | ... - Runs commands in a chain, piping the output from previous commands to tne next"""
+    """<cmd1> [args...] | <cmd2> [args...] | ... - Runs commands in a chain, piping the output from previous commands
+    to tne next"""
     cmds = parse_chain(text, bot)
 
     for name, _hook, _ in cmds:

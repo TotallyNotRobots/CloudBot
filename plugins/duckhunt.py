@@ -222,7 +222,8 @@ def set_game_state(db, conn, chan, active=None, duck_kick=None):
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def increment_msg_counter(event, conn):
-    """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking.
+    """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are
+    speaking.
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
     """
@@ -293,7 +294,8 @@ def stop_hunt(db, chan, conn):
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
 def no_duck_kick(db, text, chan, conn, notice_doc):
-    """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off.
+    """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that
+    people are kicked for shooting or befriending a non-existent goose. Default is off.
 
     :type db: sqlalchemy.orm.Session
     :type text: str
@@ -306,7 +308,8 @@ def no_duck_kick(db, text, chan, conn, notice_doc):
 
     if text.lower() == 'enable':
         set_game_state(db, conn, chan, duck_kick=True)
-        return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
+        return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have " \
+               "appropriate flags to be able to kick users for this to work."
 
     if text.lower() == 'disable':
         set_game_state(db, conn, chan, duck_kick=False)
@@ -470,7 +473,8 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
         ]
         no_duck = "There is no duck! What are you shooting at?"
         msg = "{} you shot a duck in {:.3f} seconds! You have killed {} in {}."
-        scripter_msg = "You pulled the trigger in {:.3f} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down."
+        scripter_msg = "You pulled the trigger in {:.3f} seconds, that's mighty fast. " \
+                       "Are you sure you aren't a script? Take a 2 hour cool down."
         attack_type = "shoot"
     else:
         miss = [
@@ -481,7 +485,8 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
         ]
         no_duck = "You tried befriending a non-existent duck. That's freaking creepy."
         msg = "{} you befriended a duck in {:.3f} seconds! You have made friends with {} in {}."
-        scripter_msg = "You tried friending that duck in {:.3f} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down."
+        scripter_msg = "You tried friending that duck in {:.3f} seconds, that's mighty fast. " \
+                       "Are you sure you aren't a script? Take a 2 hour cool down."
         attack_type = "friend"
 
     if not status.game_on:
@@ -579,7 +584,8 @@ def smart_truncate(content, length=320, suffix='...'):
 
 @hook.command("friends", autohelp=False)
 def friends(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included.
+    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels
+    in the database are included.
 
     :type text: str
     :type chan: str
@@ -631,7 +637,8 @@ def friends(text, chan, conn, db):
 
 @hook.command("killers", autohelp=False)
 def killers(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included.
+    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels
+    in the database are included.
 
     :type text: str
     :type chan: str
@@ -697,7 +704,9 @@ def duckforgive(text):
 
 @hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
-    """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel.
+    """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the
+    current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel.
+    hunt_opt_out remove #channel will re-enable the game for the specified channel.
 
     :type text: str
     :type chan: str
@@ -746,7 +755,8 @@ def hunt_opt_out(text, chan, db, conn):
 
 @hook.command("duckmerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
-    """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone.
+    """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will
+    have their duck scores removed the second will have the first score added. Warning this cannot be undone.
 
     :type text: str
     :type conn: cloudbot.client.Client
@@ -866,7 +876,9 @@ def ducks_user(text, nick, chan, conn, db, message):
         kill_average = int(ducks["killed"] / ducks["chans"])
         friend_average = int(ducks["friend"] / ducks["chans"])
         message(
-            "\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. Across {}: \x02{}\x02 killed and \x02{}\x02 befriended. Averaging \x02{}\x02 and \x02{}\x02 per channel.".format(
+            "\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. "
+            "Across {}: \x02{}\x02 killed and \x02{}\x02 befriended. "
+            "Averaging \x02{}\x02 and \x02{}\x02 per channel.".format(
                 name, pluralize_auto(ducks["chankilled"], "duck"), pluralize_auto(ducks["chanfriends"], "duck"),
                 chan, pluralize_auto(ducks["chans"], "channel"),
                 pluralize_auto(ducks["killed"], "duck"), pluralize_auto(ducks["friend"], "duck"),
@@ -911,7 +923,9 @@ def duck_stats(chan, conn, db, message):
         killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse=True)[0]
         message(
-            "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. Across {} \x02{:,}\x02 ducks have been killed and \x02{:,}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} and \x02{}\x02 with {}".format(
+            "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. "
+            "Across {} \x02{:,}\x02 ducks have been killed and \x02{:,}\x02 befriended. "
+            "\x02Top Channels:\x02 \x02{}\x02 with {} and \x02{}\x02 with {}".format(
                 ducks["chankilled"], ducks["chanfriends"], chan, pluralize_auto(ducks["chans"], "channel"),
                 ducks["killed"], ducks["friend"],
                 killerchan, pluralize_auto(killscore, "kill"),

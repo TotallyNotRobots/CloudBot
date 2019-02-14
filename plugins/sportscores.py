@@ -32,7 +32,9 @@ GAMES = (
 
 @hook.command("morescore", autohelp=False)
 def morescore(text, chan, conn):
-    """[pagenum] - if a score list has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
+    """[pagenum] - if a score list has lots of results the results are pagintated. If the most recent search is
+    paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page
+    number can be specified."""
     chan_cf = chan.casefold()
     pages = search_pages[conn.name].get(chan_cf)
     if not pages:
@@ -90,7 +92,8 @@ def score_hook(game):
         return scrape_scores(conn, chan, game.name, text)
 
     func.__name__ = "{}_scores".format(game.name)
-    func.__doc__ = "[team city] - gets the score or next scheduled game for the specified team. If no team is specified all games will be included."
+    func.__doc__ = "[team city] - gets the score or next scheduled game for the specified team. " \
+                   "If no team is specified all games will be included."
     return func
 
 

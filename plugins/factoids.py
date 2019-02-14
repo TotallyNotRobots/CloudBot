@@ -75,7 +75,9 @@ def del_factoid(db, chan, word):
 
 @hook.command("r", "remember", permissions=["op", "chanop"])
 def remember(text, nick, db, chan, notice, event):
-    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command is called."""
+    """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the
+    message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command
+    is called."""
     try:
         word, data = text.split(None, 1)
     except ValueError:

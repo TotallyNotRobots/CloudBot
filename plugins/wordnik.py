@@ -164,7 +164,8 @@ def antonym(text):
 # word of the day
 @hook.command("word", "wordoftheday", autohelp=False)
 def wordoftheday(text):
-    """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd. The specified date must be after 2009-08-10."""
+    """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd.
+    The specified date must be after 2009-08-10."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
         return "This command requires an API key from wordnik.com."

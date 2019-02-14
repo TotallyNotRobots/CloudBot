@@ -20,11 +20,13 @@ def lookup(text, url):
 
 @hook.command()
 def metar(text):
-    """[ICAO station code] - returns the metars information for the specified station. A list of station codes can be found here: http://weather.rap.ucar.edu/surface/stations.txt"""
+    """[ICAO station code] - returns the metars information for the specified station. A list of station codes can be
+    found here: http://weather.rap.ucar.edu/surface/stations.txt"""
     return lookup(text, api_url_metar)
 
 
 @hook.command()
 def taf(text):
-    """[ICAO station code] - returns the taf information for the specified station. A list of station codes can be found here: http://weather.rap.ucar.edu/surface/stations.txt"""
+    """[ICAO station code] - returns the taf information for the specified station. A list of station codes can be
+    found here: http://weather.rap.ucar.edu/surface/stations.txt"""
     return lookup(text, api_url_taf)

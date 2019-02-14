@@ -55,7 +55,9 @@ def format_profile(nick, category, text):
 # modified from grab.py
 @hook.command("moreprofile", autohelp=False)
 def moreprofile(text, chan, nick, notice):
-    """[page] - If a category search has lots of results the results are paginated. If the most recent search is paginated the pages are stored for retrieval. If no argument is given the next page will be returned else a page number can be specified."""
+    """[page] - If a category search has lots of results the results are paginated. If the most recent search is
+    paginated the pages are stored for retrieval. If no argument is given the next page will be returned else a page
+    number can be specified."""
     chan_pages = cat_pages[chan.casefold()]
     pages = chan_pages.get(nick.casefold())
     if not pages:
@@ -87,7 +89,8 @@ def moreprofile(text, chan, nick, notice):
 
 @hook.command()
 def profile(text, chan, notice, nick):
-    """<nick> [category] - Returns a user's saved profile data from \"<category>\", or lists all available profile categories for the user if no category specified"""
+    """<nick> [category] - Returns a user's saved profile data from \"<category>\", or lists all available profile
+    categories for the user if no category specified"""
     chan_cf = chan.casefold()
     nick_cf = nick.casefold()
 
