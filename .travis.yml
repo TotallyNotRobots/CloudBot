@@ -15,10 +15,9 @@ install:
   - "pip install -r ./travis/requirements.txt"
 
 script:
-  - "py.test -v"
+  - "pytest"
 
 after_success:
-  - 'coverage xml'
   - 'coveralls'
   - 'python-codacy-coverage -r coverage.xml'
 
