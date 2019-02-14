@@ -12,6 +12,29 @@ from cloudbot.util import timeformat
 TWITTER_RE = re.compile(r"(?:(?:www.twitter.com|twitter.com)/(?:[-_a-zA-Z0-9]+)/status/)([0-9]+)", re.I)
 
 
+def _get_conf_value(conf, field):
+    return conf['plugins']['twitter'][field]
+
+
+def get_config(conn, field, default):
+    """
+    :type conn: cloudbot.client.Client
+    :type field: str
+    :type default: Any
+    """
+    try:
+        return _get_conf_value(conn.config, field)
+    except LookupError:
+        try:
+            return _get_conf_value(conn.bot.config, field)
+        except LookupError:
+            return default
+
+
+def get_tweet_mode(conn, default='extended'):
+    return get_config(conn, 'tweet_mode', default)
+
+
 def make_api():
     consumer_key = bot.config.get_api_key("twitter_consumer_key")
     consumer_secret = bot.config.get_api_key("twitter_consumer_secret")
@@ -41,7 +64,7 @@ def set_api():
 
 
 @hook.regex(TWITTER_RE)
-def twitter_url(match):
+def twitter_url(match, conn):
     # Find the tweet ID from the URL
     tweet_id = match.group(1)
 
@@ -50,26 +73,28 @@ def twitter_url(match):
     if tw_api is None:
         return
 
-    tweet = tw_api.get_status(tweet_id)
+    tweet = tw_api.get_status(tweet_id, tweet_mode=get_tweet_mode(conn))
     user = tweet.user
 
     return format_tweet(tweet, user)
 
 
 @hook.command("twitter", "tw", "twatter")
-def twitter(text, reply):
+def twitter(text, reply, conn):
     """<user> [n] - Gets last/[n]th tweet from <user>"""
 
     tw_api = container.api
     if tw_api is None:
         return "This command requires a twitter API key."
 
+    tweet_mode = get_tweet_mode(conn)
+
     if re.match(r'^\d+$', text):
         # user is getting a tweet by id
 
         try:
             # get tweet by id
-            tweet = tw_api.get_status(text)
+            tweet = tw_api.get_status(text, tweet_mode=tweet_mode)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
                 reply("Could not find tweet.")
@@ -95,7 +120,7 @@ def twitter(text, reply):
 
         try:
             # try to get user by username
-            user = tw_api.get_user(username)
+            user = tw_api.get_user(username, tweet_mode=tweet_mode)
         except tweepy.error.TweepError as e:
             if "404" in e.reason:
                 reply("Could not find user.")
@@ -104,7 +129,9 @@ def twitter(text, reply):
             raise
 
         # get the users tweets
-        user_timeline = tw_api.user_timeline(id=user.id, count=tweet_number + 1)
+        user_timeline = tw_api.user_timeline(
+            id=user.id, count=tweet_number + 1, tweet_mode=tweet_mode
+        )
 
         # if the timeline is empty, return an error
         if not user_timeline:
@@ -119,7 +146,7 @@ def twitter(text, reply):
 
     elif re.match(r'^#\w+$', text):
         # user is searching by hashtag
-        search = tw_api.search(text)
+        search = tw_api.search(text, tweet_mode=tweet_mode)
 
         if not search:
             return "No tweets found."
@@ -135,7 +162,12 @@ def twitter(text, reply):
 
 # Format the return the text of the tweet
 def format_tweet(tweet, user):
-    text = " ".join(tweet.text.split())
+    try:
+        text = tweet.full_text
+    except AttributeError:
+        text = tweet.text
+
+    text = " ".join(text.split())
 
     if user.verified:
         prefix = "\u2713"
