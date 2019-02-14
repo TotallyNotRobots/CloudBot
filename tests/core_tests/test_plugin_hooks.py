@@ -154,8 +154,6 @@ def test_hook_doc(hook):
 
 
 def test_hook_args(hook):
-    assert 'async' not in hook.required_args, "Use of deprecated function Event.async"
-
     bot = MockBot()
     if hook.type in ("irc_raw", "perm_check", "periodic", "on_start", "on_stop", "event", "on_connect"):
         event = Event(bot=bot)

@@ -1,8 +1,6 @@
 import concurrent.futures
 import enum
 import logging
-import sys
-import warnings
 from functools import partial
 
 from irclib.parser import Message
@@ -352,7 +350,6 @@ class Event:
             return True
 
         for perm_hook in self.bot.plugin_manager.perm_hooks[permission]:
-            # noinspection PyTupleAssignmentBalance
             ok, res = await self.bot.plugin_manager.internal_launch(
                 perm_hook, self
             )
@@ -391,23 +388,6 @@ class Event:
             return getattr(self, item)
         except AttributeError:
             raise KeyError(item)
-
-    if sys.version_info < (3, 7, 0):
-        # noinspection PyCompatibility
-        async def async_(self, function, *args, **kwargs):
-            warnings.warn(
-                "event.async() is deprecated, use event.async_call() instead.",
-                DeprecationWarning, stacklevel=2
-            )
-            result = await self.async_call(function, *args, **kwargs)
-            return result
-
-
-# Silence deprecation warnings about use of the 'async' name as a function
-try:
-    setattr(Event, 'async', getattr(Event, 'async_'))
-except AttributeError:
-    pass
 
 
 class CommandEvent(Event):
