@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import pytest
-# Defined here because we use the same test cases for unescape
-# Except in reverse
 from multidict import MultiDict
 from yarl import URL
 
 from cloudbot.util import web
 
+# Defined here because we use the same test cases for unescape
+# Except in reverse
 ESCAPE_DATA = [
     ('\x00\x01345\x05', r'\x00\x01345\x05'),
 ]
