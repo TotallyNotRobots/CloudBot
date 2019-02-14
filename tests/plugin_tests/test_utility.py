@@ -1,10 +1,9 @@
 from pathlib import Path
 
 import pytest
-from multidict import MultiDict
-from yarl import URL
 
 from cloudbot.util import web
+from cloudbot.util.http import compare_urls
 
 # Defined here because we use the same test cases for unescape
 # Except in reverse
@@ -27,15 +26,6 @@ def replace_try_shorten():
     web.try_shorten = lambda *args, **kwargs: args[0]
     yield
     web.try_shorten = old
-
-
-def compare_urls(a, b):
-    def _unify(url):
-        return url.with_query(MultiDict(sorted(url.query.items())))
-
-    a_url = _unify(URL(a))
-    b_url = _unify(URL(b))
-    return a_url == b_url
 
 
 @pytest.mark.parametrize('a,b,match', [
