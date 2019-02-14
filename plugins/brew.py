@@ -55,7 +55,7 @@ def brew(text, reply):
             output = "{name} by {brewer} ({style}, {abv}% ABV) - {url}" \
                 .format(**content)
 
-    except Exception as e:
+    except Exception:
         reply("Error parsing results.")
         raise
 
