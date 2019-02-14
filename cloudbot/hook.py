@@ -1,7 +1,6 @@
 import collections
 import inspect
 import re
-import textwrap
 from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType

@@ -61,7 +61,6 @@ def test_command_hook_doc():
         baz
 
         :type bot: object"""
-        pass
 
     cmd_hook = test._cloudbot_hook['command']
     assert cmd_hook.doc == "<arg> - foo bar baz"
@@ -71,7 +70,6 @@ def test_command_hook_doc():
         """<arg> - foo bar baz
 
         :type bot: object"""
-        pass
 
     cmd_hook = test1._cloudbot_hook['command']
     assert cmd_hook.doc == "<arg> - foo bar baz"
@@ -79,7 +77,6 @@ def test_command_hook_doc():
     @hook.command
     def test2(bot):
         """<arg> - foo bar baz"""
-        pass
 
     cmd_hook = test2._cloudbot_hook['command']
     assert cmd_hook.doc == "<arg> - foo bar baz"
@@ -89,7 +86,6 @@ def test_command_hook_doc():
         """
         <arg> - foo bar baz
         """
-        pass
 
     cmd_hook = test3._cloudbot_hook['command']
     assert cmd_hook.doc == "<arg> - foo bar baz"
@@ -98,7 +94,6 @@ def test_command_hook_doc():
     def test4(bot):
         """<arg> - foo bar baz
         """
-        pass
 
     cmd_hook = test4._cloudbot_hook['command']
     assert cmd_hook.doc == "<arg> - foo bar baz"
