@@ -1,4 +1,5 @@
 import codecs
+import logging
 import os
 import time
 
@@ -6,6 +7,8 @@ import cloudbot
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util.formatting import strip_colors
+
+logger = logging.getLogger("cloudbot")
 
 # +---------+
 # | Formats |
@@ -245,7 +248,7 @@ async def console_log(bot, event):
     """
     text = format_event(event)
     if text is not None:
-        bot.logger.info(text)
+        logger.info(text)
 
 
 @hook.command("flushlog", permissions=["botcontrol"])

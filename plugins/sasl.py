@@ -1,7 +1,10 @@
 import base64
+import logging
 
 from cloudbot import hook
 from cloudbot.util import async_util
+
+logger = logging.getLogger("cloudbot")
 
 
 @hook.on_cap_available("sasl")
@@ -11,7 +14,7 @@ def sasl_available(conn):
 
 
 @hook.on_cap_ack("sasl")
-async def sasl_ack(conn, logger):
+async def sasl_ack(conn):
     sasl_auth = conn.config.get('sasl')
     if sasl_auth and sasl_auth.get('enabled', True):
         sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()

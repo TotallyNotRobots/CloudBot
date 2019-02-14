@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import Table, Column, UniqueConstraint, String
 
 from cloudbot import hook
@@ -17,6 +19,7 @@ table = Table(
 # If False, all channels without a setting will have regex disabled
 default_enabled = True
 status_cache = {}
+logger = logging.getLogger("cloudbot")
 
 
 @hook.on_start()
@@ -62,9 +65,9 @@ def sieve_regex(bot, event, _hook):
     if _hook.type == "regex" and event.chan.startswith("#") and _hook.plugin.title != "factoids":
         status = status_cache.get((event.conn.name, event.chan))
         if status != "ENABLED" and (status == "DISABLED" or not default_enabled):
-            bot.logger.info("[{}] Denying {} from {}".format(event.conn.name, _hook.function_name, event.chan))
+            logger.info("[%s] Denying %s from %s", event.conn.name, _hook.function_name, event.chan)
             return None
-        bot.logger.info("[{}] Allowing {} to {}".format(event.conn.name, _hook.function_name, event.chan))
+        logger.info("[%s] Allowing %s to %s", event.conn.name, _hook.function_name, event.chan)
 
     return event
 

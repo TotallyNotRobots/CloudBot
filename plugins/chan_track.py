@@ -6,6 +6,7 @@ server_info.py
 """
 import gc
 import json
+import logging
 import weakref
 from collections import Mapping, Iterable, namedtuple
 from contextlib import suppress
@@ -19,7 +20,7 @@ from cloudbot import hook
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
 
-logger = cloudbot.bot.logger
+logger = logging.getLogger("cloudbot")
 
 
 class WeakDict(dict):
@@ -397,7 +398,7 @@ def is_cap_available(conn, cap):
 
 
 @hook.on_start
-def get_chan_data(bot):
+def get_chan_data(bot: cloudbot.bot.CloudBot):
     """
     :type bot: cloudbot.bot.CloudBot
     """

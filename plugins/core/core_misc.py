@@ -1,10 +1,12 @@
 import asyncio
+import logging
 import socket
 from copy import copy
 
 from cloudbot import hook
 
 socket.setdefaulttimeout(10)
+logger = logging.getLogger("cloudbot")
 
 
 # Auto-join on Invite (Configurable, defaults to True)
@@ -64,10 +66,10 @@ async def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
-    bot.logger.info("[{}|misc] Bot is sending join commands for network.".format(conn.name))
+    logger.info("[%s|misc] Bot is sending join commands for network.", conn.name)
     nickserv = conn.config.get('nickserv')
     if nickserv and nickserv.get("enabled", True):
-        bot.logger.info("[{}|misc] Bot is authenticating with NickServ.".format(conn.name))
+        logger.info("[%s|misc] Bot is authenticating with NickServ.", conn.name)
         nickserv_password = nickserv.get('nickserv_password', '')
         nickserv_name = nickserv.get('nickserv_name', 'nickserv')
         nickserv_account_name = nickserv.get('nickserv_user', '')
@@ -96,7 +98,7 @@ async def onjoin(conn, bot):
     # Set bot modes
     mode = conn.config.get('mode')
     if mode:
-        bot.logger.info("[{}|misc] Bot is setting mode on itself: {}".format(conn.name, mode))
+        logger.info("[%s|misc] Bot is setting mode on itself: %s", conn.name, mode)
         conn.cmd('MODE', conn.nick, mode)
 
     log_chan = conn.config.get('log_channel')
@@ -104,11 +106,11 @@ async def onjoin(conn, bot):
         conn.join(log_chan)
 
     conn.ready = True
-    bot.logger.info("[{}|misc] Bot has finished sending join commands for network.".format(conn.name))
+    logger.info("[%s|misc] Bot has finished sending join commands for network.", conn.name)
 
 
 @hook.irc_raw('376')
-async def do_joins(logger, conn):
+async def do_joins(conn):
     while not conn.ready:
         await asyncio.sleep(1)
 
