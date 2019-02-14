@@ -19,10 +19,10 @@ FACTOID_CHAR = "?"  # TODO: config
 table = Table(
     "factoids",
     database.metadata,
-    Column("word", String(25)),
-    Column("data", String(500)),
-    Column("nick", String(25)),
-    Column("chan", String(65)),
+    Column("word", String),
+    Column("data", String),
+    Column("nick", String),
+    Column("chan", String),
     PrimaryKeyConstraint('word', 'chan')
 )
 

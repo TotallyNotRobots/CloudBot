@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import sqlalchemy
-from sqlalchemy import Table, Column, String, Boolean, Integer, DateTime, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, Boolean, Integer, DateTime, PrimaryKeyConstraint, not_
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -11,9 +11,9 @@ table = Table(
     'notes',
     database.metadata,
     Column('note_id', Integer),
-    Column('connection', String(25)),
-    Column('user', String(25)),
-    Column('text', String(500)),
+    Column('connection', String),
+    Column('user', String),
+    Column('text', String),
     Column('priority', Integer),
     Column('deleted', Boolean),
     Column('added', DateTime),
@@ -31,7 +31,7 @@ def read_all_notes(db, server, user, show_deleted=False):
         query = select([table.c.note_id, table.c.text, table.c.added]) \
             .where(table.c.connection == server) \
             .where(table.c.user == user.lower()) \
-            .where(table.c.deleted == 0) \
+            .where(not_(table.c.deleted)) \
             .order_by(table.c.added)
     return db.execute(query).fetchall()
 
@@ -40,7 +40,7 @@ def delete_all_notes(db, server, user):
     query = table.update() \
         .where(table.c.connection == server) \
         .where(table.c.user == user.lower()) \
-        .values(deleted=1)
+        .values(deleted=True)
     db.execute(query)
     db.commit()
 
@@ -58,7 +58,7 @@ def delete_note(db, server, user, note_id):
         .where(table.c.connection == server) \
         .where(table.c.user == user.lower()) \
         .where(table.c.note_id == note_id) \
-        .values(deleted=1)
+        .values(deleted=True)
     db.execute(query)
     db.commit()
 

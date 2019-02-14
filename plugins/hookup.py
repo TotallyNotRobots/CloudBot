@@ -4,10 +4,21 @@ import os
 import random
 import time
 
+from sqlalchemy import table, column, String, Float, and_, select
+
 from cloudbot import hook
+from cloudbot.util.database import metadata
 from cloudbot.util.textgen import TextGenerator
 
 hookups = {}
+seen_table = table(
+    'seen_user',
+    column('name', String),
+    column('time', Float),
+    column('quote', String),
+    column('chan', String),
+    column('host', String),
+)
 
 
 @hook.on_start
@@ -20,11 +31,18 @@ def load_data(bot):
 @hook.command(autohelp=False)
 def hookup(db, chan):
     """- matches two users from the channel in a sultry scene."""
+    if seen_table.name not in metadata.tables:
+        return
+
     times = time.time() - 86400
-    results = db.execute("select name from seen_user where chan = :chan and time > :time",
-                         {"chan": chan, "time": times}).fetchall()
+    results = db.execute(select(
+        [seen_table.c.name],
+        and_(seen_table.c.chan == chan, seen_table.c.time > times)
+    )).fetchall()
+
     if not results or len(results) < 2:
         return "something went wrong"
+
     # Make sure the list of people is unique
     people = list(set(row[0] for row in results))
     random.shuffle(people)
@@ -33,5 +51,7 @@ def hookup(db, chan):
         'user1': person1,
         'user2': person2,
     }
-    generator = TextGenerator(hookups['templates'], hookups['parts'], variables=variables)
+    generator = TextGenerator(
+        hookups['templates'], hookups['parts'], variables=variables
+    )
     return generator.generate_string()

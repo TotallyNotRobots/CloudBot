@@ -14,8 +14,8 @@ api_url = "http://ws.audioscrobbler.com/2.0/?format=json"
 table = Table(
     "lastfm",
     database.metadata,
-    Column('nick', String(25)),
-    Column('acc', String(25)),
+    Column('nick', String),
+    Column('acc', String),
     PrimaryKeyConstraint('nick')
 )
 
