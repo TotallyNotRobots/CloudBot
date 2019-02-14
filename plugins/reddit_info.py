@@ -121,7 +121,9 @@ def statuscheck(status, item):
 
 @hook.command("moremod", autohelp=False)
 def moremod(text, chan, conn):
-    """[page] - if a sub or mod list has lots of results the results are pagintated. If the most recent search is paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page number can be specified."""
+    """[page] - if a sub or mod list has lots of results the results are pagintated. If the most recent search is
+    paginated the pages are stored for retreival. If no argument is given the next page will be returned else a page
+    number can be specified."""
     chan_cf = chan.casefold()
     pages = search_pages[conn.name].get(chan_cf)
     if not pages:
@@ -205,7 +207,8 @@ def reddit(text, bot, reply):
 
 @hook.command("subs", "moderates", singlethread=True)
 def moderates(text, chan, conn, reply):
-    """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile. Private subreddits will not be listed."""
+    """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile.
+    Private subreddits will not be listed."""
     user = get_user(text)
     r = requests.get(user_url.format(user) + "moderated_subreddits.json", headers=agent)
     try:
@@ -354,7 +357,8 @@ def subinfo(text, reply):
     active = data['data']['accounts_active']
     sub_age = datetime.now() - datetime.fromtimestamp(data['data']['created'])
     age, age_unit = time_format(sub_age.days)
-    out = "/r/$(b){}$(clear) - {} - a community for {}{}, there are {:,} subscribers and {:,} people online now.".format(
+    out = ("/r/$(b){}$(clear) - {} - a community for {}{}, there are {:,} subscribers and {:,} people online "
+           "now.").format(
         name, title, age, age_unit, subscribers, active
     )
     if nsfw:

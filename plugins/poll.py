@@ -63,7 +63,8 @@ class Poll:
 
 @hook.command()
 def poll(text, conn, nick, chan, message, reply):
-    """{<question>[: <option1>, <option2>[, <option3>]...|close} - Creates a poll for [question] with the provided options (default: Yes, No), or closes the poll if the argument is 'close'"""
+    """{<question>[: <option1>, <option2>[, <option3>]...|close} - Creates a poll for [question] with the provided
+    options (default: Yes, No), or closes the poll if the argument is 'close'"""
     # get poll ID
     uid = ":".join([conn.name, chan, nick]).lower()
 

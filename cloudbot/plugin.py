@@ -436,7 +436,8 @@ class PluginManager:
         Launches a hook with the data from [event]
         :param hook: The hook to launch
         :param event: The event providing data for the hook
-        :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result is the result from the hook
+        :return: a tuple of (ok, result) where ok is a boolean that determines if the hook ran without error and result
+            is the result from the hook
         """
         if hook.threaded:
             coro = self.bot.loop.run_in_executor(None, self._execute_hook_threaded, hook, event)

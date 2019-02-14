@@ -47,7 +47,8 @@ def check_code(code):
 
 @hook.command("langlist", "tlist", autohelp=False)
 def list_langs():
-    """- List the languages/codes that can be used to translate. Translation is powered by Yandex https://translate.yandex.com"""
+    """- List the languages/codes that can be used to translate. Translation is powered by Yandex
+    https://translate.yandex.com"""
     api_key = bot.config.get_api_key("yandex_translate")
     url = api_url + "getLangs"
     params = {
@@ -76,7 +77,8 @@ def trans(text, reply):
     if lang.title() in lang_dict.keys():
         lang = lang_dict[lang.title()]
     elif lang not in lang_dict.values() and lang not in lang_dir:
-        return "Please specify a valid language, language code, to translate to. Use .langlist for more information on language codes and valid translation directions."
+        return "Please specify a valid language, language code, to translate to. Use .langlist for more information " \
+               "on language codes and valid translation directions."
     url = api_url + "translate"
     params = {
         'key': api_key,

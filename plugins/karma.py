@@ -171,11 +171,13 @@ def do_list(text, db, chan, loved=True):
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)
 def pointstop(text, chan, db):
-    """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the channels the bot sits in use .topten global."""
+    """- prints the top 10 things with the highest points in the channel. To see the top 10 items in all of the
+    channels the bot sits in use .topten global."""
     return do_list(text, db, chan)
 
 
 @hook.command("bottomten", "pointsbottom", "hated", autohelp=False)
 def pointsbottom(text, chan, db):
-    """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the channels the bot sits in use .bottomten global."""
+    """- prints the top 10 things with the lowest points in the channel. To see the bottom 10 items in all of the
+    channels the bot sits in use .bottomten global."""
     return do_list(text, db, chan, False)

@@ -49,3 +49,51 @@ def test_hook_decorate():
         pass
 
     assert 'sieve' in sieve_func._cloudbot_hook
+
+
+def test_command_hook_doc():
+    from cloudbot import hook
+
+    @hook.command
+    def test(bot):
+        """<arg> - foo
+        bar
+        baz
+
+        :type bot: object"""
+
+    cmd_hook = test._cloudbot_hook['command']
+    assert cmd_hook.doc == "<arg> - foo bar baz"
+
+    @hook.command
+    def test1(bot):
+        """<arg> - foo bar baz
+
+        :type bot: object"""
+
+    cmd_hook = test1._cloudbot_hook['command']
+    assert cmd_hook.doc == "<arg> - foo bar baz"
+
+    @hook.command
+    def test2(bot):
+        """<arg> - foo bar baz"""
+
+    cmd_hook = test2._cloudbot_hook['command']
+    assert cmd_hook.doc == "<arg> - foo bar baz"
+
+    @hook.command
+    def test3(bot):
+        """
+        <arg> - foo bar baz
+        """
+
+    cmd_hook = test3._cloudbot_hook['command']
+    assert cmd_hook.doc == "<arg> - foo bar baz"
+
+    @hook.command
+    def test4(bot):
+        """<arg> - foo bar baz
+        """
+
+    cmd_hook = test4._cloudbot_hook['command']
+    assert cmd_hook.doc == "<arg> - foo bar baz"

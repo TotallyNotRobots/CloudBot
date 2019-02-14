@@ -18,7 +18,9 @@ with open("data/password_words.txt") as f:
 
 @hook.command(autohelp=False)
 def password(text, notice):
-    """[length [types]] - generates a password of <length> (default 12). [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols' (default: alpha numeric no caps)"""
+    """[length [types]] - generates a password of <length> (default 12).
+    [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols'
+    (default: alpha numeric no caps)"""
     okay = ""
 
     # find the length needed for the password

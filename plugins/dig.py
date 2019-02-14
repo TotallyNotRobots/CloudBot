@@ -5,7 +5,8 @@ from cloudbot import hook
 
 @hook.command
 def dig(text, nick, notice):
-    """<domain> <recordtype> - returns a list of records for the specified domain valid record types are A, NS, TXT, and MX. If a record type is not chosen A will be the default."""
+    """<domain> <recordtype> - returns a list of records for the specified domain valid record types are A, NS, TXT,
+    and MX. If a record type is not chosen A will be the default."""
     args = text.split()
     domain = args.pop(0)
 
