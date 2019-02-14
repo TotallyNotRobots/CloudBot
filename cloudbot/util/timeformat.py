@@ -55,16 +55,20 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
     This function has a number of optional arguments that can be combined:
 
     SIMPLE: displays the time in a simple format
-    >> timesince(SECONDS)
-    1 hour, 2 minutes and 34 seconds
-    >> timesince(SECONDS, simple=True)
-    1h 2m 34s
+    >>> NOW = datetime.datetime.now()
+    >>> SECONDS = NOW - datetime.timedelta(hours=1, minutes=2, seconds=34)
+    >>> timesince(SECONDS, now=NOW)
+    '1 hour and 2 minutes'
+    >>> timesince(SECONDS, simple=True, now=NOW)
+    '1h 2m'
 
     COUNT: how many periods should be shown (default 3)
-    >> timesince(SECONDS)
-    147 years, 9 months and 8 weeks
-    >> timesince(SECONDS, count=6)
-    147 years, 9 months, 7 weeks, 18 hours, 12 minutes and 34 seconds
+    >>> DIFF = datetime.timedelta(seconds=4663419154)
+    >>> SECONDS = NOW - DIFF
+    >>> timesince(SECONDS, now=NOW)
+    '147 years and 10 months'
+    >>> timesince(SECONDS, count=6, now=NOW)
+    '147 years, 10 months, 19 days, 18 hours, 12 minutes and 34 seconds'
     """
 
     # Convert int or float (unix epoch) to datetime.datetime for comparison
@@ -119,16 +123,18 @@ def format_time(seconds, count=3, accuracy=6, simple=False):
     This function has a number of optional arguments that can be combined:
 
     SIMPLE: displays the time in a simple format
-    >> format_time(SECONDS)
-    1 hour, 2 minutes and 34 seconds
-    >> format_time(SECONDS, simple=True)
-    1h 2m 34s
+    >>> SECONDS = int(datetime.timedelta(hours=1, minutes=2, seconds=34).total_seconds())
+    >>> format_time(SECONDS)
+    '1 hour, 2 minutes and 34 seconds'
+    >>> format_time(SECONDS, simple=True)
+    '1h 2m 34s'
 
     COUNT: how many periods should be shown (default 3)
-    >> format_time(SECONDS)
-    147 years, 9 months and 8 weeks
-    >> format_time(SECONDS, count=6)
-    147 years, 9 months, 7 weeks, 18 hours, 12 minutes and 34 seconds
+    >>> SECONDS = 4663419154
+    >>> format_time(SECONDS)
+    '147 years, 10 months and 19 days'
+    >>> format_time(SECONDS, count=6)
+    '147 years, 10 months, 19 days, 18 hours, 12 minutes and 34 seconds'
     """
 
     if simple:

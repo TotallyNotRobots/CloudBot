@@ -346,18 +346,18 @@ split_re = re.compile(r"""((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*" | '(?:["""
 
 
 def smart_split(text):
-    """
+    r"""
     Generator that splits a string by spaces, leaving quoted phrases together.
     Supports both single and double quotes, and supports escaping quotes with
     backslashes. In the output, strings will keep their initial and trailing
     quote marks and escaped quotes will remain escaped (the results can then
     be further processed with unescape_string_literal()).
 
-    >> list(smart_split(r'This is "a person\'s" test.'))
+    >>> list(smart_split(r'This is "a person\'s" test.'))
     ['This', 'is', '"a person\\\'s"', 'test.']
-    >> list(smart_split(r"Another 'person\'s' test."))
+    >>> list(smart_split(r"Another 'person\'s' test."))
     ['Another', "'person\\'s'", 'test.']
-    >> list(smart_split(r'A "\"funky\" style" test.'))
+    >>> list(smart_split(r'A "\"funky\" style" test.'))
     ['A', '"\\"funky\\" style"', 'test.']
     """
     for bit in split_re.finditer(text):
@@ -366,15 +366,15 @@ def smart_split(text):
 
 def get_text_list(list_, last_word='or'):
     """
-    >> get_text_list(['a', 'b', 'c', 'd'])
+    >>> get_text_list(['a', 'b', 'c', 'd'])
     'a, b, c or d'
-    >> get_text_list(['a', 'b', 'c'], 'and')
+    >>> get_text_list(['a', 'b', 'c'], 'and')
     'a, b and c'
-    >> get_text_list(['a', 'b'], 'and')
+    >>> get_text_list(['a', 'b'], 'and')
     'a and b'
-    >> get_text_list(['a'])
+    >>> get_text_list(['a'])
     'a'
-    >> get_text_list([])
+    >>> get_text_list([])
     ''
     """
     if not list_:
