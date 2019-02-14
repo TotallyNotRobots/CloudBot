@@ -6,10 +6,14 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
+from typing import Union
 from urllib.parse import quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
 from lxml import etree, html
+
+from multidict import MultiDict
+from yarl import URL
 
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)
@@ -140,3 +144,16 @@ def unescape(s):
     if not s.strip():
         return s
     return html.fromstring(s).text_content()
+
+
+UrlOrStr = Union[str, URL]
+
+
+def unify_url(url: UrlOrStr) -> URL:
+    parsed = URL(url)
+    return parsed.with_query(MultiDict(sorted(parsed.query.items())))
+
+
+def compare_urls(a: UrlOrStr, b: UrlOrStr) -> bool:
+    """Compare two URLs, unifying them first"""
+    return unify_url(a) == unify_url(b)
