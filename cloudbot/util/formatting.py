@@ -286,6 +286,12 @@ pluralise_select = pluralize_select
 
 
 def pluralize_auto(count, thing):
+    if thing.endswith('us'):
+        return pluralize_select(count, thing, thing[:-2] + 'i')
+
+    if thing.endswith('is'):
+        return pluralize_select(count, thing, thing[:-2] + 'es')
+
     if thing.endswith(('s', 'ss', 'sh', 'ch', 'x', 'z')):
         return pluralize_suffix(count, thing, 'es')
 
@@ -300,12 +306,6 @@ def pluralize_auto(count, thing):
 
     if thing.endswith('o'):
         return pluralize_suffix(count, thing, 'es')
-
-    if thing.endswith('us'):
-        return pluralize_select(count, thing, thing[:-2] + 'i')
-
-    if thing.endswith('is'):
-        return pluralize_select(count, thing, thing[:-2] + 'es')
 
     if thing.endswith('on'):
         return pluralize_select(count, thing, thing[:-2] + 'a')

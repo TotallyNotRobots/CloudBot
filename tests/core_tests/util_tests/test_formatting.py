@@ -1,6 +1,10 @@
+from textwrap import dedent
+
+import pytest
+
 from cloudbot.util.formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
     strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str, \
-    pluralize_suffix
+    pluralize_suffix, pluralize_auto, gen_markdown_table
 
 test_munge_input = "The quick brown fox jumps over the lazy dog"
 test_munge_count = 3
@@ -58,6 +62,25 @@ def test_dict_format():
 def test_pluralize():
     assert pluralize_suffix(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
     assert pluralize_suffix(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
+
+
+@pytest.mark.parametrize('item,count,output', [
+    ('foo', 1, '1 foo'),
+    ('bar', 2, '2 bars'),
+    ('foos', 2, '2 fooses'),
+    ('leaf', 2, '2 leaves'),
+    ('city', 2, '2 cities'),
+    ('day', 2, '2 days'),
+    ('foe', 2, '2 foes'),
+    ('volcano', 2, '2 volcanoes'),
+    ('radius', 2, '2 radii'),
+    ('hoof', 2, '2 hooves'),
+    ('axis', 2, '2 axes'),
+    ('automaton', 2, '2 automata'),
+    ('tree', 2, '2 trees'),
+])
+def test_auto_pluralize(item, count, output):
+    assert pluralize_auto(count, item) == output
 
 
 def test_strip_colors():
@@ -119,3 +142,17 @@ def test_smart_split():
     assert list(smart_split(r'This is "a person\'s" test.')) == ['This', 'is', '"a person\\\'s"', 'test.']
     assert list(smart_split(r"Another 'person\'s' test.")) == ['Another', "'person\\'s'", 'test.']
     assert list(smart_split(r'A "\"funky\" style" test.')) == ['A', '"\\"funky\\" style"', 'test.']
+
+
+def test_gen_md_table():
+    headers = ['ColumnA', 'Column B']
+    data = [
+        ['1', '2'],
+        ['3', '4'],
+    ]
+    assert gen_markdown_table(headers, data) == dedent("""
+    | ColumnA | Column B |
+    | ------- | -------- |
+    | 1       | 2        |
+    | 3       | 4        |
+    """).strip()
