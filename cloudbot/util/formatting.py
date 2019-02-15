@@ -243,7 +243,7 @@ def chunk_str(content, length=420):
     return list(chunk(content, length))
 
 
-def pluralize(num=0, text=''):
+def pluralize(num=0, text=''):  # pragma: no cover
     """
     Takes a number and a string, and pluralizes that string using the number and combines the results.
     :rtype: str
@@ -255,7 +255,7 @@ def pluralize(num=0, text=''):
     return pluralize_suffix(num, text)
 
 
-def pluralise(num=0, text=''):
+def pluralise(num=0, text=''):  # pragma: no cover
     """
     Takes a number and a string, and pluralizes that string using the number and combines the results.
     :rtype: str

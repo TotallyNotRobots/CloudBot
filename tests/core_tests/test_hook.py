@@ -17,7 +17,7 @@ def test_hook_decorate():
     @hook.on_stop()
     @hook.regex(['test', re.compile('test')])
     def f():
-        pass
+        pass  # pragma: no cover
 
     assert f._cloudbot_hook['event'].types == {
         EventType.message, EventType.notice, EventType.action
@@ -46,7 +46,7 @@ def test_hook_decorate():
 
     @hook.sieve
     def sieve_func(bot, event, _hook):
-        pass
+        pass  # pragma: no cover
 
     assert 'sieve' in sieve_func._cloudbot_hook
 
