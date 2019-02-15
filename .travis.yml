@@ -7,6 +7,12 @@ python:
   - "3.7"
   - "pypy3.5"
 
+branches:
+  only:
+  - gonzobot
+  # Allow tagged releases in the format v1.0
+  - /^v\d+\.\d+.*$/
+
 cache: pip
 
 install:
