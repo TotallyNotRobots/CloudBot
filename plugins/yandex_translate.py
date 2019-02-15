@@ -13,6 +13,9 @@ lang_dir = []
 @hook.on_start()
 def load_key():
     api_key = bot.config.get_api_key("yandex_translate")
+    if not api_key:
+        return
+
     url = api_url + "getLangs"
     params = {
         'key': api_key,
@@ -50,6 +53,9 @@ def list_langs():
     """- List the languages/codes that can be used to translate. Translation is powered by Yandex
     https://translate.yandex.com"""
     api_key = bot.config.get_api_key("yandex_translate")
+    if not api_key:
+        return "This command requires a Yandex Translate API key"
+
     url = api_url + "getLangs"
     params = {
         'key': api_key,
@@ -71,6 +77,9 @@ def list_langs():
 def trans(text, reply):
     """<language or language code> - text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
     api_key = bot.config.get_api_key("yandex_translate")
+    if not api_key:
+        return "This command requires a Yandex Translate API key"
+
     inp = text.split(' ', 1)
     lang = inp[0].replace(':', '')
     text = inp[1]
