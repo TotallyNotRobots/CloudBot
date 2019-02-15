@@ -1,7 +1,16 @@
 comment: off
 coverage:
   status:
-    patch: off
+    patch:
+      default: false
+      tests:
+        target: 100%
+        paths: "tests/"
+      core:
+        paths: "cloudbot/"
+        target: 100%
+      plugins:
+        paths: "plugins/"
     project:
       tests:
         target: 100%
