@@ -11,7 +11,7 @@ branches:
   only:
   - gonzobot
   # Allow tagged releases in the format v1.0
-  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+  - /^v\d+\.\d+.*$/
 
 cache: pip
 
