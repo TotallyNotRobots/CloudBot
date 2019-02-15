@@ -1,1 +1,12 @@
 comment: off
+coverage:
+  status:
+    patch: off
+    project:
+      tests:
+        target: 100%
+        paths: "tests/"
+      core:
+        paths: "cloudbot/"
+      plugins:
+        paths: "plugins/"
