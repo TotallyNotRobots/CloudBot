@@ -1,5 +1,8 @@
 # CloudBot
-[![Build Status](https://travis-ci.org/snoonetIRC/CloudBot.svg?branch=gonzobot)](https://travis-ci.org/snoonetIRC/CloudBot) [![CodeFactor](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/overview/gonzobot) [![codecov](https://codecov.io/gh/snoonetIRC/CloudBot/branch/gonzobot/graph/badge.svg)](https://codecov.io/gh/snoonetIRC/CloudBot) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6aa6ba0ca9804f1a9530e0c1a9c39478)](https://www.codacy.com/app/linuxdaemon/CloudBot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=snoonetIRC/CloudBot&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/snoonetIRC/CloudBot.svg?branch=gonzobot)](https://travis-ci.org/snoonetIRC/CloudBot) 
+[![CodeFactor](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/snoonetirc/cloudbot/overview/gonzobot) 
+[![codecov](https://codecov.io/gh/snoonetIRC/CloudBot/branch/gonzobot/graph/badge.svg)](https://codecov.io/gh/snoonetIRC/CloudBot) 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6aa6ba0ca9804f1a9530e0c1a9c39478)](https://www.codacy.com/app/linuxdaemon/CloudBot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=snoonetIRC/CloudBot&amp;utm_campaign=Badge_Grade)
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
 
