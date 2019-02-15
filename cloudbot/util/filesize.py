@@ -158,7 +158,7 @@ def size(b, system=traditional):
     for factor, suffix in system:
         if b >= factor:
             break
-    else:
+    else:  # pragma: no cover
         return
 
     amount = int(b / factor)

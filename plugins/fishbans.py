@@ -21,7 +21,7 @@ def get_ban_info(text, bot):
 
     try:
         json = request.json()
-    except ValueError:
+    except ValueError:  # pragma: no cover
         return None, None, None, "Could not fetch ban data from the Fishbans API: Invalid Response"
 
     if not json["success"]:

@@ -24,7 +24,7 @@ PLUGINS = []
 
 class MockConfig(OrderedDict):
     def get_api_key(self, name, default=None):  # pylint: disable=locally-disabled, no-self-use, unused-argument
-        return default
+        return default  # pragma: no cover
 
 
 class MockBot:
@@ -74,7 +74,7 @@ def get_plugins():
 
 
 def pytest_generate_tests(metafunc):
-    if 'plugin' in metafunc.fixturenames:
+    if 'plugin' in metafunc.fixturenames:  # pragma: no cover
         plugins = get_plugins()
         metafunc.parametrize('plugin', plugins, ids=[plugin.title for plugin in plugins])
     elif 'hook' in metafunc.fixturenames:
@@ -169,7 +169,7 @@ def test_hook_args(hook):
         event = IrcOutEvent(bot=bot)
     elif hook.type == "sieve":
         return
-    else:
+    else:  # pragma: no cover
         assert False, "Unhandled hook type '{}' in tests".format(hook.type)
 
     for arg in hook.required_args:
