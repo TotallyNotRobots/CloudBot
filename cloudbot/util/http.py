@@ -56,6 +56,13 @@ def get_xml(*args, **kwargs):
 
 
 def parse_xml(text):
+    """
+    >>> elem = parse_xml('<foo>bar</foo>')
+    >>> elem.tag
+    'foo'
+    >>> elem.text
+    'bar'
+    """
     return etree.fromstring(text, parser=parser)  # nosec
 
 
@@ -103,7 +110,7 @@ def open_request(url, query_params=None, user_agent=None, post_data=None, refere
 # noinspection PyShadowingBuiltins
 def open(url, query_params=None, user_agent=None, post_data=None,
          referer=None, get_method=None, cookies=False, timeout=None, headers=None,
-         **kwargs):  # pylint: disable=locally-disabled, redefined-builtin
+         **kwargs):  # pylint: disable=locally-disabled, redefined-builtin  # pragma: no cover
     warnings.warn(
         "http.open() is deprecated, use http.open_request() instead.",
         DeprecationWarning
@@ -116,6 +123,10 @@ def open(url, query_params=None, user_agent=None, post_data=None,
 
 
 def prepare_url(url, queries):
+    """
+    >>> prepare_url("https://example.com?foo=bar", {'a': 1, 'b': 2})
+    'https://example.com?foo=bar&a=1&b=2'
+    """
     if queries:
         scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
 
@@ -130,17 +141,40 @@ def prepare_url(url, queries):
 
 
 def to_utf8(s):
+    """
+    >>> to_utf8('foo bar')
+    b'foo bar'
+    >>> to_utf8(b'foo bar')
+    b'foo bar'
+    >>> to_utf8(1)
+    b'1'
+    """
     if isinstance(s, str):
         return s.encode('utf8', 'ignore')
 
-    return str(s)
+    if isinstance(s, bytes):
+        return bytes(s)
+
+    return to_utf8(str(s))
 
 
 def quote_plus(s):
+    """
+    >>> quote_plus(b'foo bar')
+    'foo+bar'
+    """
     return _quote_plus(to_utf8(s))
 
 
 def unescape(s):
+    """
+    >>> unescape('')
+    ''
+    >>> unescape(' ')
+    ' '
+    >>> unescape('<p>&lt;</p>')
+    '<'
+    """
     if not s.strip():
         return s
     return html.fromstring(s).text_content()
