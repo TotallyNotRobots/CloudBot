@@ -87,6 +87,48 @@ class KeyFoldDict(KeyFoldMixin, dict):
     """
 
 
+class MemberNotFoundException(KeyError):
+    def __init__(self, name, chan):
+        super().__init__(
+            "No such member '{}' in channel '{}'".format(
+                name, chan.name
+            )
+        )
+        self.name = name
+        self.chan = chan
+        self.members = chan.users
+        self.nicks = [
+            memb.user.nick for memb in self.members
+        ]
+        self.masks = [
+            memb.user.mask for memb in self.members
+        ]
+
+
+class ChannelMembersDict(KeyFoldDict):
+    def __init__(self, chan):
+        super().__init__()
+        self.chan = weakref.ref(chan)
+
+    def __getitem__(self, item):
+        try:
+            return super().__getitem__(item)
+        except KeyError as e:
+            raise MemberNotFoundException(item, self.chan()) from e
+
+    def __delitem__(self, item):
+        try:
+            super().__delitem__(item)
+        except KeyError as e:
+            raise MemberNotFoundException(item, self.chan()) from e
+
+    def pop(self, key, *args, **kwargs):
+        try:
+            super().pop(key, *args, **kwargs)
+        except KeyError as e:
+            raise MemberNotFoundException(key, self.chan()) from e
+
+
 class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
     """
     KeyFolded WeakValueDictionary
@@ -222,11 +264,11 @@ class Channel(MappingAttributeAdapter):
         :type name: str
         :type conn: cloudbot.client.Client
         """
+        super().__init__()
         self.name = name
         self.conn = weakref.proxy(conn)
-        self.users = KeyFoldDict()
+        self.users = ChannelMembersDict(self)
         self.receiving_names = False
-        super().__init__()
 
     def get_member(self, user, create=False):
         """
