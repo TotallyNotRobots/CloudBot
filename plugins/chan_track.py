@@ -96,12 +96,12 @@ class MemberNotFoundException(KeyError):
         )
         self.name = name
         self.chan = chan
-        self.members = chan.users
+        self.members = list(chan.users.values())
         self.nicks = [
             memb.user.nick for memb in self.members
         ]
         self.masks = [
-            memb.user.mask for memb in self.members
+            memb.user.mask.mask for memb in self.members
         ]
 
 
