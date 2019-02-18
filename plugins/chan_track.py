@@ -87,6 +87,48 @@ class KeyFoldDict(KeyFoldMixin, dict):
     """
 
 
+class MemberNotFoundException(KeyError):
+    def __init__(self, name, chan):
+        super().__init__(
+            "No such member '{}' in channel '{}'".format(
+                name, chan.name
+            )
+        )
+        self.name = name
+        self.chan = chan
+        self.members = list(chan.users.values())
+        self.nicks = [
+            memb.user.nick for memb in self.members
+        ]
+        self.masks = [
+            memb.user.mask.mask for memb in self.members
+        ]
+
+
+class ChannelMembersDict(KeyFoldDict):
+    def __init__(self, chan):
+        super().__init__()
+        self.chan = weakref.ref(chan)
+
+    def __getitem__(self, item):
+        try:
+            return super().__getitem__(item)
+        except KeyError as e:
+            raise MemberNotFoundException(item, self.chan()) from e
+
+    def __delitem__(self, item):
+        try:
+            super().__delitem__(item)
+        except KeyError as e:
+            raise MemberNotFoundException(item, self.chan()) from e
+
+    def pop(self, key, *args, **kwargs):
+        try:
+            super().pop(key, *args, **kwargs)
+        except KeyError as e:
+            raise MemberNotFoundException(key, self.chan()) from e
+
+
 class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
     """
     KeyFolded WeakValueDictionary
@@ -222,11 +264,11 @@ class Channel(MappingAttributeAdapter):
         :type name: str
         :type conn: cloudbot.client.Client
         """
+        super().__init__()
         self.name = name
         self.conn = weakref.proxy(conn)
-        self.users = KeyFoldDict()
+        self.users = ChannelMembersDict(self)
         self.receiving_names = False
-        super().__init__()
 
     def get_member(self, user, create=False):
         """
@@ -504,24 +546,23 @@ def replace_user_data(conn, chan_data):
         for status in set(conn.memory["server_info"]["statuses"].values())
     }
     new_data = chan_data.data.pop("new_users", [])
-    new_users = KeyFoldDict()
     has_uh_i_n = is_cap_available(conn, "userhost-in-names")
     has_multi_pfx = is_cap_available(conn, "multi-prefix")
+    chan_data.users.clear()
     for name in new_data:
         nick, ident, host, status = parse_names_item(
             name, statuses, has_multi_pfx, has_uh_i_n
         )
         user_data = get_users(conn).getuser(nick)
-        user_data.mask = Prefix(nick, ident, host)
+        user_data.nick = nick
+        if ident:
+            user_data.ident = ident
 
-        new_users[nick] = memb_data = user_data.join_channel(chan_data)
+        if host:
+            user_data.host = host
+
+        memb_data = user_data.join_channel(chan_data)
         memb_data.status = status
-
-    old_users = chan_data.users
-    old_users.clear()
-    # Reassigning the dict would break other references to the data,
-    # so just update instead
-    old_users.update(new_users)
 
 
 @hook.irc_raw(['353', '366'], singlethread=True)
