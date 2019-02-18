@@ -21,6 +21,7 @@ TYPE_MAP = {
     'artist': 'artists',
     'album': 'albums',
     'track': 'tracks',
+    'user': 'users',
 }
 
 
@@ -77,14 +78,18 @@ def _search(text, _type, reply):
     try:
         request = api.search(params)
     except HTTPError as e:
-        reply("Could not get track information: {}".format(e.request.status_code))
+        reply("Could not get track information: {}".format(e.response.status_code))
         raise
 
     return request.json()[TYPE_MAP[_type]]["items"][0]
 
 
 def _do_format(data, _type):
-    name = data["name"]
+    try:
+        name = data['display_name']
+    except KeyError:
+        name = data['name']
+
     if _type == "track":
         artist = data["artists"][0]["name"]
         album = data["album"]["name"]
@@ -98,6 +103,11 @@ def _do_format(data, _type):
 
     if _type == "album":
         return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
+
+    if _type == 'user':
+        return "Spotify User", "\x02{}\x02, Followers: \x02{:,d}\x02".format(
+            name, data['followers']['total']
+        )
 
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
