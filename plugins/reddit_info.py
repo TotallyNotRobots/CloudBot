@@ -25,10 +25,10 @@ agent = {"User-Agent": "gonzobot a cloudbot (IRCbot) implementation for snoonet.
 
 post_re = re.compile(
     r"""
-    https?://
+    (?:\.|[^a-z0-9]|^)  # Don't allow 'fakereddit.com' or anything else
     (?:
         redd\.it|
-        (?:www\.)?reddit\.com/(?:r/[^/\s]+/)?comments
+        reddit\.com/(?:r/[^/\s]+/)?comments
     )
     /([a-z0-9]+)
     """,

@@ -13,6 +13,8 @@ def test_post_re_match(text, post_id):
 
 @pytest.mark.parametrize('text', [
     'https://reddit.com/r/foo',
+    'http://fakereddit.com/r/foo/comments/bar'
+    ' fakereddit.com/r/foo/comments/bar'
 ])
 def test_post_re_no_match(text):
     from plugins.reddit_info import post_re
