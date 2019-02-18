@@ -11,7 +11,7 @@ lxml==4.3.1
 microdata==0.6.1
 multidict==4.5.2
 nltk==3.2.5
-psutil==5.5.0
+psutil==5.5.1
 py-irclib==0.2.1
 pyenchant==2.0.0
 pythonwhois==2.4.3
