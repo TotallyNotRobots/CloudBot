@@ -124,7 +124,7 @@ class ChannelMembersDict(KeyFoldDict):
 
     def pop(self, key, *args, **kwargs):
         try:
-            super().pop(key, *args, **kwargs)
+            return super().pop(key, *args, **kwargs)
         except KeyError as e:
             raise MemberNotFoundException(key, self.chan()) from e
 
