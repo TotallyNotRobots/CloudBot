@@ -19,40 +19,21 @@ sub_re = re.compile(r'^(?:/?r/)?(?P<name>.+)$', re.IGNORECASE)
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
 short_url = "https://redd.it/{}"
+post_url = "https://reddit.com/comments/{}.json"
 # This agent should be unique for your cloudbot instance
 agent = {"User-Agent": "gonzobot a cloudbot (IRCbot) implementation for snoonet.org by /u/bloodygonzo"}
 
-reddit_re = re.compile(
+post_re = re.compile(
     r"""
-    https? # Scheme
-    ://
-
-    # Domain
+    (?:\.|[^a-z0-9]|^)  # Don't allow 'fakereddit.com' or anything else
     (?:
         redd\.it|
-        (?:www\.)?reddit\.com/r
+        reddit\.com/(?:r/[^/\s]+/)?comments
     )
-
-    (?:/(?:[A-Za-z0-9!$&-.:;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)*  # Path
-
-    (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
+    /([a-z0-9]+)
     """,
     re.IGNORECASE | re.VERBOSE
 )
-
-
-def test_get_user():
-    assert get_sub('test') == 'test'
-    assert get_sub('r/test') == 'test'
-    assert get_sub('/r/test') == 'test'
-
-
-def test_get_sub():
-    assert get_user('test') == 'test'
-    assert get_user('/u/test') == 'test'
-    assert get_user('u/test') == 'test'
-    assert get_user('/user/test') == 'test'
-    assert get_user('user/test') == 'test'
 
 
 def get_user(text):
@@ -75,6 +56,12 @@ def api_request(url):
     r = requests.get(str(url), headers=agent)
     r.raise_for_status()
     return r.json()
+
+
+def get_post(post_id):
+    with requests.get(post_url.format(post_id), headers=agent) as response:
+        response.raise_for_status()
+        return response.json()
 
 
 def format_output(item, show_url=False):
@@ -148,17 +135,17 @@ def moremod(text, chan, conn):
     return "All pages have been shown."
 
 
-@hook.regex(reddit_re, singlethread=True)
-def reddit_url(match, bot):
-    url = match.group()
-    url = URL(url).with_scheme("https")
+@hook.regex(post_re, singlethread=True)
+def reddit_post_url(match):
+    post_id = match.group(1)
+    try:
+        data = get_post(post_id)
+    except HTTPError as e:
+        if e.response.status_code in (403, 404):
+            return
 
-    if url.host.endswith("redd.it"):
-        response = requests.get(url, headers={'User-Agent': bot.user_agent})
-        response.raise_for_status()
-        url = URL(response.url).with_scheme("https")
+        raise
 
-    data = api_request(url)
     item = data[0]["data"]["children"][0]["data"]
 
     return format_output(item)
