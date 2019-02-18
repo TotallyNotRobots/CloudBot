@@ -504,24 +504,23 @@ def replace_user_data(conn, chan_data):
         for status in set(conn.memory["server_info"]["statuses"].values())
     }
     new_data = chan_data.data.pop("new_users", [])
-    new_users = KeyFoldDict()
     has_uh_i_n = is_cap_available(conn, "userhost-in-names")
     has_multi_pfx = is_cap_available(conn, "multi-prefix")
+    chan_data.users.clear()
     for name in new_data:
         nick, ident, host, status = parse_names_item(
             name, statuses, has_multi_pfx, has_uh_i_n
         )
         user_data = get_users(conn).getuser(nick)
-        user_data.mask = Prefix(nick, ident, host)
+        user_data.nick = nick
+        if ident:
+            user_data.ident = ident
 
-        new_users[nick] = memb_data = user_data.join_channel(chan_data)
+        if host:
+            user_data.host = host
+
+        memb_data = user_data.join_channel(chan_data)
         memb_data.status = status
-
-    old_users = chan_data.users
-    old_users.clear()
-    # Reassigning the dict would break other references to the data,
-    # so just update instead
-    old_users.update(new_users)
 
 
 @hook.irc_raw(['353', '366'], singlethread=True)
