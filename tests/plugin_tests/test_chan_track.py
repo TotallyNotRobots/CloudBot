@@ -51,4 +51,4 @@ def test_replace_user_data():
     assert chan.users['foo'].status == conn.get_statuses('@+')
     assert chan.users['exampleuser'].status == conn.get_statuses('@')
     assert chan.users['Foo1'].status == conn.get_statuses('!@%+-')
-    assert len(chan.users['exampleuser2'].status) == 0
+    assert not chan.users['exampleuser2'].status
