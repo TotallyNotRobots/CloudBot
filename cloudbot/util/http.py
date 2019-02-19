@@ -124,8 +124,8 @@ def open(url, query_params=None, user_agent=None, post_data=None,
 
 def prepare_url(url, queries):
     """
-    >>> prepare_url("https://example.com?foo=bar", {'a': 1, 'b': 2})
-    'https://example.com?foo=bar&a=1&b=2'
+    >>> str(unify_url(prepare_url("https://example.com?foo=bar", {'a': 1, 'b': 2})))
+    'https://example.com/?a=1&b=2&foo=bar'
     """
     if queries:
         scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url)
