@@ -421,10 +421,9 @@ class _IrcProtocol(asyncio.Protocol):
                 content = None
 
             # Event type
-            if command in irc_command_to_event_type:
-                event_type = irc_command_to_event_type[command]
-            else:
-                event_type = EventType.other
+            event_type = irc_command_to_event_type.get(
+                command, EventType.other
+            )
 
             # Target (for KICK, INVITE)
             if event_type is EventType.kick:
