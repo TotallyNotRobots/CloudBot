@@ -10,7 +10,12 @@ from pathlib import Path
 
 def pytest_generate_tests(metafunc):
     if 'json_file' in metafunc.fixturenames:
-        paths = list(Path().rglob("*.json"))
+        paths = [
+            file for file in Path().rglob("*.json")
+            if len(file.parts) == 1 or file.parts[0] in (
+                'cloudbot', 'data', 'tests', 'travis', 'docs'
+            )
+        ]
         metafunc.parametrize('json_file', paths, ids=list(map(str, paths)))
 
 

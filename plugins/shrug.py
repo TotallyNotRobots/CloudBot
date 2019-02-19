@@ -3,5 +3,9 @@ from cloudbot import hook
 
 @hook.command("shrug", autohelp=False)
 def shrug():
-    """- shrugs"""
+    r"""- shrugs
+
+    >>> shrug()
+    '¯\\_(ツ)_/¯'
+    """
     return r"¯\_(ツ)_/¯"
