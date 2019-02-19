@@ -1,3 +1,4 @@
+import mock
 import pytest
 
 from cloudbot.util.colors import parse, strip, get_available_colours, get_available_formats, get_color, get_format, \
@@ -51,6 +52,12 @@ def test_get_color():
 def test_get_random_color():
     assert get_color("random") in ["\x03" + i for i in IRC_COLOUR_DICT.values()]
     assert get_color("random", return_formatted=False) in list(IRC_COLOUR_DICT.values())
+
+    with mock.patch(
+            'cloudbot.util.colors.randint',
+            return_value=4  # chosen by fair dice roll, guranteed to be random.
+    ):
+        assert get_color('random') == '\x0304'
 
 
 def test_get_format():
