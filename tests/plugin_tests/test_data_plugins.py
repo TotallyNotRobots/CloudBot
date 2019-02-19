@@ -30,6 +30,8 @@ def _do_test(plugin_name, loader, data_name, cmd, text='test _ data',
     )
     if bot_nick:
         event.conn.nick = bot_nick
+    else:
+        event.conn.nick = 'TestBot'
 
     if is_nick_valid:
         event.is_nick_valid = is_nick_valid
