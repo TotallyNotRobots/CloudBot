@@ -139,7 +139,7 @@ def points_cmd(text, chan, db):
 
 
 def parse_lookup(text, db, chan, name):
-    if text == "global" or text == "-global":
+    if text in ('global', '-global'):
         items = db.execute(select([karma_table.c.thing, karma_table.c.score])).fetchall()
         out = "The {{}} most {} things in all channels are: ".format(name)
     else:
