@@ -45,7 +45,6 @@ License for final section (all code after the "DJANGO LICENCE" comment):
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import copy
-import html.entities
 import re
 import warnings
 from html.parser import HTMLParser
