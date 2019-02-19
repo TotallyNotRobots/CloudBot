@@ -33,3 +33,5 @@ def test_taf():
         )
         from plugins.metars import taf
         assert taf('abcd') == 'ABCD: Foo Bar Test'
+
+        assert taf('abc') == "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
