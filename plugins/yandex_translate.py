@@ -74,13 +74,20 @@ def list_langs():
 
 
 @hook.command("tran", "translate")
-def trans(text, reply):
-    """<language or language code> - text to translate. Translation is Powered by Yandex https://translate.yandex.com"""
+def trans(text, reply, event):
+    """
+    <language or language code> <text to translate> - Translation is
+    Powered by Yandex https://translate.yandex.com
+    """
     api_key = bot.config.get_api_key("yandex_translate")
     if not api_key:
         return "This command requires a Yandex Translate API key"
 
     inp = text.split(' ', 1)
+    if len(inp) < 2:
+        event.notice_doc()
+        return None
+
     lang = inp[0].replace(':', '')
     text = inp[1]
     if lang.title() in lang_dict.keys():
