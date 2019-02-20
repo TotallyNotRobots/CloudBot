@@ -69,11 +69,73 @@ def test_mph_to_kph(mph, kph):
     assert math.isclose(mph_to_kph(mph), kph, rel_tol=1e-3)
 
 
-def test_find_location(mock_requests, patch_try_shorten):
-    from plugins.weather import create_maps_api
-    bot = MockBot({})
-    create_maps_api(bot)
+FIO_DATA = {
+    'json': {
+        'currently': {
+            'summary': 'foobar',
+            'windSpeed': 12.2,
+            'windBearing': 128,
+            'temperature': 68,
+            'humidity': .45,
+        },
+        'daily': {
+            'data': [
+                {
+                    'summary': 'foobar',
+                    'temperatureHigh': 64,
+                    'temperatureLow': 57,
+                    'windSpeed': 15,
+                    'windBearing': 140,
+                    'humidity': .45,
+                },
+                {
+                    'summary': 'foobar',
+                    'temperatureHigh': 64,
+                    'temperatureLow': 57,
+                    'windSpeed': 15,
+                    'windBearing': 140,
+                    'humidity': .45,
+                },
+                {
+                    'summary': 'foobar',
+                    'temperatureHigh': 64,
+                    'temperatureLow': 57,
+                    'windSpeed': 15,
+                    'windBearing': 140,
+                    'humidity': .45,
+                },
+                {
+                    'summary': 'foobar',
+                    'temperatureHigh': 64,
+                    'temperatureLow': 57,
+                    'windSpeed': 15,
+                    'windBearing': 140,
+                    'humidity': .45,
+                },
+                {
+                    'summary': 'foobar',
+                    'temperatureHigh': 64,
+                    'temperatureLow': 57,
+                    'windSpeed': 15,
+                    'windBearing': 140,
+                    'humidity': .45,
+                },
+            ]
+        },
+    },
+    'headers': {
+        'Cache-Control': '',
+        'Expires': '',
+        'X-Forecast-API-Calls': '',
+        'X-Response-Time': '',
+    }
+}
+
+
+def test_find_location(mock_requests, patch_try_shorten, mock_db):
     from plugins import weather
+    bot = MockBot({})
+    weather.create_maps_api(bot)
     assert weather.data.maps_api is None
     bot = MockBot({
         'api_keys': {
@@ -100,11 +162,9 @@ def test_find_location(mock_requests, patch_try_shorten):
         mock_requests.GET, 'https://maps.googleapis.com/maps/api/geocode/json',
         json=return_value
     )
-    create_maps_api(bot)
+    weather.create_maps_api(bot)
 
-    from plugins.weather import find_location
-
-    assert find_location('Foo Bar') == {
+    assert weather.find_location('Foo Bar') == {
         'lat': 30.123,
         'lng': 123.456,
         'address': '123 Test St, Example City, CA',
@@ -123,65 +183,7 @@ def test_find_location(mock_requests, patch_try_shorten):
 
     mock_requests.add(
         mock_requests.GET, re.compile(r'^https://api\.darksky\.net/forecast/.*'),
-        json={
-            'currently': {
-                'summary': 'foobar',
-                'windSpeed': 12.2,
-                'windBearing': 128,
-                'temperature': 68,
-                'humidity': .45,
-            },
-            'daily': {
-                'data': [
-                    {
-                        'summary': 'foobar',
-                        'temperatureHigh': 64,
-                        'temperatureLow': 57,
-                        'windSpeed': 15,
-                        'windBearing': 140,
-                        'humidity': .45,
-                    },
-                    {
-                        'summary': 'foobar',
-                        'temperatureHigh': 64,
-                        'temperatureLow': 57,
-                        'windSpeed': 15,
-                        'windBearing': 140,
-                        'humidity': .45,
-                    },
-                    {
-                        'summary': 'foobar',
-                        'temperatureHigh': 64,
-                        'temperatureLow': 57,
-                        'windSpeed': 15,
-                        'windBearing': 140,
-                        'humidity': .45,
-                    },
-                    {
-                        'summary': 'foobar',
-                        'temperatureHigh': 64,
-                        'temperatureLow': 57,
-                        'windSpeed': 15,
-                        'windBearing': 140,
-                        'humidity': .45,
-                    },
-                    {
-                        'summary': 'foobar',
-                        'temperatureHigh': 64,
-                        'temperatureLow': 57,
-                        'windSpeed': 15,
-                        'windBearing': 140,
-                        'humidity': .45,
-                    },
-                ]
-            },
-        },
-        headers={
-            'Cache-Control': '',
-            'Expires': '',
-            'X-Forecast-API-Calls': '',
-            'X-Response-Time': '',
-        }
+        **FIO_DATA
     )
     call_with_args(weather.weather, cmd_event)
     call_with_args(weather.forecast, cmd_event)
@@ -197,12 +199,43 @@ def test_find_location(mock_requests, patch_try_shorten):
 
     bot.config['api_keys']['google_dev_key'] = None
     bot.config.load_config()
-    create_maps_api(bot)
+    weather.create_maps_api(bot)
     call_with_args(weather.weather, cmd_event)
     call_with_args(weather.forecast, cmd_event)
 
     bot.config['api_keys']['darksky'] = None
     bot.config.load_config()
-    create_maps_api(bot)
+    weather.create_maps_api(bot)
     call_with_args(weather.weather, cmd_event)
     call_with_args(weather.forecast, cmd_event)
+
+    # Test DB storage
+    bot.config.update({'api_keys': {
+        'google_dev_key': 'AIzatestapikey',
+        'darksky': 'abc12345' * 4,
+    }})
+    bot.config.load_config()
+    weather.create_maps_api(bot)
+    weather.table.create(mock_db.engine, checkfirst=True)
+    cmd_event.db = mock_db.session()
+    cmd_event.text = 'my location'
+
+    weather.load_cache(mock_db.session())
+    mock_requests.reset()
+    mock_requests.add(
+        mock_requests.GET, 'https://maps.googleapis.com/maps/api/geocode/json',
+        json=return_value
+    )
+    mock_requests.add(
+        mock_requests.GET, re.compile(r'^https://api\.darksky\.net/forecast/.*'),
+        **FIO_DATA
+    )
+
+    _, err = call_with_args(weather.check_and_parse, cmd_event)
+    assert not err
+
+    assert weather.location_cache == [(cmd_event.nick, cmd_event.text)]
+
+    db_data = mock_db.session().execute(weather.table.select()).fetchall()
+    assert len(db_data) == 1
+    assert list(db_data[0]) == [cmd_event.nick, cmd_event.text]
