@@ -1,6 +1,25 @@
 import math
+import re
 
+import mock
 import pytest
+from googlemaps.exceptions import ApiError
+from mock import MagicMock
+from responses import RequestsMock
+
+from cloudbot.config import Config
+from cloudbot.event import CommandEvent
+from cloudbot.util.func_utils import call_with_args
+
+
+class MockConfig(Config):
+    def load_config(self):
+        self._api_keys.clear()
+
+
+class MockBot:
+    def __init__(self, config):
+        self.config = MockConfig(self, config)
 
 
 @pytest.mark.parametrize('bearing,direction', {
@@ -27,6 +46,12 @@ def test_wind_direction(bearing, direction):
     assert bearing_to_card(bearing) == direction
 
 
+def test_wind_dir_error():
+    with pytest.raises(ValueError):
+        from plugins.weather import bearing_to_card
+        bearing_to_card(400)
+
+
 @pytest.mark.parametrize('temp_f,temp_c', [
     (32, 0),
     (212, 100),
@@ -44,3 +69,141 @@ def test_temp_convert(temp_f, temp_c):
 def test_mph_to_kph(mph, kph):
     from plugins.weather import mph_to_kph
     assert math.isclose(mph_to_kph(mph), kph, rel_tol=1e-3)
+
+
+def test_find_location():
+    from plugins.weather import create_maps_api
+    bot = MockBot({})
+    create_maps_api(bot)
+    from plugins import weather
+    assert weather.data.maps_api is None
+    bot = MockBot({'api_keys': {
+        'google_dev_key': 'AIzatestapikey',
+        'darksky': 'abc12345' * 4,
+    }})
+    with RequestsMock() as reqs:
+        return_value = {
+            'status': 'OK',
+            'results': [
+                {
+                    'geometry': {
+                        'location': {
+                            'lat': 30.123,
+                            'lng': 123.456,
+                        }
+                    },
+                    'formatted_address': '123 Test St, Example City, CA'
+                }
+            ]
+        }
+        reqs.add(
+            reqs.GET, 'https://maps.googleapis.com/maps/api/geocode/json',
+            json=return_value
+        )
+        create_maps_api(bot)
+
+        from plugins.weather import find_location
+
+        assert find_location('Foo Bar') == {
+            'lat': 30.123,
+            'lng': 123.456,
+            'address': '123 Test St, Example City, CA',
+        }
+
+        cmd_event = CommandEvent(
+            text='', cmd_prefix='.',
+            triggered_command='we',
+            hook=MagicMock(), bot=bot,
+            conn=MagicMock(), channel='#foo',
+            nick='foobar'
+        )
+
+        call_with_args(weather.weather, cmd_event)
+        weather.location_cache.append(('foobar', 'test location'))
+
+        reqs.add(
+            reqs.GET, re.compile(r'^https://api\.darksky\.net/forecast/.*'),
+            json={
+                'currently': {
+                    'summary': 'foobar',
+                    'windSpeed': 12.2,
+                    'windBearing': 128,
+                    'temperature': 68,
+                    'humidity': .45,
+                },
+                'daily': {
+                    'data': [
+                        {
+                            'summary': 'foobar',
+                            'temperatureHigh': 64,
+                            'temperatureLow': 57,
+                            'windSpeed': 15,
+                            'windBearing': 140,
+                            'humidity': .45,
+                        },
+                        {
+                            'summary': 'foobar',
+                            'temperatureHigh': 64,
+                            'temperatureLow': 57,
+                            'windSpeed': 15,
+                            'windBearing': 140,
+                            'humidity': .45,
+                        },
+                        {
+                            'summary': 'foobar',
+                            'temperatureHigh': 64,
+                            'temperatureLow': 57,
+                            'windSpeed': 15,
+                            'windBearing': 140,
+                            'humidity': .45,
+                        },
+                        {
+                            'summary': 'foobar',
+                            'temperatureHigh': 64,
+                            'temperatureLow': 57,
+                            'windSpeed': 15,
+                            'windBearing': 140,
+                            'humidity': .45,
+                        },
+                        {
+                            'summary': 'foobar',
+                            'temperatureHigh': 64,
+                            'temperatureLow': 57,
+                            'windSpeed': 15,
+                            'windBearing': 140,
+                            'humidity': .45,
+                        },
+                    ]
+                },
+            },
+            headers={
+                'Cache-Control': '',
+                'Expires': '',
+                'X-Forecast-API-Calls': '',
+                'X-Response-Time': '',
+            }
+        )
+        with mock.patch('cloudbot.util.web.try_shorten', new=lambda x: x):
+            call_with_args(weather.weather, cmd_event)
+            call_with_args(weather.forecast, cmd_event)
+
+        reqs.reset()
+        reqs.add(
+            reqs.GET, 'https://maps.googleapis.com/maps/api/geocode/json',
+            json={'status': 'foobar'}
+        )
+
+        with pytest.raises(ApiError):
+            call_with_args(weather.weather, cmd_event)
+
+        bot.config['api_keys']['google_dev_key'] = None
+        bot.config.load_config()
+        create_maps_api(bot)
+        call_with_args(weather.weather, cmd_event)
+        call_with_args(weather.forecast, cmd_event)
+
+        bot.config['api_keys']['darksky'] = None
+        bot.config.load_config()
+        create_maps_api(bot)
+        call_with_args(weather.weather, cmd_event)
+        call_with_args(weather.forecast, cmd_event)
