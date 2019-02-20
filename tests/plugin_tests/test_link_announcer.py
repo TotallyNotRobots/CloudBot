@@ -1,10 +1,11 @@
 import codecs
 
-from bs4 import BeautifulSoup
-from responses import RequestsMock
-from mock import MagicMock
-from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV
 import pytest
+from bs4 import BeautifulSoup
+from mock import MagicMock
+from responses import RequestsMock
+
+from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -113,12 +114,15 @@ def test_encoding_parse():
 
 STD_HTML = "<head><title>{}</title></head>"
 TESTS = {
-    "http://www.montypython.fun": ("<!DOCTYPE html><head><title>{}</title></head><body>test</body>", "This Site is dead."),
+    "http://www.montypython.fun": (
+        "<!DOCTYPE html><head><title>{}</title></head><body>test</body>",
+        "This Site is dead."
+    ),
     "http://www.talos.principle": (STD_HTML, "In the beginning were the words"),
     "http://www.nonexistent.lol": ("", False),
     "http://www.much-newlines.backslashn": (("\n" * 500) + STD_HTML, "new lines!"),
     "http://completely.invalid": ("\x01\x01\x02\x03\x05\x08\x13", False),
-    "http://large.amounts.of.text": (STD_HTML + ("42"*512*4096) + "</body>", "here have a couple megs of text"),
+    "http://large.amounts.of.text": (STD_HTML + ("42" * 512 * 4096) + "</body>", "here have a couple megs of text"),
     "http://star.trek.the.next.title": (STD_HTML, "47" * 512 * 4096),
     "http://bare.title": ("<title>{}</title>", "here has title")
 }
