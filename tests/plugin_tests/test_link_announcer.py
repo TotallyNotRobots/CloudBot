@@ -138,5 +138,3 @@ def test_link_announce(match, test_str, res):
             mck.assert_called_with("Title: \x02" + res + "\x02")
         else:
             mck.assert_not_called()
-
-
