@@ -156,47 +156,49 @@ def weather(text, reply, db, nick, notice_doc, bot):
 
     fio = ForecastIO(
         ds_key, units=ForecastIO.UNITS_US,
-        latitude=location_data['lat'], longitude=location_data['lng']
+        latitude=location_data['lat'],
+        longitude=location_data['lng']
     )
 
     daily_conditions = fio.get_daily()['data']
     current = fio.get_currently()
-    today, tomorrow = daily_conditions[:2]
+    today = daily_conditions[0]
     current['name'] = 'Current'
-    today['name'] = 'Today'
-    tomorrow['name'] = 'Tomorrow'
 
-    for forecast in (current, today, tomorrow):
-        wind_speed = forecast['windSpeed']
-        forecast.update(
-            wind_direction=bearing_to_card(forecast['windBearing']),
-            wind_speed_mph=wind_speed,
-            wind_speed_kph=mph_to_kph(wind_speed),
-            summary=forecast['summary'].rstrip('.'),
-        )
+    wind_speed = current['windSpeed']
+    current.update(
+        wind_direction=bearing_to_card(current['windBearing']),
+        wind_speed_mph=wind_speed,
+        wind_speed_kph=mph_to_kph(wind_speed),
+        summary=current['summary'].rstrip('.'),
+    )
 
     current.update(
         temp_f=current['temperature'],
-        temp_c=convert_f2c(current['temperature'])
+        temp_c=convert_f2c(current['temperature']),
     )
 
-    for day_forecast in (today, tomorrow):
-        high = day_forecast['temperatureHigh']
-        low = day_forecast['temperatureLow']
-        day_forecast.update(
-            temp_high_f=high,
-            temp_high_c=convert_f2c(high),
-            temp_low_f=low,
-            temp_low_c=convert_f2c(low),
-        )
+    high = today['temperatureHigh']
+    low = today['temperatureLow']
+    current.update(
+        temp_high_f=high,
+        temp_high_c=convert_f2c(high),
+        temp_low_f=low,
+        temp_low_c=convert_f2c(low),
+    )
 
-    current_str = "\x02{name}\x02: {summary}, {temp_f:.0f}F/{temp_c:.0f}C " \
-                  "{humidity:.0%}, " \
-                  "Wind: {wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH " \
-                  "{wind_direction}"
-    day_str = "\x02{name}\x02: {summary}, " \
-              "High: {temp_high_f:.0f}F/{temp_high_c:.0f}C, " \
-              "Low: {temp_low_f:.0f}F/{temp_low_c:.0f}C"
+    parts = [
+        ('Current', "{summary}, {temp_f:.0f}F/{temp_c:.0f}C"),
+        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
+        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('Humidity', "{humidity:.0%}"),
+        ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
+    ]
+
+    current_str = '; '.join(
+        '\x02{}\x02: {}'.format(part[0], part[1])
+        for part in parts
+    ).format_map(current)
 
     url = web.try_shorten(
         'https://darksky.net/forecast/{lat:.3f},{lng:.3f}'.format_map(
@@ -205,13 +207,9 @@ def weather(text, reply, db, nick, notice_doc, bot):
     )
 
     reply(
-        "{place} - {current_str}, "
-        "{today_str}, {tomorrow_str} "
-        "- {url}".format(
+        "{current_str} -- {place} - {url}".format(
             place=location_data['address'],
             current_str=current_str.format_map(current),
-            today_str=day_str.format_map(today),
-            tomorrow_str=day_str.format_map(tomorrow),
             url=url
         )
     )
