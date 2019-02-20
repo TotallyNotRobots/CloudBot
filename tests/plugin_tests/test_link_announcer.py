@@ -3,7 +3,7 @@ import codecs
 from bs4 import BeautifulSoup
 from responses import RequestsMock
 from mock import MagicMock
-from plugins.link_announcer import url_re, get_encoding, print_url_title
+from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV
 import pytest
 
 MATCHES = (
@@ -134,7 +134,7 @@ def test_link_announce(match, test_str, res):
         mck = MagicMock()
 
         print_url_title(match=match, message=mck)
-        if res and len(test_str) < 1_000_000:
+        if res and len(test_str) < MAX_RECV:
             mck.assert_called_with("Title: \x02" + res + "\x02")
         else:
             mck.assert_not_called()
