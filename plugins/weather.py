@@ -196,8 +196,8 @@ def weather(reply, db, triggered_prefix, event):
 
     parts = [
         ('Current', "{summary}, {temp_f:.0f}F/{temp_c:.0f}C"),
-        ('$(red)High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
-        ('$(blue)Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
+        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
         ('Humidity', "{humidity:.0%}"),
         ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
     ]
@@ -205,7 +205,7 @@ def weather(reply, db, triggered_prefix, event):
     current_str = '; '.join(
         colors.parse('$(b){}$(b): {}$(clear)'.format(part[0], part[1]))
         for part in parts
-    ).format_map(current)
+    )
 
     url = web.try_shorten(
         'https://darksky.net/forecast/{lat:.3f},{lng:.3f}'.format_map(
@@ -216,7 +216,7 @@ def weather(reply, db, triggered_prefix, event):
     reply(
         colors.parse(
             "{current_str} -- "
-            "$(green){place}$(clear) - "
+            "{place} - "
             "$(ul){url}$(clear) "
             "($(i)To get a forecast, use {cmd_prefix}fc$(i))"
         ).format(
@@ -238,7 +238,6 @@ def forecast(reply, db, event):
     location_data, fio = res
 
     daily_conditions = fio.get_daily()['data']
-    # current = fio.get_currently()
     today, tomorrow, *three_days = daily_conditions[:5]
 
     today['name'] = 'Today'
@@ -264,23 +263,15 @@ def forecast(reply, db, event):
         )
 
     parts = [
-        ('$(red)High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
-        ('$(blue)Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
+        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
         ('Humidity', "{humidity:.0%}"),
         ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
     ]
 
-    day_str = "\x02{name}\x02: {summary}; " + '; '.join(
-        colors.parse('{}: {}$(clear)'.format(part[0], part[1]))
+    day_str = colors.parse("$(b){name}$(b): {summary}; ") + '; '.join(
+        '{}: {}'.format(part[0], part[1])
         for part in parts
-    )
-
-    three_day_str = "\x023 Day High/Low\x02: " + ', '.join(
-        colors.parse(
-            "$(red){temp_high_f:.0f}F/{temp_high_c:.0f}C$(clear); $(blue){temp_low_f:.0f}F/{temp_low_c:.0f}C$(clear)").format_map(
-            day
-        )
-        for day in three_days
     )
 
     url = web.try_shorten(
@@ -289,25 +280,13 @@ def forecast(reply, db, event):
         )
     )
 
-    out_format = "{today_str} $(purple)|$(clear) " \
-                 "{tomorrow_str} $(purple)|$(clear) " \
-                 "{three_day_str} -- " \
-                 "$(green){place}$(clear) - $(ul){url}$(clear)"
+    out_format = "{today_str} | {tomorrow_str} -- {place} - $(ul){url}$(clear)"
 
     reply(
         colors.parse(out_format).format(
             today_str=day_str.format_map(today),
             tomorrow_str=day_str.format_map(tomorrow),
-            three_day_str=three_day_str,
             place=location_data['address'],
             url=url
         )
     )
-
-    # messages = [
-    #     "Forecast for {place} - {url}".format(place=location_data['address'], url=url),
-    #     day_str.format_map(today),
-    #     day_str.format_map(tomorrow),
-    #     three_day_str
-    # ]
-    # reply(*messages)
