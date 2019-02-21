@@ -1,5 +1,6 @@
 from cloudbot import hook
 from cloudbot.util import web
+from cloudbot.util.web import ServiceError
 
 
 @hook.command()
@@ -11,8 +12,8 @@ def shorten(text, reply):
 
     try:
         return web.shorten(url, custom=custom)
-    except web.ServiceHTTPError as e:
-        reply(e.message)
+    except ServiceError as e:
+        reply(str(e))
         raise
 
 
@@ -24,8 +25,8 @@ def expand(text, reply):
 
     try:
         return web.expand(url)
-    except web.ServiceHTTPError as e:
-        reply(e.message)
+    except ServiceError as e:
+        reply(str(e))
         raise
 
 
@@ -42,8 +43,8 @@ def isgd(text, reply):
             return web.expand(url, 'is.gd')
 
         return web.shorten(url, custom, 'is.gd')
-    except web.ServiceHTTPError as e:
-        reply(e.message)
+    except ServiceError as e:
+        reply(str(e))
         raise
 
 
