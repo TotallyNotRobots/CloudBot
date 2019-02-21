@@ -1,6 +1,5 @@
 from cloudbot import hook
 from cloudbot.util import web
-from cloudbot.util.web import ServiceError
 
 
 @hook.command()
@@ -12,7 +11,7 @@ def shorten(text, reply):
 
     try:
         return web.shorten(url, custom=custom)
-    except ServiceError as e:
+    except web.ServiceError as e:
         reply(str(e))
         raise
 
@@ -25,7 +24,7 @@ def expand(text, reply):
 
     try:
         return web.expand(url)
-    except ServiceError as e:
+    except web.ServiceError as e:
         reply(str(e))
         raise
 
@@ -43,7 +42,7 @@ def isgd(text, reply):
             return web.expand(url, 'is.gd')
 
         return web.shorten(url, custom, 'is.gd')
-    except ServiceError as e:
+    except web.ServiceError as e:
         reply(str(e))
         raise
 
@@ -61,8 +60,8 @@ def googl(text, reply):
             return web.expand(url, 'goo.gl')
 
         return web.shorten(url, custom, 'goo.gl')
-    except web.ServiceHTTPError as e:
-        reply(e.message)
+    except web.ServiceError as e:
+        reply(str(e))
         raise
 
 
@@ -79,6 +78,6 @@ def gitio(text, reply):
             return web.expand(url, 'git.io')
 
         return web.shorten(url, custom, 'git.io')
-    except web.ServiceHTTPError as e:
-        reply(e.message)
+    except web.ServiceError as e:
+        reply(str(e))
         raise
