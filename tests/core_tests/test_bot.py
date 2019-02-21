@@ -1,12 +1,15 @@
 import textwrap
 
 import pytest
+from mock import patch
+
+from cloudbot import config
 
 
 @pytest.mark.parametrize('text,result', (
-    ('connection', 'connection'),
-    ('c onn ection', 'c_onn_ection'),
-    ('c+onn ection', 'conn_ection'),
+        ('connection', 'connection'),
+        ('c onn ection', 'c_onn_ection'),
+        ('c+onn ection', 'conn_ection'),
 ))
 def test_clean_name(text, result):
     from cloudbot.bot import clean_name
@@ -36,3 +39,28 @@ def test_get_cmd_regex():
     (?:$|\s+)
     (?P<text>.*)     # Text
     """)
+
+
+class MockConfig(config.Config):
+    def load_config(self):
+        self.update({
+            'connections': [
+                {
+                    'type': 'irc',
+                    'name': 'foobar',
+                    'nick': 'TestBot',
+                    'channels': [],
+                    'connection': {
+                        'server': 'irc.example.com'
+                    }
+                }
+            ]
+        })
+
+
+def test_load_clients():
+    with patch('cloudbot.bot.Config', new=MockConfig):
+        from cloudbot.bot import CloudBot
+        bot = CloudBot()
+        assert bot.connections['foobar'].nick == 'TestBot'
+        assert bot.connections['foobar'].type == 'irc'
