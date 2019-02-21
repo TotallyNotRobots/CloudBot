@@ -11,7 +11,7 @@ def shorten(text, reply):
 
     try:
         return web.shorten(url, custom=custom)
-    except web.ServiceError as e:
+    except web.ServiceHTTPError as e:
         reply(e.message)
         raise
 
@@ -24,7 +24,7 @@ def expand(text, reply):
 
     try:
         return web.expand(url)
-    except web.ServiceError as e:
+    except web.ServiceHTTPError as e:
         reply(e.message)
         raise
 
@@ -42,7 +42,7 @@ def isgd(text, reply):
             return web.expand(url, 'is.gd')
 
         return web.shorten(url, custom, 'is.gd')
-    except web.ServiceError as e:
+    except web.ServiceHTTPError as e:
         reply(e.message)
         raise
 
@@ -60,7 +60,7 @@ def googl(text, reply):
             return web.expand(url, 'goo.gl')
 
         return web.shorten(url, custom, 'goo.gl')
-    except web.ServiceError as e:
+    except web.ServiceHTTPError as e:
         reply(e.message)
         raise
 
@@ -78,6 +78,6 @@ def gitio(text, reply):
             return web.expand(url, 'git.io')
 
         return web.shorten(url, custom, 'git.io')
-    except web.ServiceError as e:
+    except web.ServiceHTTPError as e:
         reply(e.message)
         raise

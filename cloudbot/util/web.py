@@ -65,7 +65,7 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
     while impl:
         try:
             return impl.paste(data, ext)
-        except ServiceError:
+        except ServiceHTTPError:
             logger.exception("Paste failed")
 
         try:
@@ -76,14 +76,11 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
     return "Unable to paste data"
 
 
-class ServiceError(Exception):
-    def __init__(self, message, request):
-        super().__init__()
+class ServiceHTTPError(Exception):
+    def __init__(self, message, response):
+        super().__init__('[HTTP {}] {}'.format(response.status_code, message))
         self.message = message
-        self.request = request
-
-    def __str__(self):
-        return '[HTTP {}] {}'.format(self.request.status_code, self.message)
+        self.response = response
 
 
 class Shortener:
@@ -96,7 +93,7 @@ class Shortener:
     def try_shorten(self, url, custom=None, key=None):
         try:
             return self.shorten(url, custom, key)
-        except ServiceError:
+        except ServiceHTTPError:
             return url
 
     def expand(self, url):
@@ -105,12 +102,12 @@ class Shortener:
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         if 'location' in r.headers:
             return r.headers['location']
 
-        raise ServiceError('That URL does not exist', r)
+        raise ServiceHTTPError('That URL does not exist', r)
 
 
 class Pastebin:
@@ -150,14 +147,14 @@ class Isgd(Shortener):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         j = r.json()
 
         if 'shorturl' in j:
             return j['shorturl']
 
-        raise ServiceError(j['errormessage'], r)
+        raise ServiceHTTPError(j['errormessage'], r)
 
     def expand(self, url):
         p = {'shorturl': url, 'format': 'json'}
@@ -166,14 +163,14 @@ class Isgd(Shortener):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         j = r.json()
 
         if 'url' in j:
             return j['url']
 
-        raise ServiceError(j['errormessage'], r)
+        raise ServiceHTTPError(j['errormessage'], r)
 
 
 @_shortener('goo.gl')
@@ -187,14 +184,14 @@ class Googl(Shortener):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         j = r.json()
 
         if 'error' not in j:
             return j['id']
 
-        raise ServiceError(j['error']['message'], r)
+        raise ServiceHTTPError(j['error']['message'], r)
 
     def expand(self, url):
         p = {'shortUrl': url}
@@ -203,14 +200,14 @@ class Googl(Shortener):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         j = r.json()
 
         if 'error' not in j:
             return j['longUrl']
 
-        raise ServiceError(j['error']['message'], r)
+        raise ServiceHTTPError(j['error']['message'], r)
 
 
 @_shortener('git.io')
@@ -222,16 +219,16 @@ class Gitio(Shortener):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
 
         if r.status_code == requests.codes.created:
             s = r.headers['location']
             if custom and custom not in s:
-                raise ServiceError('That URL is already in use', r)
+                raise ServiceHTTPError('That URL is already in use', r)
 
             return s
 
-        raise ServiceError(r.text, r)
+        raise ServiceHTTPError(r.text, r)
 
 
 @_pastebin('hastebin')
@@ -242,11 +239,11 @@ class Hastebin(Pastebin):
             r.raise_for_status()
         except RequestException as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r)
         else:
             j = r.json()
 
             if r.status_code is requests.codes.ok:
                 return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
 
-            raise ServiceError(j['message'], r)
+            raise ServiceHTTPError(j['message'], r)
