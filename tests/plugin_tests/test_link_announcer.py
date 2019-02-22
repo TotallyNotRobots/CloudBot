@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from mock import MagicMock
 from responses import RequestsMock
 
-from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV
+from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV, parse_content
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -130,7 +130,8 @@ TESTS = {
 
 @pytest.mark.parametrize(
     "match,test_str,res",
-    [(url_re.search(a), b.format(c), c) for a, (b, c) in TESTS.items()]
+    [(url_re.search(a), b.format(c), c) for a, (b, c) in TESTS.items()],
+    ids=lambda case: str(getattr(case, 'string', case))[:100],
 )
 def test_link_announce(match, test_str, res):
     with RequestsMock() as reqs:
@@ -142,3 +143,41 @@ def test_link_announce(match, test_str, res):
             mck.assert_called_with("Title: \x02" + res + "\x02")
         else:
             mck.assert_not_called()
+
+
+def test_link_announce_404():
+    url = 'http://example.com'
+    with RequestsMock() as reqs:
+        reqs.add(reqs.GET, url, status=404)
+
+        match = url_re.search(url)
+        assert match
+        mck = MagicMock()
+
+        assert print_url_title(match=match, message=mck) is None
+
+        mck.assert_not_called()
+
+
+@pytest.mark.parametrize('body,encoding', [
+    (
+            b"""
+            <head>
+            <meta charset="utf8">
+            <title>foobar</title>
+            </head>
+            """,
+            'utf8'
+    ),
+    (
+            b"""
+            <head>
+            <meta http-equiv="content-type", content="text/plain; charset=utf8">
+            <title>foobar</title>
+            </head>
+            """,
+            'utf8'
+    ),
+])
+def test_change_encoding(body, encoding):
+    assert parse_content(body).original_encoding == encoding
