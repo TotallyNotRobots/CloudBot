@@ -2,7 +2,7 @@ import re
 import string
 from collections import defaultdict
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, and_
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web
@@ -63,12 +63,18 @@ def add_factoid(db, word, chan, data, nick):
     load_cache(db)
 
 
-def del_factoid(db, chan, word):
+def del_factoid(db, chan, word=None):
     """
     :type db: sqlalchemy.orm.Session
+    :type chan: str
     :type word: str
     """
-    db.execute(table.delete().where(table.c.word == word).where(table.c.chan == chan))
+    clause = table.c.chan == chan
+
+    if word is not None:
+        clause = and_(clause, table.c.word == word)
+
+    db.execute(table.delete().where(clause))
     db.commit()
     load_cache(db)
 
@@ -107,18 +113,42 @@ def remember(text, nick, db, chan, notice, event):
     add_factoid(db, word, chan, data, nick)
 
 
-@hook.command("f", "forget", permissions=["op", "chanop"])
-def forget(text, chan, db, notice):
-    """<word> - forgets previously remembered <word>"""
-    data = factoid_cache[chan][text.lower()]
+def remove_fact(chan, name, db, notice):
+    data = factoid_cache[chan].get(name.lower())
 
     if data:
-        del_factoid(db, chan, text)
-        notice('"{}" has been forgotten.'.format(data.replace('`', "'")))
-        return
+        del_factoid(db, chan, name)
+        notice(
+            "{!r} has been forgotten, previous value was {!r}".format(
+                name, data
+            )
+        )
+    else:
+        notice("Unknown fact {!r}".format(name))
 
-    notice("I don't know about that.")
-    return
+
+@hook.command("f", "forget", permissions=["op", "chanop"])
+def forget(text, chan, db, notice):
+    """<word>... - Remove factoids with the specified names
+
+    :type text: str
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    :type notice: function
+    """
+    for name in text.split():
+        remove_fact(chan, name, db, notice)
+
+
+@hook.command('forgetall', 'clearfacts', autohelp=False, permissions=['op', 'chanop'])
+def forget_all(chan, db):
+    """- Remove all factoids in the current channel
+
+    :type chan: str
+    :type db: sqlalchemy.orm.Session
+    """
+    del_factoid(db, chan)
+    return "Facts cleared."
 
 
 @hook.command()
