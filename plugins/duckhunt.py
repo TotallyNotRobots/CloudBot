@@ -10,7 +10,7 @@ from sqlalchemy.sql import select
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
-from cloudbot.util.formatting import pluralize_auto
+from cloudbot.util.formatting import pluralize_auto, truncate
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\\_o< ", "\\_O< ", "\\_0< ", "\\_\u00f6< ", "\\_\u00f8< ", "\\_\u00f3< "]
@@ -570,16 +570,20 @@ def befriend(nick, chan, message, db, conn, notice, event):
         return attack(event, nick, chan, message, db, conn, notice, "befriend")
 
 
-def smart_truncate(content, length=320, suffix='...'):
+def top_list(prefix, data, join_char=' • '):
+    r"""
+    >>> foods = [('Spam', 1), ('Eggs', 4)]
+    >>> top_list("Top Foods: ", foods)
+    'Top Foods: \x02E\u200bggs\x02: 4 • \x02S\u200bpam\x02: 1'
     """
-    :type content: str
-    :type length: int
-    :type suffix: str
-    """
-    if len(content) <= length:
-        return content
-
-    return content[:length].rsplit(' • ', 1)[0] + suffix
+    sorted_data = sorted(data, key=operator.itemgetter(1), reverse=True)
+    return truncate(
+        prefix + join_char.join(
+            "\x02{}\x02: {:,}".format(k[:1] + '\u200b' + k[1:], v)
+            for k, v in sorted_data
+        ),
+        sep=join_char
+    )
 
 
 @hook.command("friends", autohelp=False)
@@ -629,10 +633,7 @@ def friends(text, chan, conn, db):
         else:
             return "it appears no on has friended any ducks yet."
 
-    topfriends = sorted(friends_dict.items(), key=operator.itemgetter(1), reverse=True)
-    out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topfriends])
-    out = smart_truncate(out)
-    return out
+    return top_list(out, friends_dict.items())
 
 
 @hook.command("killers", autohelp=False)
@@ -683,10 +684,7 @@ def killers(text, chan, conn, db):
         else:
             return "it appears no on has killed any ducks yet."
 
-    topkillers = sorted(killers_dict.items(), key=operator.itemgetter(1), reverse=True)
-    out += ' • '.join(["{}: {:,}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', v) for k, v in topkillers])
-    out = smart_truncate(out)
-    return out
+    return top_list(out, killers_dict.items())
 
 
 @hook.command("duckforgive", permissions=["op", "ignore"])
