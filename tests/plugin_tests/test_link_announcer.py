@@ -178,6 +178,24 @@ def test_link_announce_404():
             """,
             'utf8'
     ),
+    (
+            b"""
+            <head>
+            <meta http-equiv="content-type", content="text/plain">
+            <title>foobar</title>
+            </head>
+            """,
+            'ISO-8859-1'
+    ),
+    (
+            b"""
+            <head>
+            <title>foobar</title>
+            </head>
+            """,
+            'ISO-8859-1'
+    ),
 ])
 def test_change_encoding(body, encoding):
-    assert parse_content(body).original_encoding == encoding
+    # ISO-8859-1 is the default encoding requests would return if none is found
+    assert parse_content(body, 'ISO-8859-1').original_encoding == encoding
