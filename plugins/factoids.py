@@ -7,10 +7,9 @@ from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, and_
 from cloudbot import hook
 from cloudbot.util import database, colors, web
 from cloudbot.util.formatting import gen_markdown_table, get_text_list
-
-# below is the default factoid in every channel you can modify it however you like
 from cloudbot.util.web import NoPasteException
 
+# below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
 factoid_cache = defaultdict(default_dict.copy)
 
@@ -145,7 +144,6 @@ def remove_fact(chan, names, db, notice):
             return
 
         del_factoid(db, chan, list(found.keys()))
-
 
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
