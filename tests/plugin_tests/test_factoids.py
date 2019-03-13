@@ -1,5 +1,6 @@
 from textwrap import dedent
 
+import pytest
 from mock import patch, MagicMock, call
 
 
@@ -10,34 +11,42 @@ def test_forget():
         from plugins.factoids import forget
         forget('foo bar', '#example', mock_session, mock_notice)
 
-        func.assert_has_calls([
-            call('#example', 'foo', mock_session, mock_notice),
-            call('#example', 'bar', mock_session, mock_notice),
-        ])
+        func.assert_called_with('#example', ['foo', 'bar'], mock_session, mock_notice)
 
 
-def test_remove_fact():
+@pytest.fixture
+def patch_paste():
+    with patch('cloudbot.util.web.paste') as mock:
+        yield mock
+
+
+def test_remove_fact(patch_paste):
     mock_session = MagicMock()
     mock_notice = MagicMock()
 
     from plugins.factoids import remove_fact
-    remove_fact('#example', 'foo', mock_session, mock_notice)
-    mock_notice.assert_called_with("Unknown fact 'foo'")
+    remove_fact('#example', ['foo'], mock_session, mock_notice)
+    mock_notice.assert_called_with("Unknown factoids: 'foo'")
 
     mock_session.execute.assert_not_called()
 
     from plugins.factoids import factoid_cache
     factoid_cache['#example']['foo'] = 'bar'
 
-    remove_fact('#example', 'foo', mock_session, mock_notice)
-    mock_notice.assert_called_with("'foo' has been forgotten, previous value was 'bar'")
+    patch_paste.return_value = "PASTEURL"
+    remove_fact('#example', ['foo'], mock_session, mock_notice)
+    mock_notice.assert_called_with('Removed Data: PASTEURL')
+    patch_paste.assert_called_with(
+        b'| Command | Output |\n| ------- | ------ |\n| ?foo    | bar    |',
+        'md', 'hastebin', raise_on_no_paste=True
+    )
 
     query = mock_session.execute.mock_calls[0][1][0]
 
     compiled = query.compile()
 
     assert str(compiled) == dedent("""
-    DELETE FROM factoids WHERE factoids.chan = :chan_1 AND factoids.word = :word_1
+    DELETE FROM factoids WHERE factoids.chan = :chan_1 AND factoids.word IN (:word_1)
     """).strip()
 
     assert compiled.params == {'chan_1': '#example', 'word_1': 'foo'}
