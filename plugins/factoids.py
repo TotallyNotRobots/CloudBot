@@ -6,9 +6,11 @@ from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, and_
 
 from cloudbot import hook
 from cloudbot.util import database, colors, web
-from cloudbot.util.formatting import gen_markdown_table
+from cloudbot.util.formatting import gen_markdown_table, get_text_list
 
 # below is the default factoid in every channel you can modify it however you like
+from cloudbot.util.web import NoPasteException
+
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
 factoid_cache = defaultdict(default_dict.copy)
 
@@ -67,12 +69,12 @@ def del_factoid(db, chan, word=None):
     """
     :type db: sqlalchemy.orm.Session
     :type chan: str
-    :type word: str
+    :type word: list[str]
     """
     clause = table.c.chan == chan
 
     if word is not None:
-        clause = and_(clause, table.c.word == word)
+        clause = and_(clause, table.c.word.in_(word))
 
     db.execute(table.delete().where(clause))
     db.commit()
@@ -113,18 +115,37 @@ def remember(text, nick, db, chan, notice, event):
     add_factoid(db, word, chan, data, nick)
 
 
-def remove_fact(chan, name, db, notice):
-    data = factoid_cache[chan].get(name.lower())
+def paste_facts(facts, raise_on_no_paste=False):
+    headers = ("Command", "Output")
+    data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(facts.items())]
+    tbl = gen_markdown_table(headers, data).encode('UTF-8')
+    return web.paste(tbl, 'md', 'hastebin', raise_on_no_paste=raise_on_no_paste)
 
-    if data:
-        del_factoid(db, chan, name)
-        notice(
-            "{!r} has been forgotten, previous value was {!r}".format(
-                name, data
-            )
-        )
-    else:
-        notice("Unknown fact {!r}".format(name))
+
+def remove_fact(chan, names, db, notice):
+    found = {}
+    missing = []
+    for name in names:
+        data = factoid_cache[chan].get(name.lower())
+        if data:
+            found[name] = data
+        else:
+            missing.append(name)
+
+    if missing:
+        notice("Unknown factoids: {}".format(
+            get_text_list([repr(s) for s in missing], 'and')
+        ))
+
+    if found:
+        try:
+            notice("Removed Data: {}".format(paste_facts(found, True)))
+        except NoPasteException:
+            notice("Unable to paste removed data, not removing facts")
+            return
+
+        del_factoid(db, chan, list(found.keys()))
+
 
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
@@ -136,8 +157,7 @@ def forget(text, chan, db, notice):
     :type db: sqlalchemy.orm.Session
     :type notice: function
     """
-    for name in text.split():
-        remove_fact(chan, name, db, notice)
+    remove_fact(chan, text.split(), db, notice)
 
 
 @hook.command('forgetall', 'clearfacts', autohelp=False, permissions=['op', 'chanop'])
@@ -211,7 +231,4 @@ def listfactoids(notice, chan):
 @hook.command("listdetailedfacts", autohelp=False)
 def listdetailedfactoids(chan):
     """- lists all available factoids with their respective data"""
-    headers = ("Command", "Output")
-    data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(factoid_cache[chan].items())]
-    tbl = gen_markdown_table(headers, data).encode('UTF-8')
-    return web.paste(tbl, 'md', 'hastebin')
+    return paste_facts(factoid_cache[chan])
