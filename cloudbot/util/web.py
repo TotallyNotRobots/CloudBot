@@ -59,7 +59,11 @@ def expand(url, service=None):
     return impl.expand(url)
 
 
-def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
+class NoPasteException(Exception):
+    """No pastebins succeeded"""
+
+
+def paste(data, ext='txt', service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
     bins = pastebins.copy()
     impl = bins.pop(service, None)
     while impl:
@@ -72,6 +76,9 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
             _, impl = bins.popitem()
         except LookupError:
             impl = None
+
+    if raise_on_no_paste:
+        raise NoPasteException("Unable to paste data")
 
     return "Unable to paste data"
 
