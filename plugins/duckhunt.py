@@ -582,7 +582,8 @@ def top_list(prefix, data, join_char=' • '):
             "\x02{}\x02: {:,}".format(k[:1] + '\u200b' + k[1:], v)
             for k, v in sorted_data
         ),
-        sep=join_char
+        sep=join_char,
+        length=320,
     )
 
 
