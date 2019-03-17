@@ -41,6 +41,14 @@ def test_web_search(test_data, mock_requests):
                                      'detection of hacked content, and helps you manage how your content ' \
                                      'appears in search results.\x02'
 
+    mock_requests.replace(
+        mock_requests.GET,
+        'https://www.dogpile.com/search/web',
+        body='',
+    )
+
+    assert dogpile('test search') == 'No results found.'
+
 
 def test_image_search(test_data, mock_requests):
     add_page(mock_requests, 'images', test_data)
@@ -82,3 +90,11 @@ def test_image_search(test_data, mock_requests):
         'https://marketplace-cdn.atlassian.com/files/images/8de36cd1-c798-4592-8a94-4cb2922188a9.jpeg',
         'https://cdn0.tnwcdn.com/wp-content/blogs.dir/1/files/2016/05/Google_search_test.jpg'
     ]
+
+    mock_requests.replace(
+        mock_requests.GET,
+        'https://www.dogpile.com/search/images',
+        body='',
+    )
+
+    assert dogpileimage('test search') == 'No results found.'

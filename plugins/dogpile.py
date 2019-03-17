@@ -43,9 +43,12 @@ def dogpileimage(text):
     """<query> - Uses the dogpile search engine to search for images."""
     soup = query('images', text)
     results_container = soup.find('div', {'class': 'images-bing__list'})
+    if not results_container:
+        return "No results found."
+
     results_list = results_container.find_all('div', {'class': 'image'})
     if not results_list:
-        return "No results returned."
+        return "No results found."
 
     image = random.choice(results_list)
     return image.find('a', {'class': 'link'})['href']
