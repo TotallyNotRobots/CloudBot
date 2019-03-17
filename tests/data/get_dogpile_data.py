@@ -12,7 +12,7 @@ def get_data(query_type):
     with requests.get(
             str(BASE_URL / query_type),
             params=params,
-            verify=False,
+            verify=False,  # nosec
     ) as response:
         response.raise_for_status()
         return response.content
