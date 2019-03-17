@@ -7,7 +7,7 @@ BASE_URL = URL('https://www.dogpile.com/search')
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-def get_data(query_type):
+def get_data(query_type):  # pragma: no cover
     params = {'q': 'test search'}
     with requests.get(
             str(BASE_URL / query_type),
@@ -18,7 +18,7 @@ def get_data(query_type):
         return response.content
 
 
-def write_data(query_tyoe):
+def write_data(query_tyoe):  # pragma: no cover
     with (SCRIPT_DIR / 'dogpile-{}.html'.format(query_tyoe)).open('wb') as file:
         file.write(get_data(query_tyoe))
 
