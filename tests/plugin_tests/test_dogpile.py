@@ -14,7 +14,7 @@ def mock_requests():
 def test_data():
     data = {}
     for file in Path('tests/data/').resolve().rglob('dogpile-*.html'):
-        name = file.stem.split('-')[1]
+        name = file.stem.split('-', 1)[1]
         with file.open('rb') as f:
             data[name] = f.read()
 
@@ -95,6 +95,14 @@ def test_image_search(test_data, mock_requests):
         mock_requests.GET,
         'https://www.dogpile.com/search/images',
         body='',
+    )
+
+    assert dogpileimage('test search') == 'No results found.'
+
+    mock_requests.replace(
+        mock_requests.GET,
+        'https://www.dogpile.com/search/images',
+        body=test_data['images-empty'],
     )
 
     assert dogpileimage('test search') == 'No results found.'
