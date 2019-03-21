@@ -1,3 +1,5 @@
+# This project is now maintained by Snoonet at https://github.com/snoonetIRC/CloudBot
+
 # CloudBot
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
