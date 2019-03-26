@@ -1,7 +1,5 @@
 import os
 import random
-import re
-from urllib import parse
 
 import requests
 from bs4 import BeautifulSoup
@@ -30,38 +28,41 @@ def check_certs(bot):
         session.verify = None
 
 
+def query(endpoint, text):
+    params = {'q': " ".join(text.split())}
+    with requests.get(
+            search_url + "/" + endpoint, params=params, headers=HEADERS,
+            verify=session.verify
+    ) as r:
+        r.raise_for_status()
+        return BeautifulSoup(r.content)
+
+
 @hook.command("dpis", "gis")
 def dogpileimage(text):
     """<query> - Uses the dogpile search engine to search for images."""
-    image_url = search_url + "/images"
-    params = {'q': " ".join(text.split())}
-    r = requests.get(image_url, params=params, headers=HEADERS, verify=session.verify)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.content)
-    data = soup.find_all("script")[6].string
-    link_re = re.compile('"url":"(.*?)",')
-    linklist = link_re.findall(data)
-    if not linklist:
-        return "No results returned."
+    soup = query('images', text)
+    results_container = soup.find('div', {'class': 'images-bing__list'})
+    if not results_container:
+        return "No results found."
 
-    image = parse.unquote(parse.unquote(random.choice(linklist)).split('ru=')[1].split('&')[0])
-    return image
+    results_list = results_container.find_all('div', {'class': 'image'})
+    if not results_list:
+        return "No results found."
+
+    image = random.choice(results_list)
+    return image.find('a', {'class': 'link'})['href']
 
 
 @hook.command("dp", "g", "dogpile")
 def dogpile(text):
     """<query> - Uses the dogpile search engine to find shit on the web."""
-    web_url = search_url + "/web"
-    params = {'q': " ".join(text.split())}
-    r = requests.get(web_url, params=params, headers=HEADERS, verify=session.verify)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.content)
-    results = soup.find('div', id="webResults")
+    soup = query('web', text)
+    results = soup.find_all('div', {'class': 'web-bing__result'})
     if not results:
         return "No results found."
 
-    result_url = parse.unquote(
-        parse.unquote(results.find_all('a', {'class': 'resultDisplayUrl'})[0]['href']).split(
-            'ru=')[1].split('&')[0])
-    result_description = results.find_all('div', {'class': 'resultDescription'})[0].text
+    result = results[0]
+    result_url = result.find('span', {'class': 'web-bing__url'}).text
+    result_description = result.find('span', {'class': 'web-bing__description'}).text
     return "{} -- \x02{}\x02".format(result_url, result_description)
