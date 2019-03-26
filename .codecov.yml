@@ -1,4 +1,5 @@
-comment: off
+comment:
+  require_changes: yes
 coverage:
   status:
     patch:
