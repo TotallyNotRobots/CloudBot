@@ -9,7 +9,7 @@ class Bot(MagicMock):
     loop = asyncio.get_event_loop()
 
 
-class TestClient(Client):
+class TestClient(Client):  # pylint: disable=abstract-method
     _type = 'TestClient'
     _connected = False
 
@@ -25,7 +25,7 @@ class TestClient(Client):
         self._connected = True
 
 
-class FailingTestClient(TestClient):
+class FailingTestClient(TestClient):  # pylint: disable=abstract-method
     def __init__(self, *args, fail_count=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fail_count = fail_count
