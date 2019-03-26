@@ -328,12 +328,21 @@ def showtells(nick, notice, db, conn):
 
 
 @hook.command("tell")
-def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid, mask):
-    """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
+def tell_cmd(text, nick, db, conn, mask, event):
+    """<nick> <message> - Relay <message> to <nick> when <nick> is around.
+
+    :type text: str
+    :type nick: str
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    :type mask: str
+    :type event: cloudbot.event.CommandEvent
+    :rtype: None
+    """
     query = text.split(' ', 1)
 
     if len(query) != 2:
-        notice_doc()
+        event.notice_doc()
         return
 
     target = query[0]
@@ -341,23 +350,23 @@ def tell_cmd(text, nick, db, notice, conn, notice_doc, is_nick_valid, mask):
     sender = nick
 
     if not can_send_to_user(conn, mask, target):
-        notice("You may not send a tell to that user.")
+        event.notice("You may not send a tell to that user.")
         return
 
     if target.lower() == sender.lower():
-        notice("Have you looked in a mirror lately?")
+        event.notice("Have you looked in a mirror lately?")
         return
 
-    if not is_nick_valid(target.lower()) or target.lower() == conn.nick.lower():
-        notice("Invalid nick '{}'.".format(target))
+    if not event.is_nick_valid(target.lower()) or target.lower() == conn.nick.lower():
+        event.notice("Invalid nick '{}'.".format(target))
         return
 
     if count_unread(db, conn.name, target.lower()) >= 10:
-        notice("Sorry, {} has too many messages queued already.".format(target))
+        event.notice("Sorry, {} has too many messages queued already.".format(target))
         return
 
     add_tell(db, conn.name, sender, target.lower(), message)
-    notice("Your message has been saved, and {} will be notified once they are active.".format(target))
+    event.notice("Your message has been saved, and {} will be notified once they are active.".format(target))
 
 
 def check_permissions(event, *perms):
