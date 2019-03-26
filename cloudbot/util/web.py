@@ -17,7 +17,7 @@ import json
 import logging
 
 import requests
-from requests import RequestException
+from requests import RequestException, Response, PreparedRequest, HTTPError
 
 # Constants
 DEFAULT_SHORTENER = 'is.gd'
@@ -77,13 +77,19 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN):
 
 
 class ServiceError(Exception):
-    def __init__(self, message, request):
-        super().__init__()
-        self.message = message
+    def __init__(self, request: PreparedRequest, message: str):
+        super().__init__(message)
         self.request = request
 
-    def __str__(self):
-        return '[HTTP {}] {}'.format(self.request.status_code, self.message)
+
+class ServiceHTTPError(ServiceError):
+    def __init__(self, message: str, response: Response):
+        super().__init__(
+            response.request,
+            '[HTTP {}] {}'.format(response.status_code, message)
+        )
+        self.message = message
+        self.response = response
 
 
 class Shortener:
@@ -100,17 +106,19 @@ class Shortener:
             return url
 
     def expand(self, url):
-        r = requests.get(url, allow_redirects=False)
         try:
+            r = requests.get(url, allow_redirects=False)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         if 'location' in r.headers:
             return r.headers['location']
 
-        raise ServiceError('That URL does not exist', r)
+        raise ServiceHTTPError('That URL does not exist', r)
 
 
 class Pastebin:
@@ -145,35 +153,39 @@ def _pastebin(name):
 class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'shorturl': custom, 'format': 'json'}
-        r = requests.get('http://is.gd/create.php', params=p)
         try:
+            r = requests.get('http://is.gd/create.php', params=p)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         j = r.json()
 
         if 'shorturl' in j:
             return j['shorturl']
 
-        raise ServiceError(j['errormessage'], r)
+        raise ServiceHTTPError(j['errormessage'], r)
 
     def expand(self, url):
         p = {'shorturl': url, 'format': 'json'}
-        r = requests.get('http://is.gd/forward.php', params=p)
         try:
+            r = requests.get('http://is.gd/forward.php', params=p)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         j = r.json()
 
         if 'url' in j:
             return j['url']
 
-        raise ServiceError(j['errormessage'], r)
+        raise ServiceHTTPError(j['errormessage'], r)
 
 
 @_shortener('goo.gl')
@@ -182,71 +194,79 @@ class Googl(Shortener):
         h = {'content-type': 'application/json'}
         k = {'key': key}
         p = {'longUrl': url}
-        r = requests.post('https://www.googleapis.com/urlshortener/v1/url', params=k, data=json.dumps(p), headers=h)
         try:
+            r = requests.post('https://www.googleapis.com/urlshortener/v1/url', params=k, data=json.dumps(p), headers=h)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         j = r.json()
 
         if 'error' not in j:
             return j['id']
 
-        raise ServiceError(j['error']['message'], r)
+        raise ServiceHTTPError(j['error']['message'], r)
 
     def expand(self, url):
         p = {'shortUrl': url}
-        r = requests.get('https://www.googleapis.com/urlshortener/v1/url', params=p)
         try:
+            r = requests.get('https://www.googleapis.com/urlshortener/v1/url', params=p)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         j = r.json()
 
         if 'error' not in j:
             return j['longUrl']
 
-        raise ServiceError(j['error']['message'], r)
+        raise ServiceHTTPError(j['error']['message'], r)
 
 
 @_shortener('git.io')
 class Gitio(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'code': custom}
-        r = requests.post('http://git.io', data=p)
         try:
+            r = requests.post('http://git.io', data=p)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
 
         if r.status_code == requests.codes.created:
             s = r.headers['location']
             if custom and custom not in s:
-                raise ServiceError('That URL is already in use', r)
+                raise ServiceHTTPError('That URL is already in use', r)
 
             return s
 
-        raise ServiceError(r.text, r)
+        raise ServiceHTTPError(r.text, r)
 
 
 @_pastebin('hastebin')
 class Hastebin(Pastebin):
     def paste(self, data, ext):
-        r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
         try:
+            r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
             r.raise_for_status()
-        except RequestException as e:
+        except HTTPError as e:
             r = e.response
-            raise ServiceError(r.reason, r)
+            raise ServiceHTTPError(r.reason, r) from e
+        except RequestException as e:
+            raise ServiceError(e.request, "Connection error occurred") from e
         else:
             j = r.json()
 
             if r.status_code is requests.codes.ok:
                 return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
 
-            raise ServiceError(j['message'], r)
+            raise ServiceHTTPError(j['message'], r)
