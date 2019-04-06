@@ -67,6 +67,12 @@ def mph_to_kph(mph):
     return mph * 1.609344
 
 
+class LocationNotFound(Exception):
+    def __init__(self, location):
+        super().__init__("Unable to find location {!r}".format(location))
+        self.location = location
+
+
 def find_location(location, bias=None):
     """
     Takes a location as a string, and returns a dict of data
@@ -74,7 +80,11 @@ def find_location(location, bias=None):
     :param bias: The region to bias answers towards
     :return: dict
     """
-    json = data.maps_api.geocode(location, region=bias)[0]
+    results = data.maps_api.geocode(location, region=bias)
+    if not results:
+        raise LocationNotFound(location)
+
+    json = results[0]
     out = json['geometry']['location']
     out['address'] = json['formatted_address']
     return out
@@ -155,6 +165,8 @@ def check_and_parse(event, db):
     except ApiError:
         event.reply("API Error occurred.")
         raise
+    except LocationNotFound as e:
+        return None, str(e)
 
     fio = ForecastIO(
         ds_key, units=ForecastIO.UNITS_US,
