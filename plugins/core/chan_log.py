@@ -18,7 +18,7 @@ def dump_attrs(obj):
         yield (name, getattr(obj, name, None))
 
 
-def format_error_data(exc):
+def format_error_chain(exc):
     while exc:
         yield repr(exc)
         for name, val in dump_attrs(exc):
@@ -78,7 +78,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
 
         lines.append("")
         lines.append("Error data:")
-        lines.extend(format_error_data(exc))
+        lines.extend(format_error_chain(exc))
 
         if isinstance(exc, RequestException):
             if exc.request is not None:
