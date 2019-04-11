@@ -18,17 +18,21 @@ def dump_attrs(obj):
         yield (name, getattr(obj, name, None))
 
 
+def format_error_data(exc):
+    yield repr(exc)
+    for name, val in dump_attrs(exc):
+        if len(name) > 4 and name.startswith('__') and name.endswith('__'):
+            # Ignore dunder fields
+            continue
+
+        yield '  {} = {!r}'.format(name, val)
+
+    yield ''
+
+
 def format_error_chain(exc):
     while exc:
-        yield repr(exc)
-        for name, val in dump_attrs(exc):
-            if len(name) > 4 and name.startswith('__') and name.endswith('__'):
-                # Ignore dunder fields
-                continue
-
-            yield '  {} = {!r}'.format(name, val)
-
-        yield ''
+        yield from format_error_data(exc)
         # Get "direct cause of" or
         # "during handling of ..., another exception occurred" stack
         cause = getattr(exc, '__cause__', None)
