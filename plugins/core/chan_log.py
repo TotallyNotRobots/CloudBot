@@ -6,6 +6,34 @@ from cloudbot import hook
 from cloudbot.util import web
 
 
+def get_attrs(obj):
+    try:
+        return list(obj.__dict__.keys())
+    except AttributeError:
+        return dir(obj)
+
+
+def dump_attrs(obj):
+    for name in get_attrs(obj):
+        yield (name, getattr(obj, name, None))
+
+
+def format_error_data(exc):
+    while exc:
+        yield repr(exc)
+        for name, val in dump_attrs(exc):
+            if len(name) > 4 and name.startswith('__') and name.endswith('__'):
+                # Ignore dunder fields
+                continue
+
+            yield '  {} = {!r}'.format(name, val)
+
+        yield ''
+        # Get "direct cause of" or
+        # "during handling of ..., another exception occurred" stack
+        exc = getattr(exc, '__cause__', None) or getattr(exc, '__context__', None)
+
+
 def _dump_attrs(obj):
     for name in dir(obj):
         if not name.startswith('_'):
@@ -36,12 +64,12 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
                 messages.append("Error occurred while gathering traceback {}".format(msg))
 
         try:
-            lines = ["{} = {}".format(k, v) for k, v in _dump_attrs(launched_event)]
+            lines = ["{} = {!r}".format(k, v) for k, v in dump_attrs(launched_event)]
             _, exc, _ = error
 
             lines.append("")
             lines.append("Error data:")
-            lines.extend("{} = {}".format(k, v) for k, v in _dump_attrs(exc))
+            lines.extend(format_error_data(exc))
 
             if isinstance(exc, RequestException):
                 if exc.request is not None:
