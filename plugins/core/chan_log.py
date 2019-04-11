@@ -1,4 +1,5 @@
 import traceback
+from typing import Any, Iterable, List, Tuple
 
 from requests.exceptions import RequestException
 
@@ -6,18 +7,80 @@ from cloudbot import hook
 from cloudbot.util import web
 
 
-def get_attrs(obj):
+def get_attrs(obj: object) -> List[str]:
+    """Returns a list of all of the attributes on an object,
+    either from the __dict__ or from dir() if the object has no __dict__
+
+    >>> class C:
+    ...     a = 1
+    ...     b = 2
+    >>> get_attrs(C)
+    ['a', 'b']
+
+    And with __slots__:
+
+    >>> class C:
+    ...     __slots__ = ('a', 'b')
+    ...
+    ...     def __init__(self):
+    ...         self.a = 1
+    ...         self.b = 1
+    >>> get_attrs(C)
+    ['a', 'b']
+
+    :param obj: The object to retrieve the attribute names from
+    :return: A list of all attributes on `obj`
+    """
     try:
         return list(obj.__dict__.keys())
     except AttributeError:
         return dir(obj)
 
 
-def is_dunder(name):
+def is_dunder(name: str) -> bool:
+    """
+    Determines if a name represents a "dunder" (double underscore") method
+
+    >>> is_dunder('__iter__')
+    True
+    >>> is_dunder('some_func')
+    False
+
+    :param name: The name to check
+    :return: True if the name is a dunder, False otherwise
+    """
     return len(name) > 4 and name.startswith('__') and name.endswith('__')
 
 
-def dump_attrs(obj, ignore_dunder=False):
+AttrList = Iterable[Tuple[str, Any]]
+
+
+def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:
+    """
+    Dump a list of tuples of (name, value) for all attributes on an object
+
+    >>> class C:
+    ...     a = 1
+    ...     b = 2
+    >>> list(dump_attrs(C))
+    [('a', 1), ('b', 2)]
+
+    And with __slots__:
+
+    >>> class C:
+    ...     __slots__ = ('a', 'b')
+    ...
+    ...     def __init__(self):
+    ...         self.a = 1
+    ...         self.b = 1
+
+    >>> list(dump_attrs(C()))
+    [('a', 1), ('b', 2)]
+
+    :param obj: The object to retrieve attributes from
+    :param ignore_dunder: Whether to ignore "dunder" fields and methods
+    :return: An iterable of (name, value) tuples for each attribute on `obj`
+    """
     for name in get_attrs(obj):
         if ignore_dunder and is_dunder(name):
             # Ignore dunder fields
@@ -26,7 +89,18 @@ def dump_attrs(obj, ignore_dunder=False):
         yield (name, getattr(obj, name, None))
 
 
-def indent(lines, size=2, char=' '):
+def indent(lines: Iterable[str], size: int = 2, char: str = ' '):
+    """
+    Indent each line in an iterable and yield it, ignoring blank lines
+
+    >>> list(indent(['a', 'b']))
+    ['  a', '  b']
+
+    :param lines: The iterable of lines to indent
+    :param size: How large of an indent should be used
+    :param char: What character should be used to indent
+    :return: An iterable containing each line from `lines`, indented
+    """
     for line in lines:
         if line:
             yield (char * size) + line
@@ -34,7 +108,13 @@ def indent(lines, size=2, char=' '):
             yield line
 
 
-def format_requests_exc(exc: RequestException):
+def format_requests_exc(exc: RequestException) -> Iterable[str]:
+    """
+    Format a RequestException
+    :param exc: The exception to format
+    :return: An iterable of lines representing the formatted data
+    """
+
     def _format(title, obj):
         if obj is not None:
             yield title
@@ -49,7 +129,7 @@ SPECIAL_CASES = {
 }
 
 
-def format_error_data(exc):
+def format_error_data(exc: Exception) -> Iterable[str]:
     yield repr(exc)
     yield from indent(format_attrs(exc, ignore_dunder=True))
 
@@ -60,7 +140,14 @@ def format_error_data(exc):
     yield ''
 
 
-def format_error_chain(exc):
+def format_error_chain(exc: Exception) -> Iterable[str]:
+    """
+    Format a whole chain of exceptions, going up the list for
+    each cause/context exception
+
+    :param exc: The exception to format
+    :return: An iterable of lines of the formatted data from the exception
+    """
     while exc:
         yield from format_error_data(exc)
         # Get "direct cause of" or
@@ -70,7 +157,20 @@ def format_error_chain(exc):
         exc = cause or context
 
 
-def format_attrs(obj, ignore_dunder=False):
+def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
+    """
+    Format an object's attributes in an easy to read, multi-line format
+
+    >>> class C:
+    ...     a = 1
+    ...     b = 2
+    >>> list(format_attrs(C))
+    ['a = 1', 'b = 2']
+
+    :param obj: The object to inspect
+    :param ignore_dunder: Whether to hide dunder methods/fields
+    :return: An iterable of lines of formatted data
+    """
     for k, v in dump_attrs(obj, ignore_dunder=ignore_dunder):
         yield '{} = {!r}'.format(k, v)
 
