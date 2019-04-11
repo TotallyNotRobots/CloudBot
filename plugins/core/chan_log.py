@@ -13,13 +13,13 @@ def get_attrs(obj):
         return dir(obj)
 
 
-def _is_dunder(name):
+def is_dunder(name):
     return len(name) > 4 and name.startswith('__') and name.endswith('__')
 
 
 def dump_attrs(obj, ignore_dunder=False):
     for name in get_attrs(obj):
-        if ignore_dunder and _is_dunder(name):
+        if ignore_dunder and is_dunder(name):
             # Ignore dunder fields
             continue
 
@@ -38,7 +38,7 @@ def format_requests_exc(exc: RequestException):
     def _format(title, obj):
         if obj is not None:
             yield title
-            yield from indent(_format_attrs(obj))
+            yield from indent(format_attrs(obj))
 
     yield from _format("Request Info", exc.request)
     yield from _format("Response Info", exc.response)
@@ -51,7 +51,7 @@ SPECIAL_CASES = {
 
 def format_error_data(exc):
     yield repr(exc)
-    yield from indent(_format_attrs(exc, ignore_dunder=True))
+    yield from indent(format_attrs(exc, ignore_dunder=True))
 
     for typ, func in SPECIAL_CASES.items():
         if isinstance(exc, typ):
@@ -70,7 +70,7 @@ def format_error_chain(exc):
         exc = cause or context
 
 
-def _format_attrs(obj, ignore_dunder=False):
+def format_attrs(obj, ignore_dunder=False):
     for k, v in dump_attrs(obj, ignore_dunder=ignore_dunder):
         yield '{} = {!r}'.format(k, v)
 
@@ -108,7 +108,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
 
     try:
         lines = ["Event Data:"]
-        lines.extend(indent(_format_attrs(launched_event)))
+        lines.extend(indent(format_attrs(launched_event)))
         _, exc, _ = error
 
         lines.append("")
