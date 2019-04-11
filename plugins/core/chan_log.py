@@ -36,10 +36,9 @@ def format_error_data(exc):
         exc = cause or context
 
 
-def _dump_attrs(obj):
-    for name in dir(obj):
-        if not name.startswith('_'):
-            yield name, getattr(obj, name, None)
+def _format_attrs(obj):
+    for k, v in dump_attrs(obj):
+        yield '{} = {!r}'.format(k, v)
 
 
 @hook.post_hook
@@ -72,10 +71,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
                 )
 
         try:
-            lines = [
-                "{} = {!r}".format(k, v)
-                for k, v in dump_attrs(launched_event)
-            ]
+            lines = list(_format_attrs(launched_event))
             _, exc, _ = error
 
             lines.append("")
@@ -87,18 +83,13 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
                     req = exc.request
                     lines.append("")
                     lines.append("Request Info:")
-                    lines.extend(
-                        "{} = {!r}".format(k, v) for k, v in _dump_attrs(req)
-                    )
+                    lines.extend(_format_attrs(req))
 
                 if exc.response is not None:
                     response = exc.response
                     lines.append("")
                     lines.append("Response Info:")
-                    lines.extend(
-                        "{} = {!r}".format(k, v)
-                        for k, v in _dump_attrs(response)
-                    )
+                    lines.extend(_format_attrs(response))
 
             url = web.paste('\n'.join(lines))
             messages.append("Event: " + url)
