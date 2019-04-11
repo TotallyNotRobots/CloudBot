@@ -43,61 +43,63 @@ def _format_attrs(obj):
 
 @hook.post_hook
 def on_hook_end(error, launched_hook, launched_event, admin_log):
+    if error is None:
+        return
+
     should_broadcast = True
-    if error is not None:
-        messages = [
-            "Error occurred in {}.{}".format(
-                launched_hook.plugin.title, launched_hook.function_name
-            )
-        ]
+    messages = [
+        "Error occurred in {}.{}".format(
+            launched_hook.plugin.title, launched_hook.function_name
+        )
+    ]
 
+    try:
+        lines = traceback.format_exception(*error)
+        last_line = lines[-1]
+        messages.append(last_line.strip())
+    except Exception:
+        msg = traceback.format_exc()[-1]
+        messages.append(
+            "Error occurred while formatting error {}".format(msg)
+        )
+    else:
         try:
-            lines = traceback.format_exception(*error)
-            last_line = lines[-1]
-            messages.append(last_line.strip())
-        except Exception:
-            msg = traceback.format_exc()[-1]
-            messages.append(
-                "Error occurred while formatting error {}".format(msg)
-            )
-        else:
-            try:
-                url = web.paste('\n'.join(lines))
-                messages.append("Traceback: " + url)
-            except Exception:
-                msg = traceback.format_exc()[-1]
-                messages.append(
-                    "Error occurred while gathering traceback {}".format(msg)
-                )
-
-        try:
-            lines = list(_format_attrs(launched_event))
-            _, exc, _ = error
-
-            lines.append("")
-            lines.append("Error data:")
-            lines.extend(format_error_data(exc))
-
-            if isinstance(exc, RequestException):
-                if exc.request is not None:
-                    req = exc.request
-                    lines.append("")
-                    lines.append("Request Info:")
-                    lines.extend(_format_attrs(req))
-
-                if exc.response is not None:
-                    response = exc.response
-                    lines.append("")
-                    lines.append("Response Info:")
-                    lines.extend(_format_attrs(response))
-
             url = web.paste('\n'.join(lines))
-            messages.append("Event: " + url)
+            messages.append("Traceback: " + url)
         except Exception:
             msg = traceback.format_exc()[-1]
             messages.append(
-                "Error occurred while gathering error data {}".format(msg)
+                "Error occurred while gathering traceback {}".format(msg)
             )
 
-        for message in messages:
-            admin_log(message, should_broadcast)
+    try:
+        lines = list(_format_attrs(launched_event))
+        _, exc, _ = error
+
+        lines.append("")
+        lines.append("Error data:")
+        lines.extend(format_error_data(exc))
+
+        if isinstance(exc, RequestException):
+            if exc.request is not None:
+                req = exc.request
+                lines.append("")
+                lines.append("Request Info:")
+                lines.extend(_format_attrs(req))
+
+            if exc.response is not None:
+                response = exc.response
+                lines.append("")
+                lines.append("Response Info:")
+                lines.extend(_format_attrs(response))
+
+        url = web.paste('\n'.join(lines))
+        messages.append("Event: " + url)
+    except Exception:
+        msg = traceback.format_exc()[-1]
+        messages.append(
+            "Error occurred while gathering error data {}".format(msg)
+        )
+
+    for message in messages:
+        admin_log(message, should_broadcast)
