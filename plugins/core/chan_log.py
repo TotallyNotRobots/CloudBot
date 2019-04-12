@@ -14,7 +14,7 @@ def get_attrs(obj: object) -> List[str]:
     >>> class C:
     ...     a = 1
     ...     b = 2
-    >>> get_attrs(C)
+    >>> [name for name in get_attrs(C()) if not is_dunder(name)]
     ['a', 'b']
 
     And with __slots__:
@@ -25,16 +25,13 @@ def get_attrs(obj: object) -> List[str]:
     ...     def __init__(self):
     ...         self.a = 1
     ...         self.b = 1
-    >>> get_attrs(C)
+    >>> [name for name in get_attrs(C()) if not is_dunder(name)]
     ['a', 'b']
 
     :param obj: The object to retrieve the attribute names from
     :return: A list of all attributes on `obj`
     """
-    try:
-        return list(obj.__dict__.keys())
-    except AttributeError:
-        return dir(obj)
+    return dir(obj)
 
 
 def is_dunder(name: str) -> bool:
@@ -62,7 +59,7 @@ def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:
     >>> class C:
     ...     a = 1
     ...     b = 2
-    >>> list(dump_attrs(C))
+    >>> list(dump_attrs(C(), True))
     [('a', 1), ('b', 2)]
 
     And with __slots__:
@@ -72,9 +69,9 @@ def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:
     ...
     ...     def __init__(self):
     ...         self.a = 1
-    ...         self.b = 1
+    ...         self.b = 2
 
-    >>> list(dump_attrs(C()))
+    >>> list(dump_attrs(C(), True))
     [('a', 1), ('b', 2)]
 
     :param obj: The object to retrieve attributes from
@@ -164,7 +161,7 @@ def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
     >>> class C:
     ...     a = 1
     ...     b = 2
-    >>> list(format_attrs(C))
+    >>> list(format_attrs(C, True))
     ['a = 1', 'b = 2']
 
     :param obj: The object to inspect
