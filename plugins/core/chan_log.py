@@ -90,8 +90,8 @@ def indent(lines: Iterable[str], size: int = 2, char: str = ' '):
     """
     Indent each line in an iterable and yield it, ignoring blank lines
 
-    >>> list(indent(['a', 'b']))
-    ['  a', '  b']
+    >>> list(indent(['a', 'b', '', 'c']))
+    ['  a', '  b', '', '  c']
 
     :param lines: The iterable of lines to indent
     :param size: How large of an indent should be used
