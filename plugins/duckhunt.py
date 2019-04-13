@@ -447,15 +447,13 @@ def update_score(nick, chan, db, conn, shoot=0, friend=0):
     return {'shoot': shoot, 'friend': friend}
 
 
-def attack(event, nick, chan, message, db, conn, notice, attack_type):
+def attack(event, nick, chan, db, conn, attack_type):
     """
     :type event: cloudbot.event.Event
     :type nick: str
     :type chan: str
-    :type message: function
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
-    :type notice: function
     :type attack_type: str
     """
     if is_opt_out(conn.name, chan):
@@ -504,7 +502,7 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
     shoot = status.shoot_time
     if nick.lower() in scripters:
         if scripters[nick.lower()] > shoot:
-            notice(
+            event.notice(
                 "You are in a cool down period, you can try again in {:.3f} seconds.".format(
                     scripters[nick.lower()] - shoot
                 )
@@ -534,40 +532,36 @@ def attack(event, nick, chan, message, db, conn, notice, attack_type):
         event.reply("An unknown error has occurred.")
         raise
 
-    message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
+    event.message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
     set_ducktime(chan, conn.name)
 
 
 @hook.command("bang", autohelp=False)
-def bang(nick, chan, message, db, conn, notice, event):
+def bang(nick, chan, db, conn, event):
     """- when there is a duck on the loose use this command to shoot it.
 
     :type event: cloudbot.event.Event
     :type nick: str
     :type chan: str
-    :type message: function
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
-    :type notice: function
     """
     with chan_locks[conn.name][chan.casefold()]:
-        return attack(event, nick, chan, message, db, conn, notice, "shoot")
+        return attack(event, nick, chan, db, conn, "shoot")
 
 
 @hook.command("befriend", autohelp=False)
-def befriend(nick, chan, message, db, conn, notice, event):
+def befriend(nick, chan, db, conn, event):
     """- when there is a duck on the loose use this command to befriend it before someone else shoots it.
 
     :type event: cloudbot.event.Event
     :type nick: str
     :type chan: str
-    :type message: function
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
-    :type notice: function
     """
     with chan_locks[conn.name][chan.casefold()]:
-        return attack(event, nick, chan, message, db, conn, notice, "befriend")
+        return attack(event, nick, chan, db, conn, "befriend")
 
 
 def top_list(prefix, data, join_char=' • '):
