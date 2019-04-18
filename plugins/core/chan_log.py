@@ -36,7 +36,7 @@ def get_attrs(obj: object) -> List[str]:
 
 def is_dunder(name: str) -> bool:
     """
-    Determines if a name represents a "dunder" (double underscore") method
+    Determines if a name represents a "dunder" (double underscore) method
 
     >>> is_dunder('__iter__')
     True
