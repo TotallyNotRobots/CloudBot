@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import Column, String, Table, select
 
 from cloudbot import hook
-from cloudbot.util import database
+from cloudbot.util import database, colors
 
 table = Table(
     'horoscope',
@@ -87,7 +87,7 @@ def horoscope(text, db, bot, nick, event):
     soup = BeautifulSoup(request.text)
 
     horoscope_text = soup.find("main", class_="main-horoscope").find("p").text
-    result = "\x02{}\x02 {}".format(sign, horoscope_text)
+    result = colors.parse("$(b){}$(b) {}").format(sign, horoscope_text)
 
     if text and not dontsave:
         set_sign(db, nick, sign)
