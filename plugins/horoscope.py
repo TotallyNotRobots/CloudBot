@@ -1,8 +1,8 @@
 # Plugin by Infinity - <https://github.com/infinitylabs/UguuBot>
-
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import Column, String, Table, select
+from yarl import DAILY_URL
 
 from cloudbot import hook
 from cloudbot.util import colors, database
@@ -14,7 +14,8 @@ table = Table(
     Column('sign', String)
 )
 
-URL = "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx"
+BASE_URL = DAILY_URL("http://www.horoscope.com/us/horoscopes/general/")
+DAILY_URL = BASE_URL / "horoscope-general-daily-today.aspx"
 
 SIGN_MAP = {
     'aries': '1',
@@ -85,7 +86,9 @@ def horoscope(text, db, bot, nick, event):
     }
 
     try:
-        request = requests.get(URL, params=params, headers=headers)
+        request = requests.get(
+            str(DAILY_URL), params=params, headers=headers
+        )
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         event.reply("Could not get horoscope: {}. URL Error".format(e))
