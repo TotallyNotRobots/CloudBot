@@ -4,7 +4,7 @@ from collections import defaultdict
 from threading import Lock
 from time import time, sleep
 
-from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc, Boolean, and_
+from sqlalchemy import Boolean, Column, Integer, PrimaryKeyConstraint, String, Table, and_, desc
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -584,105 +584,104 @@ def top_list(prefix, data, join_char=' • '):
     )
 
 
+def get_scores(db, score_type, network, chan=None):
+    clause = table.c.network == network
+    if chan is not None:
+        clause = and_(clause, table.c.chan == chan.lower())
+
+    query = select([table.c.name, table.c[score_type]], clause) \
+        .order_by(desc(table.c[score_type]))
+
+    scores = db.execute(query).fetchall()
+    return scores
+
+
+class ScoreType:
+    def __init__(self, name, column_name, noun, verb):
+        self.name = name
+        self.column_name = column_name
+        self.noun = noun
+        self.verb = verb
+
+
+SCORE_TYPES = {
+    'friend': ScoreType('befriend', 'befriend', 'friend', 'friended'),
+    'killer': ScoreType('killer', 'shot', 'killer', 'killed'),
+}
+
+
+def display_scores(score_type: ScoreType, text, chan, conn, db):
+    if is_opt_out(conn.name, chan):
+        return
+
+    global_pfx = "Duck {noun} scores across the network: ".format(
+        noun=score_type.noun
+    )
+    chan_pfx = "Duck {noun} scores in {chan}: ".format(
+        noun=score_type.noun, chan=chan
+    )
+    no_ducks = "It appears no one has {verb} any ducks yet."
+
+    scores_dict = defaultdict(int)
+    chancount = defaultdict(int)
+    text_lower = text.lower()
+    if text_lower in ('global', 'average'):
+        out = global_pfx
+        scores = get_scores(db, score_type.column_name, conn.name)
+        if not scores:
+            return no_ducks
+
+        for row in scores:
+            if row[1] == 0:
+                continue
+
+            chancount[row[0]] += 1
+            scores_dict[row[0]] += row[1]
+
+        if text_lower == 'average':
+            for k, v in scores_dict.items():
+                scores_dict[k] = int(v / chancount[k])
+    else:
+        out = chan_pfx
+        scores = get_scores(db, score_type.column_name, conn.name, chan)
+        if not scores:
+            return no_ducks
+
+        for row in scores:
+            if row[1] == 0:
+                continue
+
+            scores_dict[row[0]] += row[1]
+
+    return top_list(out, scores_dict.items())
+
+
 @hook.command("friends", autohelp=False)
 def friends(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck friends in the channel, if 'global' is specified all channels
-    in the database are included.
+    """[{global|average}] - Prints a list of the top duck friends in the
+    channel, if 'global' is specified all channels in the database are
+    included.
 
     :type text: str
     :type chan: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if is_opt_out(conn.name, chan):
-        return
-
-    friends_dict = defaultdict(int)
-    chancount = defaultdict(int)
-    if text.lower() in ('global', 'average'):
-        out = "Duck friend scores across the network: "
-        scores = db.execute(select([table.c.name, table.c.befriend]) \
-                            .where(table.c.network == conn.name) \
-                            .order_by(desc(table.c.befriend)))
-        if scores:
-            for row in scores:
-                if row[1] == 0:
-                    continue
-
-                chancount[row[0]] += 1
-                friends_dict[row[0]] += row[1]
-
-            if text.lower() == 'average':
-                for k, v in friends_dict.items():
-                    friends_dict[k] = int(v / chancount[k])
-        else:
-            return "it appears no on has friended any ducks yet."
-    else:
-        out = "Duck friend scores in {}: ".format(chan)
-        scores = db.execute(select([table.c.name, table.c.befriend]) \
-                            .where(table.c.network == conn.name) \
-                            .where(table.c.chan == chan.lower()) \
-                            .order_by(desc(table.c.befriend)))
-        if scores:
-            for row in scores:
-                if row[1] == 0:
-                    continue
-                friends_dict[row[0]] += row[1]
-        else:
-            return "it appears no on has friended any ducks yet."
-
-    return top_list(out, friends_dict.items())
+    return display_scores(SCORE_TYPES['friend'], text, chan, conn, db)
 
 
 @hook.command("killers", autohelp=False)
 def killers(text, chan, conn, db):
-    """[{global|average}] - Prints a list of the top duck killers in the channel, if 'global' is specified all channels
-    in the database are included.
+    """[{global|average}] - Prints a list of the top duck killers in the
+    channel, if 'global' is specified all channels in the database are
+    included.
 
     :type text: str
     :type chan: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if is_opt_out(conn.name, chan):
-        return
-
-    killers_dict = defaultdict(int)
-    chancount = defaultdict(int)
-    if text.lower() in ('global', 'average'):
-        out = "Duck killer scores across the network: "
-        scores = db.execute(select([table.c.name, table.c.shot]) \
-                            .where(table.c.network == conn.name) \
-                            .order_by(desc(table.c.shot)))
-        if scores:
-            for row in scores:
-                if row[1] == 0:
-                    continue
-
-                chancount[row[0]] += 1
-                killers_dict[row[0]] += row[1]
-
-            if text.lower() == 'average':
-                for k, v in killers_dict.items():
-                    killers_dict[k] = int(v / chancount[k])
-        else:
-            return "it appears no on has killed any ducks yet."
-    else:
-        out = "Duck killer scores in {}: ".format(chan)
-        scores = db.execute(select([table.c.name, table.c.shot]) \
-                            .where(table.c.network == conn.name) \
-                            .where(table.c.chan == chan.lower()) \
-                            .order_by(desc(table.c.shot)))
-        if scores:
-            for row in scores:
-                if row[1] == 0:
-                    continue
-
-                killers_dict[row[0]] += row[1]
-        else:
-            return "it appears no on has killed any ducks yet."
-
-    return top_list(out, killers_dict.items())
+    return display_scores(SCORE_TYPES['killer'], text, chan, conn, db)
 
 
 @hook.command("duckforgive", permissions=["op", "ignore"])
