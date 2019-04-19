@@ -50,6 +50,14 @@ def set_sign(db, nick, sign):
 
 
 def parse_input(text):
+    """
+    >>> parse_input('')
+    (None, False)
+    >>> parse_input('aries')
+    ('aries', False)
+    >>> parse_input('aries dontsave')
+    ('aries', True)
+    """
     if not text:
         return None, False
 
