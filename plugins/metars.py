@@ -12,6 +12,9 @@ def lookup(text, url):
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
 
     request = requests.get(url + station)
+    if request.status_code == 404:
+        return "Station not found"
+
     request.raise_for_status()
     r = request.json()['reports'][0]
     out = r['name'] + ": " + r['raw_text']
