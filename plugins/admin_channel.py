@@ -1,12 +1,12 @@
 from cloudbot import hook
 
 # Messages
-NO_MODE_TEXT = "Mode character '{char}' does not seem to exist on this network."
+NO_MODE = "Mode character {char!r} does not seem to exist on this network."
 MODE_CMD_LOG = "{nick} used {cmd} to set {mode} on {target} in {channel}."
 MODE_CMD_NO_TARGET_LOG = "{nick} used {cmd} to set {mode} in {channel}."
 TOPIC_CHANGE = "{nick} used TOPIC to set the topic in {channel} to {text}."
 KICK_LOG = "{nick} used KICK to kick {target} in {channel}."
-REMOVE_LOG = "{nick} used REMOVE on {target} in {channel} with reason {reason}."
+REMOVE_LOG = "{nick} used REMOVE on {target} in {channel} because {reason!r}."
 
 
 def check_for_chan_mode(char, conn, mode_warn, event):
@@ -17,7 +17,7 @@ def check_for_chan_mode(char, conn, mode_warn, event):
         return True
 
     if mode_warn:
-        event.notice(NO_MODE_TEXT.format(char=char))
+        event.notice(NO_MODE.format(char=char))
 
     return False
 
