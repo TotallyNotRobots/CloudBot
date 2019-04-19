@@ -532,7 +532,10 @@ def attack(event, nick, chan, db, conn, attack_type):
         event.reply("An unknown error has occurred.")
         raise
 
-    event.message(msg.format(nick, shoot - deploy, pluralize_auto(score, "duck"), chan))
+    event.message(msg.format(
+        nick, shoot - deploy,
+        pluralize_auto(score, "duck"), chan
+    ))
     set_ducktime(chan, conn.name)
 
 
