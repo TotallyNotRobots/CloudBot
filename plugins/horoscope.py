@@ -32,7 +32,7 @@ def set_sign(db, nick, sign):
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
+def horoscope(text, db, bot, nick, event):
     """[sign] - get your horoscope"""
     signs = {
         'aries': '1',
@@ -61,13 +61,13 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
     if not sign:
         sign = get_sign(db, nick)
         if not sign:
-            notice_doc()
+            event.notice_doc()
             return
 
         sign = sign.strip().lower()
 
     if sign not in signs:
-        notice("Unknown sign: {}".format(sign))
+        event.notice("Unknown sign: {}".format(sign))
         return
 
     params = {
@@ -80,7 +80,7 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
         request = requests.get(url, params=params, headers=headers)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        reply("Could not get horoscope: {}. URL Error".format(e))
+        event.reply("Could not get horoscope: {}. URL Error".format(e))
         raise
 
     soup = BeautifulSoup(request.text)
@@ -91,4 +91,4 @@ def horoscope(text, db, bot, nick, notice, notice_doc, reply, message):
     if text and not dontsave:
         set_sign(db, nick, sign)
 
-    message(result)
+    event.message(result)
