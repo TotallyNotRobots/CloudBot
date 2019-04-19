@@ -1,5 +1,13 @@
 from cloudbot import hook
 
+# Messages
+NO_MODE_TEXT = "Mode character '{char}' does not seem to exist on this network."
+MODE_CMD_LOG = "{nick} used {cmd} to set {mode} on {target} in {channel}."
+MODE_CMD_NO_TARGET_LOG = "{nick} used {cmd} to set {mode} in {channel}."
+TOPIC_CHANGE = "{nick} used TOPIC to set the topic in {channel} to {text}."
+KICK_LOG = "{nick} used KICK to kick {target} in {channel}."
+REMOVE_LOG = "{nick} used REMOVE on {target} in {channel} with reason {reason}."
+
 
 def check_for_chan_mode(char, conn, mode_warn, event):
     serv_info = conn.memory["server_info"]
@@ -9,7 +17,7 @@ def check_for_chan_mode(char, conn, mode_warn, event):
         return True
 
     if mode_warn:
-        event.notice("Mode character '{}' does not seem to exist on this network.".format(char))
+        event.notice(NO_MODE_TEXT.format(char=char))
 
     return False
 
@@ -28,7 +36,13 @@ def mode_cmd(mode, text, text_inp, chan, conn, nick, event, mode_warn=True):
         target = split[0]
 
     event.notice("Attempting to {} {} in {}...".format(text, target, channel))
-    event.admin_log("{} used {} to set {} on {} in {}.".format(nick, text, mode, target, channel))
+    event.admin_log(MODE_CMD_LOG.format(
+        nick=nick,
+        cmd=text,
+        mode=mode,
+        target=target,
+        channel=channel,
+    ))
     conn.send("MODE {} {} {}".format(channel, mode, target))
 
     return True
@@ -46,7 +60,12 @@ def mode_cmd_no_target(mode, text, text_inp, chan, conn, nick, event, mode_warn=
         channel = chan
 
     event.notice("Attempting to {} {}...".format(text, channel))
-    event.admin_log("{} used {} to set {} in {}.".format(nick, text, mode, channel))
+    event.admin_log(MODE_CMD_NO_TARGET_LOG.format(
+        nick=nick,
+        cmd=text,
+        mode=mode,
+        channel=channel,
+    ))
     conn.send("MODE {} {}".format(channel, mode))
     return True
 
@@ -138,7 +157,7 @@ def topic(text, conn, chan, nick, event):
     else:
         msg = " ".join(split)
 
-    event.admin_log("{} used TOPIC to set the topic in {} to {}.".format(nick, chan, msg))
+    event.admin_log(TOPIC_CHANGE.format(nick=nick, channel=chan, text=msg))
     conn.send("TOPIC {} :{}".format(chan, msg))
 
 
@@ -165,7 +184,7 @@ def kick(text, chan, conn, nick, event):
             out = "KICK {} {}".format(channel, target)
 
     event.notice("Attempting to kick {} from {}...".format(target, channel))
-    event.admin_log("{} used KICK to kick {} in {}.".format(nick, target, channel))
+    event.admin_log(KICK_LOG.format(nick=nick, target=target, channel=channel))
     conn.send(out)
 
 
@@ -179,7 +198,9 @@ def remove(text, chan, conn, nick, event):
     else:
         reason = "requested by {}.".format(nick)
     out = "REMOVE {} {} :{}".format(user, chan, reason)
-    event.admin_log("{} used REMOVE on {} in {} with reason {}.".format(nick, user, chan, reason))
+    event.admin_log(REMOVE_LOG.format(
+        nick=nick, target=user, channel=chan, reason=reason
+    ))
     conn.send(out)
 
 
