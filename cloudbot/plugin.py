@@ -8,6 +8,7 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter
 from pathlib import Path
+from typing import Optional
 from weakref import WeakValueDictionary
 
 import sqlalchemy
@@ -111,6 +112,14 @@ class PluginManager:
         """
         return self._plugin_name_map.get(title)
 
+    def get_plugin(self, path) -> Optional['Plugin']:
+        """
+        Find a loaded plugin from its filename
+        :param path: The plugin's filepath
+        :return: A Plugin object or None
+        """
+        return self.plugins.get(str(Path(path).resolve()))
+
     async def load_all(self, plugin_dir):
         """
         Load a plugin from each *.py file in the given directory.
@@ -160,7 +169,7 @@ class PluginManager:
                     return
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
-        if str(file_path) in self.plugins:
+        if self.get_plugin(file_path):
             await self.unload_plugin(file_path)
 
         module_name = "plugins.{}".format(title)
@@ -302,11 +311,9 @@ class PluginManager:
         file_path = path.resolve()
 
         # make sure this plugin is actually loaded
-        if str(file_path) not in self.plugins:
+        plugin = self.get_plugin(file_path)
+        if not plugin:
             return False
-
-        # get the loaded plugin
-        plugin = self.plugins[str(file_path)]
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             available_hooks = self.cap_hooks["on_available"]
