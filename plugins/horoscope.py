@@ -79,6 +79,13 @@ def parse_or_lookup(text, db, nick, event):
     return sign, dontsave
 
 
+def parse_page(content):
+    soup = BeautifulSoup(content, 'lxml')
+    container = soup.find("main", class_="main-horoscope")
+    para = container.p
+    return para.text
+
+
 @hook.command(autohelp=False)
 def horoscope(text, db, bot, nick, event):
     """[sign] - get your horoscope"""
@@ -103,9 +110,7 @@ def horoscope(text, db, bot, nick, event):
         event.reply("Could not get horoscope: {}. URL Error".format(e))
         raise
 
-    soup = BeautifulSoup(request.text)
-
-    horoscope_text = soup.find("main", class_="main-horoscope").find("p").text
+    horoscope_text = parse_page(request.text)
     result = colors.parse("$(b){}$(b) {}").format(sign, horoscope_text)
 
     if text and not dontsave:
