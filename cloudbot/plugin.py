@@ -120,6 +120,35 @@ class PluginManager:
         """
         return self.plugins.get(str(Path(path).resolve()))
 
+    def can_load(self, plugin_title, noisy=True):
+        pl = self.bot.config.get("plugin_loading")
+        if not pl:
+            return True
+
+        if pl.get("use_whitelist", False):
+            if plugin_title not in pl.get("whitelist", []):
+                if noisy:
+                    logger.info(
+                        'Not loading plugin module "%s": '
+                        'plugin not whitelisted',
+                        plugin_title
+                    )
+
+                return False
+
+            return True
+
+        if plugin_title in pl.get("blacklist", []):
+            if noisy:
+                logger.info(
+                    'Not loading plugin module "%s": plugin blacklisted',
+                    plugin_title
+                )
+
+            return False
+
+        return True
+
     async def load_all(self, plugin_dir):
         """
         Load a plugin from each *.py file in the given directory.
@@ -142,9 +171,8 @@ class PluginManager:
 
     async def load_plugin(self, path):
         """
-        Loads a plugin from the given path and plugin object, then registers all hooks from that plugin.
-
-        Won't load any plugins listed in "disabled_plugins".
+        Loads a plugin from the given path and plugin object,
+        then registers all hooks from that plugin.
 
         :type path: str | Path
         """
@@ -156,17 +184,8 @@ class PluginManager:
         plugin_path = file_path.relative_to(self.bot.base_dir)
         title = '.'.join(plugin_path.parts[1:]).rsplit('.', 1)[0]
 
-        if "plugin_loading" in self.bot.config:
-            pl = self.bot.config.get("plugin_loading")
-
-            if pl.get("use_whitelist", False):
-                if title not in pl.get("whitelist", []):
-                    logger.info('Not loading plugin module "%s": plugin not whitelisted', title)
-                    return
-            else:
-                if title in pl.get("blacklist", []):
-                    logger.info('Not loading plugin module "%s": plugin blacklisted', title)
-                    return
+        if not self.can_load(title):
+            return
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
         if self.get_plugin(file_path):
