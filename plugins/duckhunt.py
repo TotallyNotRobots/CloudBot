@@ -11,6 +11,7 @@ from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
 from cloudbot.util.formatting import pluralize_auto, truncate
+from cloudbot.util.func_utils import call_with_args
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\\_o< ", "\\_O< ", "\\_0< ", "\\_\u00f6< ", "\\_\u00f8< ", "\\_\u00f3< "]
@@ -604,12 +605,6 @@ class ScoreType:
         self.verb = verb
 
 
-SCORE_TYPES = {
-    'friend': ScoreType('befriend', 'befriend', 'friend', 'friended'),
-    'killer': ScoreType('killer', 'shot', 'killer', 'killed'),
-}
-
-
 def get_channel_scores(db, score_type: ScoreType, conn, chan):
     scores_dict = defaultdict(int)
     scores = get_scores(db, score_type.column_name, conn.name, chan)
@@ -653,6 +648,18 @@ def get_average_scores(db, score_type: ScoreType, conn):
     return scores_dict
 
 
+SCORE_TYPES = {
+    'friend': ScoreType('befriend', 'befriend', 'friend', 'friended'),
+    'killer': ScoreType('killer', 'shot', 'killer', 'killed'),
+}
+
+DISPLAY_FUNCS = {
+    'average': get_average_scores,
+    'global': get_global_scores,
+    None: get_channel_scores,
+}
+
+
 def display_scores(score_type: ScoreType, text, chan, conn, db):
     if is_opt_out(conn.name, chan):
         return
@@ -665,24 +672,20 @@ def display_scores(score_type: ScoreType, text, chan, conn, db):
     )
     no_ducks = "It appears no one has {verb} any ducks yet."
 
-    text_lower = text.lower()
-    if text_lower == 'global':
-        out = global_pfx
-        scores_dict = get_global_scores(db, score_type, conn)
-    elif text_lower == 'average':
-        out = global_pfx
-        scores_dict = get_average_scores(db, score_type, conn)
-    else:
-        out = chan_pfx
-        scores_dict = get_channel_scores(db, score_type, conn, chan)
+    out = global_pfx if text else chan_pfx
+
+    func = DISPLAY_FUNCS[text.lower() or None]
+    scores_dict = call_with_args(func, {
+        'db': db,
+        'score_type': score_type,
+        'conn': conn,
+        'chan': chan,
+    })
 
     if not scores_dict:
         return no_ducks
 
-    if scores_dict:
-        return top_list(out, scores_dict.items())
-
-    return None
+    return top_list(out, scores_dict.items())
 
 
 @hook.command("friends", autohelp=False)
