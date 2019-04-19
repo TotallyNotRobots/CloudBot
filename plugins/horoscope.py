@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import Column, String, Table, select
 
 from cloudbot import hook
-from cloudbot.util import database, colors
+from cloudbot.util import colors, database
 
 table = Table(
     'horoscope',
@@ -48,18 +48,25 @@ def set_sign(db, nick, sign):
     db.commit()
 
 
+def parse_input(text):
+    if not text:
+        return None, False
+
+    args = text.split()
+    sign = args.pop(0)
+
+    dontsave = "dontsave" in args
+
+    return sign, dontsave
+
+
 @hook.command(autohelp=False)
 def horoscope(text, db, bot, nick, event):
     """[sign] - get your horoscope"""
 
     headers = {'User-Agent': bot.user_agent}
 
-    # check if the user asked us not to save his details
-    dontsave = text.endswith(" dontsave")
-    if dontsave:
-        sign = text[:-9].strip().lower()
-    else:
-        sign = text.strip().lower()
+    sign, dontsave = parse_input(text)
 
     if not sign:
         sign = get_sign(db, nick)
