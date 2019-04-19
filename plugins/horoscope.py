@@ -2,7 +2,7 @@
 
 import requests
 from bs4 import BeautifulSoup
-from sqlalchemy import Table, String, Column, select
+from sqlalchemy import Column, String, Table, select
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -13,6 +13,23 @@ table = Table(
     Column('nick', String, primary_key=True),
     Column('sign', String)
 )
+
+URL = "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx"
+
+SIGN_MAP = {
+    'aries': '1',
+    'taurus': '2',
+    'gemini': '3',
+    'cancer': '4',
+    'leo': '5',
+    'virgo': '6',
+    'libra': '7',
+    'scorpio': '8',
+    'sagittarius': '9',
+    'capricorn': '10',
+    'aquarius': '11',
+    'pisces': '12',
+}
 
 
 def get_sign(db, nick):
@@ -34,20 +51,6 @@ def set_sign(db, nick, sign):
 @hook.command(autohelp=False)
 def horoscope(text, db, bot, nick, event):
     """[sign] - get your horoscope"""
-    signs = {
-        'aries': '1',
-        'taurus': '2',
-        'gemini': '3',
-        'cancer': '4',
-        'leo': '5',
-        'virgo': '6',
-        'libra': '7',
-        'scorpio': '8',
-        'sagittarius': '9',
-        'capricorn': '10',
-        'aquarius': '11',
-        'pisces': '12'
-    }
 
     headers = {'User-Agent': bot.user_agent}
 
@@ -66,18 +69,16 @@ def horoscope(text, db, bot, nick, event):
 
         sign = sign.strip().lower()
 
-    if sign not in signs:
+    if sign not in SIGN_MAP:
         event.notice("Unknown sign: {}".format(sign))
         return
 
     params = {
-        "sign": signs[sign]
+        "sign": SIGN_MAP[sign]
     }
 
-    url = "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx"
-
     try:
-        request = requests.get(url, params=params, headers=headers)
+        request = requests.get(URL, params=params, headers=headers)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         event.reply("Could not get horoscope: {}. URL Error".format(e))
