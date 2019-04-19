@@ -13,8 +13,8 @@ from weakref import WeakValueDictionary
 import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
-from cloudbot.hook import Priority, Action
-from cloudbot.util import database, async_util
+from cloudbot.hook import Action, Priority
+from cloudbot.util import async_util, database
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
