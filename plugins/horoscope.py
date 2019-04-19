@@ -61,24 +61,33 @@ def parse_input(text):
     return sign, dontsave
 
 
-@hook.command(autohelp=False)
-def horoscope(text, db, bot, nick, event):
-    """[sign] - get your horoscope"""
-
-    headers = {'User-Agent': bot.user_agent}
-
+def parse_or_lookup(text, db, nick, event):
     sign, dontsave = parse_input(text)
 
     if not sign:
         sign = get_sign(db, nick)
         if not sign:
             event.notice_doc()
-            return
+            return None, None
 
         sign = sign.strip().lower()
 
     if sign not in SIGN_MAP:
         event.notice("Unknown sign: {}".format(sign))
+        return None, None
+
+    return sign, dontsave
+
+
+@hook.command(autohelp=False)
+def horoscope(text, db, bot, nick, event):
+    """[sign] - get your horoscope"""
+
+    headers = {'User-Agent': bot.user_agent}
+
+    sign, dontsave = parse_or_lookup(text, db, nick, event)
+
+    if not sign:
         return
 
     params = {
