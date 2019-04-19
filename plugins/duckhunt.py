@@ -610,6 +610,49 @@ SCORE_TYPES = {
 }
 
 
+def get_channel_scores(db, score_type: ScoreType, conn, chan):
+    scores_dict = defaultdict(int)
+    scores = get_scores(db, score_type.column_name, conn.name, chan)
+    if not scores:
+        return None
+
+    for row in scores:
+        if row[1] == 0:
+            continue
+
+        scores_dict[row[0]] += row[1]
+
+    return scores_dict
+
+
+def get_global_scores(db, score_type: ScoreType, conn):
+    scores_dict = defaultdict(int)
+    chancount = defaultdict(int)
+    scores = get_scores(db, score_type.column_name, conn.name)
+    if not scores:
+        return None, None
+
+    for row in scores:
+        if row[1] == 0:
+            continue
+
+        chancount[row[0]] += 1
+        scores_dict[row[0]] += row[1]
+
+    return scores_dict, chancount
+
+
+def get_average_scores(db, score_type: ScoreType, conn):
+    scores_dict, chancount = get_global_scores(db, score_type, conn)
+    if not scores_dict:
+        return None
+
+    for k, v in scores_dict.items():
+        scores_dict[k] = int(v / chancount[k])
+
+    return scores_dict
+
+
 def display_scores(score_type: ScoreType, text, chan, conn, db):
     if is_opt_out(conn.name, chan):
         return
@@ -622,38 +665,24 @@ def display_scores(score_type: ScoreType, text, chan, conn, db):
     )
     no_ducks = "It appears no one has {verb} any ducks yet."
 
-    scores_dict = defaultdict(int)
-    chancount = defaultdict(int)
     text_lower = text.lower()
-    if text_lower in ('global', 'average'):
+    if text_lower == 'global':
         out = global_pfx
-        scores = get_scores(db, score_type.column_name, conn.name)
-        if not scores:
-            return no_ducks
-
-        for row in scores:
-            if row[1] == 0:
-                continue
-
-            chancount[row[0]] += 1
-            scores_dict[row[0]] += row[1]
-
-        if text_lower == 'average':
-            for k, v in scores_dict.items():
-                scores_dict[k] = int(v / chancount[k])
+        scores_dict = get_global_scores(db, score_type, conn)
+    elif text_lower == 'average':
+        out = global_pfx
+        scores_dict = get_average_scores(db, score_type, conn)
     else:
         out = chan_pfx
-        scores = get_scores(db, score_type.column_name, conn.name, chan)
-        if not scores:
-            return no_ducks
+        scores_dict = get_channel_scores(db, score_type, conn, chan)
 
-        for row in scores:
-            if row[1] == 0:
-                continue
+    if not scores_dict:
+        return no_ducks
 
-            scores_dict[row[0]] += row[1]
+    if scores_dict:
+        return top_list(out, scores_dict.items())
 
-    return top_list(out, scores_dict.items())
+    return None
 
 
 @hook.command("friends", autohelp=False)
