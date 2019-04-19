@@ -2,7 +2,7 @@
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import Column, String, Table, select
-from yarl import DAILY_URL
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import colors, database
@@ -14,7 +14,7 @@ table = Table(
     Column('sign', String)
 )
 
-BASE_URL = DAILY_URL("http://www.horoscope.com/us/horoscopes/general/")
+BASE_URL = URL("http://www.horoscope.com/us/horoscopes/general/")
 DAILY_URL = BASE_URL / "horoscope-general-daily-today.aspx"
 
 SIGN_MAP = {
