@@ -25,7 +25,8 @@ def mock_db():
                 'testuser': 5,
                 'testuser1': 1,
             },
-            'Duck friend scores in #TestChannel: \x02t\u200bestuser\x02: 5 • \x02t\u200bestuser1\x02: 1'
+            'Duck friend scores in #TestChannel: '
+            '\x02t\u200bestuser\x02: 5 • \x02t\u200bestuser1\x02: 1'
     ),
 ])
 def test_top_list(prefix, items, result):
@@ -56,38 +57,50 @@ def test_display_scores(mock_db):
         session, duckhunt.SCORE_TYPES['friend'], conn, '#TestChannel'
     ) == {'testuser': 4, 'testuser1': 7}
 
-    assert repr(duckhunt.friends('', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.friends('', '#TestChannel', conn, session)
+    ) == repr(
         'Duck friend scores in #TestChannel: '
         '\x02t\u200bestuser1\x02: 7 • \x02t\u200bestuser\x02: 4'
     )
 
-    assert repr(duckhunt.killers('', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.killers('', '#TestChannel', conn, session)
+    ) == repr(
         'Duck killer scores in #TestChannel: '
         '\x02t\u200bestuser\x02: 5 • \x02t\u200bestuser1\x02: 1'
     )
 
-    assert repr(duckhunt.friends('global', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.friends('global', '#TestChannel', conn, session)
+    ) == repr(
         'Duck friend scores across the network: '
         '\x02t\u200bestuser1\x02: 7'
         ' • \x02t\u200bestuser\x02: 4'
         ' • \x02o\u200btheruser\x02: 2'
     )
 
-    assert repr(duckhunt.killers('global', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.killers('global', '#TestChannel', conn, session)
+    ) == repr(
         'Duck killer scores across the network: '
         '\x02o\u200btheruser\x02: 9'
         ' • \x02t\u200bestuser\x02: 5'
         ' • \x02t\u200bestuser1\x02: 1'
     )
 
-    assert repr(duckhunt.friends('average', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.friends('average', '#TestChannel', conn, session)
+    ) == repr(
         'Duck friend scores across the network: '
         '\x02t\u200bestuser1\x02: 7'
         ' • \x02t\u200bestuser\x02: 4'
         ' • \x02o\u200btheruser\x02: 2'
     )
 
-    assert repr(duckhunt.killers('average', '#TestChannel', conn, session)) == repr(
+    assert repr(
+        duckhunt.killers('average', '#TestChannel', conn, session)
+    ) == repr(
         'Duck killer scores across the network: '
         '\x02o\u200btheruser\x02: 9'
         ' • \x02t\u200bestuser\x02: 5'
