@@ -620,7 +620,7 @@ def get_channel_scores(db, score_type: ScoreType, conn, chan):
     return scores_dict
 
 
-def get_global_scores(db, score_type: ScoreType, conn):
+def _get_global_scores(db, score_type: ScoreType, conn):
     scores_dict = defaultdict(int)
     chancount = defaultdict(int)
     scores = get_scores(db, score_type.column_name, conn.name)
@@ -637,8 +637,12 @@ def get_global_scores(db, score_type: ScoreType, conn):
     return scores_dict, chancount
 
 
+def get_global_scores(db, score_type: ScoreType, conn):
+    return _get_global_scores(db, score_type, conn)[0]
+
+
 def get_average_scores(db, score_type: ScoreType, conn):
-    scores_dict, chancount = get_global_scores(db, score_type, conn)
+    scores_dict, chancount = _get_global_scores(db, score_type, conn)
     if not scores_dict:
         return None
 
