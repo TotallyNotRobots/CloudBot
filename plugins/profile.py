@@ -71,8 +71,9 @@ def moreprofile(text, chan, nick, notice):
             notice("Please specify a positive integer value")
             return
 
-        page = pages[index - 1]
-        if page is None:
+        try:
+            page = pages[index - 1]
+        except IndexError:
             notice("Please specify a valid page number between 1 and {}.".format(len(pages)))
             return
 

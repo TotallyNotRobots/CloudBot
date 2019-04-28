@@ -122,8 +122,9 @@ def moremod(text, chan, conn):
         except ValueError:
             return "Please specify an integer value."
 
-        page = pages[index - 1]
-        if page is None:
+        try:
+            page = pages[index - 1]
+        except IndexError:
             return "please specify a valid page number between 1 and {}.".format(len(pages))
 
         return page
