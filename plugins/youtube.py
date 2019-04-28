@@ -173,6 +173,9 @@ def ytplaylist_url(match, reply):
         return 'Error looking up playlist.'
 
     data = json['items']
+    if not data:
+        return "No results found."
+
     snippet = data[0]['snippet']
     content_details = data[0]['contentDetails']
 
