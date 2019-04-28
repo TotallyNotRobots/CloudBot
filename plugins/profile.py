@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, Table, and_
 
 from cloudbot import hook
 from cloudbot.util import database
-from cloudbot.util.pager import paginated_list
+from cloudbot.util.pager import paginated_list, CommandPager
 
 category_re = r"[A-Za-z0-9]+"
 data_re = re.compile(r"({})\s(.+)".format(category_re))
