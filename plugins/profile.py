@@ -64,37 +64,9 @@ def moreprofile(text, chan, nick, notice):
         notice("There are no category pages to show.")
         return
 
-    if text:
-        try:
-            index = int(text)
-        except ValueError:
-            notice("Please specify an integer value.")
-            return
-
-        if index < 0:
-            index += len(pages) + 1
-
-        if index < 1:
-            out = "Please specify a valid page number between 1 and {}."
-            notice(out.format(len(pages)))
-            return
-
-        try:
-            page = pages[index - 1]
-        except IndexError:
-            out = "Please specify a valid page number between 1 and {}."
-            notice(out.format(len(pages)))
-            return
-
-        for line in page:
-            notice(line)
-    else:
-        page = pages.next()
-        if page is not None:
-            for line in page:
-                notice(line)
-        else:
-            notice("All pages have been shown. You can specify a page number or do a new search.")
+    page = pages.handle_lookup(text)
+    for line in page:
+        notice(line)
 
 
 @hook.command()
@@ -123,7 +95,7 @@ def profile(text, chan, notice, nick):
     if not unpck:
         cats = list(user_profile.keys())
 
-        pager = paginated_list(cats, ', ')
+        pager = paginated_list(cats, ', ', pager_cls=CommandPager)
         cat_pages[chan_cf][nick_cf] = pager
         page = pager.next()
         page[0] = "Categories: {}".format(page[0])

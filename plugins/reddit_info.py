@@ -10,7 +10,7 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.util import colors, timeformat, formatting
 from cloudbot.util.formatting import pluralize_auto
-from cloudbot.util.pager import paginated_list
+from cloudbot.util.pager import paginated_list, CommandPager
 
 search_pages = defaultdict(dict)
 user_re = re.compile(r'^(?:/?u(?:ser)?/)?(?P<name>.+)$', re.IGNORECASE)
@@ -116,33 +116,7 @@ def moremod(text, chan, conn):
     if not pages:
         return "There are no modlist pages to show."
 
-    if text:
-        try:
-            index = int(text)
-        except ValueError:
-            return "Please specify an integer value."
-
-        if index < 0:
-            index += len(pages) + 1
-
-        if index < 1:
-            out = "Please specify a valid page number between 1 and {}."
-            return out.format(len(pages))
-
-        try:
-            page = pages[index - 1]
-        except IndexError:
-            out = "Please specify a valid page number between 1 and {}."
-            return out.format(len(pages))
-
-        return page
-
-    page = pages.next()
-    if page is not None:
-        return page
-
-    return "All pages have been shown. " \
-           "You can specify a page number or do a new search."
+    return pages.handle_lookup(text)
 
 
 @hook.regex(post_re, singlethread=True)
@@ -217,7 +191,7 @@ def moderates(text, chan, conn, reply):
     data = r.json()
     subs = data['data']
     out = colors.parse("$(b){}$(b) moderates these public subreddits: ".format(user))
-    pager = paginated_list([sub['sr'] for sub in subs])
+    pager = paginated_list([sub['sr'] for sub in subs], pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
     if len(pager) > 1:
@@ -327,7 +301,7 @@ def submods(text, chan, conn, reply):
         modtime = datetime.now() - datetime.fromtimestamp(mod['date'])
         modtime = time_format(modtime.days)
         moderators.append("{} ({}{})".format(username, modtime[0], modtime[1]))
-    pager = paginated_list(moderators)
+    pager = paginated_list(moderators, pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
     if len(pager) > 1:

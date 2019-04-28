@@ -2,7 +2,7 @@ import importlib
 
 import pytest
 
-from cloudbot.util.pager import Pager
+from cloudbot.util.pager import Pager, CommandPager
 
 
 class MockConn:
@@ -32,33 +32,33 @@ def test_page_commands(plugin_name, hook_name, pages_name, page_type):
 
     assert hook('', '#testchannel', conn) == no_grabs
 
-    pages['testconn1']['#testchannel1'] = Pager(['a', 'b', 'c'])
+    pages['testconn1']['#testchannel1'] = CommandPager(['a', 'b', 'c'])
 
     assert hook('', '#testchannel', conn) == no_grabs
 
-    pages['testconn']['#testchannel1'] = Pager(['a', 'b', 'c'])
+    pages['testconn']['#testchannel1'] = CommandPager(['a', 'b', 'c'])
 
     assert hook('', '#testchannel', conn) == no_grabs
 
-    pages['testconn1']['#testchannel'] = Pager(['a', 'b', 'c'])
+    pages['testconn1']['#testchannel'] = CommandPager(['a', 'b', 'c'])
 
     assert hook('', '#testchannel', conn) == no_grabs
 
-    pages['testconn']['#testchannel'] = Pager(['a', 'b', 'c'])
+    pages['testconn']['#testchannel'] = CommandPager(['a', 'b', 'c'])
 
     assert hook('', '#testchannel', conn) == ['a', 'b (page 1/2)']
     assert hook('', '#testchannel', conn) == ['c (page 2/2)']
-    assert hook('', '#testchannel', conn) == done
+    assert hook('', '#testchannel', conn) == [done]
 
-    assert hook('-3', '#testchannel', conn) == out_of_range
+    assert hook('-3', '#testchannel', conn) == [out_of_range]
     assert hook('-2', '#testchannel', conn) == ['a', 'b (page 1/2)']
     assert hook('-1', '#testchannel', conn) == ['c (page 2/2)']
-    assert hook('0', '#testchannel', conn) == out_of_range
+    assert hook('0', '#testchannel', conn) == [out_of_range]
     assert hook('1', '#testchannel', conn) == ['a', 'b (page 1/2)']
     assert hook('2', '#testchannel', conn) == ['c (page 2/2)']
-    assert hook('3', '#testchannel', conn) == out_of_range
+    assert hook('3', '#testchannel', conn) == [out_of_range]
 
-    assert hook('a', '#testchannel', conn) == no_number
+    assert hook('a', '#testchannel', conn) == [no_number]
 
 
 class CaptureCalls:
@@ -89,19 +89,19 @@ def test_profile_pager():
 
     assert call('', '#testchannel', 'testuser') == [no_grabs]
 
-    pages['#testchannel1']['testuser1'] = Pager(['a', 'b', 'c'])
+    pages['#testchannel1']['testuser1'] = CommandPager(['a', 'b', 'c'])
 
     assert call('', '#testchannel', 'testuser') == [no_grabs]
 
-    pages['#testchannel']['testuser1'] = Pager(['a', 'b', 'c'])
+    pages['#testchannel']['testuser1'] = CommandPager(['a', 'b', 'c'])
 
     assert call('', '#testchannel', 'testuser') == [no_grabs]
 
-    pages['#testchannel1']['testuser'] = Pager(['a', 'b', 'c'])
+    pages['#testchannel1']['testuser'] = CommandPager(['a', 'b', 'c'])
 
     assert call('', '#testchannel', 'testuser') == [no_grabs]
 
-    pages['#testchannel']['testuser'] = Pager(['a', 'b', 'c'])
+    pages['#testchannel']['testuser'] = CommandPager(['a', 'b', 'c'])
 
     assert call('', '#testchannel', 'testuser') == ['a', 'b (page 1/2)']
     assert call('', '#testchannel', 'testuser') == ['c (page 2/2)']
