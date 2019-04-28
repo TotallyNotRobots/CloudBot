@@ -82,7 +82,8 @@ def moreprofile(text, chan, nick, notice):
         try:
             page = pages[index - 1]
         except IndexError:
-            notice("Please specify a valid page number between 1 and {}.".format(len(pages)))
+            out = "Please specify a valid page number between 1 and {}."
+            notice(out.format(len(pages)))
             return
 
         for line in page:
