@@ -114,7 +114,7 @@ def moremod(text, chan, conn):
     chan_cf = chan.casefold()
     pages = search_pages[conn.name].get(chan_cf)
     if not pages:
-        return "There are modlist pages to show."
+        return "There are no modlist pages to show."
 
     if text:
         try:
@@ -125,7 +125,7 @@ def moremod(text, chan, conn):
         try:
             page = pages[index - 1]
         except IndexError:
-            return "please specify a valid page number between 1 and {}.".format(len(pages))
+            return "Please specify a valid page number between 1 and {}.".format(len(pages))
 
         return page
 
@@ -133,7 +133,7 @@ def moremod(text, chan, conn):
     if page is not None:
         return page
 
-    return "All pages have been shown."
+    return "All pages have been shown. You can specify a page number or do a new search."
 
 
 @hook.regex(post_re, singlethread=True)

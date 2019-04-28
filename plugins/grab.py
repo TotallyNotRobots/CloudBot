@@ -72,7 +72,7 @@ def moregrab(text, chan, conn):
     if page is not None:
         return page
 
-    return "All pages have been shown you can specify a page number or do a new search."
+    return "All pages have been shown. You can specify a page number or do a new search."
 
 
 def check_grabs(name, quote, chan):

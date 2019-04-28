@@ -49,7 +49,7 @@ def morescore(text, chan, conn):
         try:
             page = pages[index - 1]
         except IndexError:
-            return "please specify a valid page number between 1 and {}.".format(len(pages))
+            return "Please specify a valid page number between 1 and {}.".format(len(pages))
 
         return page
 
@@ -57,7 +57,7 @@ def morescore(text, chan, conn):
     if page is not None:
         return page
 
-    return "All pages have been shown."
+    return "All pages have been shown. You can specify a page number or do a new search."
 
 
 def page_scores(conn, chan, scores):
