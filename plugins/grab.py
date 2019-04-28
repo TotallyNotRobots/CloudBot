@@ -61,6 +61,13 @@ def moregrab(text, chan, conn):
         except ValueError:
             return "Please specify an integer value."
 
+        if index < 0:
+            index += len(pages) + 1
+
+        if index < 1:
+            out = "Please specify a valid page number between 1 and {}."
+            return out.format(len(pages))
+
         try:
             page = pages[index - 1]
         except IndexError:

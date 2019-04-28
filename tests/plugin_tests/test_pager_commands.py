@@ -50,6 +50,10 @@ def test_page_commands(plugin_name, hook_name, pages_name, page_type):
     assert hook('', '#testchannel', conn) == ['c (page 2/2)']
     assert hook('', '#testchannel', conn) == done
 
+    assert hook('-3', '#testchannel', conn) == out_of_range
+    assert hook('-2', '#testchannel', conn) == ['a', 'b (page 1/2)']
+    assert hook('-1', '#testchannel', conn) == ['c (page 2/2)']
+    assert hook('0', '#testchannel', conn) == out_of_range
     assert hook('1', '#testchannel', conn) == ['a', 'b (page 1/2)']
     assert hook('2', '#testchannel', conn) == ['c (page 2/2)']
     assert hook('3', '#testchannel', conn) == out_of_range
@@ -105,6 +109,10 @@ def test_profile_pager():
     assert call('', '#testchannel', 'testuser') == ['c (page 2/2)']
     assert call('', '#testchannel', 'testuser') == [done]
 
+    assert call('-3', '#testchannel', 'testuser') == [out_of_range]
+    assert call('-2', '#testchannel', 'testuser') == ['a', 'b (page 1/2)']
+    assert call('-1', '#testchannel', 'testuser') == ['c (page 2/2)']
+    assert call('0', '#testchannel', 'testuser') == [out_of_range]
     assert call('1', '#testchannel', 'testuser') == ['a', 'b (page 1/2)']
     assert call('2', '#testchannel', 'testuser') == ['c (page 2/2)']
     assert call('3', '#testchannel', 'testuser') == [out_of_range]
