@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import requests
@@ -7,8 +8,6 @@ from yarl import URL
 from cloudbot import hook
 
 xkcd_re = re.compile(r'(.*:)//(www.xkcd.com|xkcd.com)(.*)', re.I)
-months = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August',
-          9: 'September', 10: 'October', 11: 'November', 12: 'December'}
 
 XKCD_URL = URL("http://www.xkcd.com/")
 ONR_URL = URL("http://www.ohnorobot.com/")
@@ -19,13 +18,20 @@ def xkcd_info(xkcd_id, url=False):
     request = requests.get(str(XKCD_URL / xkcd_id / "info.0.json"))
     request.raise_for_status()
     data = request.json()
-    date = "{} {} {}".format(data['day'], months[int(data['month'])], data['year'])
+
+    date = datetime.date(
+        year=int(data['year']),
+        month=int(data['month']),
+        day=int(data['day']),
+    )
+    date_str = date.strftime('%d %m %Y')
+
     if url:
         url = " | {}".format(XKCD_URL / xkcd_id.replace("/", ""))
     else:
         url = ""
 
-    return "xkcd: \x02{}\x02 ({}){}".format(data['title'], date, url)
+    return "xkcd: \x02{}\x02 ({}){}".format(data['title'], date_str, url)
 
 
 def xkcd_search(term):
