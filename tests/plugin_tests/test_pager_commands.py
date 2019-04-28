@@ -25,7 +25,8 @@ def test_page_commands(plugin_name, hook_name, pages_name, page_type):
     conn = MockConn('testconn')
 
     no_grabs = "There are no {} pages to show.".format(page_type)
-    done = "All pages have been shown. You can specify a page number or do a new search."
+    done = "All pages have been shown. " \
+           "You can specify a page number or do a new search."
     out_of_range = "Please specify a valid page number between 1 and 2."
     no_number = "Please specify an integer value."
 
