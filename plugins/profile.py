@@ -68,7 +68,7 @@ def moreprofile(text, chan, nick, notice):
         try:
             index = int(text)
         except ValueError:
-            notice("Please specify a positive integer value")
+            notice("Please specify an integer value.")
             return
 
         try:
@@ -85,7 +85,7 @@ def moreprofile(text, chan, nick, notice):
             for line in page:
                 notice(line)
         else:
-            notice("All pages have been shown. You can specify a page number or start a new search")
+            notice("All pages have been shown. You can specify a page number or do a new search.")
 
 
 @hook.command()
