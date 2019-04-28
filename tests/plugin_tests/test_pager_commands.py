@@ -76,8 +76,6 @@ def test_profile_pager():
 
     pages = profile.cat_pages
 
-    conn = MockConn('testconn')
-
     def call(*args):
         notice = CaptureCalls()
         hook(*args, notice=notice)
