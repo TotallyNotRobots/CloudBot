@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, Table, and_
 
 from cloudbot import hook
 from cloudbot.util import database
-from cloudbot.util.pager import paginated_list
+from cloudbot.util.pager import paginated_list, CommandPager
 
 category_re = r"[A-Za-z0-9]+"
 data_re = re.compile(r"({})\s(.+)".format(category_re))
@@ -64,27 +64,9 @@ def moreprofile(text, chan, nick, notice):
         notice("There are no category pages to show.")
         return
 
-    if text:
-        try:
-            index = int(text)
-        except ValueError:
-            notice("Please specify a positive integer value")
-            return
-
-        page = pages[index - 1]
-        if page is None:
-            notice("Please specify a valid page number between 1 and {}.".format(len(pages)))
-            return
-
-        for line in page:
-            notice(line)
-    else:
-        page = pages.next()
-        if page is not None:
-            for line in page:
-                notice(line)
-        else:
-            notice("All pages have been shown. You can specify a page number or start a new search")
+    page = pages.handle_lookup(text)
+    for line in page:
+        notice(line)
 
 
 @hook.command()
@@ -113,7 +95,7 @@ def profile(text, chan, notice, nick):
     if not unpck:
         cats = list(user_profile.keys())
 
-        pager = paginated_list(cats, ', ')
+        pager = paginated_list(cats, ', ', pager_cls=CommandPager)
         cat_pages[chan_cf][nick_cf] = pager
         page = pager.next()
         page[0] = "Categories: {}".format(page[0])

@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from cloudbot import hook
 from cloudbot.util import http
-from cloudbot.util.pager import paginated_list
+from cloudbot.util.pager import paginated_list, CommandPager
 
 search_pages = defaultdict(dict)
 
@@ -40,27 +40,11 @@ def morescore(text, chan, conn):
     if not pages:
         return "There are no score pages to show."
 
-    if text:
-        try:
-            index = int(text)
-        except ValueError:
-            return "Please specify an integer value."
-
-        page = pages[index - 1]
-        if page is None:
-            return "please specify a valid page number between 1 and {}.".format(len(pages))
-
-        return page
-
-    page = pages.next()
-    if page is not None:
-        return page
-
-    return "All pages have been shown."
+    return pages.handle_lookup(text)
 
 
 def page_scores(conn, chan, scores):
-    pager = paginated_list(scores, delim=" | ")
+    pager = paginated_list(scores, delim=" | ", pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
     if len(pager) > 1:

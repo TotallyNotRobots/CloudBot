@@ -1,4 +1,5 @@
 from threading import RLock
+from typing import List
 
 from cloudbot.util.formatting import chunk_str
 from cloudbot.util.sequence import chunk_iter
@@ -67,7 +68,47 @@ class Pager:
             return len(self.chunks)
 
 
-def paginated_list(data, delim=" \u2022 ", suffix='...', max_len=256, page_size=2):
+class CommandPager(Pager):
+    """
+    A `Pager` which is designed to be used with one of the .more* commands
+    """
+
+    def handle_lookup(self, text) -> List[str]:
+        if text:
+            try:
+                index = int(text)
+            except ValueError:
+                return ["Please specify an integer value."]
+
+            if index < 0:
+                index += len(self) + 1
+
+            if index < 1:
+                out = "Please specify a valid page number between 1 and {}."
+                return [out.format(len(self))]
+
+            try:
+                page = self[index - 1]
+            except IndexError:
+                out = "Please specify a valid page number between 1 and {}."
+                return [out.format(len(self))]
+
+            return page
+
+        page = self.next()
+        if page is not None:
+            return page
+
+        return [
+            "All pages have been shown. "
+            "You can specify a page number or do a new search."
+        ]
+
+
+def paginated_list(
+        data, delim=" \u2022 ", suffix='...', max_len=256,
+        page_size=2, pager_cls=Pager
+):
     """
     >>> list(paginated_list(['abc', 'def']))
     [['abc \u2022 def']]
@@ -103,4 +144,4 @@ def paginated_list(data, delim=" \u2022 ", suffix='...', max_len=256, page_size=
         line = lines.pop(0)
         formatted_lines.append("{}{}".format(line, suffix if lines else ""))
 
-    return Pager(formatted_lines, chunk_size=page_size)
+    return pager_cls(formatted_lines, chunk_size=page_size)

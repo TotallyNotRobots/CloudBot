@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from cloudbot import hook
 from cloudbot.util import database
-from cloudbot.util.pager import paginated_list
+from cloudbot.util.pager import paginated_list, CommandPager
 
 search_pages = defaultdict(dict)
 
@@ -55,23 +55,7 @@ def moregrab(text, chan, conn):
     if not pages:
         return "There are no grabsearch pages to show."
 
-    if text:
-        try:
-            index = int(text)
-        except ValueError:
-            return "Please specify an integer value."
-
-        page = pages[index - 1]
-        if page is None:
-            return "Please specify a valid page number between 1 and {}.".format(len(pages))
-
-        return page
-
-    page = pages.next()
-    if page is not None:
-        return page
-
-    return "All pages have been shown you can specify a page number or do a new search."
+    return pages.handle_lookup(text)
 
 
 def check_grabs(name, quote, chan):
@@ -217,7 +201,7 @@ def grabsearch(text, chan, conn):
 
         grabs.append(format_grab(name, quote))
 
-    pager = paginated_list(grabs)
+    pager = paginated_list(grabs, pager_cls=CommandPager)
     search_pages[conn.name][chan] = pager
     page = pager.next()
     if len(pager) > 1:
