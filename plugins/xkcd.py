@@ -24,7 +24,7 @@ def xkcd_info(xkcd_id, url=False):
         month=int(data['month']),
         day=int(data['day']),
     )
-    date_str = date.strftime('%d %m %Y')
+    date_str = date.strftime('%d %B %Y')
 
     if url:
         url = " | {}".format(XKCD_URL / xkcd_id.replace("/", ""))
