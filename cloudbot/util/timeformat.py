@@ -45,6 +45,7 @@ License:
 import datetime
 
 from cloudbot.util import formatting
+from cloudbot.util.formatting import pluralize_select
 
 
 def time_since(d, now=None, count=2, accuracy=6, simple=False):
@@ -117,6 +118,83 @@ def time_until(d, now=None, count=2, accuracy=6, simple=False):
 timeuntil = time_until
 
 
+class TimeUnit:
+    """
+    >>> t = TimeUnit(3600, 'h', 'hour', 'hours')
+    >>> t * 24
+    86400
+    >>> t * 2
+    7200
+    """
+
+    def __init__(self, seconds, short_name, long_name, long_name_plural):
+        self.seconds = seconds
+        self.short_name = short_name
+        self.long_name = long_name
+        self.long_name_plural = long_name_plural
+
+    def __mul__(self, other):
+        return self.seconds * other
+
+    def __rmul__(self, other):
+        return other * self.seconds
+
+    def format(self, count, simple=True):
+        if simple:
+            return "{:,}{}".format(count, self.short_name)
+
+        return pluralize_select(count, self.long_name, self.long_name_plural)
+
+
+class TimeInterval:
+    def __init__(self, parts):
+        self.parts = parts
+
+    def format(self, simple=True, skip_empty=True, count=3):
+        i = 0
+        out = []
+        for num, unit in self.parts:
+            if i >= count:
+                break
+
+            if num <= 0 and skip_empty:
+                continue
+
+            i += 1
+            out.append(unit.format(num, simple=simple))
+
+        if simple:
+            return " ".join(out)
+
+        return formatting.get_text_list(out, "and")
+
+
+class TimeUnits:
+    SECOND = TimeUnit(1, 's', 'second', 'seconds')
+    MINUTE = TimeUnit(60 * SECOND, 'm', 'minute', 'minutes')
+    HOUR = TimeUnit(60 * MINUTE, 'h', 'hour', 'hours')
+    DAY = TimeUnit(24 * HOUR, 'd', 'day', 'days')
+    MONTH = TimeUnit(30 * DAY, 'M', 'month', 'months')
+    YEAR = TimeUnit(365 * DAY, 'y', 'year', 'years')
+    DECADE = TimeUnit(10 * YEAR, 'D', 'decade', 'decades')
+    CENTURY = TimeUnit(10 * DECADE, 'c', 'century', 'centuries')
+
+    units = (CENTURY, DECADE, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
+
+    @classmethod
+    def split_time(cls, seconds, accuracy=6):
+        out = []
+        for unit in cls.units[-accuracy:]:
+            if seconds > unit.seconds:
+                p_val, seconds = divmod(seconds, unit.seconds)
+            else:
+                p_val = 0
+
+            out.append((p_val, unit))
+
+        return TimeInterval(out)
+
+
 def format_time(seconds, count=3, accuracy=6, simple=False):
     """
     Takes a length of time in seconds and returns a string describing that length of time.
@@ -135,51 +213,10 @@ def format_time(seconds, count=3, accuracy=6, simple=False):
     '147 years, 10 months and 19 days'
     >>> format_time(SECONDS, count=6)
     '147 years, 10 months, 19 days, 18 hours, 12 minutes and 34 seconds'
+    >>> format_time(3600)
+    '60 minutes'
     """
 
-    if simple:
-        periods = [
-            ('c', 60 * 60 * 24 * 365 * 100),
-            ('de', 60 * 60 * 24 * 365 * 10),
-            ('y', 60 * 60 * 24 * 365),
-            ('m', 60 * 60 * 24 * 30),
-            ('d', 60 * 60 * 24),
-            ('h', 60 * 60),
-            ('m', 60),
-            ('s', 1)
-        ]
-    else:
-        periods = [
-            (('century', 'centuries'), 60 * 60 * 24 * 365 * 100),
-            (('decade', 'decades'), 60 * 60 * 24 * 365 * 10),
-            (('year', 'years'), 60 * 60 * 24 * 365),
-            (('month', 'months'), 60 * 60 * 24 * 30),
-            (('day', 'days'), 60 * 60 * 24),
-            (('hour', 'hours'), 60 * 60),
-            (('minute', 'minutes'), 60),
-            (('second', 'seconds'), 1)
-        ]
+    parsed = TimeUnits.split_time(seconds, accuracy=accuracy)
 
-    periods = periods[-accuracy:]
-
-    strings = []
-    i = 0
-    for period_name, period_seconds in periods:
-        if i < count:
-            if seconds > period_seconds:
-                period_value, seconds = divmod(seconds, period_seconds)
-                i += 1
-                if simple:
-                    strings.append("{}{}".format(period_value, period_name))
-                else:
-                    if period_value == 1:
-                        strings.append("{} {}".format(period_value, period_name[0]))
-                    else:
-                        strings.append("{} {}".format(period_value, period_name[1]))
-        else:
-            break
-
-    if simple:
-        return " ".join(strings)
-
-    return formatting.get_text_list(strings, "and")
+    return parsed.format(simple=simple, count=count)
