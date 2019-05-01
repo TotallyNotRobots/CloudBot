@@ -352,7 +352,7 @@ class CloudBot:
 
             if cmd_match:
                 command_prefix = event.conn.config.get('command_prefix', '.')
-                prefix = cmd_match.group('prefix') or command_prefix
+                prefix = cmd_match.group('prefix') or command_prefix[0]
                 command = cmd_match.group('command').lower()
                 text = cmd_match.group('text').strip()
                 cmd_event = partial(
