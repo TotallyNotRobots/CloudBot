@@ -152,9 +152,16 @@ def base64_encode(text):
 def base64_decode(text, notice):
     """<string> - Decode <string> with base64."""
     try:
-        return " ".join(base64.b64decode(text.encode()).decode().splitlines())
+        decoded = base64.b64decode(text.encode()).decode(errors='ignore')
     except binascii.Error:
         notice("Invalid base64 string '{}'".format(text))
+        return
+
+    if repr(decoded)[1:-1] != decoded:
+        return "Non printable characters detected in output, " \
+               "escaped output: {!r}".format(decoded)
+
+    return decoded
 
 
 @hook.command("isbase64", "checkbase64")

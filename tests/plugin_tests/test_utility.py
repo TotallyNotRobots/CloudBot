@@ -160,6 +160,11 @@ def test_base64_encode(text, output):
     ('Rm9v', 'Foo'),
     ('Zk9P', 'fOO'),
     ('Rk9P', 'FOO'),
+    ('4oSi', '\u2122'),
+    [
+        'AQ==',
+        "Non printable characters detected in output, escaped output: '\\x01'",
+    ],
 ])
 def test_base64_decode(text, out):
     from plugins.utility import base64_decode
