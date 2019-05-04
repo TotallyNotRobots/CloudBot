@@ -24,6 +24,8 @@ TYPE_MAP = {
     'user': 'users',
 }
 
+NO_RESULTS = "Unable to find matching {type}"
+
 
 class SpotifyAPI:
     api_url = URL("https://api.spotify.com/v1")
@@ -140,6 +142,9 @@ def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False
 
 def _format_search(text, _type, reply):
     data = _search(text, _type, reply)
+    if data is None:
+        return NO_RESULTS.format(type=_type)
+
     return _format_response(data, _type, show_url=True, show_uri=True)
 
 
