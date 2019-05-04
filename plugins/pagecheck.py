@@ -2,9 +2,9 @@ import urllib.parse
 
 import requests
 import requests.exceptions
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 
 @hook.command("down", "offline", "up")
@@ -49,7 +49,7 @@ def isup(text):
     if response.status_code != requests.codes.ok:
         return "Failed to get status."
 
-    soup = BeautifulSoup(response.text, 'lxml')
+    soup = parse_soup(response.text)
 
     content = soup.find('div', id="domain-main-content").text.strip()
 

@@ -1,7 +1,7 @@
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 
 @hook.command('ruad', 'rud', 'ruadick')
@@ -10,7 +10,7 @@ def RUADICK(text, message):
     DickCheck = text.strip()
     dickstatus = requests.get('http://www.ruadick.com/user/{}'.format(DickCheck))
     dickstatus.raise_for_status()
-    DickSoup = BeautifulSoup(dickstatus.content, 'lxml')
+    DickSoup = parse_soup(dickstatus.content)
     Dickstr = str(DickSoup.h2)
 
     dickstrip = Dickstr.lstrip('<h2>').rstrip('</h2>')

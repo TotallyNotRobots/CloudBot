@@ -2,10 +2,10 @@ import locale
 import math
 
 import requests
-from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 scrape_url = "http://www.myfitnesspal.com/food/diary/{}"
 
@@ -27,7 +27,7 @@ def mfp(text, reply):
     output = "Diary for {}: ".format(text)
 
     try:
-        soup = BeautifulSoup(request.text, 'html.parser')
+        soup = parse_soup(request.text)
 
         title = soup.find('h1', {'class': 'main-title'})
         if title:

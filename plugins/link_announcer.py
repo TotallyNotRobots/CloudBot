@@ -1,10 +1,10 @@
 import re
 
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
 from cloudbot.hook import Priority, Action
+from cloudbot.util.http import parse_soup
 
 ENCODED_CHAR = r"%[A-F0-9]{2}"
 PATH_SEG_CHARS = r"[A-Za-z0-9!$&'*-.:;=@_~\u00A0-\U0010FFFD]|" + ENCODED_CHAR
@@ -76,13 +76,13 @@ def get_encoding(soup):
 
 
 def parse_content(content, encoding=None):
-    html = BeautifulSoup(content, "lxml", from_encoding=encoding)
+    html = parse_soup(content, from_encoding=encoding)
     old_encoding = encoding
 
     encoding = get_encoding(html)
 
     if encoding is not None and encoding != old_encoding:
-        html = BeautifulSoup(content, "lxml", from_encoding=encoding)
+        html = parse_soup(content, from_encoding=encoding)
 
     return html
 

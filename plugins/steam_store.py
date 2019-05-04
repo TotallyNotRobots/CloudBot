@@ -1,12 +1,12 @@
 import re
 
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
 from cloudbot.util import web, formatting
 
 # CONSTANTS
+from cloudbot.util.http import parse_soup
 
 steam_re = re.compile(r'.*://store.steampowered.com/app/([0-9]+)?.*', re.I)
 
@@ -92,7 +92,7 @@ def steam(text, reply):
         reply("Could not get game info: {}".format(e))
         raise
 
-    soup = BeautifulSoup(request.text, from_encoding="utf-8")
+    soup = parse_soup(request.text, from_encoding="utf-8")
     result = soup.find('a', {'class': 'search_result_row'})
 
     if not result:

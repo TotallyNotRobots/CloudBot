@@ -1,10 +1,10 @@
 import re
 
-import bs4
 import requests
 
 from cloudbot import hook
 from cloudbot.util import web
+from cloudbot.util.http import parse_soup
 
 try:
     import cfscrape
@@ -58,7 +58,7 @@ def get_data(user, currency="us"):
                              "cfscrape module)".format(e))
 
     # parse that page!
-    soup = bs4.BeautifulSoup(request.content)
+    soup = parse_soup(request.content)
 
     # get all the data we need
     try:
