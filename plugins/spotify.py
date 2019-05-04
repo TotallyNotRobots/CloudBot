@@ -86,44 +86,33 @@ def _search(text, _type, reply):
     return results[0]
 
 
+FORMATS = {
+    "track": (
+        "\x02{name}\x02 by \x02{main_artist['name']}\x02 from the album"
+        "\x02{album['name']}\x02"
+    ),
+    "artist": (
+        "\x02{name}\x02, followers: \x02{followers['total']}\x02, genres: "
+        "\x02{genre_str}\x02"
+    ),
+    "album": "\x02{main_artist['name']}\x02 - \x02{name}\x02",
+    "user": "\x02{name}\x02, Followers: \x02{followers['total']:,d}\x02",
+}
+
+
 def _do_format(data, _type):
-    try:
-        name = data["display_name"]
-    except KeyError:
-        name = data["name"]
+    if "display_name" not in data:
+        data["display_name"] = data["name"]
 
-    if _type == "track":
-        artist = data["artists"][0]["name"]
-        album = data["album"]["name"]
+    if "genres" in data:
+        data["genre_str"] = ", ".join(data["genres"])
 
-        return (
-            "Spotify Track",
-            "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(
-                name, artist, album
-            ),
-        )
+    if "artists" in data:
+        data["main_arist"] = data["artists"][0]
 
-    if _type == "artist":
-        return (
-            "Spotify Artist",
-            "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
-                name, data["followers"]["total"], ", ".join(data["genres"])
-            ),
-        )
-
-    if _type == "album":
-        return (
-            "Spotify Album",
-            "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name),
-        )
-
-    if _type == "user":
-        return (
-            "Spotify User",
-            "\x02{}\x02, Followers: \x02{:,d}\x02".format(
-                name, data["followers"]["total"]
-            ),
-        )
+    if _type in FORMATS:
+        fmt = FORMATS[_type]
+        return "Spotify {}".format(_type.title()), fmt.format_map(data)
 
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
