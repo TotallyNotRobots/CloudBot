@@ -10,19 +10,12 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.bot import bot
 
-spotify_re = re.compile(
-    r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))', re.I
-)
+spotify_re = re.compile(r"(spotify:(track|album|artist|user):([a-zA-Z0-9]+))", re.I)
 http_re = re.compile(
-    r'(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))', re.I
+    r"(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))", re.I
 )
 
-TYPE_MAP = {
-    'artist': 'artists',
-    'album': 'albums',
-    'track': 'tracks',
-    'user': 'users',
-}
+TYPE_MAP = {"artist": "artists", "album": "albums", "track": "tracks", "user": "users"}
 
 NO_RESULTS = "Unable to find matching {type}"
 
@@ -51,14 +44,16 @@ class SpotifyAPI:
                 self._refresh_token()
 
             r = requests.get(
-                self.api_url / endpoint, params=params, headers={'Authorization': 'Bearer ' + self._access_token}
+                self.api_url / endpoint,
+                params=params,
+                headers={"Authorization": "Bearer " + self._access_token},
             )
             r.raise_for_status()
 
             return r
 
     def search(self, params):
-        return self.request('search', params)
+        return self.request("search", params)
 
     def _refresh_token(self):
         with self._lock:
@@ -93,27 +88,41 @@ def _search(text, _type, reply):
 
 def _do_format(data, _type):
     try:
-        name = data['display_name']
+        name = data["display_name"]
     except KeyError:
-        name = data['name']
+        name = data["name"]
 
     if _type == "track":
         artist = data["artists"][0]["name"]
         album = data["album"]["name"]
 
-        return "Spotify Track", "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
+        return (
+            "Spotify Track",
+            "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(
+                name, artist, album
+            ),
+        )
 
     if _type == "artist":
-        return "Spotify Artist", "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
-            name, data["followers"]["total"], ', '.join(data["genres"])
+        return (
+            "Spotify Artist",
+            "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
+                name, data["followers"]["total"], ", ".join(data["genres"])
+            ),
         )
 
     if _type == "album":
-        return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
+        return (
+            "Spotify Album",
+            "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name),
+        )
 
-    if _type == 'user':
-        return "Spotify User", "\x02{}\x02, Followers: \x02{:,d}\x02".format(
-            name, data['followers']['total']
+    if _type == "user":
+        return (
+            "Spotify User",
+            "\x02{}\x02, Followers: \x02{:,d}\x02".format(
+                name, data["followers"]["total"]
+            ),
         )
 
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
@@ -129,13 +138,13 @@ def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False
     out += text
 
     if show_uri or show_url:
-        out += ' -'
+        out += " -"
 
     if show_url:
-        out += ' ' + data["external_urls"]["spotify"]
+        out += " " + data["external_urls"]["spotify"]
 
     if show_uri:
-        out += ' ' + "[{}]".format(data["uri"])
+        out += " " + "[{}]".format(data["uri"])
 
     return out
 
@@ -151,12 +160,12 @@ def _format_search(text, _type, reply):
 @hook.on_start
 def set_keys():
     api.set_keys(
-        bot.config.get_api_key('spotify_client_id'),
-        bot.config.get_api_key('spotify_client_secret')
+        bot.config.get_api_key("spotify_client_id"),
+        bot.config.get_api_key("spotify_client_secret"),
     )
 
 
-@hook.command('spotify', 'sptrack')
+@hook.command("spotify", "sptrack")
 def spotify(text, reply):
     """<song> - Search Spotify for <song>"""
     return _format_search(text, "track", reply)
