@@ -73,7 +73,14 @@ def twitter_url(match, conn):
     if tw_api is None:
         return
 
-    tweet = tw_api.get_status(tweet_id, tweet_mode=get_tweet_mode(conn))
+    try:
+        tweet = tw_api.get_status(tweet_id, tweet_mode=get_tweet_mode(conn))
+    except tweepy.TweepError as e:
+        if e.api_code == 144:  # Tweet doesn't exist
+            return
+
+        raise
+
     user = tweet.user
 
     return format_tweet(tweet, user)
