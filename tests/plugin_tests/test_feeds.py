@@ -6,11 +6,10 @@ from mock import patch
 @pytest.fixture()
 def mock_feedparse():
     with patch('feedparser.parse') as mock:
-        with patch('cloudbot.util.web.try_shorten', lambda x: x):
-            yield mock
+        yield mock
 
 
-def test_feeds(mock_feedparse):
+def test_feeds(mock_feedparse, patch_try_shorten):
     from plugins import feeds
 
     mock_feedparse.return_value = FeedParserDict(
