@@ -104,6 +104,14 @@ class PluginManager:
         self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
+    def _add_plugin(self, plugin: 'Plugin'):
+        self.plugins[plugin.file_path] = plugin
+        self._plugin_name_map[plugin.title] = plugin
+
+    def _rem_plugin(self, plugin: 'Plugin'):
+        del self.plugins[plugin.file_path]
+        del self._plugin_name_map[plugin.title]
+
     def find_plugin(self, title):
         """
         Finds a loaded plugin and returns its Plugin object
@@ -115,10 +123,22 @@ class PluginManager:
     def get_plugin(self, path) -> Optional['Plugin']:
         """
         Find a loaded plugin from its filename
+
         :param path: The plugin's filepath
         :return: A Plugin object or None
         """
-        return self.plugins.get(str(Path(path).resolve()))
+        path_obj = Path(path)
+        unresolved = []
+        while not path_obj.exists():
+            unresolved.append(path_obj.name)
+            path_obj = path_obj.parent
+
+        path_obj = path_obj.resolve()
+
+        for part in reversed(unresolved):
+            path_obj /= part
+
+        return self.plugins.get(str(path_obj))
 
     def can_load(self, plugin_title, noisy=True):
         pl = self.bot.config.get("plugin_loading")
@@ -219,8 +239,7 @@ class PluginManager:
                 plugin.unregister_tables(self.bot)
                 return
 
-        self.plugins[plugin.file_path] = plugin
-        self._plugin_name_map[plugin.title] = plugin
+        self._add_plugin(plugin)
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             for cap in on_cap_available_hook.caps:
@@ -300,10 +319,6 @@ class PluginManager:
                 self.perm_hooks[perm].append(perm_hook)
 
             self._log_hook(perm_hook)
-
-        # sort sieve hooks by priority
-        self.sieves.sort(key=lambda x: x.priority)
-        self.connect_hooks.sort(key=attrgetter("priority"))
 
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
@@ -416,7 +431,7 @@ class PluginManager:
             logger.info("Cancelled %d tasks from %s", task_count, plugin.title)
 
         # remove last reference to plugin
-        del self.plugins[plugin.file_path]
+        self._rem_plugin(plugin)
 
         if self.bot.config.get("logging", {}).get("show_plugin_loading", True):
             logger.info("Unloaded all plugins from %s", plugin.title)
