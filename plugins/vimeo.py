@@ -14,6 +14,7 @@ def vimeo_url(match):
     info = data[0]
 
     info["duration"] = timeformat.format_time(info["duration"])
+    info.setdefault("stats_number_of_likes", 0)
 
     return (
         "\x02{title}\x02 - length \x02{duration}\x02 - "
