@@ -81,7 +81,12 @@ def _search(text, _type, reply):
         reply("Could not get track information: {}".format(e.response.status_code))
         raise
 
-    return request.json()[TYPE_MAP[_type]]["items"][0]
+    results = request.json()[TYPE_MAP[_type]]["items"]
+
+    if not results:
+        return None
+
+    return results[0]
 
 
 def _do_format(data, _type):
