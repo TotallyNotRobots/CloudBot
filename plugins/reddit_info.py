@@ -163,6 +163,9 @@ def reddit(text, bot, reply):
 
     data = data["data"]["children"]
 
+    if not data:
+        return "There do not appear to be any posts to show."
+
     # get the requested/random post
     if id_num is not None:
         try:
