@@ -2,9 +2,9 @@ from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
 
+import sqlalchemy as sa
 from sqlalchemy import (
-    Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint,
-    and_, not_, func,
+    Boolean, Column, DateTime, PrimaryKeyConstraint, String, Table, and_, not_,
 )
 from sqlalchemy.sql import select
 
@@ -229,7 +229,7 @@ def get_unread(db, server, target):
 
 
 def count_unread(db, server, target):
-    query = select([func.count(table)]) \
+    query = select([sa.func.count(table)]) \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
         .where(not_(table.c.is_read))
