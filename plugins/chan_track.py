@@ -491,11 +491,16 @@ def replace_user_data(conn, chan_data):
     new_data = chan_data.data.pop("new_users", [])
     has_uh_i_n = is_cap_available(conn, "userhost-in-names")
     has_multi_pfx = is_cap_available(conn, "multi-prefix")
-    chan_data.users.clear()
+    old_data = chan_data.data.pop('old_users', {})
+    new_names = set()
+
     for name in new_data:
         nick, ident, host, status = parse_names_item(
             name, statuses, has_multi_pfx, has_uh_i_n
         )
+
+        new_names.update(nick.casefold())
+
         user_data = get_users(conn).getuser(nick)
         user_data.nick = nick
         if ident:
@@ -506,6 +511,10 @@ def replace_user_data(conn, chan_data):
 
         memb_data = user_data.join_channel(chan_data)
         memb_data.status = status
+
+    for old_nick in old_data:
+        if old_nick not in new_names:
+            del chan_data.users[old_nick]
 
 
 @hook.irc_raw(['353', '366'], singlethread=True)
@@ -524,6 +533,9 @@ def on_names(conn, irc_paramlist, irc_command):
 
     users = chan_data.data.setdefault("new_users", [])
     if not chan_data.receiving_names:
+        chan_data.data['old_users'] = old = ChannelMembersDict(chan_data)
+        old.update(chan_data.users)
+
         chan_data.receiving_names = True
         users.clear()
 
