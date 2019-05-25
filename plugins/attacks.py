@@ -57,7 +57,7 @@ ATTACKS = (
         require_target=False
     ),
     BasicAttack(
-        "westworld", "- outputs a random Westworld show quote", action="target", response=RespType.MESSAGE,
+        "westworld", "- Westworld quotes", action="target", response=RespType.MESSAGE,
         require_target=False
     ),
     BasicAttack("insult", "<user> - insults <user>", response=RespType.MESSAGE),
