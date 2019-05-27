@@ -56,6 +56,10 @@ ATTACKS = (
         "nk", "- outputs a random North Korea propaganda slogan", action="target", response=RespType.MESSAGE,
         require_target=False
     ),
+    BasicAttack(
+        "westworld", "- Westworld quotes", action="target", response=RespType.MESSAGE,
+        require_target=False
+    ),
     BasicAttack("insult", "<user> - insults <user>", response=RespType.MESSAGE),
     BasicAttack("present", "<user> - gives gift to <user>", "present", "gift", action="give a gift to"),
     BasicAttack("spank", "<user> - Spanks <user>"),
