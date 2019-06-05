@@ -1,6 +1,7 @@
 import math
 import string
 from datetime import datetime
+from json import JSONDecodeError
 
 import requests
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
@@ -87,7 +88,12 @@ def api_request(method, **params):
     params.update({"method": method, "api_key": api_key})
     request = requests.get(api_url, params=params)
 
-    data = request.json()
+    try:
+        data = request.json()
+    except JSONDecodeError:
+        request.raise_for_status()
+        raise
+
     if 'error' in data:
         return data, "Error: {}.".format(data["message"])
 
