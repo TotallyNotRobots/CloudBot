@@ -12,6 +12,7 @@ from cloudbot import hook
 from cloudbot.hook import Priority
 from cloudbot.util import database, web
 from cloudbot.util.formatting import gen_markdown_table
+from cloudbot.util.mapping import DefaultKeyFoldDict
 
 optout_table = Table(
     'optout',
@@ -23,7 +24,7 @@ optout_table = Table(
     PrimaryKeyConstraint('network', 'chan', 'hook')
 )
 
-optout_cache = defaultdict(list)
+optout_cache = DefaultKeyFoldDict(list)
 
 cache_lock = RLock()
 
