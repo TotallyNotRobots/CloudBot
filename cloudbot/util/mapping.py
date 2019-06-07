@@ -42,11 +42,12 @@ class KeyFoldMixin:
         """
         return super().setdefault(key.casefold(), default)
 
-    def update(self, mapping=None, **kwargs):
+    def update(self, *args, **kwargs):
         """
         Wrap `dict.update`
         """
-        if mapping is not None:
+        if args:
+            mapping = args[0]
             if hasattr(mapping, 'keys'):
                 for k in mapping.keys():
                     self[k] = mapping[k]
