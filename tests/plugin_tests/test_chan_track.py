@@ -7,7 +7,7 @@ from cloudbot.util.func_utils import call_with_args
 
 
 class MockConn:
-    def __init__(self):
+    def __init__(self, bot=None):
         self.name = 'foo'
         self.memory = {
             'server_info': {
@@ -19,6 +19,7 @@ class MockConn:
             }
         }
         self.nick = 'BotFoo'
+        self.bot = bot
 
     def get_statuses(self, chars):
         return [
@@ -157,8 +158,7 @@ def test_names_handling():
     bot = MagicMock()
     bot.loop = asyncio.get_event_loop()
 
-    conn = MockConn()
-    conn.bot = bot
+    conn = MockConn(bot)
     serv_info = conn.memory['server_info']
     handle_prefixes('(YohvV)!@%+-', serv_info)
     handle_chan_modes('IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz', serv_info)
