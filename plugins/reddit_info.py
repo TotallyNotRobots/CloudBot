@@ -136,7 +136,7 @@ def reddit_post_url(match):
 
 
 @hook.command(autohelp=False, singlethread=True)
-def reddit(text, bot, reply):
+def reddit(text, reply):
     """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
 

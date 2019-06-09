@@ -1,4 +1,5 @@
 import pytest
+from mock import MagicMock
 
 
 @pytest.mark.parametrize('text,post_id', [
@@ -46,3 +47,18 @@ def test_get_user(text, output):
 def test_get_sub(text, output):
     from plugins.reddit_info import get_user
     assert get_user(text) == output
+
+
+def test_reddit_no_posts(mock_requests):
+    from plugins import reddit_info
+    mock_requests.add(
+        'GET',
+        'https://reddit.com/r/foobar/.json',
+        json={"data": {"children": []}},
+    )
+
+    reply_mock = MagicMock()
+
+    response = reddit_info.reddit("/r/FooBar", reply_mock)
+
+    assert response == "There do not appear to be any posts to show."
