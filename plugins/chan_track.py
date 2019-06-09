@@ -19,6 +19,7 @@ import cloudbot.bot
 from cloudbot import hook
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
+from cloudbot.util.mapping import KeyFoldDict, KeyFoldMixin
 
 logger = logging.getLogger("cloudbot")
 
@@ -26,64 +27,6 @@ logger = logging.getLogger("cloudbot")
 class WeakDict(dict):
     """
     A subclass of dict to allow it to be weakly referenced
-    """
-
-
-# noinspection PyUnresolvedReferences
-class KeyFoldMixin:
-    """
-    A mixin for Mapping to allow for case-insensitive keys
-    """
-
-    def __contains__(self, item):
-        return super().__contains__(item.casefold())
-
-    def __getitem__(self, item):
-        return super().__getitem__(item.casefold())
-
-    def __setitem__(self, key, value):
-        return super().__setitem__(key.casefold(), value)
-
-    def __delitem__(self, key):
-        return super().__delitem__(key.casefold())
-
-    def pop(self, key, *args, **kwargs):
-        """
-        Wraps `dict.pop`
-        """
-        return super().pop(key.casefold(), *args, **kwargs)
-
-    def get(self, key, default=None):
-        """
-        Wrap `dict.get`
-        """
-        return super().get(key.casefold(), default)
-
-    def setdefault(self, key, default=None):
-        """
-        Wrap `dict.setdefault`
-        """
-        return super().setdefault(key.casefold(), default)
-
-    def update(self, mapping=None, **kwargs):
-        """
-        Wrap `dict.update`
-        """
-        if mapping is not None:
-            if hasattr(mapping, 'keys'):
-                for k in mapping.keys():
-                    self[k] = mapping[k]
-            else:
-                for k, v in mapping:
-                    self[k] = v
-
-        for k in kwargs:
-            self[k] = kwargs[k]
-
-
-class KeyFoldDict(KeyFoldMixin, dict):
-    """
-    KeyFolded dict type
     """
 
 

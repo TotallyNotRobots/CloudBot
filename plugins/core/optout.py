@@ -12,6 +12,7 @@ from cloudbot import hook
 from cloudbot.hook import Priority
 from cloudbot.util import database, web
 from cloudbot.util.formatting import gen_markdown_table
+from cloudbot.util.mapping import DefaultKeyFoldDict
 
 optout_table = Table(
     'optout',
@@ -23,7 +24,7 @@ optout_table = Table(
     PrimaryKeyConstraint('network', 'chan', 'hook')
 )
 
-optout_cache = defaultdict(list)
+optout_cache = DefaultKeyFoldDict(list)
 
 cache_lock = RLock()
 
@@ -68,9 +69,17 @@ async def check_channel_permissions(event, chan, *perms):
     return allowed
 
 
+def get_conn_optouts(conn_name):
+    with cache_lock:
+        return optout_cache[conn_name.casefold()]
+
+
 def get_channel_optouts(conn_name, chan=None):
     with cache_lock:
-        return [opt for opt in optout_cache[conn_name] if not chan or opt.match_chan(chan)]
+        return [
+            opt for opt in get_conn_optouts(conn_name)
+            if not chan or opt.match_chan(chan)
+        ]
 
 
 def format_optout_list(opts):
@@ -156,7 +165,7 @@ def optout_sieve(bot, event, _hook):
 
     hook_name = _hook.plugin.title + "." + _hook.function_name
     with cache_lock:
-        optouts = optout_cache[event.conn.name]
+        optouts = get_conn_optouts(event.conn.name)
         for _optout in optouts:
             if _optout.match(event.chan, hook_name):
                 if not _optout.allow:
