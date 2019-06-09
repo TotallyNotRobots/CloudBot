@@ -91,7 +91,11 @@ def api_request(method, **params):
     try:
         data = request.json()
     except JSONDecodeError:
+        # Raise an exception if the HTTP request returned an error
         request.raise_for_status()
+
+        # If raise_for_status() doesn't raise an exception, just re-reraise the
+        # existing error
         raise
 
     if 'error' in data:
