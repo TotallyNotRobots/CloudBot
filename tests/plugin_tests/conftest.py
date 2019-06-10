@@ -1,20 +1,8 @@
 import pytest
-from mock import MagicMock, patch
+from mock import patch
 from responses import RequestsMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-
-from cloudbot.bot import bot
-
-
-@pytest.fixture()
-def mock_api_keys():
-    try:
-        bot.set(MagicMock())
-        bot.config.get_api_key.return_value = "APIKEY"
-        yield
-    finally:
-        bot.set(None)
 
 
 @pytest.fixture()
