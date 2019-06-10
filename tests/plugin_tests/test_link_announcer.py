@@ -145,18 +145,17 @@ def test_link_announce(match, test_str, res):
             mck.assert_not_called()
 
 
-def test_link_announce_404():
+def test_link_announce_404(mock_requests):
     url = 'http://example.com'
-    with RequestsMock() as reqs:
-        reqs.add(reqs.GET, url, status=404)
+    mock_requests.add(mock_requests.GET, url, status=404)
 
-        match = url_re.search(url)
-        assert match
-        mck = MagicMock()
+    match = url_re.search(url)
+    assert match
+    mck = MagicMock()
 
-        assert print_url_title(match=match, message=mck) is None
+    assert print_url_title(match=match, message=mck) is None
 
-        mck.assert_not_called()
+    mck.assert_not_called()
 
 
 @pytest.mark.parametrize('body,encoding', [

@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from cloudbot.util import web
 from cloudbot.util.http import compare_urls
 
 # Defined here because we use the same test cases for unescape
@@ -28,7 +27,8 @@ def test_compare_urls(a, b, match):
 
 
 @pytest.mark.parametrize('data,url', [
-    ('foo bar_baz+bing//', 'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
+    ('foo bar_baz+bing//',
+     'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
 ])
 def test_qrcode(data, url, patch_try_shorten):
     from plugins.utility import qrcode
@@ -299,7 +299,8 @@ def test_derpify(text):
 
 
 @pytest.mark.parametrize('text,out', [
-    ('foo bar baz!', '\x0304f\x0300o\x0302o\x0304 \x0300b\x0302a\x0304r\x0300 \x0302b\x0304a\x0300z\x0302!'),
+    ('foo bar baz!',
+     '\x0304f\x0300o\x0302o\x0304 \x0300b\x0302a\x0304r\x0300 \x0302b\x0304a\x0300z\x0302!'),
 ])
 def test_usa(text, out):
     from plugins.utility import usa
