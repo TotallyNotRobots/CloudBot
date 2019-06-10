@@ -1,13 +1,6 @@
 import pytest
 import requests
 from mock import MagicMock
-from responses import RequestsMock
-
-
-@pytest.fixture()
-def mock_requests():
-    with RequestsMock() as reqs:
-        yield reqs
 
 
 def test_shorten(mock_requests):

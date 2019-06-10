@@ -20,14 +20,6 @@ class MockFunction:
         self.args.append((args, kwargs))
 
 
-@pytest.fixture()
-def replace_try_shorten():
-    old = web.try_shorten
-    web.try_shorten = lambda *args, **kwargs: args[0]
-    yield
-    web.try_shorten = old
-
-
 @pytest.mark.parametrize('a,b,match', [
     ('http://example.com/?a=1&b=1', 'http://example.com/?b=1&a=1', True),
 ])
@@ -38,7 +30,7 @@ def test_compare_urls(a, b, match):
 @pytest.mark.parametrize('data,url', [
     ('foo bar_baz+bing//', 'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
 ])
-def test_qrcode(data, url, replace_try_shorten):
+def test_qrcode(data, url, patch_try_shorten):
     from plugins.utility import qrcode
     assert compare_urls(qrcode(data), url)
 

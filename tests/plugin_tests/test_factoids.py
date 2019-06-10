@@ -16,12 +16,6 @@ def test_forget():
         func.assert_called_with('#example', ['foo', 'bar'], mock_session, mock_notice)
 
 
-@pytest.fixture
-def patch_paste():
-    with patch('cloudbot.util.web.paste') as mock:
-        yield mock
-
-
 def test_remove_fact_no_paste():
     from plugins.factoids import factoid_cache
     factoid_cache.clear()
