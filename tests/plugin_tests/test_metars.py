@@ -1,6 +1,3 @@
-from responses import RequestsMock
-
-
 def test_metars(mock_requests):
     mock_requests.add(
         mock_requests.GET, 'http://api.av-wx.com/metar/ABCD',
@@ -32,5 +29,7 @@ def test_taf(mock_requests):
     from plugins.metars import taf
     assert taf('abcd') == 'ABCD: Foo Bar Test'
 
-    assert taf(
-        'abc') == "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
+    invalid_station = "please specify a valid station code " \
+                      "see http://weather.rap.ucar.edu/surface/stations.txt " \
+                      "for a list."
+    assert taf('abc') == invalid_station
