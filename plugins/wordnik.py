@@ -13,11 +13,20 @@ WEB_URL = 'https://www.wordnik.com/words/{}'
 
 ATTRIB_NAMES = {
     'ahd-legacy': 'AHD/Wordnik',
+    'ahd': 'AHD/Wordnik',
+    'ahd-5': 'AHD/Wordnik',
     'century': 'Century/Wordnik',
     'wiktionary': 'Wiktionary/Wordnik',
     'gcide': 'GCIDE/Wordnik',
-    'wordnet': 'Wordnet/Wordnik'
+    'wordnet': 'Wordnet/Wordnik',
 }
+
+
+def format_attrib(attr_id):
+    try:
+        return ATTRIB_NAMES[attr_id]
+    except KeyError:
+        return attr_id.title() + '/Wordnik'
 
 
 def sanitize(text):
@@ -45,7 +54,7 @@ def define(text):
         data = json[0]
         data['word'] = " ".join(data['word'].split())
         data['url'] = web.try_shorten(WEB_URL.format(data['word']))
-        data['attrib'] = ATTRIB_NAMES[data['sourceDictionary']]
+        data['attrib'] = format_attrib(data['sourceDictionary'])
         return "\x02{word}\x02: {text} - {url} ({attrib})".format(**data)
 
     return "I could not find a definition for \x02{}\x02.".format(text)
