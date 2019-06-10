@@ -5,7 +5,6 @@ import mock
 import pytest
 from googlemaps.exceptions import ApiError
 from mock import MagicMock
-from responses import RequestsMock
 
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent
@@ -77,10 +76,12 @@ def test_find_location(mock_requests):
     create_maps_api(bot)
     from plugins import weather
     assert weather.data.maps_api is None
-    bot = MockBot({'api_keys': {
-        'google_dev_key': 'AIzatestapikey',
-        'darksky': 'abc12345' * 4,
-    }})
+    bot = MockBot({
+        'api_keys': {
+            'google_dev_key': 'AIzatestapikey',
+            'darksky': 'abc12345' * 4,
+        }
+    })
 
     return_value = {
         'status': 'OK',

@@ -1,8 +1,7 @@
 import importlib
 from textwrap import dedent
 
-import pytest
-from mock import patch, MagicMock, call
+from mock import MagicMock, call, patch
 from responses import RequestsMock
 
 

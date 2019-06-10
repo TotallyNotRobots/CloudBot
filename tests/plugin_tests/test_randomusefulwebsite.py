@@ -1,6 +1,3 @@
-from responses import RequestsMock
-
-
 def test_random_useful_site(mock_requests):
     mock_requests.add(
         mock_requests.HEAD, 'http://www.discuvver.com/jump2.php',
