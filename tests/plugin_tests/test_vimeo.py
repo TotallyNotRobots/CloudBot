@@ -10,15 +10,12 @@ def patch_get_json():
         yield patched
 
 
-regexp = re.compile(r"vimeo.com/([0-9]+)")
-
-
 def test_no_data(patch_get_json):
     from plugins import vimeo
 
     patch_get_json.return_value = []
 
-    result = vimeo.vimeo_url(regexp.search("https://vimeo.com/1125483"))
+    result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/1125483"))
 
     assert result is None
 
@@ -46,7 +43,7 @@ def test_no_likes(patch_get_json):
         }
     ]
 
-    result = vimeo.vimeo_url(regexp.search("https://vimeo.com/11235"))
+    result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/11235"))
 
     expected_parts = [
         '\x02A video title\x02',
@@ -85,7 +82,7 @@ def test_with_likes(patch_get_json):
         }
     ]
 
-    result = vimeo.vimeo_url(regexp.search("https://vimeo.com/11235"))
+    result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/11235"))
 
     expected_parts = [
         '\x02A video title\x02',

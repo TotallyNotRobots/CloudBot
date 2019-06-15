@@ -1,12 +1,17 @@
+import re
+
 from cloudbot import hook
 from cloudbot.util import http, timeformat
 
+url_re = re.compile(r'vimeo\.com/([0-9]+)')
+api_url = "http://vimeo.com/api/v2/video/{id}.json"
 
-@hook.regex(r"vimeo.com/([0-9]+)")
+
+@hook.regex(url_re)
 def vimeo_url(match):
     """vimeo <url> - returns information on the Vimeo video at <url>"""
     video_id = match.group(1)
-    data = http.get_json("http://vimeo.com/api/v2/video/{}.json".format(video_id))
+    data = http.get_json(api_url.format(id=video_id))
 
     if not data:
         return
