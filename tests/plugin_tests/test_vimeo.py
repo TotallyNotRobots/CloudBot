@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 from mock import patch
 
@@ -6,6 +8,27 @@ from mock import patch
 def patch_get_json():
     with patch('cloudbot.util.http.get_json') as patched:
         yield patched
+
+
+DATA = [
+    {
+        "id": 11235,
+        "title": "A video title",
+        "description": "Some video description",
+        "url": "https://vimeo.com/112345",
+        "upload_date": "2006-10-24 22:56:45",
+        "user_id": 554,
+        "user_name": "AUser",
+        "user_url": "https://vimeo.com/user554",
+        "stats_number_of_plays": 106,
+        "stats_number_of_comments": 6,
+        "duration": 44,
+        "width": 320,
+        "height": 240,
+        "tags": "foo, bar",
+        "embed_privacy": "anywhere"
+    }
+]
 
 
 def test_no_data(patch_get_json):
@@ -21,25 +44,7 @@ def test_no_data(patch_get_json):
 def test_no_likes(patch_get_json):
     from plugins import vimeo
 
-    patch_get_json.return_value = [
-        {
-            "id": 11235,
-            "title": "A video title",
-            "description": "Some video description",
-            "url": "https://vimeo.com/112345",
-            "upload_date": "2006-10-24 22:56:45",
-            "user_id": 554,
-            "user_name": "AUser",
-            "user_url": "https://vimeo.com/user554",
-            "stats_number_of_plays": 106,
-            "stats_number_of_comments": 6,
-            "duration": 44,
-            "width": 320,
-            "height": 240,
-            "tags": "foo, bar",
-            "embed_privacy": "anywhere"
-        }
-    ]
+    patch_get_json.return_value = deepcopy(DATA)
 
     result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/11235"))
 
@@ -59,26 +64,11 @@ def test_no_likes(patch_get_json):
 def test_with_likes(patch_get_json):
     from plugins import vimeo
 
-    patch_get_json.return_value = [
-        {
-            "id": 11235,
-            "title": "A video title",
-            "description": "Some video description",
-            "url": "https://vimeo.com/112345",
-            "upload_date": "2006-10-24 22:56:45",
-            "user_id": 554,
-            "user_name": "AUser",
-            "user_url": "https://vimeo.com/user554",
-            "stats_number_of_likes": 54,
-            "stats_number_of_plays": 106,
-            "stats_number_of_comments": 6,
-            "duration": 44,
-            "width": 320,
-            "height": 240,
-            "tags": "foo, bar",
-            "embed_privacy": "anywhere"
-        }
-    ]
+    data = deepcopy(DATA)
+
+    data[0]["stats_number_of_likes"] = 54
+
+    patch_get_json.return_value = data
 
     result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/11235"))
 
