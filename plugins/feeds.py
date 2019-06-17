@@ -4,39 +4,62 @@ from cloudbot import hook
 from cloudbot.util import web, formatting
 
 
+class FeedAlias:
+    def __init__(self, url, limit=3):
+        self.url = url
+        self.limit = limit
+
+
+ALIASES = {
+    'xkcd': FeedAlias('http://xkcd.com/rss.xml'),
+
+    'ars': FeedAlias('http://feeds.arstechnica.com/arstechnica/index'),
+
+    'pip': FeedAlias('https://pypi.python.org/pypi?%3Aaction=rss', 6),
+    'pypi': FeedAlias('https://pypi.python.org/pypi?%3Aaction=rss', 6),
+    'py': FeedAlias('https://pypi.python.org/pypi?%3Aaction=rss', 6),
+
+    'pipnew': FeedAlias('https://pypi.python.org/pypi?%3Aaction=packages_rss', 5),
+    'pypinew': FeedAlias('https://pypi.python.org/pypi?%3Aaction=packages_rss', 5),
+    'pynew': FeedAlias('https://pypi.python.org/pypi?%3Aaction=packages_rss', 5),
+
+    'world': FeedAlias(
+        'https://news.google.com/news?cf=all&ned=us&hl=en&topic=w&output=rss'
+    ),
+
+    'us': FeedAlias(
+        'https://news.google.com/news?cf=all&ned=us&hl=en&topic=n&output=rss'
+    ),
+    'usa': FeedAlias(
+        'https://news.google.com/news?cf=all&ned=us&hl=en&topic=n&output=rss'
+    ),
+
+    'nz': FeedAlias(
+        'https://news.google.com/news?pz=1&cf=all&ned=nz&hl=en&topic=n&output=rss'
+    ),
+
+    'anand': FeedAlias('http://www.anandtech.com/rss/'),
+    'anandtech': FeedAlias('http://www.anandtech.com/rss/'),
+}
+
+
 def format_item(item):
     url = web.try_shorten(item.link)
     title = formatting.strip_html(item.title)
-    return "{} ({})".format(
-        title, url)
+    return "{} ({})".format(title, url)
 
 
 @hook.command("feed", "rss", "news")
 def rss(text):
     """<feed> - Gets the first three items from the RSS/ATOM feed <feed>."""
-    limit = 3
-
     t = text.lower().strip()
-    if t == "xkcd":
-        addr = "http://xkcd.com/rss.xml"
-    elif t == "ars":
-        addr = "http://feeds.arstechnica.com/arstechnica/index"
-    elif t in ("pypi", "pip", "py"):
-        addr = "https://pypi.python.org/pypi?%3Aaction=rss"
-        limit = 6
-    elif t in ("pypinew", "pipnew", "pynew"):
-        addr = "https://pypi.python.org/pypi?%3Aaction=packages_rss"
-        limit = 5
-    elif t == "world":
-        addr = "https://news.google.com/news?cf=all&ned=us&hl=en&topic=w&output=rss"
-    elif t in ("us", "usa"):
-        addr = "https://news.google.com/news?cf=all&ned=us&hl=en&topic=n&output=rss"
-    elif t == "nz":
-        addr = "https://news.google.com/news?pz=1&cf=all&ned=nz&hl=en&topic=n&output=rss"
-    elif t in ("anand", "anandtech"):
-        addr = "http://www.anandtech.com/rss/"
+    if t in ALIASES:
+        alias = ALIASES[t]
+        addr = alias.url
+        limit = alias.limit
     else:
         addr = text
+        limit = 3
 
     feed = feedparser.parse(addr)
     if not feed.entries:
@@ -46,5 +69,9 @@ def rss(text):
     for item in feed.entries[:limit]:
         out.append(format_item(item))
 
-    start = "\x02{}\x02: ".format(feed.feed.title) if 'title' in feed.feed else ""
+    if 'title' in feed.feed:
+        start = "\x02{}\x02: ".format(feed.feed.title)
+    else:
+        start = ""
+
     return start + ", ".join(out)
