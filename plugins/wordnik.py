@@ -154,7 +154,8 @@ def word_usage(text, event):
 
 @hook.command("pronounce", "sounditout")
 def pronounce(text, event):
-    """<word> - Returns instructions on how to pronounce <word> with an audio example."""
+    """<word> - Returns instructions on how to pronounce <word> with an audio
+    example."""
     try:
         json = word_lookup(text, "pronunciations", limit=5)
     except WordNotFound:
@@ -231,8 +232,9 @@ def antonym(text, event):
 # word of the day
 @hook.command("word", "wordoftheday", autohelp=False)
 def wordoftheday(text, event):
-    """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd.
-    The specified date must be after 2009-08-10."""
+    """[date] - returns the word of the day. To see past word of the day
+    enter use the format yyyy-MM-dd. The specified date must be after
+    2009-08-10."""
     match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
     date = ""
     if match:
