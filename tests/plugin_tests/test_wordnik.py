@@ -1,4 +1,5 @@
 import json
+from abc import ABC
 
 import pytest
 import requests
@@ -457,7 +458,7 @@ class TestAntonym(WordTestBase):
         assert out == expected
 
 
-class WordsTestBase(WordTestBase):
+class WordsTestBase(WordTestBase, ABC):
     @classmethod
     def build_url(cls, word=None, op=None, paramstring=None):
         base = 'http://api.wordnik.com/v4/words.json'
