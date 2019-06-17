@@ -22,16 +22,18 @@ def mock_api_keys():
 
 
 class TestGetVideoDescription:
-    @staticmethod
-    def test_no_key(mock_requests, mock_api_keys):
+    base_url = 'https://www.googleapis.com/youtube/v3/'
+    api_url = base_url + (
+        'videos?part=contentDetails%2C+snippet%2C+statistics&id={id}&key={key}'
+    )
+    search_api_url = base_url + 'search?part=id&maxResults=1'
+
+    def test_no_key(self, mock_requests, mock_api_keys):
         from plugins import youtube
 
         mock_requests.add(
             'GET',
-            'https://www.googleapis.com/youtube/v3/videos'
-            '?part=contentDetails%2C+snippet%2C+statistics'
-            '&id=foobar'
-            '&key=APIKEY',
+            self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
             json={'error': {'code': 403}},
             status=403,
@@ -40,16 +42,12 @@ class TestGetVideoDescription:
         with pytest.raises(youtube.APIError, match="YouTube API is off"):
             youtube.get_video_description('foobar')
 
-    @staticmethod
-    def test_http_error(mock_requests, mock_api_keys):
+    def test_http_error(self, mock_requests, mock_api_keys):
         from plugins import youtube
 
         mock_requests.add(
             'GET',
-            'https://www.googleapis.com/youtube/v3/videos'
-            '?part=contentDetails%2C+snippet%2C+statistics'
-            '&id=foobar'
-            '&key=APIKEY',
+            self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
             json={'error': {'code': 500}},
             status=500,
@@ -58,8 +56,7 @@ class TestGetVideoDescription:
         with pytest.raises(youtube.APIError, match="Unknown error"):
             youtube.get_video_description('foobar')
 
-    @staticmethod
-    def test_command_error_reply(mock_requests, mock_api_keys):
+    def test_command_error_reply(self, mock_requests, mock_api_keys):
         from plugins import youtube
 
         mock_requests.add(
@@ -75,10 +72,7 @@ class TestGetVideoDescription:
 
         mock_requests.add(
             'GET',
-            'https://www.googleapis.com/youtube/v3/videos'
-            '?part=contentDetails%2C+snippet%2C+statistics'
-            '&id=foobar'
-            '&key=APIKEY',
+            self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
             json={'error': {'code': 500}},
             status=500,
