@@ -7,7 +7,7 @@ import requests
 
 from cloudbot import hook
 from cloudbot.bot import bot
-from cloudbot.util import web
+from cloudbot.util import colors, web
 
 API_URL = 'http://api.wordnik.com/v4/'
 WEB_URL = 'https://www.wordnik.com/words/{}'
@@ -117,16 +117,20 @@ def define(text, event):
     try:
         json = word_lookup(text, "definitions", limit=1)
     except WordNotFound:
-        return "I could not find a definition for \x02{}\x02.".format(text)
+        return colors.parse(
+            "I could not find a definition for $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
     data = json[0]
-    data['word'] = " ".join(data['word'].split())
+    data['word'] = data['word']
     data['url'] = web.try_shorten(WEB_URL.format(data['word']))
     data['attrib'] = format_attrib(data['sourceDictionary'])
-    return "\x02{word}\x02: {text} - {url} ({attrib})".format_map(data)
+    return colors.parse(
+        "$(b){word}$(b): {text} - {url} ({attrib})"
+    ).format_map(data)
 
 
 @hook.command("wordusage", "wordexample", "usage")
@@ -135,15 +139,17 @@ def word_usage(text, event):
     try:
         json = word_lookup(text, "examples", limit=10)
     except WordNotFound:
-        return "I could not find any usage examples for \x02{}\x02.".format(text)
+        return colors.parse(
+            "I could not find any usage examples for $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    out = "\x02{}\x02: ".format(text)
+    out = colors.parse("$(b){}$(b): ").format(text)
     example = random.choice(json['examples'])
     out += "{} ".format(example['text'])
-    return " ".join(out.split())
+    return out
 
 
 @hook.command("pronounce", "sounditout")
@@ -152,12 +158,14 @@ def pronounce(text, event):
     try:
         json = word_lookup(text, "pronunciations", limit=5)
     except WordNotFound:
-        return "Sorry, I don't know how to pronounce \x02{}\x02.".format(text)
+        return colors.parse(
+            "Sorry, I don't know how to pronounce $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    out = "\x02{}\x02: ".format(text)
+    out = colors.parse("$(b){}$(b): ").format(text)
     out += " • ".join([i['raw'] for i in json])
 
     try:
@@ -172,7 +180,7 @@ def pronounce(text, event):
         url = web.try_shorten(json[0]['fileUrl'])
         out += " - {}".format(url)
 
-    return " ".join(out.split())
+    return out
 
 
 @hook.command()
@@ -184,14 +192,17 @@ def synonym(text, event):
             'limitPerRelationshipType': 5
         })
     except WordNotFound:
-        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
+        return colors.parse(
+            "Sorry, I couldn't find any synonyms for $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    out = "\x02{}\x02: ".format(text)
+    out = colors.parse("$(b){}$(b): ").format(text)
     out += " • ".join(json[0]['words'])
-    return " ".join(out.split())
+
+    return out
 
 
 @hook.command()
@@ -204,15 +215,17 @@ def antonym(text, event):
             'useCanonical': 'false'
         })
     except WordNotFound:
-        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
+        return colors.parse(
+            "Sorry, I couldn't find any antonyms for $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    out = "\x02{}\x02: ".format(text)
+    out = colors.parse("$(b){}$(b): ").format(text)
     out += " • ".join(json[0]['words'])
-    out = out[:-2]
-    return " ".join(out.split())
+
+    return out
 
 
 # word of the day
@@ -246,11 +259,17 @@ def wordoftheday(text, event):
     note = json['note']
     pos = json['definitions'][0]['partOfSpeech']
     definition = json['definitions'][0]['text']
-    out = "The word for \x02{}\x02 is \x02{}\x02: ".format(day, word)
-    out += "\x0305({})\x0305 ".format(pos)
-    out += "\x0310{}\x0310 ".format(note)
-    out += "\x02Definition:\x02 \x0303{}\x0303".format(definition)
-    return " ".join(out.split())
+    out = "The word for $(bold){day}$(bold) is $(bold){word}$(bold): " \
+          "$(dred)({pos})$(dred) $(cyan){note}$(cyan) " \
+          "$(b)Definition:$(b) $(dgreen){definition}$(dgreen)"
+
+    return colors.parse(out).format(
+        day=day,
+        word=word,
+        pos=pos,
+        note=note,
+        definition=definition,
+    )
 
 
 # random word
@@ -267,4 +286,4 @@ def random_word(event):
         raise
 
     word = json['word']
-    return "Your random word is \x02{}\x02.".format(word)
+    return colors.parse("Your random word is $(b){}$(b).").format(word)
