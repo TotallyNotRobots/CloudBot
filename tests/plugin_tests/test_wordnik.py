@@ -32,22 +32,6 @@ def test_attr_name(source, name):
     assert wordnik.format_attrib(source) == name
 
 
-def test_no_api_key(mock_requests, mock_api_keys):
-    from plugins import wordnik
-
-    mock_api_keys.return_value = None
-
-    mock_event = MagicMock()
-
-    with pytest.raises(wordnik.NoAPIKey):
-        wordnik.define('word', mock_event)
-
-    mock_event.reply.assert_called_with(
-        'There was a problem contacting the Wordnik API '
-        '(This command requires an API key from wordnik.com.)'
-    )
-
-
 class WordTestBase:
     @classmethod
     def build_url(cls, word):
@@ -73,6 +57,21 @@ class WordTestBase:
 
         out, _ = self.call('word')
         assert out == self.get_not_found_msg('word')
+
+    def test_no_key(self, mock_requests, mock_api_keys):
+        from plugins import wordnik
+
+        mock_api_keys.return_value = None
+
+        mock_event = MagicMock()
+
+        with pytest.raises(wordnik.NoAPIKey):
+            self.call('word', mock_event)
+
+        mock_event.reply.assert_called_with(
+            'There was a problem contacting the Wordnik API '
+            '(This command requires an API key from wordnik.com.)'
+        )
 
     @classmethod
     def get_func(cls):
