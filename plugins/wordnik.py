@@ -76,7 +76,7 @@ def api_request(endpoint, params=(), **kwargs):
 
     url = API_URL + endpoint
 
-    params['api_key'] = api_key
+    kwargs['api_key'] = api_key
     with requests.get(url, params=kwargs) as response:
         try:
             data = response.json()
