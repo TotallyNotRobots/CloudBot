@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from responses import RequestsMock
 
-DATA_PATH = Path().resolve() / 'tests/data/xkcd'
+DATA_PATH = Path().resolve() / 'tests' / 'data' / 'xkcd'
 
 
 def get_files():
