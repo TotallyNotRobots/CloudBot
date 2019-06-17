@@ -1,6 +1,7 @@
 import random
 import re
 import urllib.parse
+from json import JSONDecodeError
 
 import requests
 
@@ -25,7 +26,82 @@ ATTRIB_NAMES = {
 # TODO move all strings here
 no_api = "This command requires an API key from wordnik.com."
 
-# TODO move all api requests to one function, handle status errors
+
+class WordnikAPIError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def user_msg(self):
+        return "There was a problem contacting the Wordnik API ()".format(
+            self.message
+        )
+
+
+class NoAPIKey(WordnikAPIError):
+    def __init__(self):
+        super().__init__(no_api)
+
+
+class WordNotFound(WordnikAPIError):
+    def __init__(self):
+        super().__init__("Word not found")
+
+
+ERROR_MAP = {
+    'Not Found': WordNotFound,
+}
+
+
+def raise_error(data):
+    try:
+        error = data['error']
+    except KeyError:
+        return
+
+    try:
+        err = ERROR_MAP[error]()
+    except KeyError:
+        err = WordnikAPIError("Unknown error {!r}".format(error))
+
+    raise err
+
+
+def api_request(endpoint, params=(), **kwargs):
+    kwargs.update(params)
+
+    api_key = bot.config.get_api_key('wordnik')
+    if not api_key:
+        raise NoAPIKey()
+
+    url = API_URL + endpoint
+
+    params['api_key'] = api_key
+    with requests.get(url, params=kwargs) as response:
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            # Raise any request errors we have
+            response.raise_for_status()
+            # If there weren't any, just fall back to raising the current error
+            raise
+
+    # Raise an exception if there's an error in the response
+    raise_error(data)
+
+    return data
+
+
+def sanitize(text):
+    return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
+
+
+def word_lookup(word, operation, params=(), **kwargs):
+    kwargs.update(params)
+    return api_request(
+        "word.json/" + sanitize(word) + "/" + operation,
+        kwargs,
+    )
 
 
 def format_attrib(attr_id):
@@ -35,92 +111,62 @@ def format_attrib(attr_id):
         return attr_id.title() + '/Wordnik'
 
 
-def sanitize(text):
-    return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
-
-
 @hook.command("define", "dictionary")
-def define(text):
+def define(text, event):
     """<word> - Returns a dictionary definition from Wordnik for <word>."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
+    try:
+        json = word_lookup(text, "definitions", limit=1)
+    except WordNotFound:
+        return "I could not find a definition for \x02{}\x02.".format(text)
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    word = sanitize(text)
-    url = API_URL + "word.json/{}/definitions".format(word)
-
-    params = {
-        'api_key': api_key,
-        'limit': 1
-    }
-    request = requests.get(url, params=params)
-    request.raise_for_status()
-    json = request.json()
-
-    if json:
-        data = json[0]
-        data['word'] = " ".join(data['word'].split())
-        data['url'] = web.try_shorten(WEB_URL.format(data['word']))
-        data['attrib'] = format_attrib(data['sourceDictionary'])
-        return "\x02{word}\x02: {text} - {url} ({attrib})".format(**data)
-
-    return "I could not find a definition for \x02{}\x02.".format(text)
+    data = json[0]
+    data['word'] = " ".join(data['word'].split())
+    data['url'] = web.try_shorten(WEB_URL.format(data['word']))
+    data['attrib'] = format_attrib(data['sourceDictionary'])
+    return "\x02{word}\x02: {text} - {url} ({attrib})".format_map(data)
 
 
 @hook.command("wordusage", "wordexample", "usage")
-def word_usage(text):
+def word_usage(text, event):
     """<word> - Returns an example sentence showing the usage of <word>."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
+    try:
+        json = word_lookup(text, "examples", limit=10)
+    except WordNotFound:
+        return "I could not find any usage examples for \x02{}\x02.".format(text)
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    word = sanitize(text)
-    url = API_URL + "word.json/{}/examples".format(word)
-    params = {
-        'api_key': api_key,
-        'limit': 10
-    }
-
-    json = requests.get(url, params=params).json()
-    if json:
-        out = "\x02{}\x02: ".format(text)
-        example = random.choice(json['examples'])
-        out += "{} ".format(example['text'])
-        return " ".join(out.split())
-
-    return "I could not find any usage examples for \x02{}\x02.".format(text)
+    out = "\x02{}\x02: ".format(text)
+    example = random.choice(json['examples'])
+    out += "{} ".format(example['text'])
+    return " ".join(out.split())
 
 
 @hook.command("pronounce", "sounditout")
-def pronounce(text):
+def pronounce(text, event):
     """<word> - Returns instructions on how to pronounce <word> with an audio example."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
-
-    word = sanitize(text)
-    url = API_URL + "word.json/{}/pronunciations".format(word)
-
-    params = {
-        'api_key': api_key,
-        'limit': 5
-    }
-    json = requests.get(url, params=params).json()
-
-    if json:
-        out = "\x02{}\x02: ".format(text)
-        out += " • ".join([i['raw'] for i in json])
-    else:
+    try:
+        json = word_lookup(text, "pronunciations", limit=5)
+    except WordNotFound:
         return "Sorry, I don't know how to pronounce \x02{}\x02.".format(text)
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    url = API_URL + "word.json/{}/audio".format(word)
+    out = "\x02{}\x02: ".format(text)
+    out += " • ".join([i['raw'] for i in json])
 
-    params = {
-        'api_key': api_key,
-        'limit': 1,
-        'useCanonical': 'false'
-    }
-    json = requests.get(url, params=params).json()
+    try:
+        json = word_lookup(text, "audio", limit=1)
+    except WordNotFound:
+        json = None
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
     if json:
         url = web.try_shorten(json[0]['fileUrl'])
@@ -130,117 +176,95 @@ def pronounce(text):
 
 
 @hook.command()
-def synonym(text):
+def synonym(text, event):
     """<word> - Returns a list of synonyms for <word>."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
+    try:
+        json = word_lookup(text, "relatedWords", {
+            'relationshipTypes': 'synonym',
+            'limitPerRelationshipType': 5
+        })
+    except WordNotFound:
+        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    word = sanitize(text)
-    url = API_URL + "word.json/{}/relatedWords".format(word)
-
-    params = {
-        'api_key': api_key,
-        'relationshipTypes': 'synonym',
-        'limitPerRelationshipType': 5
-    }
-    json = requests.get(url, params=params).json()
-
-    if json:
-        out = "\x02{}\x02: ".format(text)
-        out += " • ".join(json[0]['words'])
-        return " ".join(out.split())
-
-    return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(text)
+    out = "\x02{}\x02: ".format(text)
+    out += " • ".join(json[0]['words'])
+    return " ".join(out.split())
 
 
 @hook.command()
-def antonym(text):
+def antonym(text, event):
     """<word> - Returns a list of antonyms for <word>."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
+    try:
+        json = word_lookup(text, "relatedWords", {
+            'relationshipTypes': 'antonym',
+            'limitPerRelationshipType': 5,
+            'useCanonical': 'false'
+        })
+    except WordNotFound:
+        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    word = sanitize(text)
-    url = API_URL + "word.json/{}/relatedWords".format(word)
-
-    params = {
-        'api_key': api_key,
-        'relationshipTypes': 'antonym',
-        'limitPerRelationshipType': 5,
-        'useCanonical': 'false'
-    }
-    json = requests.get(url, params=params).json()
-
-    if json:
-        out = "\x02{}\x02: ".format(text)
-        out += " • ".join(json[0]['words'])
-        out = out[:-2]
-        return " ".join(out.split())
-
-    return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(text)
+    out = "\x02{}\x02: ".format(text)
+    out += " • ".join(json[0]['words'])
+    out = out[:-2]
+    return " ".join(out.split())
 
 
 # word of the day
 @hook.command("word", "wordoftheday", autohelp=False)
-def wordoftheday(text):
+def wordoftheday(text, event):
     """[date] - returns the word of the day. To see past word of the day enter use the format yyyy-MM-dd.
     The specified date must be after 2009-08-10."""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
-
     match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
     date = ""
     if match:
         date = match.group(1)
-    url = API_URL + "words.json/wordOfTheDay"
+
     if date:
         params = {
-            'api_key': api_key,
             'date': date
         }
         day = date
     else:
-        params = {
-            'api_key': api_key,
-        }
+        params = {}
         day = "today"
 
-    json = requests.get(url, params=params).json()
+    try:
+        json = api_request("words.json/wordOfTheDay", params)
+    except WordNotFound:
+        return "Sorry I couldn't find the word of the day"
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    if json:
-        word = json['word']
-        note = json['note']
-        pos = json['definitions'][0]['partOfSpeech']
-        definition = json['definitions'][0]['text']
-        out = "The word for \x02{}\x02 is \x02{}\x02: ".format(day, word)
-        out += "\x0305({})\x0305 ".format(pos)
-        out += "\x0310{}\x0310 ".format(note)
-        out += "\x02Definition:\x02 \x0303{}\x0303".format(definition)
-        return " ".join(out.split())
-
-    return "Sorry I couldn't find the word of the day, check out this awesome otter instead {}".format(
-        "http://i.imgur.com/pkuWlWx.gif")
+    word = json['word']
+    note = json['note']
+    pos = json['definitions'][0]['partOfSpeech']
+    definition = json['definitions'][0]['text']
+    out = "The word for \x02{}\x02 is \x02{}\x02: ".format(day, word)
+    out += "\x0305({})\x0305 ".format(pos)
+    out += "\x0310{}\x0310 ".format(note)
+    out += "\x02Definition:\x02 \x0303{}\x0303".format(definition)
+    return " ".join(out.split())
 
 
 # random word
 @hook.command("wordrandom", "randomword", autohelp=False)
-def random_word():
+def random_word(event):
     """- Grabs a random word from wordnik.com"""
-    api_key = bot.config.get_api_key('wordnik')
-    if not api_key:
-        return no_api
+    try:
+        json = api_request("words.json/randomWord", {
+            'hasDictionarydef': 'true',
+            'vulgar': 'true'
+        })
+    except WordnikAPIError as e:
+        event.reply(e.user_msg())
+        raise
 
-    url = API_URL + "words.json/randomWord"
-    params = {
-        'api_key': api_key,
-        'hasDictionarydef': 'true',
-        'vulgar': 'true'
-    }
-    json = requests.get(url, params=params).json()
-    if json:
-        word = json['word']
-        return "Your random word is \x02{}\x02.".format(word)
-
-    return "There was a problem contacting the Wordnik API."
+    word = json['word']
+    return "Your random word is \x02{}\x02.".format(word)
