@@ -21,6 +21,12 @@ ATTRIB_NAMES = {
     'wordnet': 'Wordnet/Wordnik',
 }
 
+# Strings
+# TODO move all strings here
+no_api = "This command requires an API key from wordnik.com."
+
+# TODO move all api requests to one function, handle status errors
+
 
 def format_attrib(attr_id):
     try:
@@ -38,7 +44,8 @@ def define(text):
     """<word> - Returns a dictionary definition from Wordnik for <word>."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     word = sanitize(text)
     url = API_URL + "word.json/{}/definitions".format(word)
 
@@ -65,7 +72,8 @@ def word_usage(text):
     """<word> - Returns an example sentence showing the usage of <word>."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     word = sanitize(text)
     url = API_URL + "word.json/{}/examples".format(word)
     params = {
@@ -88,7 +96,8 @@ def pronounce(text):
     """<word> - Returns instructions on how to pronounce <word> with an audio example."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     word = sanitize(text)
     url = API_URL + "word.json/{}/pronunciations".format(word)
 
@@ -125,7 +134,8 @@ def synonym(text):
     """<word> - Returns a list of synonyms for <word>."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     word = sanitize(text)
     url = API_URL + "word.json/{}/relatedWords".format(word)
 
@@ -149,7 +159,8 @@ def antonym(text):
     """<word> - Returns a list of antonyms for <word>."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     word = sanitize(text)
     url = API_URL + "word.json/{}/relatedWords".format(word)
 
@@ -177,7 +188,8 @@ def wordoftheday(text):
     The specified date must be after 2009-08-10."""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
     date = ""
     if match:
@@ -218,7 +230,8 @@ def random_word():
     """- Grabs a random word from wordnik.com"""
     api_key = bot.config.get_api_key('wordnik')
     if not api_key:
-        return "This command requires an API key from wordnik.com."
+        return no_api
+
     url = API_URL + "words.json/randomWord"
     params = {
         'api_key': api_key,
