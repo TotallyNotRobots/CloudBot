@@ -1,4 +1,7 @@
+import json
+
 import pytest
+import requests
 from mock import MagicMock
 from responses import RequestsMock
 
@@ -58,9 +61,68 @@ class WordTestBase:
         out, _ = self.call('word')
         assert out == self.get_not_found_msg('word')
 
-    def test_no_key(self, mock_requests, mock_api_keys):
-        from plugins import wordnik
+    def test_unknown(self, mock_requests, mock_api_keys):
+        mock_requests.add(
+            'GET',
+            self.build_url('word'),
+            match_querystring=True,
+            status=512,
+            json={'error': "FooBar"},
+        )
 
+        event = MagicMock()
+        with pytest.raises(wordnik.WordnikAPIError):
+            self.call('word', event)
+
+        event.reply.assert_called_with(
+            "There was a problem contacting the Wordnik API "
+            "(Unknown error 'FooBar')"
+        )
+
+    def test_invalid_error(self, mock_requests, mock_api_keys):
+        mock_requests.add(
+            'GET',
+            self.build_url('word'),
+            match_querystring=True,
+            status=512,
+            json={},
+        )
+
+        event = MagicMock()
+        with pytest.raises(wordnik.WordnikAPIError):
+            self.call('word', event)
+
+        event.reply.assert_called_with(
+            'There was a problem contacting the Wordnik API '
+            '(Unknown error, unable to retrieve error data)'
+        )
+
+    def test_json_http_error(self, mock_requests, mock_api_keys):
+        mock_requests.add(
+            'GET',
+            self.build_url('word'),
+            match_querystring=True,
+            status=512,
+            body="Some data",
+        )
+
+        event = MagicMock()
+        with pytest.raises(requests.HTTPError):
+            self.call('word', event)
+
+    def test_json_no_http_error(self, mock_requests, mock_api_keys):
+        mock_requests.add(
+            'GET',
+            self.build_url('word'),
+            match_querystring=True,
+            body="Some data",
+        )
+
+        event = MagicMock()
+        with pytest.raises(json.JSONDecodeError):
+            self.call('word', event)
+
+    def test_no_key(self, mock_requests, mock_api_keys):
         mock_api_keys.return_value = None
 
         mock_event = MagicMock()
