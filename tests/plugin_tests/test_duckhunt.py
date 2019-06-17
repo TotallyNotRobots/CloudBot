@@ -1,6 +1,7 @@
 import importlib
 
 import pytest
+from mock import MagicMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -103,14 +104,22 @@ def test_display_scores(mock_db):
         ' • \x02t\u200bestuser1\x02: 1'
     )
 
-    assert duckhunt.friends('', chan, conn, session) == chan_friends
+    event = MagicMock()
 
-    assert duckhunt.killers('', chan, conn, session) == chan_kills
+    assert duckhunt.friends('', event, chan, conn, session) == chan_friends
 
-    assert duckhunt.friends('global', chan, conn, session) == global_friends
+    assert duckhunt.killers('', event, chan, conn, session) == chan_kills
 
-    assert duckhunt.killers('global', chan, conn, session) == global_kills
+    assert duckhunt.friends('global', event, chan, conn, session) == global_friends
 
-    assert duckhunt.friends('average', chan, conn, session) == average_friends
+    assert duckhunt.killers('global', event, chan, conn, session) == global_kills
 
-    assert duckhunt.killers('average', chan, conn, session) == average_kills
+    assert duckhunt.friends('average', event, chan, conn, session) == average_friends
+
+    assert duckhunt.killers('average', event, chan, conn, session) == average_kills
+
+    event.reset_mock()
+
+    assert duckhunt.killers('#channel', event, chan, conn, session) is None
+
+    event.notice_doc.assert_called_once()

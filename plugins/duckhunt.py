@@ -664,7 +664,7 @@ DISPLAY_FUNCS = {
 }
 
 
-def display_scores(score_type: ScoreType, text, chan, conn, db):
+def display_scores(score_type: ScoreType, event, text, chan, conn, db):
     if is_opt_out(conn.name, chan):
         return
 
@@ -678,7 +678,12 @@ def display_scores(score_type: ScoreType, text, chan, conn, db):
 
     out = global_pfx if text else chan_pfx
 
-    func = DISPLAY_FUNCS[text.lower() or None]
+    try:
+        func = DISPLAY_FUNCS[text.lower() or None]
+    except KeyError:
+        event.notice_doc()
+        return
+
     scores_dict = call_with_args(func, {
         'db': db,
         'score_type': score_type,
@@ -693,31 +698,33 @@ def display_scores(score_type: ScoreType, text, chan, conn, db):
 
 
 @hook.command("friends", autohelp=False)
-def friends(text, chan, conn, db):
+def friends(text, event, chan, conn, db):
     """[{global|average}] - Prints a list of the top duck friends in the
     channel, if 'global' is specified all channels in the database are
     included.
 
     :type text: str
+    :type event: cloudbot.event.CommandEvent
     :type chan: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    return display_scores(SCORE_TYPES['friend'], text, chan, conn, db)
+    return display_scores(SCORE_TYPES['friend'], event, text, chan, conn, db)
 
 
 @hook.command("killers", autohelp=False)
-def killers(text, chan, conn, db):
+def killers(text, event, chan, conn, db):
     """[{global|average}] - Prints a list of the top duck killers in the
     channel, if 'global' is specified all channels in the database are
     included.
 
     :type text: str
+    :type event: cloudbot.event.CommandEvent
     :type chan: str
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    return display_scores(SCORE_TYPES['killer'], text, chan, conn, db)
+    return display_scores(SCORE_TYPES['killer'], event, text, chan, conn, db)
 
 
 @hook.command("duckforgive", permissions=["op", "ignore"])
