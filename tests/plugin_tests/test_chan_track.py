@@ -121,7 +121,7 @@ def test_channel_members():
     assert 'foo1' not in chan.users
 
 
-NAMES_FLOW = [
+NAMES_MOCK_TRAFFIC = [
     ':BotFoo!myname@myhost JOIN #foo',
     ':server.name 353 BotFoo = #foo :BotFoo',
     ':server.name 353 BotFoo = #foo :OtherUser PersonC',
@@ -163,7 +163,7 @@ def test_names_handling():
     handle_prefixes('(YohvV)!@%+-', serv_info)
     handle_chan_modes('IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz', serv_info)
 
-    for line in NAMES_FLOW:
+    for line in NAMES_MOCK_TRAFFIC:
         line = Message.parse(line)
         data = {
             'nick': line.prefix.nick,
