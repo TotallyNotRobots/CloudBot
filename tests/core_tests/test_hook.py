@@ -13,9 +13,18 @@ def test_hook_decorate():
     @hook.command('test')
     @hook.irc_raw('*')
     @hook.irc_raw(['PRIVMSG'])
-    @hook.irc_out
+    @hook.irc_out()
     @hook.on_stop()
+    @hook.on_start()
     @hook.regex(['test', re.compile('test')])
+    @hook.regex('test1')
+    @hook.regex(re.compile('test2'))
+    @hook.periodic(20)
+    @hook.permission('perm')
+    @hook.post_hook()
+    @hook.on_connect()
+    @hook.on_cap_ack('capname')
+    @hook.on_cap_available('capname')
     def f():
         pass  # pragma: no cover
 
@@ -24,10 +33,20 @@ def test_hook_decorate():
     }
     assert f._cloudbot_hook['command'].aliases == {'test'}
     assert f._cloudbot_hook['irc_raw'].triggers == {'*', 'PRIVMSG'}
+
     assert 'irc_out' in f._cloudbot_hook
+    assert 'on_start' in f._cloudbot_hook
     assert 'on_stop' in f._cloudbot_hook
     assert 'regex' in f._cloudbot_hook
-    assert len(f._cloudbot_hook['regex'].regexes) == 2
+    assert 'periodic' in f._cloudbot_hook
+    assert 'perm_check' in f._cloudbot_hook
+    assert 'post_hook' in f._cloudbot_hook
+    assert 'on_connect' in f._cloudbot_hook
+    assert 'on_cap_available' in f._cloudbot_hook
+    assert 'on_cap_ack' in f._cloudbot_hook
+
+    assert len(f._cloudbot_hook['regex'].regexes) == 4
+    assert f._cloudbot_hook['periodic'].interval == 20
 
     with pytest.raises(ValueError, match="Invalid command name test 123"):
         hook.command('test 123')(f)
@@ -49,6 +68,26 @@ def test_hook_decorate():
         pass  # pragma: no cover
 
     assert 'sieve' in sieve_func._cloudbot_hook
+
+    @hook.sieve()
+    def sieve_func2(bot, event, _hook):
+        pass  # pragma: no cover
+
+    assert 'sieve' in sieve_func2._cloudbot_hook
+
+    @hook.on_connect
+    @hook.irc_out
+    @hook.post_hook
+    @hook.on_start
+    @hook.on_stop
+    def plain_dec(bot, event, _hook):
+        pass  # pragma: no cover
+
+    assert 'on_connect' in plain_dec._cloudbot_hook
+    assert 'irc_out' in plain_dec._cloudbot_hook
+    assert 'post_hook' in plain_dec._cloudbot_hook
+    assert 'on_start' in plain_dec._cloudbot_hook
+    assert 'on_stop' in plain_dec._cloudbot_hook
 
 
 def test_command_hook_doc():
