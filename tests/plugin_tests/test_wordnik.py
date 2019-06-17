@@ -278,7 +278,7 @@ class TestPronounce(WordTestBase):
     def get_not_found_msg(cls, word):
         return "Sorry, I don't know how to pronounce \x02word\x02."
 
-    def test_search(self, mock_requests, mock_api_keys):
+    def _init_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
             'GET',
             self.build_url('word'),
@@ -322,6 +322,9 @@ class TestPronounce(WordTestBase):
                 }
             ],
         )
+
+    def test_search(self, mock_requests, mock_api_keys):
+        self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
             'GET',
@@ -337,49 +340,7 @@ class TestPronounce(WordTestBase):
         assert out == expected
 
     def test_search_no_audio(self, mock_requests, mock_api_keys):
-        mock_requests.add(
-            'GET',
-            self.build_url('word'),
-            match_querystring=True,
-            json=[
-                {
-                    "seq": 0,
-                    "raw": "wûrd",
-                    "rawType": "ahd-5",
-                    "id": "W5229000",
-                    "attributionText": "from The American Heritage® "
-                                       "Dictionary of the English Language, "
-                                       "5th Edition.",
-                    "attributionUrl": "https://ahdictionary.com/"
-                },
-                {
-                    "seq": 0,
-                    "raw": "W ER1 D",
-                    "rawType": "arpabet",
-                    "attributionText": "from The CMU Pronouncing Dictionary.",
-                    "attributionUrl": "http://www.speech.cs.cmu.edu/cgi-bin"
-                                      "/cmudict"
-                },
-                {
-                    "seq": 0,
-                    "raw": "/wɜː(ɹ)d/",
-                    "rawType": "IPA",
-                    "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
-                    "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
-                },
-                {
-                    "seq": 0,
-                    "raw": "/wɝd/",
-                    "rawType": "IPA",
-                    "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
-                    "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
-                }
-            ],
-        )
+        self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
             'GET',
@@ -395,49 +356,7 @@ class TestPronounce(WordTestBase):
         assert out == expected
 
     def test_search_audio_error(self, mock_requests, mock_api_keys):
-        mock_requests.add(
-            'GET',
-            self.build_url('word'),
-            match_querystring=True,
-            json=[
-                {
-                    "seq": 0,
-                    "raw": "wûrd",
-                    "rawType": "ahd-5",
-                    "id": "W5229000",
-                    "attributionText": "from The American Heritage® "
-                                       "Dictionary of the English Language, "
-                                       "5th Edition.",
-                    "attributionUrl": "https://ahdictionary.com/"
-                },
-                {
-                    "seq": 0,
-                    "raw": "W ER1 D",
-                    "rawType": "arpabet",
-                    "attributionText": "from The CMU Pronouncing Dictionary.",
-                    "attributionUrl": "http://www.speech.cs.cmu.edu/cgi-bin"
-                                      "/cmudict"
-                },
-                {
-                    "seq": 0,
-                    "raw": "/wɜː(ɹ)d/",
-                    "rawType": "IPA",
-                    "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
-                    "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
-                },
-                {
-                    "seq": 0,
-                    "raw": "/wɝd/",
-                    "rawType": "IPA",
-                    "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
-                    "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
-                }
-            ],
-        )
+        self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
             'GET',
