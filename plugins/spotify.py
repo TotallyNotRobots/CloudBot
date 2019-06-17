@@ -88,15 +88,15 @@ def _search(text, _type, reply):
 
 FORMATS = {
     "track": (
-        "\x02{name}\x02 by \x02{main_artist['name']}\x02 from the album"
-        "\x02{album['name']}\x02"
+        "\x02{display_name}\x02 by \x02{main_artist['name']}\x02"
+        "from the album \x02{album['name']}\x02"
     ),
     "artist": (
-        "\x02{name}\x02, followers: \x02{followers['total']}\x02, genres: "
-        "\x02{genre_str}\x02"
+        "\x02{display_name}\x02, followers: \x02{followers['total']}\x02, "
+        "genres: \x02{genre_str}\x02"
     ),
-    "album": "\x02{main_artist['name']}\x02 - \x02{name}\x02",
-    "user": "\x02{name}\x02, Followers: \x02{followers['total']:,d}\x02",
+    "album": "\x02{main_artist['name']}\x02 - \x02{display_name}\x02",
+    "user": "\x02{display_name}\x02, Followers: \x02{followers['total']:,d}\x02",
 }
 
 
