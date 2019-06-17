@@ -57,3 +57,36 @@ class TestGetVideoDescription:
 
         with pytest.raises(youtube.APIError, match="Unknown error"):
             youtube.get_video_description('foobar')
+
+    @staticmethod
+    def test_command_error_reply(mock_requests, mock_api_keys):
+        from plugins import youtube
+
+        mock_requests.add(
+            'GET',
+            'https://www.googleapis.com/youtube/v3/search',
+            json={
+                'items': [{
+                    'id': {'videoId': 'foobar'},
+                }],
+                'pageInfo': {'totalResults': 1},
+            },
+        )
+
+        mock_requests.add(
+            'GET',
+            'https://www.googleapis.com/youtube/v3/videos'
+            '?part=contentDetails%2C+snippet%2C+statistics'
+            '&id=foobar'
+            '&key=APIKEY',
+            match_querystring=True,
+            json={'error': {'code': 500}},
+            status=500,
+        )
+
+        reply = MagicMock()
+
+        with pytest.raises(youtube.APIError):
+            youtube.youtube('test video', reply)
+
+        reply.assert_called_with("Unknown error")
