@@ -16,6 +16,8 @@ def test_hook_decorate():
     @hook.irc_out
     @hook.on_stop()
     @hook.regex(['test', re.compile('test')])
+    @hook.regex('test1')
+    @hook.regex(re.compile('test2'))
     def f():
         pass  # pragma: no cover
 
@@ -27,7 +29,7 @@ def test_hook_decorate():
     assert 'irc_out' in f._cloudbot_hook
     assert 'on_stop' in f._cloudbot_hook
     assert 'regex' in f._cloudbot_hook
-    assert len(f._cloudbot_hook['regex'].regexes) == 2
+    assert len(f._cloudbot_hook['regex'].regexes) == 4
 
     with pytest.raises(ValueError, match="Invalid command name test 123"):
         hook.command('test 123')(f)
