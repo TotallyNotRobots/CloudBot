@@ -57,7 +57,7 @@ def raise_error(data):
     try:
         error = data['error']
     except KeyError:
-        return
+        raise WordnikAPIError("Unknown error, unable to retrieve error data")
 
     try:
         err = ERROR_MAP[error]()
@@ -86,8 +86,9 @@ def api_request(endpoint, params=(), **kwargs):
             # If there weren't any, just fall back to raising the current error
             raise
 
-    # Raise an exception if there's an error in the response
-    raise_error(data)
+        # Raise an exception if there's an error in the response
+        if not response.ok:
+            raise_error(data)
 
     return data
 
