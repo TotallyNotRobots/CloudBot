@@ -25,7 +25,7 @@ def test_spotify_re(text, item_type, item_id):
 @pytest.mark.parametrize(
     "data,item_type,output",
     [
-        (
+        [
             {
                 "display_name": "linuxdaemon",
                 "external_urls": {"spotify": "https://open.spotify.com/user/7777"},
@@ -34,8 +34,8 @@ def test_spotify_re(text, item_type, item_id):
             },
             "user",
             "\x02linuxdaemon\x02, Followers: \x022,500\x02",
-        ),
-        (
+        ],
+        [
             {
                 "name": "foobar",
                 "artists": [{"name": "FooBar"}],
@@ -43,7 +43,7 @@ def test_spotify_re(text, item_type, item_id):
             },
             "track",
             "\x02foobar\x02 by \x02FooBar\x02 from the album \x02Baz\x02",
-        ),
+        ],
     ],
 )
 def test_format_response(data, item_type, output):
