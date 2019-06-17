@@ -88,15 +88,15 @@ def _search(text, _type, reply):
 
 FORMATS = {
     "track": (
-        "\x02{display_name}\x02 by \x02{main_artist['name']}\x02"
-        "from the album \x02{album['name']}\x02"
+        "\x02{display_name}\x02 by \x02{main_artist[name]}\x02 "
+        "from the album \x02{album[name]}\x02"
     ),
     "artist": (
-        "\x02{display_name}\x02, followers: \x02{followers['total']}\x02, "
+        "\x02{display_name}\x02, followers: \x02{followers[total]}\x02, "
         "genres: \x02{genre_str}\x02"
     ),
-    "album": "\x02{main_artist['name']}\x02 - \x02{display_name}\x02",
-    "user": "\x02{display_name}\x02, Followers: \x02{followers['total']:,d}\x02",
+    "album": "\x02{main_artist[name]}\x02 - \x02{display_name}\x02",
+    "user": "\x02{display_name}\x02, Followers: \x02{followers[total]:,d}\x02",
 }
 
 
@@ -108,7 +108,7 @@ def _do_format(data, _type):
         data["genre_str"] = ", ".join(data["genres"])
 
     if "artists" in data:
-        data["main_arist"] = data["artists"][0]
+        data["main_artist"] = data["artists"][0]
 
     if _type in FORMATS:
         fmt = FORMATS[_type]
