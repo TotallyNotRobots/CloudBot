@@ -48,35 +48,70 @@ def test_no_api_key(mock_requests, mock_api_keys):
     )
 
 
-class TestDefine:
-    func = wordnik.define
+class WordTestBase:
+    @classmethod
+    def build_url(cls, word):
+        base = 'http://api.wordnik.com/v4/word.json'
+        url = base + '/' + word + '/' + cls.get_op()
+        return url + '?' + cls.get_paramstring() + '&api_key=APIKEY'
 
-    def call(self, text, event=None):
+    @classmethod
+    def call(cls, text, event=None):
         if event is None:
             event = MagicMock()
 
-        return self.func(text, event), event
+        return cls.get_func()(text, event), event
 
     def test_not_found(self, mock_requests, mock_api_keys):
         mock_requests.add(
             'GET',
-            'http://api.wordnik.com/v4/word.json/word/definitions'
-            '?limit=1&api_key=APIKEY',
+            self.build_url('word'),
             match_querystring=True,
             status=404,
             json={'error': "Not Found"},
         )
 
-        expected = "I could not find a definition for \x02word\x02."
-
         out, _ = self.call('word')
-        assert out == expected
+        assert out == self.get_not_found_msg('word')
+
+    @classmethod
+    def get_func(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_op(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_paramstring(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_not_found_msg(cls, word):
+        raise NotImplementedError
+
+
+class TestDefine(WordTestBase):
+    @classmethod
+    def get_func(cls):
+        return wordnik.define
+
+    @classmethod
+    def get_op(cls):
+        return 'definitions'
+
+    @classmethod
+    def get_paramstring(cls):
+        return 'limit=1'
+
+    @classmethod
+    def get_not_found_msg(cls, word):
+        return "I could not find a definition for \x02{}\x02.".format(word)
 
     def test_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
             'GET',
-            'http://api.wordnik.com/v4/word.json/word/definitions'
-            '?limit=1&api_key=APIKEY',
+            self.build_url('word'),
             match_querystring=True,
             json=[{
                 "id": "W5229000-1",
@@ -107,6 +142,59 @@ class TestDefine:
                    "communicates a meaning and may consist of a single morpheme " \
                    "or of a combination of morphemes. " \
                    "- https://www.wordnik.com/words/word (AHD/Wordnik)"
+
+        out, _ = self.call('word')
+        assert out == expected
+
+
+class TestUsage(WordTestBase):
+    @classmethod
+    def get_func(cls):
+        return wordnik.word_usage
+
+    @classmethod
+    def get_op(cls):
+        return 'examples'
+
+    @classmethod
+    def get_paramstring(cls):
+        return 'limit=10'
+
+    @classmethod
+    def get_not_found_msg(cls, word):
+        return "I could not find any usage examples for \x02{}\x02.".format(word)
+
+    def test_search(self, mock_requests, mock_api_keys):
+        mock_requests.add(
+            'GET',
+            self.build_url('word'),
+            match_querystring=True,
+            json={
+                "examples": [
+                    {
+                        "provider": {
+                            "id": 711
+                        },
+                        "year": 2006,
+                        "rating": 9625.236,
+                        "url": "http://plato.stanford.edu/archives/fall2009/"
+                               "entries/types-tokens/",
+                        "word": "word",
+                        "text": "There is an important and very common use of "
+                                "the word ˜word™ that lexicographers and the "
+                                "rest of us use frequently.",
+                        "documentId": 22333003,
+                        "exampleId": 563509621,
+                        "title": "Types and Tokens",
+                        "author": "Wetzel, Linda"
+                    },
+                ]
+            },
+        )
+
+        expected = "\x02word\x02: There is an important and very common " \
+                   "use of the word ˜word™ that lexicographers and the rest " \
+                   "of us use frequently. "
 
         out, _ = self.call('word')
         assert out == expected
