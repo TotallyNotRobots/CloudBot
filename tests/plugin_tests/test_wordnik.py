@@ -675,7 +675,7 @@ class TestRandomWord(WordsTestBase):
 
     @classmethod
     def get_not_found_msg(cls, word):
-        pass
+        return 'There was a problem contacting the Wordnik API (Word not found)'
 
     @classmethod
     def get_func(cls):
@@ -689,7 +689,19 @@ class TestRandomWord(WordsTestBase):
         return cls.get_func()(event), event
 
     def test_not_found(self, mock_requests, mock_api_keys):
-        pass
+        mock_requests.add(
+            'GET',
+            self.build_url(),
+            match_querystring=True,
+            status=404,
+            json={'error': "Not Found"},
+        )
+
+        event = MagicMock()
+        with pytest.raises(wordnik.WordNotFound):
+            self.call('word', event)
+
+        event.reply.assert_called_with(self.get_not_found_msg('word'))
 
     def test_random(self, mock_requests, mock_api_keys):
         mock_requests.add(
