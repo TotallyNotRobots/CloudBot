@@ -1,3 +1,4 @@
+import importlib
 from textwrap import dedent
 
 import pytest
@@ -49,6 +50,10 @@ def test_remove_fact_no_paste():
 
 
 def test_remove_fact(patch_paste):
+    from cloudbot.util import database
+    importlib.reload(database)
+    from plugins import factoids
+    importlib.reload(factoids)
     from plugins.factoids import factoid_cache
     factoid_cache.clear()
     mock_session = MagicMock()
@@ -82,6 +87,10 @@ def test_remove_fact(patch_paste):
 
 
 def test_clear_facts():
+    from cloudbot.util import database
+    importlib.reload(database)
+    from plugins import factoids
+    importlib.reload(factoids)
     mock_session = MagicMock()
 
     from plugins.factoids import forget_all

@@ -8,7 +8,7 @@ twitch_re = re.compile(r'(.*:)//(twitch.tv|www.twitch.tv)(:[0-9]+)?(.*)', re.I)
 multitwitch_re = re.compile(r'(.*:)//(www.multitwitch.tv|multitwitch.tv)/(.*)', re.I)
 
 
-def test_name(s):
+def check_name(s):
     valid = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/')
     return set(s) <= valid
 
@@ -65,7 +65,7 @@ def multitwitch_url(match, reply):
     usernames = match.group(3).split("/")
     out = ""
     for i in usernames:
-        if not test_name(i):
+        if not check_name(i):
             return None
         if out == "":
             out = twitch_lookup(i, reply)
@@ -78,7 +78,7 @@ def multitwitch_url(match, reply):
 def twitch_url(match, reply):
     bit = match.group(4).split("#")[0]
     location = "/".join(bit.split("/")[1:])
-    if not test_name(location):
+    if not check_name(location):
         return None
     return twitch_lookup(location, reply)
 
@@ -87,7 +87,7 @@ def twitch_url(match, reply):
 def twitch(text, reply):
     """<channel name> - Retrieves the channel and shows it's offline/offline status"""
     text = text.split("/")[-1]
-    if test_name(text):
+    if check_name(text):
         location = text
     else:
         return "Not a valid channel name."
