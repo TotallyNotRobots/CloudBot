@@ -37,10 +37,22 @@ def test_attr_name(source, name):
 
 class WordTestBase:
     @classmethod
+    def get_op(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def get_paramstring(cls):
+        raise NotImplementedError
+
+    @classmethod
     def build_url(cls, word, op=None, paramstring=None):
         base = 'http://api.wordnik.com/v4/word.json'
         url = base + '/' + word + '/' + (op or cls.get_op())
         return url + '?' + (paramstring or cls.get_paramstring()) + '&api_key=APIKEY'
+
+    @classmethod
+    def get_func(cls):
+        raise NotImplementedError
 
     @classmethod
     def call(cls, text, event=None):
@@ -48,6 +60,10 @@ class WordTestBase:
             event = MagicMock()
 
         return cls.get_func()(text, event), event
+
+    @classmethod
+    def get_not_found_msg(cls, word):
+        raise NotImplementedError
 
     def test_not_found(self, mock_requests, mock_api_keys):
         mock_requests.add(
@@ -134,22 +150,6 @@ class WordTestBase:
             'There was a problem contacting the Wordnik API '
             '(This command requires an API key from wordnik.com.)'
         )
-
-    @classmethod
-    def get_func(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_op(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_paramstring(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def get_not_found_msg(cls, word):
-        raise NotImplementedError
 
 
 class TestDefine(WordTestBase):
