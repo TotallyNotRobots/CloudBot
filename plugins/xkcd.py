@@ -1,32 +1,54 @@
+import datetime
 import re
 
 import requests
 from bs4 import BeautifulSoup
+from yarl import URL
 
 from cloudbot import hook
 
 xkcd_re = re.compile(r'(.*:)//(www.xkcd.com|xkcd.com)(.*)', re.I)
-months = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August',
-          9: 'September', 10: 'October', 11: 'November', 12: 'December'}
+
+XKCD_URL = URL("http://www.xkcd.com/")
+ONR_URL = URL("http://www.ohnorobot.com/")
 
 
 def xkcd_info(xkcd_id, url=False):
     """ takes an XKCD entry ID and returns a formatted string """
-    request = requests.get("http://www.xkcd.com/" + xkcd_id + "/info.0.json")
+    request = requests.get(str(XKCD_URL / xkcd_id / "info.0.json"))
     request.raise_for_status()
     data = request.json()
-    date = "{} {} {}".format(data['day'], months[int(data['month'])], data['year'])
+
+    date = datetime.date(
+        year=int(data['year']),
+        month=int(data['month']),
+        day=int(data['day']),
+    )
+    date_str = date.strftime('%d %B %Y')
+
     if url:
-        url = " | http://xkcd.com/" + xkcd_id.replace("/", "")
-    return "xkcd: \x02{}\x02 ({}){}".format(data['title'], date, url if url else "")
+        url = " | {}".format(XKCD_URL / xkcd_id.replace("/", ""))
+    else:
+        url = ""
+
+    return "xkcd: \x02{}\x02 ({}){}".format(data['title'], date_str, url)
 
 
 def xkcd_search(term):
-    search_term = requests.utils.quote(term)
-    request = requests.get("http://www.ohnorobot.com/index.pl?s={}&Search=Search&"
-                           "comic=56&e=0&n=0&b=0&m=0&d=0&t=0".format(search_term))
+    params = {
+        's': term,
+        'Search': 'Search',
+        'comic': 56,
+        'e': 0,
+        'n': 0,
+        'b': 0,
+        'm': 0,
+        'd': 0,
+        't': 0,
+    }
+    request = requests.get(str(ONR_URL), params=params)
     request.raise_for_status()
-    soup = BeautifulSoup(request.text)
+    soup = BeautifulSoup(request.text, 'lxml')
     result = soup.find('li')
     if result:
         url = result.find('div', {'class': 'tinylink'}).text
