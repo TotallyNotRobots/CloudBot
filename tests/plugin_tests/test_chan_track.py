@@ -1,8 +1,13 @@
-from irclib.parser import Prefix
+import asyncio
+
+from irclib.parser import Message, Prefix
+from mock import MagicMock
+
+from cloudbot.util.func_utils import call_with_args
 
 
 class MockConn:
-    def __init__(self):
+    def __init__(self, bot=None):
         self.name = 'foo'
         self.memory = {
             'server_info': {
@@ -14,6 +19,7 @@ class MockConn:
             }
         }
         self.nick = 'BotFoo'
+        self.bot = bot
 
     def get_statuses(self, chars):
         return [
@@ -57,8 +63,10 @@ def test_replace_user_data():
 
 def test_channel_members():
     from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.chan_track import get_users, get_chans, replace_user_data, \
-        on_nick, on_join, on_mode, on_part, on_kick, on_quit
+    from plugins.chan_track import (
+        get_users, get_chans, replace_user_data,
+        on_nick, on_join, on_mode, on_part, on_kick, on_quit,
+    )
 
     conn = MockConn()
     serv_info = conn.memory['server_info']
@@ -86,7 +94,9 @@ def test_channel_members():
     assert test_user.nick == 'ExampleUserFoo'
     assert 'exampleuserfoo' in chan.users
 
-    assert chan.get_member(users.getuser('exampleuserfoo')).status == conn.get_statuses('-')
+    user = users.getuser('exampleuserfoo')
+
+    assert chan.get_member(user).status == conn.get_statuses('-')
 
     on_join('nick1', 'user', 'host', conn, ['#bar'])
 
@@ -109,3 +119,67 @@ def test_channel_members():
     assert 'foo1' in chan.users
     on_quit('foo1', conn)
     assert 'foo1' not in chan.users
+
+
+NAMES_MOCK_TRAFFIC = [
+    ':BotFoo!myname@myhost JOIN #foo',
+    ':server.name 353 BotFoo = #foo :BotFoo',
+    ':server.name 353 BotFoo = #foo :OtherUser PersonC',
+    ':QuickUser!user@host JOIN #foo',
+    ':OtherQuickUser!user@host JOIN #foo',
+    ':server.name 353 BotFoo = #foo :FooBar123',
+    ':server.name 366 BotFoo #foo :End of /NAMES list',
+    ':QuickUser!user@host PART #foo',
+    ':BotFoo!myname@myhost KICK #foo OtherQuickUser',
+]
+
+
+def test_names_handling():
+    from plugins.core.server_info import handle_prefixes, handle_chan_modes
+    from plugins.chan_track import on_join, on_part, on_kick, on_quit, on_names
+
+    handlers = {
+        'JOIN': on_join,
+        'PART': on_part,
+        'QUIT': on_quit,
+        'KICK': on_kick,
+        '353': on_names,
+        '366': on_names,
+    }
+
+    chan_pos = {
+        'JOIN': 0,
+        'PART': 0,
+        'KICK': 0,
+        '353': 2,
+        '366': 1,
+    }
+
+    bot = MagicMock()
+    bot.loop = asyncio.get_event_loop()
+
+    conn = MockConn(bot)
+    serv_info = conn.memory['server_info']
+    handle_prefixes('(YohvV)!@%+-', serv_info)
+    handle_chan_modes('IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz', serv_info)
+
+    for line in NAMES_MOCK_TRAFFIC:
+        line = Message.parse(line)
+        data = {
+            'nick': line.prefix.nick,
+            'user': line.prefix.ident,
+            'host': line.prefix.host,
+            'conn': conn,
+            'irc_paramlist': line.parameters,
+            'irc_command': line.command,
+            'chan': None,
+            'target': None,
+        }
+
+        if line.command in chan_pos:
+            data['chan'] = line.parameters[chan_pos[line.command]]
+
+        if line.command == 'KICK':
+            data['target'] = line.parameters[1]
+
+        call_with_args(handlers[line.command], data)
