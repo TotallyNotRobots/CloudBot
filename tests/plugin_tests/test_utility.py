@@ -293,7 +293,7 @@ def test_munge(text, leet_data):
 @pytest.mark.parametrize('text', [
     'foo bar baz!',
 ])
-def test_leet(text):
+def test_leet(text, leet_data):
     from plugins.utility import leet
     assert leet(text)
 

@@ -22,7 +22,7 @@ class MockBot:
         self.config = MockConfig(self, config)
 
 
-@pytest.mark.parametrize('bearing,direction', {
+@pytest.mark.parametrize('bearing,direction', [
     (360, 'N'),
     (0, 'N'),
     (1, 'N'),
@@ -40,7 +40,7 @@ class MockBot:
     (180, 'S'),
     (348.75, 'N'),
     (348.74, 'NNW'),
-})
+])
 def test_wind_direction(bearing, direction):
     from plugins.weather import bearing_to_card
     assert bearing_to_card(bearing) == direction

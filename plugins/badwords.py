@@ -102,7 +102,7 @@ def list_bad(text):
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def test_badwords(conn, message, chan, content, nick):
+def check_badwords(conn, message, chan, content, nick):
     match = matcher.regex.match(content)
     if not match:
         return

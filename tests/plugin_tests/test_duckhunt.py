@@ -5,8 +5,6 @@ from mock import MagicMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from plugins.duckhunt import top_list
-
 
 class MockDB:
     def __init__(self):
@@ -31,17 +29,19 @@ def mock_db():
     ],
 ])
 def test_top_list(prefix, items, result):
+    from plugins.duckhunt import top_list
     assert top_list(prefix, items.items()) == result
 
 
 def test_display_scores(mock_db):
-    from cloudbot.util.database import metadata
-    metadata.bind = mock_db.engine
+    from cloudbot.util import database
+    importlib.reload(database)
+    database.metadata.bind = mock_db.engine
     from plugins import duckhunt
 
     importlib.reload(duckhunt)
 
-    metadata.create_all(checkfirst=True)
+    database.metadata.create_all(checkfirst=True)
 
     session = mock_db.session()
 
