@@ -57,6 +57,17 @@ class APIContainer:
 
 container = APIContainer()
 
+IGNORE_ERRORS = [
+    # User not found
+    50,
+    # User has been suspended
+    63,
+    # No status found with that ID
+    144,
+    # Private tweet
+    179,
+]
+
 
 @hook.on_start
 def set_api():
@@ -76,7 +87,7 @@ def twitter_url(match, conn):
     try:
         tweet = tw_api.get_status(tweet_id, tweet_mode=get_tweet_mode(conn))
     except tweepy.TweepError as e:
-        if e.api_code == 144:  # Tweet doesn't exist
+        if e.api_code in IGNORE_ERRORS:
             return
 
         raise
