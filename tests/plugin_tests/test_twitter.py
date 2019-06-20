@@ -1,4 +1,5 @@
 import pytest
+import tweepy
 from mock import MagicMock
 from responses import RequestsMock
 
@@ -29,7 +30,21 @@ def test_twitter_url(mock_requests):
     bot.get().config = MockConfig(bot.get())
 
     from plugins import twitter
+
+    result = twitter.twitter_url(
+        twitter.TWITTER_RE.search('twitter.com/FakeUser/status/11235'),
+        mock_conn,
+    )
+
+    assert result is None
+
     twitter.set_api()
+
+    with pytest.raises(tweepy.TweepError):
+        twitter.twitter_url(
+            twitter.TWITTER_RE.search('twitter.com/FakeUser/status/11235'),
+            mock_conn,
+        )
 
     mock_requests.add(
         'GET',
