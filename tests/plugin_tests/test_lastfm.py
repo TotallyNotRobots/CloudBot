@@ -20,7 +20,7 @@ class MockBot:
         self.config = MockConfig(self, config)
 
 
-def test_api():
+def test_api(unset_bot):
     bot.set(MockBot({"api_keys": {"lastfm": "hunter20"}}))
 
     with RequestsMock() as reqs:
