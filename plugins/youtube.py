@@ -19,6 +19,13 @@ video_url = "http://youtu.be/%s"
 err_no_api = "The YouTube API is off in the Google Developers Console."
 
 
+class APIError(Exception):
+    def __init__(self, message, response=None):
+        super().__init__(message)
+        self.message = message
+        self.response = response
+
+
 def get_video_description(video_id):
     dev_key = bot.config.get_api_key("google_dev_key")
     request = requests.get(api_url.format(video_id, dev_key))
@@ -26,9 +33,9 @@ def get_video_description(video_id):
 
     if json.get('error'):
         if json['error']['code'] == 403:
-            return err_no_api
+            raise APIError(err_no_api, json)
 
-        return
+        raise APIError("Unknown error", json)
 
     data = json['items']
     snippet = data[0]['snippet']
@@ -111,7 +118,11 @@ def youtube(text, reply):
     if err:
         return err
 
-    return get_video_description(video_id) + " - " + video_url % video_id
+    try:
+        return get_video_description(video_id) + " - " + video_url % video_id
+    except APIError as e:
+        reply(e.message)
+        raise
 
 
 @hook.command("youtime", "ytime")
