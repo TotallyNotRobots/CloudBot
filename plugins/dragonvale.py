@@ -1,10 +1,10 @@
 import re
 
 import requests
-from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 from cloudbot.util.timeparse import time_parse
 
 search_url = "http://dragonvale.wikia.com/api/v1/Search/list"
@@ -65,7 +65,7 @@ def egg_calculator(text):
         'avail': 1
     }
     r = requests.get(egg_calc_url, params=params, timeout=5)
-    soup = BeautifulSoup(r.text)
+    soup = parse_soup(r.text)
     dragons = []
     for line in soup.findAll('td', {'class': 'views-field views-field-title'}):
         dragons.append(line.text.replace("\n", "").strip())

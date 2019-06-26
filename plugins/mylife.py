@@ -3,9 +3,9 @@ import random
 import re
 
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 fml_cache = []
 mlia_cache = []
@@ -16,7 +16,7 @@ async def refresh_fml_cache(loop):
     url = 'http://www.fmylife.com/random/'
     _func = functools.partial(requests.get, url, timeout=6)
     request = await loop.run_in_executor(None, _func)
-    soup = BeautifulSoup(request.text)
+    soup = parse_soup(request.text)
 
     for e in soup.find_all('p', {'class': 'block'}):
         # the /today bit is there to exclude fml news etc.
@@ -39,7 +39,7 @@ async def refresh_mlia_cache(loop):
     url = 'http://mylifeisaverage.com/{}'.format(random.randint(1, 11000))
     _func = functools.partial(requests.get, url, timeout=6)
     request = await loop.run_in_executor(None, _func)
-    soup = BeautifulSoup(request.text)
+    soup = parse_soup(request.text)
 
     for story in soup.find_all('div', {'class': 'story '}):
         mlia_id = story.find('span', {'class': 'left'}).a.text

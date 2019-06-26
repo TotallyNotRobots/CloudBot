@@ -2,9 +2,9 @@ import os
 import random
 
 import requests
-from bs4 import BeautifulSoup
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 search_url = "https://www.dogpile.com/search"
 
@@ -35,7 +35,7 @@ def query(endpoint, text):
             verify=session.verify
     ) as r:
         r.raise_for_status()
-        return BeautifulSoup(r.content)
+        return parse_soup(r.content)
 
 
 @hook.command("dpis", "gis")

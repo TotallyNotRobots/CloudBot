@@ -2,10 +2,10 @@ import datetime
 import re
 
 import requests
-from bs4 import BeautifulSoup
 from yarl import URL
 
 from cloudbot import hook
+from cloudbot.util.http import parse_soup
 
 xkcd_re = re.compile(r'(.*:)//(www.xkcd.com|xkcd.com)(.*)', re.I)
 
@@ -48,7 +48,7 @@ def xkcd_search(term):
     }
     request = requests.get(str(ONR_URL), params=params)
     request.raise_for_status()
-    soup = BeautifulSoup(request.text, 'lxml')
+    soup = parse_soup(request.text)
     result = soup.find('li')
     if result:
         url = result.find('div', {'class': 'tinylink'}).text

@@ -9,11 +9,11 @@ Authors:
 import re
 
 import requests
-from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
+from cloudbot.util.http import parse_soup
 
 
 @hook.command("e", "etymology")
@@ -38,7 +38,7 @@ def etymology(text, reply):
     if response.status_code != requests.codes.ok:
         return "Error reaching etymonline.com: {}".format(response.status_code)
 
-    soup = BeautifulSoup(response.text, "lxml")
+    soup = parse_soup(response.text)
 
     block = soup.find('div', class_=re.compile("word--.+"))
 

@@ -1,11 +1,11 @@
 import re
 
 import requests
-from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web, formatting, colors
+from cloudbot.util.http import parse_soup
 
 SEARCH_URL = "http://www.amazon.{}/s/"
 REGION = "com"
@@ -50,7 +50,7 @@ def amazon(text, reply, _parsed=False):
         reply("Amazon API error occurred.")
         raise
 
-    soup = BeautifulSoup(request.text)
+    soup = parse_soup(request.text)
 
     # check if there are any results on the amazon page
     results = soup.find('div', {'id': 'atfResults'})

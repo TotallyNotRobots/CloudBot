@@ -1,11 +1,11 @@
 # Plugin by Infinity - <https://github.com/infinitylabs/UguuBot>
 import requests
-from bs4 import BeautifulSoup
 from sqlalchemy import Column, String, Table, select
 from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import colors, database
+from cloudbot.util.http import parse_soup
 
 table = Table(
     'horoscope',
@@ -88,7 +88,7 @@ def parse_or_lookup(text, db, nick, event):
 
 
 def parse_page(content):
-    soup = BeautifulSoup(content, 'lxml')
+    soup = parse_soup(content)
     container = soup.find("main", class_="main-horoscope")
     para = container.p
     return para.text

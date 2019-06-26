@@ -11,7 +11,6 @@ from urllib.parse import quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
 from lxml import etree, html
-
 from multidict import MultiDict
 from yarl import URL
 
@@ -46,8 +45,22 @@ def get_html(*args, **kwargs):
     return html.fromstring(get(*args, **kwargs))
 
 
+def parse_soup(text, features=None, **kwargs):
+    """
+    Parse HTML using BeautifulSoup
+
+    >>> p = parse_soup('<p><h1>test</h1></p>')
+    >>> p.h1.text
+    'test'
+    """
+    if features is None:
+        features = 'lxml'
+
+    return BeautifulSoup(text, features=features, **kwargs)
+
+
 def get_soup(*args, **kwargs):
-    return BeautifulSoup(get(*args, **kwargs), 'lxml')
+    return parse_soup(get(*args, **kwargs))
 
 
 def get_xml(*args, **kwargs):
