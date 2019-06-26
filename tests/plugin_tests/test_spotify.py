@@ -1,3 +1,5 @@
+import importlib
+
 import pytest
 from mock import MagicMock
 
@@ -55,6 +57,8 @@ def test_format_response(data, item_type, output):
 def test_search_no_results(mock_requests):
     from plugins import spotify
 
+    importlib.reload(spotify)
+
     mock_requests.add(
         "POST",
         "https://accounts.spotify.com/api/token",
@@ -75,5 +79,48 @@ def test_search_no_results(mock_requests):
     no_user = "Unable to find matching user"
 
     assert spotify._format_search("foo", "user", reply) == no_user
+
+    reply.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "data,output",
+    [
+        [
+            {
+                "tracks": {
+                    "items": [
+                        {
+                            "name": "foobar",
+                            "artists": [{"name": "FooBar"}],
+                            "album": {"name": "Baz"},
+                            "external_urls": {"spotify": "https://example.com/foo"},
+                            "uri": "spotify:track:6rqhFgbbKwnb9MLmUQDhG6",
+                            "genres": ["Testing", "Bots", "Foo"],
+                        }
+                    ]
+                }
+            },
+            "\x02foobar\x02 by \x02FooBar\x02 from the album \x02Baz\x02 - "
+            "https://example.com/foo [spotify:track:6rqhFgbbKwnb9MLmUQDhG6]",
+        ]
+    ],
+)
+def test_format_search_track(data, output, mock_requests):
+    from plugins import spotify
+
+    importlib.reload(spotify)
+
+    mock_requests.add(
+        "POST",
+        "https://accounts.spotify.com/api/token",
+        json={"access_token": "foo", "expires_in": 3600},
+    )
+
+    mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
+
+    reply = MagicMock()
+
+    assert spotify.spotify("foo", reply) == output
 
     reply.assert_not_called()
