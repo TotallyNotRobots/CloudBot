@@ -133,16 +133,15 @@ TESTS = {
     [(url_re.search(a), b.format(c), c) for a, (b, c) in TESTS.items()],
     ids=lambda case: str(getattr(case, 'string', case))[:100],
 )
-def test_link_announce(match, test_str, res):
-    with RequestsMock() as reqs:
-        reqs.add(RequestsMock.GET, match.string, body=test_str, stream=True)
-        mck = MagicMock()
+def test_link_announce(match, test_str, res, mock_requests):
+    mock_requests.add(RequestsMock.GET, match.string, body=test_str, stream=True)
+    mck = MagicMock()
 
-        print_url_title(match=match, message=mck)
-        if res and len(test_str) < MAX_RECV:
-            mck.assert_called_with("Title: \x02" + res + "\x02")
-        else:
-            mck.assert_not_called()
+    print_url_title(match=match, message=mck)
+    if res and len(test_str) < MAX_RECV:
+        mck.assert_called_with("Title: \x02" + res + "\x02")
+    else:
+        mck.assert_not_called()
 
 
 def test_link_announce_404(mock_requests):
