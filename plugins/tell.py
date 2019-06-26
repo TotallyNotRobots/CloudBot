@@ -2,7 +2,10 @@ from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
 
-from sqlalchemy import Table, Column, String, Boolean, DateTime, PrimaryKeyConstraint, and_, not_
+import sqlalchemy as sa
+from sqlalchemy import (
+    Boolean, Column, DateTime, PrimaryKeyConstraint, String, Table, and_, not_,
+)
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -226,12 +229,11 @@ def get_unread(db, server, target):
 
 
 def count_unread(db, server, target):
-    query = select([table]) \
+    query = select([sa.func.count(table)]) \
         .where(table.c.connection == server.lower()) \
         .where(table.c.target == target.lower()) \
-        .where(not_(table.c.is_read)) \
-        .alias("count") \
-        .count()
+        .where(not_(table.c.is_read))
+
     return db.execute(query).fetchone()[0]
 
 
