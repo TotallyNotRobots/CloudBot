@@ -70,7 +70,7 @@ def test_mph_to_kph(mph, kph):
     assert math.isclose(mph_to_kph(mph), kph, rel_tol=1e-3)
 
 
-def test_find_location(mock_requests):
+def test_find_location(mock_requests, patch_try_shorten):
     from plugins.weather import create_maps_api
     bot = MockBot({})
     create_maps_api(bot)
@@ -184,9 +184,8 @@ def test_find_location(mock_requests):
             'X-Response-Time': '',
         }
     )
-    with mock.patch('cloudbot.util.web.try_shorten', new=lambda x: x):
-        call_with_args(weather.weather, cmd_event)
-        call_with_args(weather.forecast, cmd_event)
+    call_with_args(weather.weather, cmd_event)
+    call_with_args(weather.forecast, cmd_event)
 
     mock_requests.reset()
     mock_requests.add(
