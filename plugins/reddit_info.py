@@ -136,7 +136,7 @@ def reddit_post_url(match):
 
 
 @hook.command(autohelp=False, singlethread=True)
-def reddit(text, bot, reply):
+def reddit(text, reply):
     """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
 
@@ -162,6 +162,9 @@ def reddit(text, bot, reply):
         raise
 
     data = data["data"]["children"]
+
+    if not data:
+        return "There do not appear to be any posts to show."
 
     # get the requested/random post
     if id_num is not None:
