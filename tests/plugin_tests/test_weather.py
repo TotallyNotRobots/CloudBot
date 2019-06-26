@@ -1,7 +1,6 @@
 import math
 import re
 
-import mock
 import pytest
 from googlemaps.exceptions import ApiError
 from mock import MagicMock
