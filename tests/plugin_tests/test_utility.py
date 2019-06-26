@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from cloudbot.util import web
 from cloudbot.util.http import compare_urls
 
 # Defined here because we use the same test cases for unescape
@@ -20,14 +19,6 @@ class MockFunction:
         self.args.append((args, kwargs))
 
 
-@pytest.fixture()
-def replace_try_shorten():
-    old = web.try_shorten
-    web.try_shorten = lambda *args, **kwargs: args[0]
-    yield
-    web.try_shorten = old
-
-
 @pytest.mark.parametrize('a,b,match', [
     ('http://example.com/?a=1&b=1', 'http://example.com/?b=1&a=1', True),
 ])
@@ -36,9 +27,13 @@ def test_compare_urls(a, b, match):
 
 
 @pytest.mark.parametrize('data,url', [
-    ('foo bar_baz+bing//', 'http://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
+    [
+        'foo bar_baz+bing//',
+        ('http://chart.googleapis.com/chart'
+         '?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F'),
+    ],
 ])
-def test_qrcode(data, url, replace_try_shorten):
+def test_qrcode(data, url, patch_try_shorten):
     from plugins.utility import qrcode
     assert compare_urls(qrcode(data), url)
 
@@ -257,9 +252,13 @@ def test_wrainbow(text, out):
 
 
 @pytest.mark.parametrize('text,out', [
-    ('foo bar baz!', 'md5: e23f57ae0441216d5c818ba18c1fc98b, '
-                     'sha1: 0c126b9d298b568656cad2fa1ba679b106b3f5da, '
-                     'sha256: 6afee6de002d236bd35ea0918848b8f85342acd887499b5e8567598af1e337b4'),
+    [
+        'foo bar baz!',
+        ('md5: e23f57ae0441216d5c818ba18c1fc98b, '
+         'sha1: 0c126b9d298b568656cad2fa1ba679b106b3f5da, '
+         'sha256: '
+         '6afee6de002d236bd35ea0918848b8f85342acd887499b5e8567598af1e337b4'),
+    ],
 ])
 def test_hash_command(text, out):
     from plugins.utility import hash_command
@@ -307,7 +306,12 @@ def test_derpify(text):
 
 
 @pytest.mark.parametrize('text,out', [
-    ('foo bar baz!', '\x0304f\x0300o\x0302o\x0304 \x0300b\x0302a\x0304r\x0300 \x0302b\x0304a\x0300z\x0302!'),
+    [
+        'foo bar baz!',
+        ('\x0304f\x0300o\x0302o\x0304 '
+         '\x0300b\x0302a\x0304r\x0300 '
+         '\x0302b\x0304a\x0300z\x0302!'),
+    ],
 ])
 def test_usa(text, out):
     from plugins.utility import usa

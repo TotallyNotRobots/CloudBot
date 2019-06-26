@@ -1,9 +1,7 @@
 import importlib
 from textwrap import dedent
 
-import pytest
-from mock import patch, MagicMock, call
-from responses import RequestsMock
+from mock import MagicMock, call, patch
 
 
 def test_forget():
@@ -16,37 +14,30 @@ def test_forget():
         func.assert_called_with('#example', ['foo', 'bar'], mock_session, mock_notice)
 
 
-@pytest.fixture
-def patch_paste():
-    with patch('cloudbot.util.web.paste') as mock:
-        yield mock
-
-
-def test_remove_fact_no_paste():
+def test_remove_fact_no_paste(mock_requests):
     from plugins.factoids import factoid_cache
     factoid_cache.clear()
-    with RequestsMock() as reqs:
-        reqs.add(reqs.POST, 'https://hastebin.com/documents', status=404)
-        mock_session = MagicMock()
-        mock_notice = MagicMock()
+    mock_requests.add(mock_requests.POST, 'https://hastebin.com/documents', status=404)
+    mock_session = MagicMock()
+    mock_notice = MagicMock()
 
-        from plugins.factoids import remove_fact
-        remove_fact('#example', ['foo'], mock_session, mock_notice)
-        mock_notice.assert_called_once_with("Unknown factoids: 'foo'")
+    from plugins.factoids import remove_fact
+    remove_fact('#example', ['foo'], mock_session, mock_notice)
+    mock_notice.assert_called_once_with("Unknown factoids: 'foo'")
 
-        mock_session.execute.assert_not_called()
+    mock_session.execute.assert_not_called()
 
-        mock_notice.reset_mock()
+    mock_notice.reset_mock()
 
-        factoid_cache['#example']['foo'] = 'bar'
+    factoid_cache['#example']['foo'] = 'bar'
 
-        remove_fact('#example', ['foo', 'bar'], mock_session, mock_notice)
-        mock_notice.assert_has_calls([
-            call("Unknown factoids: 'bar'"),
-            call('Unable to paste removed data, not removing facts'),
-        ])
+    remove_fact('#example', ['foo', 'bar'], mock_session, mock_notice)
+    mock_notice.assert_has_calls([
+        call("Unknown factoids: 'bar'"),
+        call('Unable to paste removed data, not removing facts'),
+    ])
 
-        mock_session.execute.assert_not_called()
+    mock_session.execute.assert_not_called()
 
 
 def test_remove_fact(patch_paste):

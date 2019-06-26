@@ -2,19 +2,6 @@ import importlib
 
 import pytest
 from mock import MagicMock
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
-
-class MockDB:
-    def __init__(self):
-        self.engine = create_engine('sqlite:///:memory:')
-        self.session = scoped_session(sessionmaker(self.engine))
-
-
-@pytest.fixture()
-def mock_db():
-    return MockDB()
 
 
 @pytest.mark.parametrize('prefix,items,result', [

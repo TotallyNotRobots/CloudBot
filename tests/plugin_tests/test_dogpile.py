@@ -1,13 +1,6 @@
 from pathlib import Path
 
 import pytest
-from responses import RequestsMock
-
-
-@pytest.fixture()
-def mock_requests():
-    with RequestsMock() as reqs:
-        yield reqs
 
 
 @pytest.fixture(scope='module')
