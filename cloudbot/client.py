@@ -3,18 +3,20 @@ import collections
 import logging
 import random
 
+import venusian
+
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
-CLIENTS = {}
-
 
 def client(_type):
     def _decorate(cls):
-        CLIENTS[_type] = cls
-        cls._type = _type
+        def callback_cb(context, name, obj):
+            context.bot.register_client(_type, cls)
+
+        venusian.attach(cls, callback_cb, category='cloudbot.client')
         return cls
 
     return _decorate
@@ -41,9 +43,7 @@ class Client:
     :type permissions: PermissionManager
     """
 
-    _type = None
-
-    def __init__(self, bot, name, nick, *, channels=None, config=None):
+    def __init__(self, bot, _type, name, nick, *, channels=None, config=None):
         """
         :type bot: cloudbot.bot.CloudBot
         :type name: str
@@ -55,6 +55,7 @@ class Client:
         self.loop = bot.loop
         self.name = name
         self.nick = nick
+        self._type = _type
 
         if channels is None:
             self.channels = []

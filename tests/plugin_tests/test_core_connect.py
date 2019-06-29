@@ -18,12 +18,13 @@ class MockBot:
 
 def test_core_connects():
     bot = MockBot()
-    client = MockClient(bot, 'foo', 'FooBot', config={
+    client = MockClient(bot, 'mock', 'foo', 'FooBot', config={
         'connection': {
             'server': 'example.com',
             'password': 'foobar123'
         }
     })
+    assert client.type == 'mock'
 
     client.connect()
 
