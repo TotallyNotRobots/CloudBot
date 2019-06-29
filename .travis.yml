@@ -18,13 +18,13 @@ cache: pip
 install:
   - "sudo apt-get update -q"
   - "sudo apt-get install -y python3-lxml libenchant-dev"
-  - "pip install -r ./travis/requirements.txt"
+  - "pip install -Ur ./travis/requirements.txt"
 
 script:
   - "pytest"
 
 after_success:
-  - codecov
+  - codecov --required -e PYTHONASYNCIODEBUG
 
 env:
   - PYTHONPATH=.
