@@ -20,7 +20,7 @@ class MockConfig(Config):
         return "API_KEY"
 
 
-def test_twitter_url(mock_requests):
+def test_twitter_url(mock_requests, unset_bot):
     from cloudbot.bot import bot
     bot.set(MagicMock())
 
