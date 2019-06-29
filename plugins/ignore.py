@@ -73,7 +73,7 @@ async def ignore_sieve(bot, event, _hook):
     """
     :type bot: cloudbot.bot.CloudBot
     :type event: cloudbot.event.Event
-    :type _hook: cloudbot.plugin.Hook
+    :type _hook: cloudbot.plugin_hooks.Hook
     """
     # don't block event hooks
     if _hook.type in ("irc_raw", "event"):

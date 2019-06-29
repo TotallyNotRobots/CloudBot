@@ -14,7 +14,8 @@ import pytest
 import cloudbot.bot
 from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
 from cloudbot.hook import Action
-from cloudbot.plugin import Plugin, Hook
+from cloudbot.plugin import Plugin
+from cloudbot.plugin_hooks import Hook
 
 Hook.original_init = Hook.__init__
 
