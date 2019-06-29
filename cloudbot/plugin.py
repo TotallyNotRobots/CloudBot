@@ -120,14 +120,13 @@ class PluginManager:
         """
         return self._plugin_name_map.get(title)
 
-    def get_plugin(self, path) -> Optional['Plugin']:
-        """
-        Find a loaded plugin from its filename
+    def safe_resolve(self, path_obj: Path) -> Path:
+        """Resolve the parts of a path that exist, allowing a non-existant path
+        to be resolved to allow resolution of its parents
 
-        :param path: The plugin's filepath
-        :return: A Plugin object or None
+        :param path_obj: The `Path` object to resolve
+        :return: The safely resolved `Path`
         """
-        path_obj = Path(path)
         unresolved = []
         while not path_obj.exists():
             unresolved.append(path_obj.name)
@@ -138,7 +137,18 @@ class PluginManager:
         for part in reversed(unresolved):
             path_obj /= part
 
-        return self.plugins.get(str(path_obj))
+        return path_obj
+
+    def get_plugin(self, path) -> Optional['Plugin']:
+        """
+        Find a loaded plugin from its filename
+
+        :param path: The plugin's filepath
+        :return: A Plugin object or None
+        """
+        path_obj = Path(path)
+
+        return self.plugins.get(str(self.safe_resolve(path_obj)))
 
     def can_load(self, plugin_title, noisy=True):
         pl = self.bot.config.get("plugin_loading")
@@ -207,7 +217,7 @@ class PluginManager:
         """
 
         path = Path(path)
-        file_path = path.resolve()
+        file_path = self.safe_resolve(path)
         file_name = file_path.name
         # Resolve the path relative to the current directory
         plugin_path = file_path.relative_to(self.bot.base_dir)
@@ -348,7 +358,7 @@ class PluginManager:
         :rtype: bool
         """
         path = Path(path)
-        file_path = path.resolve()
+        file_path = self.safe_resolve(path)
 
         # make sure this plugin is actually loaded
         plugin = self.get_plugin(file_path)

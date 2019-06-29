@@ -139,3 +139,10 @@ def test_plugin_load(mock_manager, patch_import_module, patch_import_reload):
     patch_import_reload.assert_called_once_with(mod)
 
     assert mock_manager.get_plugin('plugins/test.py').code is newmod
+
+
+def test_safe_resolve(mock_manager):
+    path = mock_manager.safe_resolve(Path("/some/path/that/doesn't/exist"))
+    assert str(path) == "/some/path/that/doesn't/exist"
+    assert path.is_absolute()
+    assert not path.exists()
