@@ -10,19 +10,14 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.bot import bot
 
-spotify_re = re.compile(
-    r'(spotify:(track|album|artist|user):([a-zA-Z0-9]+))', re.I
-)
+spotify_re = re.compile(r"(spotify:(track|album|artist|user):([a-zA-Z0-9]+))", re.I)
 http_re = re.compile(
-    r'(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))', re.I
+    r"(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))", re.I
 )
 
-TYPE_MAP = {
-    'artist': 'artists',
-    'album': 'albums',
-    'track': 'tracks',
-    'user': 'users',
-}
+TYPE_MAP = {"artist": "artists", "album": "albums", "track": "tracks", "user": "users"}
+
+NO_RESULTS = "Unable to find matching {type}"
 
 
 class SpotifyAPI:
@@ -49,14 +44,16 @@ class SpotifyAPI:
                 self._refresh_token()
 
             r = requests.get(
-                self.api_url / endpoint, params=params, headers={'Authorization': 'Bearer ' + self._access_token}
+                self.api_url / endpoint,
+                params=params,
+                headers={"Authorization": "Bearer " + self._access_token},
             )
             r.raise_for_status()
 
             return r
 
     def search(self, params):
-        return self.request('search', params)
+        return self.request("search", params)
 
     def _refresh_token(self):
         with self._lock:
@@ -81,33 +78,41 @@ def _search(text, _type, reply):
         reply("Could not get track information: {}".format(e.response.status_code))
         raise
 
-    return request.json()[TYPE_MAP[_type]]["items"][0]
+    results = request.json()[TYPE_MAP[_type]]["items"]
+
+    if not results:
+        return None
+
+    return results[0]
+
+
+FORMATS = {
+    "track": (
+        "\x02{display_name}\x02 by \x02{main_artist[name]}\x02 "
+        "from the album \x02{album[name]}\x02"
+    ),
+    "artist": (
+        "\x02{display_name}\x02, followers: \x02{followers[total]}\x02, "
+        "genres: \x02{genre_str}\x02"
+    ),
+    "album": "\x02{main_artist[name]}\x02 - \x02{display_name}\x02",
+    "user": "\x02{display_name}\x02, Followers: \x02{followers[total]:,d}\x02",
+}
 
 
 def _do_format(data, _type):
-    try:
-        name = data['display_name']
-    except KeyError:
-        name = data['name']
+    if "display_name" not in data:
+        data["display_name"] = data["name"]
 
-    if _type == "track":
-        artist = data["artists"][0]["name"]
-        album = data["album"]["name"]
+    if "genres" in data:
+        data["genre_str"] = ", ".join(data["genres"])
 
-        return "Spotify Track", "\x02{}\x02 by \x02{}\x02 from the album \x02{}\x02".format(name, artist, album)
+    if "artists" in data:
+        data["main_artist"] = data["artists"][0]
 
-    if _type == "artist":
-        return "Spotify Artist", "\x02{}\x02, followers: \x02{}\x02, genres: \x02{}\x02".format(
-            name, data["followers"]["total"], ', '.join(data["genres"])
-        )
-
-    if _type == "album":
-        return "Spotify Album", "\x02{}\x02 - \x02{}\x02".format(data["artists"][0]["name"], name)
-
-    if _type == 'user':
-        return "Spotify User", "\x02{}\x02, Followers: \x02{:,d}\x02".format(
-            name, data['followers']['total']
-        )
+    if _type in FORMATS:
+        fmt = FORMATS[_type]
+        return "Spotify {}".format(_type.title()), fmt.format_map(data)
 
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
@@ -122,31 +127,34 @@ def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False
     out += text
 
     if show_uri or show_url:
-        out += ' -'
+        out += " -"
 
     if show_url:
-        out += ' ' + data["external_urls"]["spotify"]
+        out += " " + data["external_urls"]["spotify"]
 
     if show_uri:
-        out += ' ' + "[{}]".format(data["uri"])
+        out += " " + "[{}]".format(data["uri"])
 
     return out
 
 
 def _format_search(text, _type, reply):
     data = _search(text, _type, reply)
+    if data is None:
+        return NO_RESULTS.format(type=_type)
+
     return _format_response(data, _type, show_url=True, show_uri=True)
 
 
 @hook.on_start
 def set_keys():
     api.set_keys(
-        bot.config.get_api_key('spotify_client_id'),
-        bot.config.get_api_key('spotify_client_secret')
+        bot.config.get_api_key("spotify_client_id"),
+        bot.config.get_api_key("spotify_client_secret"),
     )
 
 
-@hook.command('spotify', 'sptrack')
+@hook.command("spotify", "sptrack")
 def spotify(text, reply):
     """<song> - Search Spotify for <song>"""
     return _format_search(text, "track", reply)
