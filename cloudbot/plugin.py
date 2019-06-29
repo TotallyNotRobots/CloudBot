@@ -189,6 +189,15 @@ class PluginManager:
             *[self.unload_plugin(path) for path in self.plugins], loop=self.bot.loop
         )
 
+    def _load_mod(self, name):
+        plugin_module = importlib.import_module(name)
+        # if this plugin was loaded before, reload it
+        if hasattr(plugin_module, "_cloudbot_loaded"):
+            plugin_module = importlib.reload(plugin_module)
+
+        setattr(plugin_module, '_cloudbot_loaded', True)
+        return plugin_module
+
     async def load_plugin(self, path):
         """
         Loads a plugin from the given path and plugin object,
@@ -213,10 +222,7 @@ class PluginManager:
 
         module_name = "plugins.{}".format(title)
         try:
-            plugin_module = importlib.import_module(module_name)
-            # if this plugin was loaded before, reload it
-            if hasattr(plugin_module, "_cloudbot_loaded"):
-                importlib.reload(plugin_module)
+            plugin_module = self._load_mod(module_name)
         except Exception:
             logger.exception("Error loading %s:", title)
             return
