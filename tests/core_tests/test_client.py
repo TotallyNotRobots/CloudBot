@@ -10,11 +10,10 @@ class Bot(MagicMock):
 
 
 class TestClient(Client):  # pylint: disable=abstract-method
-    _type = 'TestClient'
     _connected = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, bot, *args, **kwargs):
+        super().__init__(bot, 'TestClient', *args, **kwargs)
         self.active = True
 
     @property
