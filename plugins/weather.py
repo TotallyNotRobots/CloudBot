@@ -1,3 +1,4 @@
+import math
 from fractions import Fraction
 from typing import Optional
 
@@ -43,28 +44,36 @@ BEARINGS = (
 
 # math constants
 NUM_BEARINGS = len(BEARINGS)
-BEARING_SECTION = 360 / NUM_BEARINGS
+MAX_DEGREES = 360
+BEARING_SECTION = MAX_DEGREES / NUM_BEARINGS
 BEARING_RANGE = BEARING_SECTION / 2
+
+# miles to kilometres (1 mile = 63360 in = 160934.4 cm = 1.609344 km)
+MI_TO_KM = Fraction(1609344, 1000000)
 
 
 def bearing_to_card(bearing):
-    if bearing > 360 or bearing < 0:
+    if bearing > MAX_DEGREES or bearing < 0:
         raise ValueError("Invalid wind bearing: {}".format(bearing))
 
     # Derived from values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
-    index = int(NUM_BEARINGS * (((bearing + BEARING_RANGE) % 360) / 360))
+    adj_bearing = bearing + BEARING_RANGE
+    mod_bearing = adj_bearing % MAX_DEGREES
+    percent = mod_bearing / MAX_DEGREES
+    adj_position = NUM_BEARINGS * percent
+    index = math.floor(adj_position)
     return BEARINGS[index]
 
 
 def convert_f2c(temp):
     """
-    Convert temperature in Fahrenheit to Celsios
+    Convert temperature in Fahrenheit to Celsius
     """
     return float((temp - 32) * Fraction(5, 9))
 
 
 def mph_to_kph(mph):
-    return mph * 1.609344
+    return float(mph * MI_TO_KM)
 
 
 class LocationNotFound(Exception):
