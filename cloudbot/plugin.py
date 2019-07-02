@@ -14,7 +14,7 @@ import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
 from cloudbot.plugin_hooks import hook_name_to_plugin
-from cloudbot.util import async_util, database
+from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
@@ -26,13 +26,11 @@ def find_hooks(parent, module):
     :type module: object
     :rtype: dict
     """
-    # set the loaded flag
-    module._cloudbot_loaded = True
     hooks = defaultdict(list)
     for func in module.__dict__.values():
-        if hasattr(func, "_cloudbot_hook"):
+        if hasattr(func, HOOK_ATTR):
             # if it has cloudbot hook
-            func_hooks = func._cloudbot_hook
+            func_hooks = getattr(func, HOOK_ATTR)
 
             for hook_type, func_hook in func_hooks.items():
                 hooks[hook_type].append(
@@ -40,7 +38,7 @@ def find_hooks(parent, module):
                 )
 
             # delete the hook to free memory
-            del func._cloudbot_hook
+            delattr(func, HOOK_ATTR)
 
     return hooks
 
@@ -203,10 +201,10 @@ class PluginManager:
     def _load_mod(self, name):
         plugin_module = importlib.import_module(name)
         # if this plugin was loaded before, reload it
-        if hasattr(plugin_module, "_cloudbot_loaded"):
+        if hasattr(plugin_module, LOADED_ATTR):
             plugin_module = importlib.reload(plugin_module)
 
-        setattr(plugin_module, '_cloudbot_loaded', True)
+        setattr(plugin_module, LOADED_ATTR, True)
         return plugin_module
 
     async def load_plugin(self, path):

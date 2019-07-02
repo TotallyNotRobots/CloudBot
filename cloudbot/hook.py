@@ -4,6 +4,7 @@ import re
 from enum import Enum, unique, IntEnum
 
 from cloudbot.event import EventType
+from cloudbot.util import HOOK_ATTR
 
 valid_command_re = re.compile(r"^\w+$")
 
@@ -219,16 +220,18 @@ class _PermissionHook(_Hook):
 
 
 def _add_hook(func, hook):
-    if not hasattr(func, "_cloudbot_hook"):
-        func._cloudbot_hook = {}
+    if not hasattr(func, HOOK_ATTR):
+        setattr(func, HOOK_ATTR, {})
     else:
-        assert hook.type not in func._cloudbot_hook  # in this case the hook should be using the add_hook method
-    func._cloudbot_hook[hook.type] = hook
+        # in this case the hook should be using the add_hook method
+        assert hook.type not in getattr(func, HOOK_ATTR)
+
+    getattr(func, HOOK_ATTR)[hook.type] = hook
 
 
 def _get_hook(func, hook_type):
-    if hasattr(func, "_cloudbot_hook") and hook_type in func._cloudbot_hook:
-        return func._cloudbot_hook[hook_type]
+    if hasattr(func, HOOK_ATTR) and hook_type in getattr(func, HOOK_ATTR):
+        return getattr(func, HOOK_ATTR)[hook_type]
 
     return None
 
