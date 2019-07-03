@@ -29,6 +29,9 @@ def brew(text, reply):
 
     try:
         if 'totalResults' in response:
+            if response['totalResults'] == 0:
+                return output
+
             beer = response['data'][0]
             brewery = beer['breweries'][0]
 
