@@ -262,8 +262,13 @@ class Gitio(Shortener):
 @_pastebin('hastebin')
 class Hastebin(Pastebin):
     def paste(self, data, ext):
+        if isinstance(data, str):
+            encoded = data.encode()
+        else:
+            encoded = data
+
         try:
-            r = requests.post(HASTEBIN_SERVER + '/documents', data=data)
+            r = requests.post(HASTEBIN_SERVER + '/documents', data=encoded)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
