@@ -141,6 +141,25 @@ def test_plugin_load(mock_manager, patch_import_module, patch_import_reload):
     assert mock_manager.get_plugin('plugins/test.py').code is newmod
 
 
+def test_plugin_load_disabled(mock_manager, patch_import_module, patch_import_reload):
+    patch_import_module.return_value = MockModule()
+    mock_manager.bot.config.update({
+        'plugin_loading': {
+            'use_whitelist': True,
+            'whitelist': [
+                'plugins.bar',
+            ]
+        }
+    })
+    assert mock_manager.bot.loop.run_until_complete(
+        mock_manager.load_plugin('plugins/test.py')
+    ) is None
+
+    patch_import_module.assert_not_called()
+    patch_import_reload.assert_not_called()
+    assert mock_manager.get_plugin('plugins/test.py') is None
+
+
 def test_safe_resolve(mock_manager):
     path = mock_manager.safe_resolve(Path("/some/path/that/doesn't/exist"))
     assert str(path) == "/some/path/that/doesn't/exist"
