@@ -76,7 +76,8 @@ class PluginManager:
     :type commands: dict[str, cloudbot.plugin_hooks.CommandHook]
     :type raw_triggers: dict[str, list[cloudbot.plugin_hooks.RawHook]]
     :type catch_all_triggers: list[cloudbot.plugin_hooks.RawHook]
-    :type event_type_hooks: dict[cloudbot.event.EventType, list[cloudbot.plugin_hooks.EventHook]]
+    :type event_type_hooks: dict[cloudbot.event.EventType,
+        list[cloudbot.plugin_hooks.EventHook]]
     :type regex_hooks: list[(re.__Regex, cloudbot.plugin_hooks.RegexHook)]
     :type sieves: list[cloudbot.plugin_hooks.SieveHook]
     """
