@@ -10,11 +10,15 @@ from numbers import Number
 from pathlib import Path
 
 import pytest
+from mock import patch
 
 import cloudbot.bot
-from cloudbot.event import Event, CommandEvent, RegexEvent, CapEvent, PostHookEvent, IrcOutEvent
+from cloudbot.event import (
+    CapEvent, CommandEvent, Event, EventType, IrcOutEvent, PostHookEvent, RegexEvent,
+)
 from cloudbot.hook import Action
-from cloudbot.plugin import Plugin, Hook
+from cloudbot.plugin import Plugin
+from cloudbot.plugin_hooks import Hook
 
 Hook.original_init = Hook.__init__
 
@@ -181,3 +185,221 @@ def test_coroutine_hooks(hook):
         assert asyncio.iscoroutinefunction(hook.function), \
             "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the " \
             "hook/coroutine decorators."
+
+
+class MockModule:
+    pass
+
+
+def make_plugin():
+    plugin_dir = Path('plugins').resolve()
+    file_path = plugin_dir / 'test.py'
+    file_name = file_path.name
+    return Plugin(
+        str(file_path),
+        file_name,
+        'test',
+        MockModule(),
+    )
+
+
+def get_and_wrap_hook(func, hook_type):
+    from cloudbot.plugin_hooks import hook_name_to_plugin
+    func_hook = func._cloudbot_hook[hook_type]
+    plugin = make_plugin()
+
+    _hook = hook_name_to_plugin(hook_type)(plugin, func_hook)
+    return _hook
+
+
+def test_hook_kwargs_warning():
+    from cloudbot.hook import irc_raw
+
+    @irc_raw('*', a=1)
+    def hook_func():
+        pass  # pragma: no cover
+
+    with patch('cloudbot.plugin_hooks.logger') as mocked_logger:
+        get_and_wrap_hook(hook_func, 'irc_raw')
+        mocked_logger.warning.assert_called_once_with(
+            'Ignoring extra args %s from %s', {'a': 1}, 'test:hook_func'
+        )
+
+
+def test_hook_catch_all():
+    from cloudbot.hook import irc_raw
+
+    @irc_raw('*')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'irc_raw')
+    assert _hook.is_catch_all()
+
+
+def test_cmd_hook_str():
+    from cloudbot.hook import command
+
+    @command('test')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'command')
+
+    assert str(_hook) == 'command test from test.py'
+
+
+def test_re_hook_str():
+    from cloudbot.hook import regex
+
+    @regex('test')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'regex')
+
+    assert str(_hook) == 'regex hook_func from test.py'
+
+
+def test_periodic_hook_str():
+    from cloudbot.hook import periodic
+
+    @periodic(5)
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'periodic')
+
+    assert str(_hook) == 'periodic hook (5 seconds) hook_func from test.py'
+
+
+def test_raw_hook_str():
+    from cloudbot.hook import irc_raw
+
+    @irc_raw('PRIVMSG')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'irc_raw')
+
+    assert str(_hook) == 'irc raw hook_func (PRIVMSG) from test.py'
+
+
+def test_sieve_hook_str():
+    from cloudbot.hook import sieve
+
+    @sieve()
+    def hook_func(a, b, c):
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'sieve')
+
+    assert str(_hook) == 'sieve hook_func from test.py'
+
+
+def test_event_hook_str():
+    from cloudbot.hook import event
+
+    @event(EventType.message)
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'event')
+
+    assert str(_hook) == 'event hook_func (EventType.message) from test.py'
+
+
+def test_on_start_hook_str():
+    from cloudbot.hook import on_start
+
+    @on_start()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'on_start')
+
+    assert str(_hook) == 'on_start hook_func from test.py'
+
+
+def test_on_stop_hook_str():
+    from cloudbot.hook import on_stop
+
+    @on_stop()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'on_stop')
+
+    assert str(_hook) == 'on_stop hook_func from test.py'
+
+
+def test_cap_avail_hook_str():
+    from cloudbot.hook import on_cap_available
+
+    @on_cap_available('test-cap')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'on_cap_available')
+
+    assert str(_hook) == 'on_cap_available hook_func from test.py'
+
+
+def test_cap_ack_hook_str():
+    from cloudbot.hook import on_cap_ack
+
+    @on_cap_ack('test-cap')
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'on_cap_ack')
+
+    assert str(_hook) == 'on_cap_ack hook_func from test.py'
+
+
+def test_connect_hook_str():
+    from cloudbot.hook import on_connect
+
+    @on_connect()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'on_connect')
+
+    assert str(_hook) == 'on_connect hook_func from test.py'
+
+
+def test_irc_out_hook_str():
+    from cloudbot.hook import irc_out
+
+    @irc_out()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'irc_out')
+
+    assert str(_hook) == 'irc_out hook_func from test.py'
+
+
+def test_post_hook_hook_str():
+    from cloudbot.hook import post_hook
+
+    @post_hook()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'post_hook')
+
+    assert str(_hook) == 'post_hook hook_func from test.py'
+
+
+def test_perm_hook_str():
+    from cloudbot.hook import permission
+
+    @permission()
+    def hook_func():
+        pass  # pragma: no cover
+
+    _hook = get_and_wrap_hook(hook_func, 'perm_check')
+
+    assert str(_hook) == 'perm hook hook_func from test.py'

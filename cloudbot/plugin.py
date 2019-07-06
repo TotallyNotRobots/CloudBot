@@ -1,6 +1,5 @@
 import asyncio
 import importlib
-import inspect
 import logging
 import sys
 from collections import defaultdict
@@ -8,13 +7,14 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter
 from pathlib import Path
+from typing import Optional
 from weakref import WeakValueDictionary
 
 import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
-from cloudbot.hook import Priority, Action
-from cloudbot.util import database, async_util
+from cloudbot.plugin_hooks import hook_name_to_plugin
+from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
@@ -26,19 +26,19 @@ def find_hooks(parent, module):
     :type module: object
     :rtype: dict
     """
-    # set the loaded flag
-    module._cloudbot_loaded = True
     hooks = defaultdict(list)
     for func in module.__dict__.values():
-        if hasattr(func, "_cloudbot_hook"):
+        if hasattr(func, HOOK_ATTR):
             # if it has cloudbot hook
-            func_hooks = func._cloudbot_hook
+            func_hooks = getattr(func, HOOK_ATTR)
 
             for hook_type, func_hook in func_hooks.items():
-                hooks[hook_type].append(_hook_name_to_plugin[hook_type](parent, func_hook))
+                hooks[hook_type].append(
+                    hook_name_to_plugin(hook_type)(parent, func_hook)
+                )
 
             # delete the hook to free memory
-            del func._cloudbot_hook
+            delattr(func, HOOK_ATTR)
 
     return hooks
 
@@ -73,12 +73,13 @@ class PluginManager:
 
     :type bot: cloudbot.bot.CloudBot
     :type plugins: dict[str, Plugin]
-    :type commands: dict[str, CommandHook]
-    :type raw_triggers: dict[str, list[RawHook]]
-    :type catch_all_triggers: list[RawHook]
-    :type event_type_hooks: dict[cloudbot.event.EventType, list[EventHook]]
-    :type regex_hooks: list[(re.__Regex, RegexHook)]
-    :type sieves: list[SieveHook]
+    :type commands: dict[str, cloudbot.plugin_hooks.CommandHook]
+    :type raw_triggers: dict[str, list[cloudbot.plugin_hooks.RawHook]]
+    :type catch_all_triggers: list[cloudbot.plugin_hooks.RawHook]
+    :type event_type_hooks: dict[cloudbot.event.EventType,
+        list[cloudbot.plugin_hooks.EventHook]]
+    :type regex_hooks: list[(re.__Regex, cloudbot.plugin_hooks.RegexHook)]
+    :type sieves: list[cloudbot.plugin_hooks.SieveHook]
     """
 
     def __init__(self, bot):
@@ -103,6 +104,14 @@ class PluginManager:
         self.perm_hooks = defaultdict(list)
         self._hook_waiting_queues = {}
 
+    def _add_plugin(self, plugin: 'Plugin'):
+        self.plugins[plugin.file_path] = plugin
+        self._plugin_name_map[plugin.title] = plugin
+
+    def _rem_plugin(self, plugin: 'Plugin'):
+        del self.plugins[plugin.file_path]
+        del self._plugin_name_map[plugin.title]
+
     def find_plugin(self, title):
         """
         Finds a loaded plugin and returns its Plugin object
@@ -110,6 +119,65 @@ class PluginManager:
         :return: The Plugin object if it exists, otherwise None
         """
         return self._plugin_name_map.get(title)
+
+    def safe_resolve(self, path_obj: Path) -> Path:
+        """Resolve the parts of a path that exist, allowing a non-existant path
+        to be resolved to allow resolution of its parents
+
+        :param path_obj: The `Path` object to resolve
+        :return: The safely resolved `Path`
+        """
+        unresolved = []
+        while not path_obj.exists():
+            unresolved.append(path_obj.name)
+            path_obj = path_obj.parent
+
+        path_obj = path_obj.resolve()
+
+        for part in reversed(unresolved):
+            path_obj /= part
+
+        return path_obj
+
+    def get_plugin(self, path) -> Optional['Plugin']:
+        """
+        Find a loaded plugin from its filename
+
+        :param path: The plugin's filepath
+        :return: A Plugin object or None
+        """
+        path_obj = Path(path)
+
+        return self.plugins.get(str(self.safe_resolve(path_obj)))
+
+    def can_load(self, plugin_title, noisy=True):
+        pl = self.bot.config.get("plugin_loading")
+        if not pl:
+            return True
+
+        if pl.get("use_whitelist", False):
+            if plugin_title not in pl.get("whitelist", []):
+                if noisy:
+                    logger.info(
+                        'Not loading plugin module "%s": '
+                        'plugin not whitelisted',
+                        plugin_title
+                    )
+
+                return False
+
+            return True
+
+        if plugin_title in pl.get("blacklist", []):
+            if noisy:
+                logger.info(
+                    'Not loading plugin module "%s": plugin blacklisted',
+                    plugin_title
+                )
+
+            return False
+
+        return True
 
     async def load_all(self, plugin_dir):
         """
@@ -131,44 +199,40 @@ class PluginManager:
             *[self.unload_plugin(path) for path in self.plugins], loop=self.bot.loop
         )
 
+    def _load_mod(self, name):
+        plugin_module = importlib.import_module(name)
+        # if this plugin was loaded before, reload it
+        if hasattr(plugin_module, LOADED_ATTR):
+            plugin_module = importlib.reload(plugin_module)
+
+        setattr(plugin_module, LOADED_ATTR, True)
+        return plugin_module
+
     async def load_plugin(self, path):
         """
-        Loads a plugin from the given path and plugin object, then registers all hooks from that plugin.
-
-        Won't load any plugins listed in "disabled_plugins".
+        Loads a plugin from the given path and plugin object,
+        then registers all hooks from that plugin.
 
         :type path: str | Path
         """
 
         path = Path(path)
-        file_path = path.resolve()
+        file_path = self.safe_resolve(path)
         file_name = file_path.name
         # Resolve the path relative to the current directory
         plugin_path = file_path.relative_to(self.bot.base_dir)
         title = '.'.join(plugin_path.parts[1:]).rsplit('.', 1)[0]
 
-        if "plugin_loading" in self.bot.config:
-            pl = self.bot.config.get("plugin_loading")
-
-            if pl.get("use_whitelist", False):
-                if title not in pl.get("whitelist", []):
-                    logger.info('Not loading plugin module "%s": plugin not whitelisted', title)
-                    return
-            else:
-                if title in pl.get("blacklist", []):
-                    logger.info('Not loading plugin module "%s": plugin blacklisted', title)
-                    return
+        if not self.can_load(title):
+            return
 
         # make sure to unload the previously loaded plugin from this path, if it was loaded.
-        if str(file_path) in self.plugins:
+        if self.get_plugin(file_path):
             await self.unload_plugin(file_path)
 
         module_name = "plugins.{}".format(title)
         try:
-            plugin_module = importlib.import_module(module_name)
-            # if this plugin was loaded before, reload it
-            if hasattr(plugin_module, "_cloudbot_loaded"):
-                importlib.reload(plugin_module)
+            plugin_module = self._load_mod(module_name)
         except Exception:
             logger.exception("Error loading %s:", title)
             return
@@ -191,8 +255,7 @@ class PluginManager:
                 plugin.unregister_tables(self.bot)
                 return
 
-        self.plugins[plugin.file_path] = plugin
-        self._plugin_name_map[plugin.title] = plugin
+        self._add_plugin(plugin)
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             for cap in on_cap_available_hook.caps:
@@ -273,10 +336,6 @@ class PluginManager:
 
             self._log_hook(perm_hook)
 
-        # sort sieve hooks by priority
-        self.sieves.sort(key=lambda x: x.priority)
-        self.connect_hooks.sort(key=attrgetter("priority"))
-
         # Sort hooks
         self.regex_hooks.sort(key=lambda x: x[1].priority)
         dicts_of_lists_of_hooks = (self.event_type_hooks, self.raw_triggers, self.perm_hooks, self.hook_hooks)
@@ -299,14 +358,12 @@ class PluginManager:
         :rtype: bool
         """
         path = Path(path)
-        file_path = path.resolve()
+        file_path = self.safe_resolve(path)
 
         # make sure this plugin is actually loaded
-        if str(file_path) not in self.plugins:
+        plugin = self.get_plugin(file_path)
+        if not plugin:
             return False
-
-        # get the loaded plugin
-        plugin = self.plugins[str(file_path)]
 
         for on_cap_available_hook in plugin.hooks["on_cap_available"]:
             available_hooks = self.cap_hooks["on_available"]
@@ -390,7 +447,7 @@ class PluginManager:
             logger.info("Cancelled %d tasks from %s", task_count, plugin.title)
 
         # remove last reference to plugin
-        del self.plugins[plugin.file_path]
+        self._rem_plugin(plugin)
 
         if self.bot.config.get("logging", {}).get("show_plugin_loading", True):
             logger.info("Unloaded all plugins from %s", plugin.title)
@@ -401,7 +458,7 @@ class PluginManager:
         """
         Logs registering a given hook
 
-        :type hook: Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         """
         if self.bot.config.get("logging", {}).get("show_plugin_loading", True):
             logger.info("Loaded %s", hook)
@@ -409,7 +466,7 @@ class PluginManager:
 
     def _execute_hook_threaded(self, hook, event):
         """
-        :type hook: Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         :type event: cloudbot.event.Event
         """
         event.prepare_threaded()
@@ -421,7 +478,7 @@ class PluginManager:
 
     async def _execute_hook_sync(self, hook, event):
         """
-        :type hook: Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         :type event: cloudbot.event.Event
         """
         await event.prepare()
@@ -464,7 +521,7 @@ class PluginManager:
 
         Returns False if the hook errored, True otherwise.
 
-        :type hook: cloudbot.plugin.Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         :type event: cloudbot.event.Event
         :rtype: bool
         """
@@ -488,9 +545,9 @@ class PluginManager:
 
     async def _sieve(self, sieve, event, hook):
         """
-        :type sieve: cloudbot.plugin.Hook
+        :type sieve: cloudbot.plugin_hooks.Hook
         :type event: cloudbot.event.Event
-        :type hook: cloudbot.plugin.Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         :rtype: cloudbot.event.Event
         """
         if sieve.threaded:
@@ -537,7 +594,7 @@ class PluginManager:
         Returns False if the hook didn't run successfully, and True if it ran successfully.
 
         :type event: cloudbot.event.Event | cloudbot.event.CommandEvent
-        :type hook: cloudbot.plugin.Hook | cloudbot.plugin.CommandHook
+        :type hook: cloudbot.plugin_hooks.Hook | cloudbot.plugin_hooks.CommandHook
         :rtype: bool
         """
 
@@ -642,318 +699,3 @@ class Plugin:
 
             for table in self.tables:
                 bot.db_metadata.remove(table)
-
-
-class Hook:
-    """
-    Each hook is specific to one function. This class is never used by itself, rather extended.
-
-    :type type; str
-    :type plugin: Plugin
-    :type function: callable
-    :type function_name: str
-    :type required_args: list[str]
-    :type threaded: bool
-    :type permissions: list[str]
-    :type single_thread: bool
-    """
-
-    def __init__(self, _type, plugin, func_hook):
-        """
-        :type _type: str
-        :type plugin: Plugin
-        :type func_hook: hook._Hook
-        """
-        self.type = _type
-        self.plugin = plugin
-        self.function = func_hook.function
-        self.function_name = self.function.__name__
-
-        sig = inspect.signature(self.function)
-
-        # don't process args starting with "_"
-        self.required_args = [arg for arg in sig.parameters.keys() if not arg.startswith('_')]
-
-        if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(self.function):
-            self.threaded = False
-        else:
-            self.threaded = True
-
-        self.permissions = func_hook.kwargs.pop("permissions", [])
-        self.single_thread = func_hook.kwargs.pop("singlethread", False)
-        self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
-        self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
-
-        clients = func_hook.kwargs.pop("clients", [])
-
-        if isinstance(clients, str):
-            clients = [clients]
-
-        self.clients = clients
-
-        if func_hook.kwargs:
-            # we should have popped all the args, so warn if there are any left
-            logger.warning("Ignoring extra args %s from %s", func_hook.kwargs, self.description)
-
-    @property
-    def description(self):
-        return "{}:{}".format(self.plugin.title, self.function_name)
-
-    def __repr__(self):
-        return "type: {}, plugin: {}, permissions: {}, single_thread: {}, threaded: {}".format(
-            self.type, self.plugin.title, self.permissions, self.single_thread, self.threaded
-        )
-
-
-class CommandHook(Hook):
-    """
-    :type name: str
-    :type aliases: list[str]
-    :type doc: str
-    :type auto_help: bool
-    """
-
-    def __init__(self, plugin, cmd_hook):
-        """
-        :type plugin: Plugin
-        :type cmd_hook: cloudbot.util.hook._CommandHook
-        """
-        self.auto_help = cmd_hook.kwargs.pop("autohelp", True)
-
-        self.name = cmd_hook.main_alias.lower()
-        self.aliases = [alias.lower() for alias in cmd_hook.aliases]  # turn the set into a list
-        self.aliases.remove(self.name)
-        self.aliases.insert(0, self.name)  # make sure the name, or 'main alias' is in position 0
-        self.doc = cmd_hook.doc
-
-        super().__init__("command", plugin, cmd_hook)
-
-    def __repr__(self):
-        return "Command[name: {}, aliases: {}, {}]".format(self.name, self.aliases[1:], Hook.__repr__(self))
-
-    def __str__(self):
-        return "command {} from {}".format("/".join(self.aliases), self.plugin.file_name)
-
-
-class RegexHook(Hook):
-    """
-    :type regexes: set[re.__Regex]
-    """
-
-    def __init__(self, plugin, regex_hook):
-        """
-        :type plugin: Plugin
-        :type regex_hook: cloudbot.util.hook._RegexHook
-        """
-        self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
-        self.only_no_match = regex_hook.kwargs.pop("only_no_match", False)
-
-        self.regexes = regex_hook.regexes
-
-        super().__init__("regex", plugin, regex_hook)
-
-    def __repr__(self):
-        return "Regex[regexes: [{}], {}]".format(", ".join(regex.pattern for regex in self.regexes),
-                                                 Hook.__repr__(self))
-
-    def __str__(self):
-        return "regex {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PeriodicHook(Hook):
-    """
-    :type interval: int
-    """
-
-    def __init__(self, plugin, periodic_hook):
-        """
-        :type plugin: Plugin
-        :type periodic_hook: cloudbot.util.hook._PeriodicHook
-        """
-
-        self.interval = periodic_hook.interval
-        self.initial_interval = periodic_hook.kwargs.pop("initial_interval", self.interval)
-
-        super().__init__("periodic", plugin, periodic_hook)
-
-    def __repr__(self):
-        return "Periodic[interval: [{}], {}]".format(self.interval, Hook.__repr__(self))
-
-    def __str__(self):
-        return "periodic hook ({} seconds) {} from {}".format(self.interval, self.function_name, self.plugin.file_name)
-
-
-class RawHook(Hook):
-    """
-    :type triggers: set[str]
-    """
-
-    def __init__(self, plugin, irc_raw_hook):
-        """
-        :type plugin: Plugin
-        :type irc_raw_hook: cloudbot.util.hook._RawHook
-        """
-        super().__init__("irc_raw", plugin, irc_raw_hook)
-
-        self.triggers = irc_raw_hook.triggers
-
-    def is_catch_all(self):
-        return "*" in self.triggers
-
-    def __repr__(self):
-        return "Raw[triggers: {}, {}]".format(list(self.triggers), Hook.__repr__(self))
-
-    def __str__(self):
-        return "irc raw {} ({}) from {}".format(self.function_name, ",".join(self.triggers), self.plugin.file_name)
-
-
-class SieveHook(Hook):
-    def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._SieveHook
-        """
-        super().__init__("sieve", plugin, sieve_hook)
-
-    def __repr__(self):
-        return "Sieve[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "sieve {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class EventHook(Hook):
-    """
-    :type types: set[cloudbot.event.EventType]
-    """
-
-    def __init__(self, plugin, event_hook):
-        """
-        :type plugin: Plugin
-        :type event_hook: cloudbot.util.hook._EventHook
-        """
-        super().__init__("event", plugin, event_hook)
-
-        self.types = event_hook.types
-
-    def __repr__(self):
-        return "Event[types: {}, {}]".format(list(self.types), Hook.__repr__(self))
-
-    def __str__(self):
-        return "event {} ({}) from {}".format(self.function_name, ",".join(str(t) for t in self.types),
-                                              self.plugin.file_name)
-
-
-class OnStartHook(Hook):
-    def __init__(self, plugin, on_start_hook):
-        """
-        :type plugin: Plugin
-        :type on_start_hook: cloudbot.util.hook._On_startHook
-        """
-        super().__init__("on_start", plugin, on_start_hook)
-
-    def __repr__(self):
-        return "On_start[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "on_start {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class OnStopHook(Hook):
-    def __init__(self, plugin, on_stop_hook):
-        super().__init__("on_stop", plugin, on_stop_hook)
-
-    def __repr__(self):
-        return "On_stop[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "on_stop {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class CapHook(Hook):
-    def __init__(self, _type, plugin, base_hook):
-        self.caps = base_hook.caps
-        super().__init__("on_cap_{}".format(_type), plugin, base_hook)
-
-    def __repr__(self):
-        return "{name}[{caps} {base!r}]".format(name=self.type, caps=self.caps, base=super())
-
-    def __str__(self):
-        return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
-
-
-class OnCapAvaliableHook(CapHook):
-    def __init__(self, plugin, base_hook):
-        super().__init__("available", plugin, base_hook)
-
-
-class OnCapAckHook(CapHook):
-    def __init__(self, plugin, base_hook):
-        super().__init__("ack", plugin, base_hook)
-
-
-class OnConnectHook(Hook):
-    def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._Hook
-        """
-        super().__init__("on_connect", plugin, sieve_hook)
-
-    def __repr__(self):
-        return "{name}[{base!r}]".format(name=self.type, base=super())
-
-    def __str__(self):
-        return "{name} {func} from {file}".format(name=self.type, func=self.function_name, file=self.plugin.file_name)
-
-
-class IrcOutHook(Hook):
-    def __init__(self, plugin, out_hook):
-        super().__init__("irc_out", plugin, out_hook)
-
-    def __repr__(self):
-        return "Irc_Out[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PostHookHook(Hook):
-    def __init__(self, plugin, out_hook):
-        super().__init__("post_hook", plugin, out_hook)
-
-    def __repr__(self):
-        return "Post_hook[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-class PermHook(Hook):
-    def __init__(self, plugin, perm_hook):
-        self.perms = perm_hook.perms
-        super().__init__("perm_check", plugin, perm_hook)
-
-    def __repr__(self):
-        return "PermHook[{}]".format(Hook.__repr__(self))
-
-    def __str__(self):
-        return "perm hook {} from {}".format(self.function_name, self.plugin.file_name)
-
-
-_hook_name_to_plugin = {
-    "command": CommandHook,
-    "regex": RegexHook,
-    "irc_raw": RawHook,
-    "sieve": SieveHook,
-    "event": EventHook,
-    "periodic": PeriodicHook,
-    "on_start": OnStartHook,
-    "on_stop": OnStopHook,
-    "on_cap_available": OnCapAvaliableHook,
-    "on_cap_ack": OnCapAckHook,
-    "on_connect": OnConnectHook,
-    "irc_out": IrcOutHook,
-    "post_hook": PostHookHook,
-    "perm_check": PermHook,
-}

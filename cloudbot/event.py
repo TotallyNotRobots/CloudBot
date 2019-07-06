@@ -24,7 +24,7 @@ class Event:
     """
     :type bot: cloudbot.bot.CloudBot
     :type conn: cloudbot.client.Client
-    :type hook: cloudbot.plugin.Hook
+    :type hook: cloudbot.plugin_hooks.Hook
     :type type: EventType
     :type content: str
     :type target: str
@@ -72,7 +72,7 @@ class Event:
         :param irc_ctcp_text: CTCP text if this message is a CTCP command
         :type bot: cloudbot.bot.CloudBot
         :type conn: cloudbot.client.Client
-        :type hook: cloudbot.plugin.Hook
+        :type hook: cloudbot.plugin_hooks.Hook
         :type base_event: cloudbot.event.Event
         :type content: str
         :type target: str
@@ -392,7 +392,7 @@ class Event:
 
 class CommandEvent(Event):
     """
-    :type hook: cloudbot.plugin.CommandHook
+    :type hook: cloudbot.plugin_hooks.CommandHook
     :type text: str
     :type triggered_command: str
     """
@@ -444,7 +444,7 @@ class CommandEvent(Event):
 
 class RegexEvent(Event):
     """
-    :type hook: cloudbot.plugin.RegexHook
+    :type hook: cloudbot.plugin_hooks.RegexHook
     :type match: re.__Match
     """
 
