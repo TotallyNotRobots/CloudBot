@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 
 
@@ -21,5 +19,4 @@ import pytest
 ])
 def test_brainfuck(text, output):
     from plugins.brainfuck import bf
-    loop = asyncio.get_event_loop()
-    assert loop.run_until_complete(bf(text)) == output
+    assert bf(text) == output
