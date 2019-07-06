@@ -3,6 +3,8 @@ import importlib
 import pytest
 from mock import MagicMock
 
+from tests.util.mock_bot import MockBot
+
 
 @pytest.mark.parametrize(
     "text,item_type,item_id", [("open.spotify.com/user/foobar", "user", "foobar")]
@@ -54,16 +56,35 @@ def test_format_response(data, item_type, output):
     assert _format_response(data, item_type) == output
 
 
-def test_search_no_results(mock_requests):
-    from plugins import spotify
+@pytest.fixture()
+def setup_api(unset_bot, mock_requests):
+    from cloudbot.bot import bot
 
+    bot.set(
+        MockBot(
+            {
+                "api_keys": {
+                    "spotify_client_id": "APIKEY",
+                    "spotify_client_secret": "APIKEY",
+                }
+            }
+        )
+    )
+    from plugins import spotify
     importlib.reload(spotify)
+    spotify.set_keys()
 
     mock_requests.add(
         "POST",
         "https://accounts.spotify.com/api/token",
         json={"access_token": "foo", "expires_in": 3600},
     )
+
+    yield
+
+
+def test_search_no_results(mock_requests, setup_api):
+    from plugins import spotify
 
     mock_requests.add(
         mock_requests.GET,
@@ -106,17 +127,8 @@ def test_search_no_results(mock_requests):
         ]
     ],
 )
-def test_format_search_track(data, output, mock_requests):
+def test_format_search_track(data, output, mock_requests, setup_api):
     from plugins import spotify
-
-    importlib.reload(spotify)
-
-    mock_requests.add(
-        "POST",
-        "https://accounts.spotify.com/api/token",
-        json={"access_token": "foo", "expires_in": 3600},
-    )
-
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()
