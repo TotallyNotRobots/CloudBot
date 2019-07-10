@@ -1,3 +1,5 @@
+import importlib
+
 import pytest
 import requests
 from responses import RequestsMock
@@ -257,3 +259,27 @@ def test_expand(mock_requests):
     )
 
     assert web.expand('http://goo.gl/foobar') == 'https://example.com'
+
+
+def test_register_duplicate_paste():
+    from cloudbot.util import web
+    obj = object()
+    obj1 = object()
+
+    web.pastebins.register('test', obj)
+    with pytest.raises(ValueError):
+        web.pastebins.register('test', obj1)
+
+    importlib.reload(web)
+
+
+def test_remove_paste():
+    from cloudbot.util import web
+    obj = object()
+
+    web.pastebins.register('test', obj)
+    assert web.pastebins.get('test') is obj
+    web.pastebins.remove('test')
+    assert web.pastebins.get('test') is None
+
+    importlib.reload(web)

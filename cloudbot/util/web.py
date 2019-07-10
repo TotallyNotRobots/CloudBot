@@ -33,6 +33,32 @@ logger = logging.getLogger('cloudbot')
 # Public API
 
 
+class Registry:
+    def __init__(self):
+        self._items = {}
+
+    def register(self, name, item):
+        if name in self._items:
+            raise ValueError("Attempt to register duplicate item")
+
+        self._items[name] = item
+
+    def get(self, name):
+        return self._items.get(name)
+
+    def remove(self, name):
+        del self._items[name]
+
+    def items(self):
+        return self._items.items()
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def __getitem__(self, item):
+        return self._items[item]
+
+
 def shorten(url, custom=None, key=None, service=DEFAULT_SHORTENER):
     impl = shorteners[service]
     return impl.shorten(url, custom, key)
@@ -64,7 +90,7 @@ class NoPasteException(Exception):
 
 
 def paste(data, ext='txt', service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
-    bins = pastebins.copy()
+    bins = dict(pastebins.items())
     impl = bins.pop(service, None)
     while impl:
         try:
@@ -136,27 +162,12 @@ class Pastebin:
         raise NotImplementedError
 
 
+shorteners = Registry()
+pastebins = Registry()
+
 # Internal Implementations
 
-shorteners = {}
-pastebins = {}
 
-
-def _shortener(name):
-    def _decorate(impl):
-        shorteners[name] = impl()
-
-    return _decorate
-
-
-def _pastebin(name):
-    def _decorate(impl):
-        pastebins[name] = impl()
-
-    return _decorate
-
-
-@_shortener('is.gd')
 class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'shorturl': custom, 'format': 'json'}
@@ -195,7 +206,6 @@ class Isgd(Shortener):
         raise ServiceHTTPError(j['errormessage'], r)
 
 
-@_shortener('goo.gl')
 class Googl(Shortener):
     def shorten(self, url, custom=None, key=None):
         h = {'content-type': 'application/json'}
@@ -236,7 +246,6 @@ class Googl(Shortener):
         raise ServiceHTTPError(j['error']['message'], r)
 
 
-@_shortener('git.io')
 class Gitio(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {'url': url, 'code': custom}
@@ -259,8 +268,11 @@ class Gitio(Shortener):
         raise ServiceHTTPError(r.text, r)
 
 
-@_pastebin('hastebin')
 class Hastebin(Pastebin):
+    def __init__(self, base_url):
+        super().__init__()
+        self.url = base_url
+
     def paste(self, data, ext):
         if isinstance(data, str):
             encoded = data.encode()
@@ -268,7 +280,7 @@ class Hastebin(Pastebin):
             encoded = data
 
         try:
-            r = requests.post(HASTEBIN_SERVER + '/documents', data=encoded)
+            r = requests.post(self.url + '/documents', data=encoded)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
@@ -282,3 +294,10 @@ class Hastebin(Pastebin):
                 return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
 
             raise ServiceHTTPError(j['message'], r)
+
+
+pastebins.register('hastebin', Hastebin(HASTEBIN_SERVER))
+
+shorteners.register('git.io', Gitio())
+shorteners.register('goo.gl', Googl())
+shorteners.register('is.gd', Isgd())
