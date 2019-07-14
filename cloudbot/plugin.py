@@ -102,7 +102,6 @@ class PluginManager:
         self.out_sieves = []
         self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
-        self._hook_waiting_queues = {}
 
     def _add_plugin(self, plugin: 'Plugin'):
         self.plugins[plugin.file_path] = plugin
@@ -604,41 +603,11 @@ class PluginManager:
                 if event is None:
                     return False
 
-        if hook.single_thread:
-            # There should only be one running instance of this hook, so let's wait for the last event to be processed
-            # before starting this one.
-
-            key = (hook.plugin.title, hook.function_name)
-            if key in self._hook_waiting_queues:
-                queue = self._hook_waiting_queues[key]
-                if queue is None:
-                    # there's a hook running, but the queue hasn't been created yet, since there's only one hook
-                    queue = asyncio.Queue()
-                    self._hook_waiting_queues[key] = queue
-                assert isinstance(queue, asyncio.Queue)
-                # create a future to represent this task
-                future = async_util.create_future(self.bot.loop)
-                queue.put_nowait(future)
-                # wait until the last task is completed
-                await future
-            else:
-                # set to None to signify that this hook is running, but there's no need to create a full queue
-                # in case there are no more hooks that will wait
-                self._hook_waiting_queues[key] = None
-
-            # Run the plugin with the message, and wait for it to finish
-            result = await self._execute_hook(hook, event)
-
-            queue = self._hook_waiting_queues[key]
-            if queue is None or queue.empty():
-                # We're the last task in the queue, we can delete it now.
-                del self._hook_waiting_queues[key]
-            else:
-                # set the result for the next task's future, so they can execute
-                next_future = await queue.get()
-                next_future.set_result(None)
+        if hook.lock:
+            async with hook.lock:
+                # Run the plugin with the message, and wait for it to finish
+                result = await self._execute_hook(hook, event)
         else:
-            # Run the plugin with the message, and wait for it to finish
             result = await self._execute_hook(hook, event)
 
         # Return the result
