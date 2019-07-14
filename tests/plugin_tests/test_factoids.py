@@ -5,6 +5,11 @@ from mock import MagicMock, call, patch
 
 
 def test_forget():
+    from cloudbot.util import database
+    from plugins import factoids
+    importlib.reload(database)
+    importlib.reload(factoids)
+
     mock_session = MagicMock()
     mock_notice = MagicMock()
     with patch('plugins.factoids.remove_fact') as func:
@@ -15,23 +20,26 @@ def test_forget():
 
 
 def test_remove_fact_no_paste(mock_requests):
-    from plugins.factoids import factoid_cache
-    factoid_cache.clear()
+    from cloudbot.util import database
+    from plugins import factoids
+    importlib.reload(database)
+    importlib.reload(factoids)
+
+    factoids.factoid_cache.clear()
     mock_requests.add(mock_requests.POST, 'https://hastebin.com/documents', status=404)
     mock_session = MagicMock()
     mock_notice = MagicMock()
 
-    from plugins.factoids import remove_fact
-    remove_fact('#example', ['foo'], mock_session, mock_notice)
+    factoids.remove_fact('#example', ['foo'], mock_session, mock_notice)
     mock_notice.assert_called_once_with("Unknown factoids: 'foo'")
 
     mock_session.execute.assert_not_called()
 
     mock_notice.reset_mock()
 
-    factoid_cache['#example']['foo'] = 'bar'
+    factoids.factoid_cache['#example']['foo'] = 'bar'
 
-    remove_fact('#example', ['foo', 'bar'], mock_session, mock_notice)
+    factoids.remove_fact('#example', ['foo', 'bar'], mock_session, mock_notice)
     mock_notice.assert_has_calls([
         call("Unknown factoids: 'bar'"),
         call('Unable to paste removed data, not removing facts'),
@@ -42,9 +50,10 @@ def test_remove_fact_no_paste(mock_requests):
 
 def test_remove_fact(patch_paste):
     from cloudbot.util import database
-    importlib.reload(database)
     from plugins import factoids
+    importlib.reload(database)
     importlib.reload(factoids)
+
     from plugins.factoids import factoid_cache
     factoid_cache.clear()
     mock_session = MagicMock()
@@ -79,9 +88,10 @@ def test_remove_fact(patch_paste):
 
 def test_clear_facts():
     from cloudbot.util import database
-    importlib.reload(database)
     from plugins import factoids
+    importlib.reload(database)
     importlib.reload(factoids)
+
     mock_session = MagicMock()
 
     from plugins.factoids import forget_all
