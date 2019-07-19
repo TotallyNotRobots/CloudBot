@@ -17,11 +17,11 @@ class Sprunge(Pastebin):
             encoded = data
 
         params = {
-            'params': encoded
+            'sprunge': encoded,
         }
 
         try:
-            with requests.post(self.url, params=params) as response:
+            with requests.post(self.url, data=params) as response:
                 response.raise_for_status()
                 url = response.text.strip()
         except HTTPError as e:
