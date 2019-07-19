@@ -33,6 +33,27 @@ def test_paste(mock_requests):
     assert paster.paste('test data', 'txt') == 'http://sprunge.us/foobar?txt'
 
 
+def test_data_params(mock_requests):
+    importlib.reload(web)
+    importlib.reload(sprunge)
+
+    sprunge.register()
+
+    body = None
+
+    def req_cb(req):
+        nonlocal body
+        body = req.body
+        return 200, {}, 'http://sprunge.us/foobar\n'
+
+    paster = web.pastebins['sprunge']
+    mock_requests.add_callback(
+        'POST', 'http://sprunge.us', callback=req_cb
+    )
+    assert paster.paste('test data', 'txt') == 'http://sprunge.us/foobar?txt'
+    assert body == 'sprunge=test+data'
+
+
 def test_paste_bytes(mock_requests):
     importlib.reload(web)
     importlib.reload(sprunge)
