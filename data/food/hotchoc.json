@@ -1,0 +1,35 @@
+{
+    "templates": [
+        "{method} {user} a {size} {adj} {flavor} hot chocolate with {topping}!"
+    ],
+    "parts": {
+        "method": [
+            "gives",
+            "pours",
+            "passes"
+        ],
+        "size": [
+            "small",
+            "medium-sized",
+            "large",
+            "mug of",
+            "cup of"
+        ],
+        "adj": [
+            "velvety",
+            "creamy"
+        ],
+        "flavor": [
+            "hazelnut",
+            "caramel",
+            "milk",
+            "dark"
+        ],
+        "topping": [
+            "marshmellows",
+            "cream",
+            "marshmellows and cream",
+            "a big flake"
+        ]
+    }
+}
