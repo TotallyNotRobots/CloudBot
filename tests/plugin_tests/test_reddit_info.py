@@ -29,8 +29,13 @@ def test_post_re_no_match(text):
 
 @pytest.mark.parametrize('text,output', [
     ('test', 'test'),
+    ('/test', 'test'),
+    ('test/', 'test'),
+    ('/test/', 'test'),
     ('r/test', 'test'),
+    ('r/test/', 'test'),
     ('/r/test', 'test'),
+    ('/r/test/', 'test'),
 ])
 def test_get_user(text, output):
     from plugins.reddit_info import get_sub
@@ -39,10 +44,23 @@ def test_get_user(text, output):
 
 @pytest.mark.parametrize('text,output', [
     ('test', 'test'),
+    ('test/', 'test'),
+    ('/test', 'test'),
+    ('/test/', 'test'),
     ('/u/test', 'test'),
     ('u/test', 'test'),
     ('/user/test', 'test'),
     ('user/test', 'test'),
+    ('/u/test/', 'test'),
+    ('u/test/', 'test'),
+    ('/user/test/', 'test'),
+    ('user/test/', 'test'),
+    ('user', 'user'),
+    ('/user', 'user'),
+    ('user/', 'user'),
+    ('/user/', 'user'),
+    ('u/user', 'user'),
+    ('/u/user', 'user'),
 ])
 def test_get_sub(text, output):
     from plugins.reddit_info import get_user
