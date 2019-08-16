@@ -70,17 +70,29 @@ def setup_api(unset_bot, mock_requests):
             }
         )
     )
-    from plugins import spotify
-    importlib.reload(spotify)
-    spotify.set_keys()
-
     mock_requests.add(
         "POST",
         "https://accounts.spotify.com/api/token",
         json={"access_token": "foo", "expires_in": 3600},
     )
+    from plugins import spotify
+    importlib.reload(spotify)
+    spotify.set_keys()
 
     yield
+
+
+def test_api_active(setup_api):
+    from plugins import spotify
+
+    assert spotify.api
+
+
+def test_api_inactive():
+    from plugins import spotify
+    importlib.reload(spotify)
+
+    assert not spotify.api
 
 
 def test_search_no_results(mock_requests, setup_api):
