@@ -1,4 +1,4 @@
-import datetime as _dt
+import time
 
 import pytest
 from mock import patch
@@ -48,25 +48,13 @@ def patch_try_shorten():
 def unset_bot():
     yield
     from cloudbot.bot import bot
+
     bot.set(None)
 
 
-class FrozenDatetime(_dt.datetime):
-    _now = None
-
-    @classmethod
-    def now(cls, *args, **kwargs):
-        if cls._now is None:
-            return super().now(*args, **kwargs)
-
-        return cls._now
-
-
-@pytest.fixture()
+@pytest.fixture(scope='class')
 def freeze_time():
-    import time
     now = time.time()
-    dt_now = _dt.datetime.fromtimestamp(now)
-    with patch('time.time') as mocked, patch('datetime.datetime', new=FrozenDatetime):
-        _dt.datetime._now = dt_now
+    with patch('time.time') as mocked:
         mocked.return_value = now
+        yield

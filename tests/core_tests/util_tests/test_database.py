@@ -1,9 +1,9 @@
+import importlib
+
+from cloudbot.util import database
 
 
 def test_database():
-    import sys
-    # Make sure we start with a fresh module
-    sys.modules.pop('cloudbot.util.database', None)
-    from cloudbot.util.database import metadata, base
-    assert metadata.bind is None
-    assert base is None
+    importlib.reload(database)
+    assert database.metadata.bind is None
+    assert database.base is None

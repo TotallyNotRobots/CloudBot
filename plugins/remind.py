@@ -158,7 +158,8 @@ async def remind(text, nick, chan, db, conn, event, async_call):
 
     # work out the time to remind the user, and check if that time is in the past
     remind_time = datetime.fromtimestamp(current_epoch + seconds)
-    if remind_time < current_time:
+    if remind_time < current_time:  # pragma: no cover
+        # This should technically be unreachable because of the previous checks
         return "I can't remind you in the past!"
 
     # finally, add the reminder and send a confirmation message
