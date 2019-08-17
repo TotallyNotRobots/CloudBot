@@ -1,11 +1,14 @@
 import time
 
-from cloudbot.util.tokenbucket import TokenBucket
+import pytest
+from mock import patch
+
+from cloudbot.util import tokenbucket
 
 
 # noinspection PyProtectedMember
 def test_bucket_consume():
-    bucket = TokenBucket(10, 5)
+    bucket = tokenbucket.TokenBucket(10, 5)
     # larger then capacity
     assert bucket.consume(15) is False
     # success
@@ -18,7 +21,7 @@ def test_bucket_consume():
 
 # noinspection PyProtectedMember
 def test_bucket_advanced():
-    bucket = TokenBucket(10, 1)
+    bucket = tokenbucket.TokenBucket(10, 1)
     # tokens start at 10
     assert bucket._tokens == 10
     # empty tokens
@@ -31,12 +34,53 @@ def test_bucket_advanced():
     assert bucket._tokens == 10
 
 
-def test_bucket_regen():
-    bucket = TokenBucket(10, 10)
+class MockTime:
+    def __init__(self, t_get=time.time):
+        self.offset = 0
+        self.t = None
+        self.tg = t_get
+
+    def _get(self):
+        if self.t is not None:
+            return self.t
+
+        return self.tg()
+
+    def get(self):
+        return self._get() + self.offset
+
+    def freeze(self):
+        self.t = self._get()
+
+    def unfreeze(self):
+        self.t = None
+
+    def sleep(self, n):
+        self.offset += n
+
+
+@pytest.fixture()
+def mock_time():
+    mocked = MockTime()
+    with patch.object(tokenbucket, 'time', mocked.get):
+        yield mocked
+
+
+@pytest.fixture()
+def freeze_time(mock_time):
+    mock_time.freeze()
+    try:
+        yield mock_time
+    finally:
+        mock_time.unfreeze()
+
+
+def test_bucket_regen(freeze_time):
+    bucket = tokenbucket.TokenBucket(10, 10)
     # success
     assert bucket.consume(10) is True
     # sleep
-    time.sleep(1)
+    freeze_time.sleep(1)
     # bucket should be full again and this should succeed
     assert bucket.tokens == 10
     assert bucket.consume(10) is True
