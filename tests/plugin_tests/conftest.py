@@ -1,3 +1,4 @@
+import math
 import time
 
 import pytest
@@ -46,15 +47,18 @@ def patch_try_shorten():
 
 @pytest.fixture()
 def unset_bot():
-    yield
-    from cloudbot.bot import bot
+    try:
+        yield
+    finally:
+        from cloudbot.bot import bot
 
-    bot.set(None)
+        bot.set(None)
 
 
 @pytest.fixture(scope='class')
 def freeze_time():
-    now = time.time()
+    # Make sure some randomness in the time doesn't break a test
+    now = float(math.floor(time.time()))
     with patch('time.time') as mocked:
         mocked.return_value = now
         yield
