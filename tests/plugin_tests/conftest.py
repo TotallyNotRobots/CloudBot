@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from mock import patch
 from responses import RequestsMock
@@ -15,6 +17,14 @@ class MockDB:
     def __init__(self):
         self.engine = create_engine('sqlite:///:memory:')
         self.session = scoped_session(sessionmaker(self.engine))
+
+    def get_data(self, table):
+        return self.session().execute(table.select()).fetchall()
+
+    def add_row(self, *args, **data):
+        table = args[0]
+        self.session().execute(table.insert().values(data))
+        self.session().commit()
 
 
 @pytest.fixture()
@@ -38,4 +48,13 @@ def patch_try_shorten():
 def unset_bot():
     yield
     from cloudbot.bot import bot
+
     bot.set(None)
+
+
+@pytest.fixture(scope='class')
+def freeze_time():
+    now = time.time()
+    with patch('time.time') as mocked:
+        mocked.return_value = now
+        yield
