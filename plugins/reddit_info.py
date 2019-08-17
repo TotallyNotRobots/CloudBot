@@ -13,8 +13,8 @@ from cloudbot.util.formatting import pluralize_auto
 from cloudbot.util.pager import paginated_list, CommandPager
 
 search_pages = defaultdict(dict)
-user_re = re.compile(r'^(?:/?u(?:ser)?/)?(?P<name>.+)$', re.IGNORECASE)
-sub_re = re.compile(r'^(?:/?r/)?(?P<name>.+)$', re.IGNORECASE)
+user_re = re.compile(r'^(?:/?(?:u(?:ser)?/)?)?(?P<name>.+?)/?$', re.IGNORECASE)
+sub_re = re.compile(r'^(?:/?(?:r/)?)?(?P<name>.+?)/?$', re.IGNORECASE)
 
 user_url = "http://reddit.com/user/{}/"
 subreddit_url = "http://reddit.com/r/{}/"
