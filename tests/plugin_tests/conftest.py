@@ -1,6 +1,6 @@
-import math
-import time
+import datetime
 
+import freezegun
 import pytest
 from mock import patch
 from responses import RequestsMock
@@ -55,10 +55,13 @@ def unset_bot():
         bot.set(None)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture()
 def freeze_time():
     # Make sure some randomness in the time doesn't break a test
-    now = float(math.floor(time.time()))
-    with patch('time.time') as mocked:
-        mocked.return_value = now
+    dt = datetime.datetime(2019, 8, 22, 18, 14, 36)
+    diff = datetime.datetime.now() - datetime.datetime.utcnow()
+    ts = round(diff.total_seconds() / (15 * 60)) * (15 * 60)
+    tz = datetime.timedelta(seconds=ts)
+
+    with freezegun.freeze_time(dt, tz):
         yield
