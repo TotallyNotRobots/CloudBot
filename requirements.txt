@@ -1,5 +1,5 @@
 beautifulsoup4==4.8.0
-cleverwrap==0.2.3.6
+cleverwrap==0.3.0.2
 feedparser==5.2.1
 forecastiopy==0.22
 geoip2==2.9.0
