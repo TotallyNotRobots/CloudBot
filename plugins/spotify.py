@@ -35,8 +35,11 @@ class SpotifyAPI:
         self._client_id = client_id
         self._client_secret = client_secret
 
+        if self:
+            self._refresh_token()
+
     def __bool__(self):
-        return self._client_id and self._client_secret
+        return bool(self._client_id and self._client_secret)
 
     def request(self, endpoint, params=None):
         with self._lock:
