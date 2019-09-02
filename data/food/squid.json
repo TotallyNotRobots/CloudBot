@@ -1,0 +1,23 @@
+{
+    "templates": [
+        "{method} {user} a {size} of squid {part}."
+    ],
+    "parts": {
+        "method": [
+            "gives",
+            "plates up",
+            "cooks"
+        ],
+        "size": [
+            "small",
+            "plate of",
+            "giant"
+        ],
+        "part": [
+            "hood",
+            "tubes",
+            "fins",
+            "tentacles"
+        ]
+    }
+}
