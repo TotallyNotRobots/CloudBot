@@ -100,7 +100,11 @@ class CommandHook(Hook):
         :type plugin: Plugin
         :type cmd_hook: cloudbot.util.hook._CommandHook
         """
-        self.auto_help = cmd_hook.kwargs.pop("autohelp", True)
+        auto_help = cmd_hook.kwargs.pop("autohelp", True)
+
+        super().__init__("command", plugin, cmd_hook)
+
+        self.auto_help = auto_help
 
         self.name = cmd_hook.main_alias.lower()
         self.aliases = [
@@ -111,8 +115,6 @@ class CommandHook(Hook):
             0, self.name
         )  # make sure the name, or 'main alias' is in position 0
         self.doc = cmd_hook.doc
-
-        super().__init__("command", plugin, cmd_hook)
 
     def __repr__(self):
         return "Command[name: {}, aliases: {}, {}]".format(
@@ -135,12 +137,15 @@ class RegexHook(Hook):
         :type plugin: Plugin
         :type regex_hook: cloudbot.util.hook._RegexHook
         """
-        self.run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
-        self.only_no_match = regex_hook.kwargs.pop("only_no_match", False)
-
-        self.regexes = regex_hook.regexes
+        run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
+        only_no_match = regex_hook.kwargs.pop("only_no_match", False)
 
         super().__init__("regex", plugin, regex_hook)
+
+        self.run_on_cmd = run_on_cmd
+        self.only_no_match = only_no_match
+
+        self.regexes = regex_hook.regexes
 
     def __repr__(self):
         return "Regex[regexes: [{}], {}]".format(
@@ -162,12 +167,15 @@ class PeriodicHook(Hook):
         :type periodic_hook: cloudbot.util.hook._PeriodicHook
         """
 
-        self.interval = periodic_hook.interval
-        self.initial_interval = periodic_hook.kwargs.pop(
-            "initial_interval", self.interval
+        interval = periodic_hook.interval
+        initial_interval = periodic_hook.kwargs.pop(
+            "initial_interval", interval
         )
 
         super().__init__("periodic", plugin, periodic_hook)
+
+        self.interval = interval
+        self.initial_interval = initial_interval
 
     def __repr__(self):
         return "Periodic[interval: [{}], {}]".format(
@@ -276,8 +284,9 @@ class OnStopHook(Hook):
 
 class CapHook(Hook):
     def __init__(self, _type, plugin, base_hook):
-        self.caps = base_hook.caps
         super().__init__("on_cap_{}".format(_type), plugin, base_hook)
+
+        self.caps = base_hook.caps
 
     def __repr__(self):
         return "{name}[{caps} {base!r}]".format(
@@ -343,8 +352,9 @@ class PostHookHook(Hook):
 
 class PermHook(Hook):
     def __init__(self, plugin, perm_hook):
-        self.perms = perm_hook.perms
         super().__init__("perm_check", plugin, perm_hook)
+
+        self.perms = perm_hook.perms
 
     def __repr__(self):
         return "PermHook[{}]".format(Hook.__repr__(self))
