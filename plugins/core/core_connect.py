@@ -8,6 +8,7 @@ def conn_pass(conn):
 
 @hook.connect(priority=10)
 def conn_nick(conn):
+    conn.nick = conn.target_nick
     conn.set_nick(conn.nick)
 
 
