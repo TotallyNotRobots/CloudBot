@@ -294,6 +294,7 @@ async def change_nick(text, conn, notice, is_nick_valid):
         return
 
     notice("Attempting to change nick to '{}'...".format(text))
+    conn.target_nick = text
     conn.set_nick(text)
 
 

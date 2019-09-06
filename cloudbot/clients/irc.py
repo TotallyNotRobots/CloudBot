@@ -66,6 +66,7 @@ class IrcClient(Client):
         """
         super().__init__(bot, _type, name, nick, channels=channels, config=config)
 
+        self.target_nick = nick
         self.use_ssl = config['connection'].get('ssl', False)
         self._ignore_cert_errors = config['connection'].get('ignore_cert', False)
         self._timeout = config['connection'].get('timeout', 300)
