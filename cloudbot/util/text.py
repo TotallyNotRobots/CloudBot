@@ -13,6 +13,8 @@ _STR_TO_BOOL = {
     "disable": False,
     "allow": True,
     "deny": False,
+    "true": True,
+    "false": False,
 }
 
 
