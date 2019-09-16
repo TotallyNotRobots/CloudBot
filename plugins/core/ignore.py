@@ -1,8 +1,13 @@
+from collections import defaultdict
+
 from irclib.util.compare import match_mask
-from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
+from sqlalchemy import (
+    Boolean, Column, PrimaryKeyConstraint, String, Table, UniqueConstraint, and_,
+    select,
+)
 
 from cloudbot import hook
-from cloudbot.util import database
+from cloudbot.util import database, web
 
 table = Table(
     "ignored",
@@ -134,6 +139,20 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
         remove_ignore(db, conn.name, chan, target)
 
 
+@hook.command(permissions=["ignore", "chanop"], autohelp=False)
+def listignores(db, conn, chan):
+    """- List all active ignores for the current channel"""
+
+    rows = db.execute(select([table.c.mask], and_(
+        table.c.connection == conn.name.lower(),
+        table.c.channel == chan.lower(),
+    ))).fetchall()
+
+    out = '\n'.join(row['mask'] for row in rows) + '\n'
+
+    return web.paste(out)
+
+
 @hook.command(permissions=["botcontrol"])
 def global_ignore(text, db, conn, notice, nick, admin_log):
     """<nick|mask> - ignores all input from <nick|mask> in ALL channels."""
@@ -158,3 +177,34 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
         notice("{} has been globally un-ignored.".format(target))
         admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
         remove_ignore(db, conn.name, "*", target)
+
+
+@hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
+def list_global_ignores(db, conn):
+    """- List all global ignores for the current network"""
+    return listignores(db, conn, "*")
+
+
+@hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
+def list_all_ignores(db, conn, text):
+    whereclause = table.c.connection == conn.name.lower()
+
+    if text:
+        whereclause = and_(whereclause, table.c.channel == text.lower())
+
+    rows = db.execute(select([table.c.channel, table.c.mask]), whereclause).fetchall()
+
+    ignores = defaultdict(list)
+
+    for row in rows:
+        ignores[row['channel']].append(row['mask'])
+
+    out = ""
+    for chan, masks in ignores.items():
+        out += "Ignores for {}:\n".format(chan)
+        for mask in masks:
+            out += '- {}\n'.format(mask)
+
+        out += '\n'
+
+    return web.paste(out)
