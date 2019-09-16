@@ -102,6 +102,10 @@ class Registry:
     def __getitem__(self, item):
         return self._items[item].item
 
+    def set_working(self):
+        for item in self._items.values():
+            item.working = True
+
 
 def shorten(url, custom=None, key=None, service=DEFAULT_SHORTENER):
     impl = shorteners[service]
@@ -137,10 +141,11 @@ def paste(data, ext='txt', service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
     if service:
         impl = pastebins.get_item(service)
     else:
-        impl = None
-
-    if not impl:
         impl = pastebins.get_working()
+
+        if not impl:
+            pastebins.set_working()
+            impl = pastebins.get_working()
 
     while impl:
         try:
