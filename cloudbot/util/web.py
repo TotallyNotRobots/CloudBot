@@ -15,13 +15,16 @@ License:
 
 import json
 import logging
+import time
+from operator import attrgetter
+from typing import Optional
 
 import requests
 from requests import RequestException, Response, PreparedRequest, HTTPError
 
 # Constants
 DEFAULT_SHORTENER = 'is.gd'
-DEFAULT_PASTEBIN = 'hastebin'
+DEFAULT_PASTEBIN = ''
 
 HASTEBIN_SERVER = 'https://hastebin.com'
 
@@ -34,6 +37,29 @@ logger = logging.getLogger('cloudbot')
 
 
 class Registry:
+    class Item:
+        def __init__(self, item):
+            self.item = item
+            self.working = True
+            self.last_check = 0
+            self.uses = 0
+
+        def failed(self):
+            self.working = False
+            self.last_check = time.time()
+
+        @property
+        def should_use(self):
+            if self.working:
+                return True
+
+            if (time.time() - self.last_check) > (5*60):
+                # It's been 5 minutes, try again
+                self.working = True
+                return True
+
+            return False
+
     def __init__(self):
         self._items = {}
 
@@ -41,10 +67,28 @@ class Registry:
         if name in self._items:
             raise ValueError("Attempt to register duplicate item")
 
-        self._items[name] = item
+        self._items[name] = self.Item(item)
 
     def get(self, name):
+        val = self._items.get(name)
+        if val:
+            return val.item
+
+        return val
+
+    def get_item(self, name):
         return self._items.get(name)
+
+    def get_working(self) -> Optional[Item]:
+        working = [
+            item for item in self._items.values()
+            if item.should_use
+        ]
+
+        if not working:
+            return None
+
+        return min(working, key=attrgetter('uses'))
 
     def remove(self, name):
         del self._items[name]
@@ -56,7 +100,7 @@ class Registry:
         return iter(self._items)
 
     def __getitem__(self, item):
-        return self._items[item]
+        return self._items[item].item
 
 
 def shorten(url, custom=None, key=None, service=DEFAULT_SHORTENER):
@@ -90,18 +134,24 @@ class NoPasteException(Exception):
 
 
 def paste(data, ext='txt', service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
-    bins = dict(pastebins.items())
-    impl = bins.pop(service, None)
+    if service:
+        impl = pastebins.get_item(service)
+    else:
+        impl = None
+
+    if not impl:
+        impl = pastebins.get_working()
+
     while impl:
         try:
-            return impl.paste(data, ext)
+            out = impl.item.paste(data, ext)
+            impl.uses += 1
+            return out
         except ServiceError:
+            impl.failed()
             logger.exception("Paste failed")
 
-        try:
-            _, impl = bins.popitem()
-        except LookupError:
-            impl = None
+        impl = pastebins.get_working()
 
     if raise_on_no_paste:
         raise NoPasteException("Unable to paste data")
@@ -291,7 +341,7 @@ class Hastebin(Pastebin):
             j = r.json()
 
             if r.status_code is requests.codes.ok:
-                return '{}/{}.{}'.format(HASTEBIN_SERVER, j['key'], ext)
+                return '{}/{}.{}'.format(self.url, j['key'], ext)
 
             raise ServiceHTTPError(j['message'], r)
 
