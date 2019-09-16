@@ -79,7 +79,7 @@ class Registry:
     def get_item(self, name):
         return self._items.get(name)
 
-    def get_working(self) -> Optional[Item]:
+    def get_working(self) -> Optional['Item']:
         working = [
             item for item in self._items.values()
             if item.should_use
