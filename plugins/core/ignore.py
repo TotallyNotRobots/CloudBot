@@ -187,6 +187,7 @@ def list_global_ignores(db, conn):
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
 def list_all_ignores(db, conn, text):
+    """<chan> - List all ignores for <chan>, requires elevated permissions"""
     whereclause = table.c.connection == conn.name.lower()
 
     if text:
