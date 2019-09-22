@@ -7,6 +7,7 @@ server_info.py
 import gc
 import json
 import logging
+import time
 import weakref
 from collections import Mapping, Iterable, namedtuple
 from contextlib import suppress
@@ -17,6 +18,7 @@ from irclib.parser import Prefix
 
 import cloudbot.bot
 from cloudbot import hook
+from cloudbot.client import Client
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import web
 from cloudbot.util.mapping import KeyFoldDict, KeyFoldMixin
@@ -556,6 +558,12 @@ class MappingSerializer:
         if isinstance(obj, (str, Number, bool)) or obj is None:
             return obj
 
+        if isinstance(obj, Client):
+            return '<client name={!r}>'.format(obj.name)
+
+        if isinstance(obj, MappingAttributeAdapter):
+            obj = vars(obj)
+
         if isinstance(obj, Mapping):
             if id(obj) in self._seen_objects:
                 return '<{} with id {}>'.format(type(obj).__name__, id(obj))
@@ -676,6 +684,47 @@ def getdata_cmd(conn, chan, nick):
     user_data = get_users(conn).getuser(nick)
     memb = chan_data.get_member(user_data)
     return web.paste(MappingSerializer().serialize(memb, indent=2))
+
+
+@hook.irc_raw(['PRIVMSG', 'NOTICE'])
+def on_msg(conn, nick, user, host, irc_paramlist):
+    chan, *other_data = irc_paramlist
+
+    if chan.lower() != conn.nick.lower():
+        return
+
+    users = get_users(conn)
+
+    user_data = users.getuser(nick)
+
+    user_data.ident = user
+    user_data.host = host
+
+    chan_data = get_chans(conn).getchan(chan)
+    if nick not in chan_data.users:
+        memb = user_data.join_channel(chan_data)
+        conn.cmd("WHOIS", nick)
+    else:
+        memb = chan_data.get_member(user_data)
+
+    memb.data['last_privmsg'] = time.time()
+
+
+@hook.periodic(600)
+def clean_pms(bot):
+    cutoff = time.time() - 600
+    for conn in bot.connections.values():
+        pms = get_chans(conn).getchan(conn.nick)
+        to_delete = set()
+        for nick, memb in pms.users.items():
+            if memb.data['last_privmsg'] < cutoff:
+                to_delete.add(nick)
+
+        for nick in to_delete:
+            try:
+                del pms.users[nick]
+            except LookupError:
+                pass
 
 
 @hook.irc_raw('JOIN')
@@ -820,6 +869,8 @@ def on_nick(nick, irc_paramlist, conn):
     :type conn: cloudbot.client.Client
     """
     users = get_users(conn)
+    chans = get_chans(conn)
+
     new_nick = irc_paramlist[0]
 
     user = users.pop(nick)
@@ -828,6 +879,13 @@ def on_nick(nick, irc_paramlist, conn):
     for memb in user.channels.values():
         chan_users = memb.channel.users
         chan_users[new_nick] = chan_users.pop(nick)
+
+    if conn.nick.lower() in (nick.lower(), new_nick.lower()) and nick in chans:
+        chans[new_nick] = chans.pop(nick)
+        pms = chans.getchan(new_nick)
+        for memb in pms.users.values():
+            user_chans = memb.user.channels
+            user_chans[new_nick] = user_chans.pop(nick)
 
 
 @hook.irc_raw('ACCOUNT')
@@ -909,7 +967,7 @@ def on_whois_acct(conn, irc_paramlist):
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
     :type conn: cloudbot.client.Client
     """
-    _, nick, acct = irc_paramlist[:2]
+    _, nick, acct = irc_paramlist[:3]
     get_users(conn).getuser(nick).account = acct
 
 
