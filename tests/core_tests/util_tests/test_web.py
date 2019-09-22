@@ -1,3 +1,4 @@
+import datetime
 import importlib
 
 import pytest
@@ -40,6 +41,21 @@ def test_paste_error(mock_requests):
         status=201
     )
     assert web.paste('test data') == 'Unable to paste data'
+
+
+def test_registry_item_working(freeze_time):
+    from cloudbot.util.web import Registry
+    registry = Registry()
+    registry.register('test', object())
+    item = registry.get_item('test')
+    assert item.should_use
+
+    item.failed()
+    assert not item.should_use
+
+    freeze_time.tick(datetime.timedelta(minutes=6))
+
+    assert item.should_use
 
 
 def test_shorten(mock_requests):
