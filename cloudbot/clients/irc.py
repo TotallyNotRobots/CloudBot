@@ -97,9 +97,9 @@ class IrcClient(Client):
             ssl_context = ssl.create_default_context()
             client_cert = conn_config.get('client_cert')
             if client_cert:
-                path = Path(client_cert).resolve()
+                path = Path(client_cert)
                 if path.exists():
-                    ssl_context.load_cert_chain(str(path))
+                    ssl_context.load_cert_chain(str(path.resolve()))
                 else:
                     logger.warning("[%s] Unable to load client cert", self.name)
 
