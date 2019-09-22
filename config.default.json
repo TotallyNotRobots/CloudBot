@@ -9,7 +9,8 @@
                 "ssl": false,
                 "ignore_cert": true,
                 "password": "",
-                "timeout": 300
+                "timeout": 300,
+                "client_cert": "cloudbot.pem"
             },
             "ping_settings": {
                 "interval": 60,
