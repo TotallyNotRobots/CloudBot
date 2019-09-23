@@ -2,9 +2,15 @@ import pytest
 import requests
 from mock import MagicMock
 
+URL = (
+    "http://www.horoscope.com/us/horoscopes/general/"
+    "horoscope-general-daily-today.aspx?sign={sign}"
+)
+
 
 def setup_db(mock_db):
     from plugins import horoscope
+
     horoscope.table.create(mock_db.engine, checkfirst=True)
     sess = mock_db.session()
     sess.execute(horoscope.table.delete())
@@ -14,19 +20,18 @@ def setup_db(mock_db):
 
 def test_horoscope(mock_requests, mock_db):
     from plugins import horoscope
+
     sess = setup_db(mock_db)
     mock_requests.add(
         'GET',
-        "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=1",
-        headers={
-            'User-Agent': "Some user agent"
-        },
+        URL.format(sign=1),
+        headers={'User-Agent': "Some user agent"},
         body="""
         <main class="main-horoscope">
             <p>Some horoscope text</p>
         </main>
         """,
-        match_querystring=True
+        match_querystring=True,
     )
 
     event = MagicMock()
@@ -44,6 +49,7 @@ def test_horoscope(mock_requests, mock_db):
 
 def test_invalid_syntax(mock_requests, mock_db):
     from plugins import horoscope
+
     sess = setup_db(mock_db)
 
     event = MagicMock()
@@ -59,27 +65,22 @@ def test_invalid_syntax(mock_requests, mock_db):
 
 def test_database_read(mock_requests, mock_db):
     from plugins import horoscope
+
     sess = setup_db(mock_db)
 
     mock_requests.add(
         'GET',
-        "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=4",
-        headers={
-            'User-Agent': "Some user agent"
-        },
+        URL.format(sign=4),
+        headers={'User-Agent': "Some user agent"},
         body="""
         <main class="main-horoscope">
             <p>Some horoscope text</p>
         </main>
         """,
-        match_querystring=True
+        match_querystring=True,
     )
 
-    mock_db.add_row(
-        horoscope.table,
-        nick='some_user',
-        sign='cancer',
-    )
+    mock_db.add_row(horoscope.table, nick='some_user', sign='cancer')
 
     event = MagicMock()
     bot = MagicMock()
@@ -94,19 +95,18 @@ def test_database_read(mock_requests, mock_db):
 
 def test_parse_fail(mock_requests, mock_db):
     from plugins import horoscope
+
     sess = setup_db(mock_db)
 
     mock_requests.add(
         'GET',
-        "http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=4",
-        headers={
-            'User-Agent': "Some user agent"
-        },
+        URL.format(sign=4),
+        headers={'User-Agent': "Some user agent"},
         body="""
         <main class="main-horoscope">
         </main>
         """,
-        match_querystring=True
+        match_querystring=True,
     )
 
     event = MagicMock()
@@ -121,6 +121,7 @@ def test_parse_fail(mock_requests, mock_db):
 
 def test_page_error(mock_requests, mock_db):
     from plugins import horoscope
+
     sess = setup_db(mock_db)
 
     event = MagicMock()
@@ -131,7 +132,7 @@ def test_page_error(mock_requests, mock_db):
         horoscope.horoscope('aries', sess, bot, 'some_user', event)
 
     event.reply.assert_called_once_with(
-        "Could not get horoscope: Connection refused by Responses: "
-        "GET http://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=1 "
-        "doesn't match Responses Mock. URL Error"
+        "Could not get horoscope: Connection refused by Responses: GET "
+        + URL.format(sign=1)
+        + " doesn't match Responses Mock. URL Error"
     )
