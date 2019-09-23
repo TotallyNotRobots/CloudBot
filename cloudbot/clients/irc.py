@@ -6,6 +6,7 @@ import socket
 import ssl
 import traceback
 from functools import partial
+from pathlib import Path
 
 from irclib.parser import Message
 
@@ -67,33 +68,50 @@ class IrcClient(Client):
         super().__init__(bot, _type, name, nick, channels=channels, config=config)
 
         self.target_nick = nick
-        self.use_ssl = config['connection'].get('ssl', False)
-        self._ignore_cert_errors = config['connection'].get('ignore_cert', False)
-        self._timeout = config['connection'].get('timeout', 300)
-        self.server = config['connection']['server']
-        self.port = config['connection'].get('port', 6667)
+        conn_config = config['connection']
+        self.use_ssl = conn_config.get('ssl', False)
+        self._ignore_cert_errors = conn_config.get('ignore_cert', False)
+        self._timeout = conn_config.get('timeout', 300)
+        self.server = conn_config['server']
+        self.port = conn_config.get('port', 6667)
 
-        local_bind = (config['connection'].get('bind_addr', False), config['connection'].get('bind_port', 0))
+        local_bind = (
+            conn_config.get('bind_addr', False),
+            conn_config.get('bind_port', 0),
+        )
         if local_bind[0] is False:
             local_bind = False
 
         self.local_bind = local_bind
         # create SSL context
-        if self.use_ssl:
-            self.ssl_context = ssl.create_default_context()
-            if self._ignore_cert_errors:
-                self.ssl_context.check_hostname = False
-                self.ssl_context.verify_mode = ssl.CERT_NONE
-            else:
-                self.ssl_context.verify_mode = ssl.CERT_REQUIRED
-        else:
-            self.ssl_context = None
+        self.ssl_context = self.make_ssl_context(conn_config)
 
         # transport and protocol
         self._transport = None
         self._protocol = None
 
         self._connecting = False
+
+    def make_ssl_context(self, conn_config):
+        if self.use_ssl:
+            ssl_context = ssl.create_default_context()
+            client_cert = conn_config.get('client_cert')
+            if client_cert:
+                path = Path(client_cert)
+                if path.exists():
+                    ssl_context.load_cert_chain(str(path.resolve()))
+                else:
+                    logger.warning("[%s] Unable to load client cert", self.name)
+
+            if self._ignore_cert_errors:
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+            else:
+                ssl_context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            ssl_context = None
+
+        return ssl_context
 
     def describe_server(self):
         if self.use_ssl:
