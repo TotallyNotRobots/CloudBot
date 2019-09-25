@@ -161,7 +161,8 @@ def test_plugin_load_disabled(mock_manager, patch_import_module, patch_import_re
 
 
 def test_safe_resolve(mock_manager):
-    path = mock_manager.safe_resolve(Path("/some/path/that/doesn't/exist"))
-    assert str(path) == "/some/path/that/doesn't/exist"
+    base_path = Path("/some/path/that/doesn't/exist")
+    path = mock_manager.safe_resolve(base_path)
+    assert str(path) == str(base_path.absolute())
     assert path.is_absolute()
     assert not path.exists()
