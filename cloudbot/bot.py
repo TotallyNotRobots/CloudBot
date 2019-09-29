@@ -23,6 +23,7 @@ from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import PluginReloader, ConfigReloader
 from cloudbot.util import database, formatting, async_util
+from cloudbot.util.mapping import KeyFoldDict
 
 logger = logging.getLogger("cloudbot")
 
@@ -116,7 +117,7 @@ class CloudBot:
         self.stopped_future = async_util.create_future(self.loop)
 
         # stores each bot server connection
-        self.connections = {}
+        self.connections = KeyFoldDict()
 
         # for plugins
         self.logger = logger
