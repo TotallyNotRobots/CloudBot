@@ -87,10 +87,36 @@ def parse_or_lookup(text, db, nick, event):
     return sign, dontsave
 
 
+class HoroscopeParseError(Exception):
+    def __init__(self, msg, content):
+        super().__init__(msg)
+        self.content = content
+
+
 def parse_page(content):
+    """Parse the horoscope page
+
+    >>> parse_page('')
+    Traceback (most recent call last):
+        [...]
+    plugins.horoscope.HoroscopeParseError: Unable to parse horoscope
+    >>> parse_page('<main class="main-horoscope"><div>hello world</div></main>')
+    Traceback (most recent call last):
+        [...]
+    plugins.horoscope.HoroscopeParseError: Unable to parse horoscope
+    >>> parse_page('<main class="main-horoscope"><p>hello world</p></main>')
+    'hello world'
+
+    """
     soup = parse_soup(content)
     container = soup.find("main", class_="main-horoscope")
+    if not container:
+        raise HoroscopeParseError("Unable to parse horoscope", content)
+
     para = container.p
+    if not para:
+        raise HoroscopeParseError("Unable to parse horoscope", content)
+
     return para.text
 
 
@@ -118,7 +144,12 @@ def horoscope(text, db, bot, nick, event):
         event.reply("Could not get horoscope: {}. URL Error".format(e))
         raise
 
-    horoscope_text = parse_page(request.text)
+    try:
+        horoscope_text = parse_page(request.text)
+    except HoroscopeParseError:
+        event.reply("Unable to parse horoscope posting")
+        raise
+
     result = colors.parse("$(b){}$(b) {}").format(sign, horoscope_text)
 
     if text and not dontsave:
