@@ -401,7 +401,7 @@ class _IrcProtocol(asyncio.Protocol):
             line = line.encode("utf-8", "replace")
 
         if log:
-            logger.info("[%s|out] >> %r", self.conn.name, line)
+            logger.debug("[%s|out] >> %r", self.conn.name, line)
 
         self._transport.write(line)
 
