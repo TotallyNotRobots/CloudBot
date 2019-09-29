@@ -9,6 +9,21 @@ class Pager:
     """Multiline pager
 
     Takes a string with newlines and paginates it to certain size chunks
+
+    >>> p = Pager(['a', 'b', 'c', 'd', 'e'], 2)
+    >>> p.next()
+    ['a', 'b (page 1/3)']
+    >>> p.next()
+    ['c', 'd (page 2/3)']
+    >>> p.next()
+    ['e (page 3/3)']
+    >>> p.next()
+
+    >>> p1 = Pager(['a', 'b', 'c', 'd', 'e'], 0)
+    >>> p1.next()
+    ['a', 'b', 'c', 'd', 'e']
+    >>> p1.next()
+
     """
 
     @classmethod
@@ -33,7 +48,11 @@ class Pager:
         # Added here due to extensive use of threads throughout plugins
         self.lock = RLock()
         self.chunk_size = chunk_size
-        self.chunks = tuple(chunk_iter(lines, self.chunk_size))
+        if self.chunk_size == 0:
+            self.chunks = (lines,)
+        else:
+            self.chunks = tuple(chunk_iter(lines, self.chunk_size))
+
         self.current_pos = 0
 
     def format_chunk(self, chunk, pagenum):
@@ -106,8 +125,7 @@ class CommandPager(Pager):
 
 
 def paginated_list(
-        data, delim=" \u2022 ", suffix='...', max_len=256,
-        page_size=2, pager_cls=Pager
+    data, delim=" \u2022 ", suffix='...', max_len=256, page_size=2, pager_cls=Pager
 ):
     """
     >>> list(paginated_list(['abc', 'def']))
