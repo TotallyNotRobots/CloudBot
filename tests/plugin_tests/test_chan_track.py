@@ -29,7 +29,7 @@ class MockConn:
 
 
 def test_replace_user_data():
-    from plugins.chan_track import UsersDict, replace_user_data, Channel
+    from plugins.core.chan_track import UsersDict, replace_user_data, Channel
     from plugins.core.server_info import handle_prefixes
     conn = MockConn()
     serv_info = conn.memory['server_info']
@@ -63,7 +63,7 @@ def test_replace_user_data():
 
 def test_channel_members():
     from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.chan_track import (
+    from plugins.core.chan_track import (
         get_users, get_chans, replace_user_data,
         on_nick, on_join, on_mode, on_part, on_kick, on_quit,
     )
@@ -136,7 +136,7 @@ NAMES_MOCK_TRAFFIC = [
 
 def test_names_handling():
     from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.chan_track import on_join, on_part, on_kick, on_quit, on_names
+    from plugins.core.chan_track import on_join, on_part, on_kick, on_quit, on_names
 
     handlers = {
         'JOIN': on_join,

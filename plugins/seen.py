@@ -1,12 +1,11 @@
 import re
 import time
-from collections import deque
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select, and_
+from sqlalchemy import Column, Float, PrimaryKeyConstraint, String, Table, and_, select
 
 from cloudbot import hook
 from cloudbot.event import EventType
-from cloudbot.util import timeformat, database
+from cloudbot.util import database, timeformat
 
 table = Table(
     'seen_user',
@@ -44,51 +43,16 @@ def track_seen(event, db):
         db.commit()
 
 
-def track_history(event, message_time, conn):
-    """
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    """
-    try:
-        history = conn.history[event.chan]
-    except KeyError:
-        conn.history[event.chan] = deque(maxlen=100)
-        # what are we doing here really
-        # really really
-        history = conn.history[event.chan]
-
-    data = (event.nick, message_time, event.content)
-    history.append(data)
-
-
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def chat_tracker(event, db, conn):
+def chat_tracker(event, db):
     """
     :type db: sqlalchemy.orm.Session
     :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
     """
     if event.type is EventType.action:
         event.content = "\x01ACTION {}\x01".format(event.content)
 
-    message_time = time.time()
     track_seen(event, db)
-    track_history(event, message_time, conn)
-
-
-@hook.command(autohelp=False)
-async def resethistory(event, conn):
-    """- resets chat history for the current channel
-
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    """
-    try:
-        conn.history[event.chan].clear()
-        return "Reset chat history for current channel."
-    except KeyError:
-        # wat
-        return "There is no history for this channel."
 
 
 @hook.command()
@@ -117,7 +81,8 @@ def seen(text, nick, chan, db, event, is_nick_valid):
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
         if last_seen[2][0:1] == "\x01":
-            return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
+            return '{} was last seen {} ago: * {} {}'.format(text, reltime, text,
+                                                             last_seen[2][8:-1])
 
         return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
 
