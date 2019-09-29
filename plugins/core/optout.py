@@ -163,6 +163,9 @@ def optout_sieve(bot, event, _hook):
     if not event.chan or not event.conn:
         return event
 
+    if _hook.plugin.title.startswith('core.'):
+        return event
+
     hook_name = _hook.plugin.title + "." + _hook.function_name
     with cache_lock:
         optouts = get_conn_optouts(event.conn.name)
