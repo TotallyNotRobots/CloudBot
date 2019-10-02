@@ -1,11 +1,18 @@
 import codecs
 
 import pytest
+import requests
 from bs4 import BeautifulSoup
 from mock import MagicMock
 from responses import RequestsMock
 
-from plugins.link_announcer import url_re, get_encoding, print_url_title, MAX_RECV, parse_content
+from plugins.link_announcer import (
+    url_re,
+    get_encoding,
+    print_url_title,
+    MAX_RECV,
+    parse_content,
+)
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -71,9 +78,14 @@ FAILS = (
 SEARCH = (
     ("(https://foo.bar)", "https://foo.bar"),
     ("[https://example.com]", "https://example.com"),
-    ("<a hreh=\"https://example.com/test.page?#test\">", "https://example.com/test.page?#test"),
-    ("<https://www.example.com/this.is.a.test/blah.txt?a=1#123>",
-     "https://www.example.com/this.is.a.test/blah.txt?a=1#123"),
+    (
+        "<a hreh=\"https://example.com/test.page?#test\">",
+        "https://example.com/test.page?#test",
+    ),
+    (
+        "<https://www.example.com/this.is.a.test/blah.txt?a=1#123>",
+        "https://www.example.com/this.is.a.test/blah.txt?a=1#123",
+    ),
 )
 
 
@@ -95,7 +107,10 @@ def test_search():
 ENCODINGS = (
     (b'<meta charset="utf8">', codecs.lookup('utf8')),
     (b'', None),
-    (b'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">', codecs.lookup('utf8')),
+    (
+        b'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
+        codecs.lookup('utf8'),
+    ),
 )
 
 
@@ -104,7 +119,9 @@ def test_encoding_parse():
         soup = BeautifulSoup(text, "lxml")
         encoding = get_encoding(soup)
         if encoding is None:
-            assert enc is None, "Got empty encoding from {!r} expected {!r}".format(text, enc)
+            assert enc is None, "Got empty encoding from {!r} expected {!r}".format(
+                text, enc
+            )
             continue
 
         enc_obj = codecs.lookup(encoding)
@@ -116,15 +133,18 @@ STD_HTML = "<head><title>{}</title></head>"
 TESTS = {
     "http://www.montypython.fun": (
         "<!DOCTYPE html><head><title>{}</title></head><body>test</body>",
-        "This Site is dead."
+        "This Site is dead.",
     ),
     "http://www.talos.principle": (STD_HTML, "In the beginning were the words"),
     "http://www.nonexistent.lol": ("", False),
     "http://www.much-newlines.backslashn": (("\n" * 500) + STD_HTML, "new lines!"),
     "http://completely.invalid": ("\x01\x01\x02\x03\x05\x08\x13", False),
-    "http://large.amounts.of.text": (STD_HTML + ("42" * 512 * 4096) + "</body>", "here have a couple megs of text"),
+    "http://large.amounts.of.text": (
+        STD_HTML + ("42" * 512 * 4096) + "</body>",
+        "here have a couple megs of text",
+    ),
     "http://star.trek.the.next.title": (STD_HTML, "47" * 512 * 4096),
-    "http://bare.title": ("<title>{}</title>", "here has title")
+    "http://bare.title": ("<title>{}</title>", "here has title"),
 }
 
 
@@ -136,8 +156,9 @@ TESTS = {
 def test_link_announce(match, test_str, res, mock_requests):
     mock_requests.add(RequestsMock.GET, match.string, body=test_str, stream=True)
     mck = MagicMock()
+    logger = MagicMock()
 
-    print_url_title(match=match, message=mck)
+    print_url_title(match=match, message=mck, logger=logger)
     if res and len(test_str) < MAX_RECV:
         mck.assert_called_with("Title: \x02" + res + "\x02")
     else:
@@ -151,49 +172,71 @@ def test_link_announce_404(mock_requests):
     match = url_re.search(url)
     assert match
     mck = MagicMock()
+    logger = MagicMock()
 
-    assert print_url_title(match=match, message=mck) is None
+    assert print_url_title(match=match, message=mck, logger=logger) is None
 
     mck.assert_not_called()
 
 
-@pytest.mark.parametrize('body,encoding', [
-    (
+def test_read_timeout(mock_requests):
+    url = "http://example.com"
+
+    def callback(resp):
+        raise requests.ReadTimeout()
+
+    mock_requests.add_callback('GET', url, callback)
+
+    match = url_re.search(url)
+    assert match
+    mck = MagicMock()
+    logger = MagicMock()
+
+    assert print_url_title(match=match, message=mck, logger=logger) is None
+
+    logger.debug.assert_called_with('Read timeout reached for %r', url)
+
+
+@pytest.mark.parametrize(
+    'body,encoding',
+    [
+        (
             b"""
             <head>
             <meta charset="utf8">
             <title>foobar</title>
             </head>
             """,
-            'utf8'
-    ),
-    (
+            'utf8',
+        ),
+        (
             b"""
             <head>
             <meta http-equiv="content-type", content="text/plain; charset=utf8">
             <title>foobar</title>
             </head>
             """,
-            'utf8'
-    ),
-    (
+            'utf8',
+        ),
+        (
             b"""
             <head>
             <meta http-equiv="content-type", content="text/plain">
             <title>foobar</title>
             </head>
             """,
-            'ISO-8859-1'
-    ),
-    (
+            'ISO-8859-1',
+        ),
+        (
             b"""
             <head>
             <title>foobar</title>
             </head>
             """,
-            'ISO-8859-1'
-    ),
-])
+            'ISO-8859-1',
+        ),
+    ],
+)
 def test_change_encoding(body, encoding):
     # ISO-8859-1 is the default encoding requests would return if none is found
     assert parse_content(body, 'ISO-8859-1').original_encoding == encoding

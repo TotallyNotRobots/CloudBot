@@ -88,14 +88,18 @@ def parse_content(content, encoding=None):
 
 
 @hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
-def print_url_title(message, match):
-    with requests.get(match.group(), headers=HEADERS, stream=True, timeout=3) as r:
-        if not r.encoding or not r.ok:
-            return
+def print_url_title(message, match, logger):
+    try:
+        with requests.get(match.group(), headers=HEADERS, stream=True, timeout=3) as r:
+            if not r.encoding or not r.ok:
+                return
 
-        # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
-        content = r.raw.read(MAX_RECV + 1, decode_content=True)
-        encoding = r.encoding
+            # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
+            content = r.raw.read(MAX_RECV + 1, decode_content=True)
+            encoding = r.encoding
+    except requests.ReadTimeout:
+        logger.debug("Read timeout reached for %r", match.group())
+        return
 
     if len(content) > MAX_RECV:
         return
