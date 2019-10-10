@@ -7,12 +7,11 @@ from mock import MagicMock
 from responses import RequestsMock
 
 from plugins.link_announcer import (
-    url_re,
-    get_encoding,
-    print_url_title,
-    MAX_RECV,
     MAX_TITLE,
+    get_encoding,
     parse_content,
+    print_url_title,
+    url_re,
 )
 
 MATCHES = (
@@ -205,38 +204,34 @@ def test_read_timeout(mock_requests):
     'body,encoding',
     [
         (
-            b"""
-            <head>
-            <meta charset="utf8">
-            <title>foobar</title>
-            </head>
-            """,
+            b"""\
+<head>
+<meta charset="utf8">
+<title>foobar</title>
+</head>""",
             'utf8',
         ),
         (
-            b"""
-            <head>
-            <meta http-equiv="content-type", content="text/plain; charset=utf8">
-            <title>foobar</title>
-            </head>
-            """,
+            b"""\
+<head>
+<meta http-equiv="content-type", content="text/plain; charset=utf8">
+<title>foobar</title>
+</head>""",
             'utf8',
         ),
         (
-            b"""
-            <head>
-            <meta http-equiv="content-type", content="text/plain">
-            <title>foobar</title>
-            </head>
-            """,
+            b"""\
+<head>
+<meta http-equiv="content-type", content="text/plain">
+<title>foobar</title>
+</head>""",
             'ISO-8859-1',
         ),
         (
-            b"""
-            <head>
-            <title>foobar</title>
-            </head>
-            """,
+            b"""\
+<head>
+<title>foobar</title>
+</head>""",
             'ISO-8859-1',
         ),
     ],
