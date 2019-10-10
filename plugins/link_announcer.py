@@ -94,7 +94,8 @@ def print_url_title(message, match, logger):
             if not r.encoding or not r.ok:
                 return
 
-            # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
+            # TODO Switch to reading chunks until full title is found,
+            #  up to MAX_RECV bytes
             content = r.raw.read(MAX_RECV + 1, decode_content=True)
             encoding = r.encoding
     except requests.ReadTimeout:
