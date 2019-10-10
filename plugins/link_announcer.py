@@ -6,6 +6,8 @@ from cloudbot import hook
 from cloudbot.hook import Priority, Action
 from cloudbot.util.http import parse_soup
 
+MAX_TITLE = 100
+
 ENCODED_CHAR = r"%[A-F0-9]{2}"
 PATH_SEG_CHARS = r"[A-Za-z0-9!$&'*-.:;=@_~\u00A0-\U0010FFFD]|" + ENCODED_CHAR
 QUERY_CHARS = PATH_SEG_CHARS + r"|/"
@@ -88,21 +90,25 @@ def parse_content(content, encoding=None):
 
 
 @hook.regex(url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True)
-def print_url_title(message, match):
-    with requests.get(match.group(), headers=HEADERS, stream=True, timeout=3) as r:
-        if not r.encoding or not r.ok:
-            return
+def print_url_title(message, match, logger):
+    try:
+        with requests.get(match.group(), headers=HEADERS, stream=True, timeout=3) as r:
+            if not r.encoding or not r.ok:
+                return
 
-        # TODO Switch to reading chunks until full title is found, up to MAX_RECV bytes
-        content = r.raw.read(MAX_RECV + 1, decode_content=True)
-        encoding = r.encoding
-
-    if len(content) > MAX_RECV:
+            content = r.raw.read(MAX_RECV, decode_content=True)
+            encoding = r.encoding
+    except requests.ReadTimeout:
+        logger.debug("Read timeout reached for %r", match.group())
         return
 
     html = parse_content(content, encoding)
 
-    if html.title:
-        title = html.title.text
-        out = "Title: \x02{}\x02".format(title.strip())
+    if html.title and html.title.text:
+        title = html.title.text.strip()
+
+        if len(title) > MAX_TITLE:
+            title = title[:MAX_TITLE] + " ... [trunc]"
+
+        out = "Title: \x02{}\x02".format(title)
         message(out)
