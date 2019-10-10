@@ -27,9 +27,9 @@ def test_horoscope(mock_requests, mock_db):
         URL.format(sign=1),
         headers={'User-Agent': "Some user agent"},
         body="""
-        <main class="main-horoscope">
+        <div class="main-horoscope">
             <p>Some horoscope text</p>
-        </main>
+        </div>
         """,
         match_querystring=True,
     )
@@ -73,9 +73,9 @@ def test_database_read(mock_requests, mock_db):
         URL.format(sign=4),
         headers={'User-Agent': "Some user agent"},
         body="""
-        <main class="main-horoscope">
+        <div class="main-horoscope">
             <p>Some horoscope text</p>
-        </main>
+        </div>
         """,
         match_querystring=True,
     )
@@ -103,8 +103,8 @@ def test_parse_fail(mock_requests, mock_db):
         URL.format(sign=4),
         headers={'User-Agent': "Some user agent"},
         body="""
-        <main class="main-horoscope">
-        </main>
+        <div class="main-horoscope">
+        </div>
         """,
         match_querystring=True,
     )
