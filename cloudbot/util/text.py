@@ -28,6 +28,11 @@ def parse_bool(s: str, *, fail_on_unknown: bool = True) -> Optional[bool]:
     True
     >>> parse_bool('no')
     False
+    >>> parse_bool('maybe', fail_on_unknown=False)
+    >>> parse_bool('maybe')
+    Traceback (most recent call last):
+        [...]
+    KeyError: 'maybe'
 
     :param s: The string to parse
     :param fail_on_unknown: Whether to raise an error if the input can't
