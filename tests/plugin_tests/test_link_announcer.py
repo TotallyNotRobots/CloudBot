@@ -11,6 +11,7 @@ from plugins.link_announcer import (
     get_encoding,
     print_url_title,
     MAX_RECV,
+    MAX_TITLE,
     parse_content,
 )
 
@@ -159,7 +160,10 @@ def test_link_announce(match, test_str, res, mock_requests):
     logger = MagicMock()
 
     print_url_title(match=match, message=mck, logger=logger)
-    if res and len(test_str) < MAX_RECV:
+    if res:
+        if len(res) > MAX_TITLE:
+            res = res[:MAX_TITLE] + " ... [trunc]"
+
         mck.assert_called_with("Title: \x02" + res + "\x02")
     else:
         mck.assert_not_called()
