@@ -1,8 +1,13 @@
+from collections import OrderedDict
+
 from irclib.util.compare import match_mask
-from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
+from sqlalchemy import (
+    Boolean, Column, PrimaryKeyConstraint, String, Table, UniqueConstraint, and_,
+    select,
+)
 
 from cloudbot import hook
-from cloudbot.util import database
+from cloudbot.util import database, web
 
 table = Table(
     "ignored",
@@ -34,12 +39,15 @@ def load_cache(db):
     ignore_cache.extend(new_cache)
 
 
-def add_ignore(db, conn, chan, mask):
-    if (conn, chan) in ignore_cache:
-        pass
-    else:
-        db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
+def ignore_in_cache(conn, chan, mask):
+    return (conn.casefold(), chan.casefold(), mask.casefold()) in ignore_cache
 
+
+def add_ignore(db, conn, chan, mask):
+    if ignore_in_cache(conn, chan, mask):
+        return
+
+    db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
     db.commit()
     load_cache(db)
 
@@ -65,6 +73,8 @@ def is_ignored(conn, chan, mask):
                 continue
             if match_mask(mask_cf, _mask_cf):
                 return True
+
+    return False
 
 
 # noinspection PyUnusedLocal
@@ -113,7 +123,7 @@ def ignore(text, db, chan, conn, notice, admin_log, nick):
     """<nick|mask> - ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, chan, target):
+    if ignore_in_cache(conn.name, chan, target):
         notice("{} is already ignored in {}.".format(target, chan))
     else:
         admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
@@ -126,7 +136,7 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     """<nick|mask> - un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, chan, target):
+    if not ignore_in_cache(conn.name, chan, target):
         notice("{} is not ignored in {}.".format(target, chan))
     else:
         admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
@@ -134,12 +144,26 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
         remove_ignore(db, conn.name, chan, target)
 
 
+@hook.command(permissions=["ignore", "chanop"], autohelp=False)
+def listignores(db, conn, chan):
+    """- List all active ignores for the current channel"""
+
+    rows = db.execute(select([table.c.mask], and_(
+        table.c.connection == conn.name.lower(),
+        table.c.channel == chan.lower(),
+    ))).fetchall()
+
+    out = '\n'.join(row['mask'] for row in rows) + '\n'
+
+    return web.paste(out)
+
+
 @hook.command(permissions=["botcontrol"])
 def global_ignore(text, db, conn, notice, nick, admin_log):
     """<nick|mask> - ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, "*", target):
+    if ignore_in_cache(conn.name, "*", target):
         notice("{} is already globally ignored.".format(target))
     else:
         notice("{} has been globally ignored.".format(target))
@@ -152,9 +176,41 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
     """<nick|mask> - un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, "*", target):
+    if not ignore_in_cache(conn.name, "*", target):
         notice("{} is not globally ignored.".format(target))
     else:
         notice("{} has been globally un-ignored.".format(target))
         admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
         remove_ignore(db, conn.name, "*", target)
+
+
+@hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
+def list_global_ignores(db, conn):
+    """- List all global ignores for the current network"""
+    return listignores(db, conn, "*")
+
+
+@hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
+def list_all_ignores(db, conn, text):
+    """<chan> - List all ignores for <chan>, requires elevated permissions"""
+    whereclause = table.c.connection == conn.name.lower()
+
+    if text:
+        whereclause = and_(whereclause, table.c.channel == text.lower())
+
+    rows = db.execute(select([table.c.channel, table.c.mask], whereclause)).fetchall()
+
+    ignores = OrderedDict()
+
+    for row in rows:
+        ignores.setdefault(row['channel'], []).append(row['mask'])
+
+    out = ""
+    for chan, masks in ignores.items():
+        out += "Ignores for {}:\n".format(chan)
+        for mask in masks:
+            out += '- {}\n'.format(mask)
+
+        out += '\n'
+
+    return web.paste(out)
