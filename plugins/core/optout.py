@@ -13,6 +13,7 @@ from cloudbot.hook import Priority
 from cloudbot.util import database, web
 from cloudbot.util.formatting import gen_markdown_table
 from cloudbot.util.mapping import DefaultKeyFoldDict
+from cloudbot.util.text import parse_bool
 
 optout_table = Table(
     'optout',
@@ -129,20 +130,6 @@ def clear_optout(db, conn, chan=None):
     return res.rowcount
 
 
-_STR_TO_BOOL = {
-    "yes": True,
-    "y": True,
-    "no": False,
-    "n": False,
-    "on": True,
-    "off": False,
-    "enable": True,
-    "disable": False,
-    "allow": True,
-    "deny": False,
-}
-
-
 @hook.onload
 def load_cache(db):
     new_cache = defaultdict(list)
@@ -206,7 +193,7 @@ async def optout(text, event, chan, db, conn):
     if args:
         allow = args.pop(0)
         try:
-            allowed = _STR_TO_BOOL[allow.lower()]
+            allowed = parse_bool(allow)
         except KeyError:
             return "Invalid allow option."
 
