@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import OrderedDict
 
 from irclib.util.compare import match_mask
 from sqlalchemy import (
@@ -200,10 +200,10 @@ def list_all_ignores(db, conn, text):
 
     rows = db.execute(select([table.c.channel, table.c.mask], whereclause)).fetchall()
 
-    ignores = defaultdict(list)
+    ignores = OrderedDict()
 
     for row in rows:
-        ignores[row['channel']].append(row['mask'])
+        ignores.setdefault(row['channel'], []).append(row['mask'])
 
     out = ""
     for chan, masks in ignores.items():
