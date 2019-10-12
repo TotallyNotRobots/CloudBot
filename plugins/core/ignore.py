@@ -39,12 +39,15 @@ def load_cache(db):
     ignore_cache.extend(new_cache)
 
 
-def add_ignore(db, conn, chan, mask):
-    if (conn, chan) in ignore_cache:
-        pass
-    else:
-        db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
+def ignore_in_cache(conn, chan, mask):
+    return (conn.casefold(), chan.casefold(), mask.casefold()) in ignore_cache
 
+
+def add_ignore(db, conn, chan, mask):
+    if ignore_in_cache(conn, chan, mask):
+        return
+
+    db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
     db.commit()
     load_cache(db)
 
@@ -70,6 +73,8 @@ def is_ignored(conn, chan, mask):
                 continue
             if match_mask(mask_cf, _mask_cf):
                 return True
+
+    return False
 
 
 # noinspection PyUnusedLocal
@@ -118,7 +123,7 @@ def ignore(text, db, chan, conn, notice, admin_log, nick):
     """<nick|mask> - ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, chan, target):
+    if ignore_in_cache(conn.name, chan, target):
         notice("{} is already ignored in {}.".format(target, chan))
     else:
         admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
@@ -131,7 +136,7 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     """<nick|mask> - un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, chan, target):
+    if not ignore_in_cache(conn.name, chan, target):
         notice("{} is not ignored in {}.".format(target, chan))
     else:
         admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
@@ -158,7 +163,7 @@ def global_ignore(text, db, conn, notice, nick, admin_log):
     """<nick|mask> - ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if is_ignored(conn.name, "*", target):
+    if ignore_in_cache(conn.name, "*", target):
         notice("{} is already globally ignored.".format(target))
     else:
         notice("{} has been globally ignored.".format(target))
@@ -171,7 +176,7 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
     """<nick|mask> - un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
-    if not is_ignored(conn.name, "*", target):
+    if not ignore_in_cache(conn.name, "*", target):
         notice("{} is not globally ignored.".format(target))
     else:
         notice("{} has been globally un-ignored.".format(target))
@@ -193,7 +198,7 @@ def list_all_ignores(db, conn, text):
     if text:
         whereclause = and_(whereclause, table.c.channel == text.lower())
 
-    rows = db.execute(select([table.c.channel, table.c.mask]), whereclause).fetchall()
+    rows = db.execute(select([table.c.channel, table.c.mask], whereclause)).fetchall()
 
     ignores = defaultdict(list)
 
