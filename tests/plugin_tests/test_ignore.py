@@ -8,7 +8,7 @@ class MockConn:
 
 
 def setup_db(mock_db):
-    from plugins import ignore
+    from plugins.core import ignore
 
     ignore.table.create(mock_db.engine, checkfirst=True)
 
@@ -20,7 +20,7 @@ def setup_db(mock_db):
 
 
 def test_ignore(mock_db, patch_paste):
-    from plugins import ignore
+    from plugins.core import ignore
 
     setup_db(mock_db)
 
@@ -62,7 +62,7 @@ def test_ignore(mock_db, patch_paste):
 
 
 def test_remove_ignore(mock_db):
-    from plugins import ignore
+    from plugins.core import ignore
 
     setup_db(mock_db)
 
@@ -79,7 +79,7 @@ def test_remove_ignore(mock_db):
 
 @pytest.mark.asyncio
 async def test_ignore_sieve(mock_db):
-    from plugins import ignore
+    from plugins.core import ignore
 
     setup_db(mock_db)
 
@@ -118,7 +118,7 @@ async def test_ignore_sieve(mock_db):
 
 
 def test_get_user():
-    from plugins import ignore
+    from plugins.core import ignore
 
     conn = MagicMock()
 
@@ -133,7 +133,7 @@ def test_get_user():
 
 
 def test_ignore_command(mock_db):
-    from plugins import ignore
+    from plugins.core import ignore
 
     setup_db(mock_db)
 
@@ -186,7 +186,7 @@ def test_ignore_command(mock_db):
 
 
 def test_unignore_command(mock_db):
-    from plugins import ignore
+    from plugins.core import ignore
 
     setup_db(mock_db)
 
