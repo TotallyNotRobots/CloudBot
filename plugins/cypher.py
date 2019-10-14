@@ -31,46 +31,60 @@ def encode(password, text):
         key_c = password[i % len(password)]
         enc_c = chr((ord(c) + ord(key_c)) % 256)
         enc.append(enc_c)
+
     return base64.urlsafe_b64encode("".join(enc).encode()).decode()
 
 
-def decode(password, encoded, notice):
+def decode(password, encoded, event):
     """
     :type password: str
     :type encoded: str
+    :type event: cloudbot.event.Event
     """
     dec = []
     try:
         encoded_bytes = base64.urlsafe_b64decode(encoded.encode()).decode()
     except binascii.Error:
-        notice("Invalid input '{}'".format(encoded))
-        return
+        event.notice("Invalid input '{}'".format(encoded))
+        return None
+
     for i, c in enumerate(encoded_bytes):
         key_c = password[i % len(password)]
         dec_c = chr((256 + ord(c) - ord(key_c)) % 256)
         dec.append(dec_c)
+
     return "".join(dec)
 
 
 @hook.command("cypher", "cipher")
-def cypher(text, message, event):
-    """<pass> <string> - cyphers <string> with <password>"""
+def cypher(text, event):
+    """<pass> <string> - cyphers <string> with <password>
+
+    :type text: str
+    :type event: cloudbot.event.CommandEvent
+    """
     split = text.split(None, 1)
     if len(split) < 2:
         event.notice_doc()
         return
+
     password = split[0]
     plaintext = split[1]
-    message(" " + encode(password, plaintext))
+    return encode(password, plaintext)
 
 
 @hook.command("decypher", "decipher")
-def decypher(text, message, notice, event):
-    """<pass> <string> - decyphers <string> with <password>"""
+def decypher(text, event):
+    """<pass> <string> - decyphers <string> with <password>
+
+    :type text: str
+    :type event: cloudbot.event.CommandEvent
+    """
     split = text.split(None, 1)
     if len(split) < 2:
         event.notice_doc()
         return
+
     password = split[0]
     encoded = split[1]
-    message(" " + decode(password, encoded, notice))
+    return decode(password, encoded, event)
