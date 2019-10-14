@@ -116,7 +116,7 @@ def format_attrib(attr_id):
 def define(text, event):
     """<word> - Returns a dictionary definition from Wordnik for <word>."""
     try:
-        json = word_lookup(text, "definitions", limit=1)
+        json = word_lookup(text, "definitions", limit=5)
     except WordNotFound:
         return colors.parse(
             "I could not find a definition for $(b){}$(b)."
@@ -125,13 +125,17 @@ def define(text, event):
         event.reply(e.user_msg())
         raise
 
-    data = json[0]
-    data['word'] = data['word']
-    data['url'] = web.try_shorten(WEB_URL.format(data['word']))
-    data['attrib'] = format_attrib(data['sourceDictionary'])
-    return colors.parse(
-        "$(b){word}$(b): {text} - {url} ({attrib})"
-    ).format_map(data)
+    for data in json:
+        try:
+            data['url'] = web.try_shorten(WEB_URL.format(data['word']))
+            data['attrib'] = format_attrib(data['sourceDictionary'])
+            return colors.parse(
+                "$(b){word}$(b): {text} - {url} ({attrib})"
+            ).format_map(data)
+        except KeyError:
+            pass
+
+    return "Unable to fetch definition, empty API response"
 
 
 @hook.command("wordusage", "wordexample", "usage")

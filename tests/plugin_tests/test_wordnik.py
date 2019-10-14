@@ -156,7 +156,7 @@ class TestDefine(WordTestBase):
 
     @classmethod
     def get_paramstring(cls):
-        return 'limit=1'
+        return 'limit=5'
 
     @classmethod
     def get_not_found_msg(cls, word):
