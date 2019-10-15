@@ -38,6 +38,9 @@ def get_video_description(video_id):
         raise APIError("Unknown error", json)
 
     data = json['items']
+    if not data:
+        return None
+
     snippet = data[0]['snippet']
     statistics = data[0]['statistics']
     content_details = data[0]['contentDetails']
