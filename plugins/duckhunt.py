@@ -231,7 +231,7 @@ def increment_msg_counter(event, conn):
     if is_opt_out(conn.name, event.chan):
         return
 
-    ignore = event.bot.plugin_manager.find_plugin("ignore")
+    ignore = event.bot.plugin_manager.find_plugin("core.ignore")
     if ignore and ignore.code.is_ignored(conn.name, event.chan, event.mask):
         return
 
