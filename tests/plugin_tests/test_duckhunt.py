@@ -110,3 +110,41 @@ def test_display_scores(mock_db):
     assert duckhunt.killers('#channel', event, chan, conn, session) is None
 
     event.notice_doc.assert_called_once()
+
+
+def test_ignore_integration():
+    from plugins import duckhunt
+    event = MagicMock()
+    event.chan = "#chan"
+    event.mask = "nick!user@host"
+    event.host = "host"
+
+    ignore_plugin = MagicMock()
+
+    ignore_plugin.code.is_ignored.return_value = True
+
+    plugins = {
+        'core.ignore': ignore_plugin,
+    }
+
+    def find_plugin(name):
+        return plugins.get(name)
+
+    event.bot.plugin_manager.find_plugin = find_plugin
+
+    conn = event.conn
+    conn.name = "testconn"
+
+    tbl = duckhunt.get_state_table(conn.name, event.chan)
+    tbl.game_on = True
+    tbl.duck_status = 0
+
+    duckhunt.increment_msg_counter(event, conn)
+
+    assert not tbl.masks
+
+    ignore_plugin.code.is_ignored.return_value = False
+
+    duckhunt.increment_msg_counter(event, conn)
+
+    assert tbl.masks == [event.host]
