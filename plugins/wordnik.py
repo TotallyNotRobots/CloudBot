@@ -58,9 +58,7 @@ class NoValidResults(WordnikAPIError):
         self.results = results
 
 
-ERROR_MAP = {
-    'Not Found': WordNotFound,
-}
+ERROR_MAP = {'Not Found': WordNotFound}
 
 
 def raise_error(data):
@@ -161,7 +159,8 @@ class WordLookupRequest:
             logger.warning(
                 "[wordnik] Got %d valid results, wanted at least %d. "
                 "Continuing anyways",
-                count, min_results
+                count,
+                min_results,
             )
             return
 
@@ -228,9 +227,9 @@ def define(text, event):
     try:
         data = lookup.first()
     except WordNotFound:
-        return colors.parse(
-            "I could not find a definition for $(b){}$(b)."
-        ).format(text)
+        return colors.parse("I could not find a definition for $(b){}$(b).").format(
+            text
+        )
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
@@ -238,9 +237,7 @@ def define(text, event):
     data['url'] = web.try_shorten(WEB_URL.format(data['word']))
     data['attrib'] = format_attrib(data['sourceDictionary'])
 
-    return colors.parse(
-        "$(b){word}$(b): {text} - {url} ({attrib})"
-    ).format_map(data)
+    return colors.parse("$(b){word}$(b): {text} - {url} ({attrib})").format_map(data)
 
 
 @hook.command("wordusage", "wordexample", "usage")
@@ -257,9 +254,7 @@ def word_usage(text, event):
         event.reply(e.user_msg())
         raise
 
-    out = colors.parse("$(b){word}$(b): {text}").format(
-        word=text, text=example['text']
-    )
+    out = colors.parse("$(b){word}$(b): {text}").format(word=text, text=example['text'])
     return out
 
 
@@ -271,9 +266,9 @@ def pronounce(text, event):
     try:
         audio_response = list(lookup.get_filtered_results())[:5]
     except WordNotFound:
-        return colors.parse(
-            "Sorry, I don't know how to pronounce $(b){}$(b)."
-        ).format(text)
+        return colors.parse("Sorry, I don't know how to pronounce $(b){}$(b).").format(
+            text
+        )
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
@@ -349,9 +344,7 @@ def wordoftheday(text, event):
         date = match.group(1)
 
     if date:
-        params = {
-            'date': date
-        }
+        params = {'date': date}
         day = date
     else:
         params = {}
@@ -369,16 +362,14 @@ def wordoftheday(text, event):
     note = json['note']
     pos = json['definitions'][0]['partOfSpeech']
     definition = json['definitions'][0]['text']
-    out = "The word for $(bold){day}$(bold) is $(bold){word}$(bold): " \
-          "$(dred)({pos})$(dred) $(cyan){note}$(cyan) " \
-          "$(b)Definition:$(b) $(dgreen){definition}$(dgreen)"
+    out = (
+        "The word for $(bold){day}$(bold) is $(bold){word}$(bold): "
+        "$(dred)({pos})$(dred) $(cyan){note}$(cyan) "
+        "$(b)Definition:$(b) $(dgreen){definition}$(dgreen)"
+    )
 
     return colors.parse(out).format(
-        day=day,
-        word=word,
-        pos=pos,
-        note=note,
-        definition=definition,
+        day=day, word=word, pos=pos, note=note, definition=definition
     )
 
 
@@ -387,10 +378,9 @@ def wordoftheday(text, event):
 def random_word(event):
     """- Grabs a random word from wordnik.com"""
     try:
-        json = api_request("words.json/randomWord", {
-            'hasDictionarydef': 'true',
-            'vulgar': 'true'
-        })
+        json = api_request(
+            "words.json/randomWord", {'hasDictionarydef': 'true', 'vulgar': 'true'}
+        )
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise

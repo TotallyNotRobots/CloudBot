@@ -18,12 +18,15 @@ def mock_api_keys():
         bot.set(None)
 
 
-@pytest.mark.parametrize('source,name', [
-    ('ahd', 'AHD/Wordnik'),
-    ('ahd-5', 'AHD/Wordnik'),
-    ('ahd-6', 'Ahd-6/Wordnik'),
-    ('foobar', 'Foobar/Wordnik'),
-])
+@pytest.mark.parametrize(
+    'source,name',
+    [
+        ('ahd', 'AHD/Wordnik'),
+        ('ahd-5', 'AHD/Wordnik'),
+        ('ahd-6', 'Ahd-6/Wordnik'),
+        ('foobar', 'Foobar/Wordnik'),
+    ],
+)
 def test_attr_name(source, name):
     assert wordnik.format_attrib(source) == name
 
@@ -99,17 +102,12 @@ class WordTestBase:
             self.call('word', event)
 
         event.reply.assert_called_with(
-            "There was a problem contacting the Wordnik API "
-            "(Unknown error 'FooBar')"
+            "There was a problem contacting the Wordnik API (Unknown error 'FooBar')"
         )
 
     def test_invalid_error(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
-            match_querystring=True,
-            status=512,
-            json={},
+            'GET', self.build_url('word'), match_querystring=True, status=512, json={}
         )
 
         event = MagicMock()
@@ -136,10 +134,7 @@ class WordTestBase:
 
     def test_json_no_http_error(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
-            match_querystring=True,
-            body="Some data",
+            'GET', self.build_url('word'), match_querystring=True, body="Some data"
         )
 
         event = MagicMock()
@@ -178,35 +173,43 @@ class TestDefine(WordTestBase):
             'GET',
             self.build_url('word'),
             match_querystring=True,
-            json=[{
-                "id": "W5229000-1",
-                "partOfSpeech": "noun",
-                "attributionText": "from The American Heritage® Dictionary of the "
-                                   "English Language, 5th Edition.",
-                "sourceDictionary": "ahd-5",
-                "text": "A sound or a combination of sounds, or its "
+            json=[
+                {
+                    "id": "W5229000-1",
+                    "partOfSpeech": "noun",
+                    "attributionText": (
+                        "from The American Heritage® Dictionary of the "
+                        "English Language, 5th Edition."
+                    ),
+                    "sourceDictionary": "ahd-5",
+                    "text": (
+                        "A sound or a combination of sounds, or its "
                         "representation in writing or printing, that symbolizes "
                         "and communicates a meaning and may consist of a single "
-                        "morpheme or of a combination of morphemes.",
-                "sequence": "1",
-                "score": 0,
-                "labels": [],
-                "citations": [],
-                "word": "word",
-                "relatedWords": [],
-                "exampleUses": [],
-                "textProns": [],
-                "notes": [],
-                "attributionUrl": "https://ahdictionary.com/",
-                "wordnikUrl": "https://www.wordnik.com/words/word"
-            }],
+                        "morpheme or of a combination of morphemes."
+                    ),
+                    "sequence": "1",
+                    "score": 0,
+                    "labels": [],
+                    "citations": [],
+                    "word": "word",
+                    "relatedWords": [],
+                    "exampleUses": [],
+                    "textProns": [],
+                    "notes": [],
+                    "attributionUrl": "https://ahdictionary.com/",
+                    "wordnikUrl": "https://www.wordnik.com/words/word",
+                }
+            ],
         )
 
-        expected = "\x02word\x02: A sound or a combination of sounds, or its " \
-                   "representation in writing or printing, that symbolizes and " \
-                   "communicates a meaning and may consist of a single morpheme " \
-                   "or of a combination of morphemes. " \
-                   "- https://www.wordnik.com/words/word (AHD/Wordnik)"
+        expected = (
+            "\x02word\x02: A sound or a combination of sounds, or its "
+            "representation in writing or printing, that symbolizes and "
+            "communicates a meaning and may consist of a single morpheme "
+            "or of a combination of morphemes. "
+            "- https://www.wordnik.com/words/word (AHD/Wordnik)"
+        )
 
         out, _ = self.call('word')
         assert out == expected
@@ -237,29 +240,33 @@ class TestUsage(WordTestBase):
             json={
                 "examples": [
                     {
-                        "provider": {
-                            "id": 711
-                        },
+                        "provider": {"id": 711},
                         "year": 2006,
                         "rating": 9625.236,
-                        "url": "http://plato.stanford.edu/archives/fall2009/"
-                               "entries/types-tokens/",
+                        "url": (
+                            "http://plato.stanford.edu/archives/fall2009/"
+                            "entries/types-tokens/"
+                        ),
                         "word": "word",
-                        "text": "There is an important and very common use of "
-                                "the word ˜word™ that lexicographers and the "
-                                "rest of us use frequently.",
+                        "text": (
+                            "There is an important and very common use of "
+                            "the word ˜word™ that lexicographers and the "
+                            "rest of us use frequently."
+                        ),
                         "documentId": 22333003,
                         "exampleId": 563509621,
                         "title": "Types and Tokens",
-                        "author": "Wetzel, Linda"
-                    },
+                        "author": "Wetzel, Linda",
+                    }
                 ]
             },
         )
 
-        expected = "\x02word\x02: There is an important and very common " \
-                   "use of the word ˜word™ that lexicographers and the rest " \
-                   "of us use frequently."
+        expected = (
+            "\x02word\x02: There is an important and very common "
+            "use of the word ˜word™ that lexicographers and the rest "
+            "of us use frequently."
+        )
 
         out, _ = self.call('word')
         assert out == expected
@@ -289,37 +296,42 @@ class TestPronounce(WordTestBase):
                     "raw": "wûrd",
                     "rawType": "ahd-5",
                     "id": "W5229000",
-                    "attributionText": "from The American Heritage® "
-                                       "Dictionary of the English Language, "
-                                       "5th Edition.",
-                    "attributionUrl": "https://ahdictionary.com/"
+                    "attributionText": (
+                        "from The American Heritage® Dictionary of the English "
+                        "Language, 5th Edition."
+                    ),
+                    "attributionUrl": "https://ahdictionary.com/",
                 },
                 {
                     "seq": 0,
                     "raw": "W ER1 D",
                     "rawType": "arpabet",
                     "attributionText": "from The CMU Pronouncing Dictionary.",
-                    "attributionUrl": "http://www.speech.cs.cmu.edu/cgi-bin"
-                                      "/cmudict"
+                    "attributionUrl": (
+                        "http://www.speech.cs.cmu.edu/cgi-bin/cmudict"
+                    ),
                 },
                 {
                     "seq": 0,
                     "raw": "/wɜː(ɹ)d/",
                     "rawType": "IPA",
-                    "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
-                    "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
+                    "attributionText": (
+                        "from Wiktionary, Creative Commons "
+                        "Attribution/Share-Alike License."
+                    ),
+                    "attributionUrl": (
+                        "http://creativecommons.org/licenses/by-sa/3.0/"
+                    ),
                 },
                 {
                     "seq": 0,
                     "raw": "/wɝd/",
                     "rawType": "IPA",
                     "attributionText": "from Wiktionary, Creative Commons "
-                                       "Attribution/Share-Alike License.",
+                    "Attribution/Share-Alike License.",
                     "attributionUrl": "http://creativecommons.org/licenses"
-                                      "/by-sa/3.0/"
-                }
+                    "/by-sa/3.0/",
+                },
             ],
         )
 
@@ -333,8 +345,10 @@ class TestPronounce(WordTestBase):
             json=[{'fileUrl': 'https://example.com/word.ogg'}],
         )
 
-        expected = "\x02word\x02: wûrd • W ER1 D • /wɜː(ɹ)d/ • /wɝd/ - " \
-                   "https://example.com/word.ogg"
+        expected = (
+            "\x02word\x02: wûrd • W ER1 D • /wɜː(ɹ)d/ • /wɝd/ - "
+            "https://example.com/word.ogg"
+        )
 
         out, _ = self.call('word')
         assert out == expected
@@ -404,13 +418,7 @@ class TestSynonym(WordTestBase):
             json=[
                 {
                     "relationshipType": "synonym",
-                    "words": [
-                        "Bible",
-                        "Bible oath",
-                        "God",
-                        "Logos",
-                        "Parthian shot"
-                    ]
+                    "words": ["Bible", "Bible oath", "God", "Logos", "Parthian shot"],
                 }
             ],
         )
@@ -448,14 +456,7 @@ class TestAntonym(WordTestBase):
             self.build_url('clear'),
             match_querystring=True,
             json=[
-                {
-                    "relationshipType": "antonym",
-                    "words": [
-                        "cloudy",
-                        "obscure",
-                        "thick"
-                    ]
-                }
+                {"relationshipType": "antonym", "words": ["cloudy", "obscure", "thick"]}
             ],
         )
 
@@ -482,10 +483,13 @@ class WordsTestBase(WordTestBase):
     def build_url(cls, word=None, op=None, paramstring=None):
         base = 'http://api.wordnik.com/v4/words.json'
         url = base + '/' + (op or cls.get_op())
-        return url + '?' + '&'.join(filter(None, (
-            (paramstring or cls.get_paramstring()),
-            'api_key=APIKEY'
-        )))
+        return (
+            url
+            + '?'
+            + '&'.join(
+                filter(None, ((paramstring or cls.get_paramstring()), 'api_key=APIKEY'))
+            )
+        )
 
 
 class TestWOTD(WordsTestBase):
@@ -502,6 +506,35 @@ class TestWOTD(WordsTestBase):
         return wordnik.wordoftheday
 
     def test_today(self, mock_requests, mock_api_keys):
+        definitions = [
+            {
+                "source": "wiktionary",
+                "text": (
+                    "(in science fiction) a psychic ability to control electronic "
+                    "machinery and/or read electronic signals, especially hardware."
+                ),
+                "note": None,
+                "partOfSpeech": "noun",
+            }
+        ]
+        examples = [
+            {
+                "url": "http://www.superheronation.com/2009/08/25/foxs-review-forum/",
+                "title": (
+                    "Superhero Nation: how to write superhero novels and comic "
+                    "books &raquo; Fox’s Review Forum"
+                ),
+                "text": (
+                    "Powers I have in mind for other main characters are "
+                    "probability manipulation, super intelligence, and technopathy."
+                ),
+                "id": 1101722947,
+            }
+        ]
+        note = (
+            "The word 'technopathy' comes from Greek roots meaning 'skill' and "
+            "'suffering'."
+        )
         mock_requests.add(
             'GET',
             self.build_url(),
@@ -509,54 +542,118 @@ class TestWOTD(WordsTestBase):
             json={
                 "_id": "5cfaf4960464123a364fd4fd",
                 "word": "technopathy",
-                "contentProvider": {
-                    "name": "wordnik",
-                    "id": 711
-                },
-                "definitions": [
-                    {
-                        "source": "wiktionary",
-                        "text": "(in science fiction) a psychic ability to "
-                                "control electronic machinery and/or read "
-                                "electronic signals, especially hardware.",
-                        "note": None,
-                        "partOfSpeech": "noun"
-                    }
-                ],
+                "contentProvider": {"name": "wordnik", "id": 711},
+                "definitions": definitions,
                 "publishDate": "2019-06-17T03:00:00.000Z",
-                "examples": [
-                    {
-                        "url": "http://www.superheronation.com/2009/08/25"
-                               "/foxs-review-forum/",
-                        "title": "Superhero Nation: how to write superhero "
-                                 "novels and comic books &raquo; Fox’s Review "
-                                 "Forum",
-                        "text": "Powers I have in mind for other main "
-                                "characters are probability manipulation, "
-                                "super intelligence, and technopathy.",
-                        "id": 1101722947
-                    }
-                ],
+                "examples": examples,
                 "pdd": "2019-06-17",
                 "htmlExtra": None,
-                "note": "The word 'technopathy' comes from Greek roots "
-                        "meaning 'skill' and 'suffering'."
+                "note": note,
             },
         )
 
         out, _ = self.call('')
 
-        expected = "The word for \x02today\x02 is \x02technopathy\x02: " \
-                   "\x0305(noun)\x0305 " \
-                   "\x0310The word 'technopathy' comes from Greek roots " \
-                   "meaning 'skill' and 'suffering'.\x0310 \x02Definition:\x02 " \
-                   "\x0303(in science fiction) a psychic ability to " \
-                   "control electronic machinery and/or read electronic " \
-                   "signals, especially hardware.\x0303"
+        expected = (
+            "The word for \x02today\x02 is \x02technopathy\x02: \x0305(noun)\x0305 "
+            "\x0310The word 'technopathy' comes from Greek roots meaning 'skill' and "
+            "'suffering'.\x0310 \x02Definition:\x02 \x0303(in science fiction) a "
+            "psychic ability to control electronic machinery and/or read electronic "
+            "signals, especially hardware.\x0303"
+        )
 
         assert out == expected
 
     def test_date(self, mock_requests, mock_api_keys):
+        definitions = [
+            {
+                "text": (
+                    "To mix with water and sweeten; make sangaree of: "
+                    "as, to sangaree port-wine."
+                ),
+                "partOfSpeech": "verb",
+                "source": "century",
+                "note": None,
+            },
+            {
+                "text": (
+                    "Wine, more especially red wine diluted with water, sweetened, "
+                    "and flavored with nutmeg, used as a cold drink. Varieties of "
+                    "it are named from the wine employed: as, port-wine sangaree."
+                ),
+                "partOfSpeech": "noun",
+                "source": "century",
+                "note": None,
+            },
+        ]
+
+        examples = [
+            {
+                "url": (
+                    "http://api.wordnik.com/v4/mid/"
+                    "7767857a6a9b9e4f378ab2fdf73d93ca6fffc02a3e50cd92be465d0e2276df30"
+                ),
+                "text": (
+                    "But, when we became better acquainted — which was while "
+                    "Charker and I were drinking sugar-cane sangaree, which "
+                    "she made in a most excellent manner — I found that her "
+                    "Christian name was Isabella, which they shortened into "
+                    "Bell, and that the name of the deceased non-commissioned "
+                    "officer was Tott."
+                ),
+                "title": "The Perils of Certain English Prisoners",
+                "id": 1094134527,
+            },
+            {
+                "url": (
+                    "http://api.wordnik.com/v4/mid/"
+                    "7e003ed62c2faddb52212251bd929b1d67b24a69fda3a0c2b2efece1b6008e90"
+                ),
+                "text": (
+                    "Administrador woke us all up, and gleefully presented us "
+                    "with an enormous bowl of sangaree, made of the remains of "
+                    "the Bordeaux and the brandy and the pisco, and plenty of "
+                    "ice, -- ice this time, -- and sugar, and limes, and slices "
+                    "of pineapple, Madam, -- the which he had concocted during "
+                    "our slumber."
+                ),
+                "title": "The Atlantic Monthly, Volume 15, " "No. 87, January, 1865",
+                "id": 1087980293,
+            },
+            {
+                "url": (
+                    "http://api.wordnik.com/v4/mid/"
+                    "b051be319d7935b65edb84e6b1fa74dc1a978ed6787e82d19b7dfca343c8c6dc"
+                ),
+                "text": (
+                    "In anticipation of the hot weather, I had laid in a large "
+                    "stock of raspberry vinegar, which, properly managed, helps "
+                    "to make a pleasant drink; and there was a great demand for "
+                    "sangaree, claret, and cider cups, the cups being battered "
+                    "pewter pots."
+                ),
+                "title": "Wonderful Adventures of Mrs. Seacole in Many Lands",
+                "id": 1095843424,
+            },
+            {
+                "url": (
+                    "http://api.wordnik.com/v4/mid/"
+                    "baf84d8de4707ffdfdbc58cc8deb717fe110573f734f4ebdb5a3b2e2bccb6777"
+                ),
+                "text": (
+                    "A sangaree or any other delicacy, taken while resting after "
+                    "a walk which taxed the weakened energies to the utmost, or a "
+                    "meal served outside the fevered air of the wards, did more to "
+                    "build up the strength than any amount of medicine could have done."
+                ),
+                "title": (
+                    "Memories A Record of Personal Experience and Adventure During "
+                    "Four Years of War"
+                ),
+                "id": 1175960432,
+            },
+        ]
+
         mock_requests.add(
             'GET',
             self.build_url(paramstring="date=2018-11-21"),
@@ -565,101 +662,23 @@ class TestWOTD(WordsTestBase):
                 "_id": "5c60c1a77c27cbdb29216227",
                 "word": "sangaree",
                 "publishDate": "2018-11-21T03:00:00.000Z",
-                "contentProvider": {
-                    "name": "wordnik",
-                    "id": 711
-                },
+                "contentProvider": {"name": "wordnik", "id": 711},
                 "note": "The word 'sangaree' is related to the Spanish word 'sangria'.",
                 "htmlExtra": None,
                 "pdd": "2018-11-21",
-                "definitions": [
-                    {
-                        "text": "To mix with water and sweeten; make "
-                                "sangaree of: as, to sangaree port-wine.",
-                        "partOfSpeech": "verb",
-                        "source": "century",
-                        "note": None
-                    },
-                    {
-                        "text": "Wine, more especially red wine diluted with "
-                                "water, sweetened, and flavored with nutmeg, "
-                                "used as a cold drink. Varieties of it are "
-                                "named from the wine employed: as, port-wine "
-                                "sangaree.",
-                        "partOfSpeech": "noun",
-                        "source": "century",
-                        "note": None
-                    }
-                ],
-                "examples": [
-                    {
-                        "url": "http://api.wordnik.com/v4/mid"
-                               "/7767857a6a9b9e4f378ab2fdf73d93ca6fffc02a3e50"
-                               "cd92be465d0e2276df30",
-                        "text": "But, when we became better acquainted — "
-                                "which was while Charker and I were drinking "
-                                "sugar-cane sangaree, which she made in a "
-                                "most excellent manner — I found that her "
-                                "Christian name was Isabella, which they "
-                                "shortened into Bell, and that the name of "
-                                "the deceased non-commissioned officer was Tott.",
-                        "title": "The Perils of Certain English Prisoners",
-                        "id": 1094134527
-                    },
-                    {
-                        "url": "http://api.wordnik.com/v4/mid"
-                               "/7e003ed62c2faddb52212251bd929b1d67b24a69fda3"
-                               "a0c2b2efece1b6008e90",
-                        "text": "Administrador woke us all up, and gleefully "
-                                "presented us with an enormous bowl of "
-                                "sangaree, made of the remains of the "
-                                "Bordeaux and the brandy and the pisco, "
-                                "and plenty of ice, -- ice this time, -- "
-                                "and sugar, and limes, and slices of pineapple, "
-                                "Madam, -- the which he had concocted during "
-                                "our slumber.",
-                        "title": "The Atlantic Monthly, Volume 15, "
-                                 "No. 87, January, 1865",
-                        "id": 1087980293
-                    },
-                    {
-                        "url": "http://api.wordnik.com/v4/mid/b051be319d7935b6"
-                               "5edb84e6b1fa74dc1a978ed6787e82d19b7dfca343c8c6dc",
-                        "text": "In anticipation of the hot weather, I had "
-                                "laid in a large stock of raspberry vinegar, "
-                                "which, properly managed, helps to make a "
-                                "pleasant drink; and there was a great demand "
-                                "for sangaree, claret, and cider cups, the "
-                                "cups being battered pewter pots.",
-                        "title": "Wonderful Adventures of Mrs. Seacole in Many Lands",
-                        "id": 1095843424
-                    },
-                    {
-                        "url": "http://api.wordnik.com/v4/mid/baf84d8de4707ffd"
-                               "fdbc58cc8deb717fe110573f734f4ebdb5a3b2e2bccb6777",
-                        "text": "A sangaree or any other delicacy, taken while"
-                                " resting after a walk which taxed the "
-                                "weakened energies to the utmost, or a "
-                                "meal served outside the fevered air of "
-                                "the wards, did more to build up the "
-                                "strength than any amount of medicine could "
-                                "have done.",
-                        "title": "Memories A Record of Personal Experience and"
-                                 " Adventure During Four Years of War",
-                        "id": 1175960432
-                    }
-                ]
+                "definitions": definitions,
+                "examples": examples,
             },
         )
 
         out, _ = self.call('2018-11-21')
 
-        expected = "The word for \x022018-11-21\x02 is \x02sangaree\x02: " \
-                   "\x0305(verb)\x0305 " \
-                   "\x0310The word 'sangaree' is related to the " \
-                   "Spanish word 'sangria'.\x0310 \x02Definition:\x02 " \
-                   "\x0303To mix with water and sweeten; make sangaree of: " \
-                   "as, to sangaree port-wine.\x0303"
+        expected = (
+            "The word for \x022018-11-21\x02 is \x02sangaree\x02: \x0305(verb)\x0305 "
+            "\x0310The word 'sangaree' is related to the Spanish word 'sangria'.\x0310 "
+            "\x02Definition:\x02 \x0303To mix with water and sweeten; make sangaree "
+            "of: as, to sangaree port-wine.\x0303"
+        )
 
         assert out == expected
 
@@ -708,10 +727,7 @@ class TestRandomWord(WordsTestBase):
             'GET',
             self.build_url(),
             match_querystring=True,
-            json={
-                "id": 0,
-                "word": "commendation"
-            },
+            json={"id": 0, "word": "commendation"},
         )
 
         out, _ = self.call()
