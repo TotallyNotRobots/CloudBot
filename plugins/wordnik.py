@@ -1,3 +1,4 @@
+import logging
 import random
 import re
 import urllib.parse
@@ -8,6 +9,8 @@ import requests
 from cloudbot import hook
 from cloudbot.bot import bot
 from cloudbot.util import colors, web
+
+logger = logging.getLogger('cloudbot')
 
 API_URL = 'http://api.wordnik.com/v4/'
 WEB_URL = 'https://www.wordnik.com/words/{}'
@@ -46,6 +49,13 @@ class NoAPIKey(WordnikAPIError):
 class WordNotFound(WordnikAPIError):
     def __init__(self):
         super().__init__("Word not found")
+
+
+class NoValidResults(WordnikAPIError):
+    def __init__(self, term, results):
+        super().__init__("No valid results found for {!r}".format(term))
+        self.term = term
+        self.results = results
 
 
 ERROR_MAP = {
@@ -93,16 +103,115 @@ def api_request(endpoint, params=(), **kwargs):
     return data
 
 
-def sanitize(text):
-    return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
+class WordLookupRequest:
+    def __init__(self, word, operation, *, required_fields=()):
+        self.word = word
+        self.operation = operation
+        self.required_fields = required_fields
+        self.extra_params = {}
+        self.result_limit = 5
+        self.max_tries = 3
+
+    @staticmethod
+    def sanitize(text):
+        return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
+
+    @property
+    def endpoint(self):
+        return "word.json/" + self.sanitize(self.word) + "/" + self.operation
+
+    def get_params(self):
+        params = dict(self.extra_params)
+        if self.result_limit:
+            params['limit'] = self.result_limit
+
+        return params
+
+    def get_results(self):
+        data = api_request(self.endpoint, params=self.get_params())
+
+        return data
+
+    def is_result_valid(self, result):
+        for field in self.required_fields:
+            if field not in result:
+                return False
+
+        return True
+
+    def get_filtered_results(self, min_results=1):
+        count = 0
+        tries = 0
+        results = []
+        while tries < self.max_tries:
+            tries += 1
+            for result in self.get_results():
+                results.append(result)
+                if self.is_result_valid(result):
+                    count += 1
+                    yield result
+
+            if count >= min_results:
+                return
+
+            self.result_limit *= 2
+
+        if count:
+            # We didn't hit the minimum but we got some at least
+            logger.warning(
+                "[wordnik] Got %d valid results, wanted at least %d. "
+                "Continuing anyways",
+                count, min_results
+            )
+            return
+
+        raise NoValidResults(self.word, results)
+
+    def first(self):
+        for item in self.get_filtered_results():
+            return item
+
+    def random(self):
+        return random.choice(list(self.get_filtered_results()))
 
 
-def word_lookup(word, operation, params=(), **kwargs):
-    kwargs.update(params)
-    return api_request(
-        "word.json/" + sanitize(word) + "/" + operation,
-        kwargs,
-    )
+class DefinitionsLookupRequest(WordLookupRequest):
+    def __init__(self, word):
+        super().__init__(word, "definitions", required_fields=('text',))
+
+
+class ExamplesLookupRequest(WordLookupRequest):
+    def __init__(self, word):
+        super().__init__(word, "examples")
+        self.result_limit = 10
+
+    def get_results(self):
+        results = super().get_results()
+        return results['examples']
+
+
+class PronounciationLookupRequest(WordLookupRequest):
+    def __init__(self, word):
+        super().__init__(word, "pronunciations", required_fields=('raw',))
+
+
+class AudioLookupRequest(WordLookupRequest):
+    def __init__(self, word):
+        super().__init__(word, "audio", required_fields=('fileUrl',))
+
+
+class RelatedLookupRequest(WordLookupRequest):
+    def __init__(self, word, rel_type):
+        super().__init__(word, "relatedWords", required_fields=('words',))
+        self.extra_params['relationshipTypes'] = rel_type
+
+    def get_params(self):
+        params = super().get_params()
+        params.pop('limit', None)
+
+        params['limitPerRelationshipType'] = self.result_limit
+
+        return params
 
 
 def format_attrib(attr_id):
@@ -115,8 +224,9 @@ def format_attrib(attr_id):
 @hook.command("define", "dictionary")
 def define(text, event):
     """<word> - Returns a dictionary definition from Wordnik for <word>."""
+    lookup = DefinitionsLookupRequest(text)
     try:
-        json = word_lookup(text, "definitions", limit=5)
+        data = lookup.first()
     except WordNotFound:
         return colors.parse(
             "I could not find a definition for $(b){}$(b)."
@@ -125,24 +235,20 @@ def define(text, event):
         event.reply(e.user_msg())
         raise
 
-    for data in json:
-        try:
-            data['url'] = web.try_shorten(WEB_URL.format(data['word']))
-            data['attrib'] = format_attrib(data['sourceDictionary'])
-            return colors.parse(
-                "$(b){word}$(b): {text} - {url} ({attrib})"
-            ).format_map(data)
-        except KeyError:
-            pass
+    data['url'] = web.try_shorten(WEB_URL.format(data['word']))
+    data['attrib'] = format_attrib(data['sourceDictionary'])
 
-    return "Unable to fetch definition, empty API response"
+    return colors.parse(
+        "$(b){word}$(b): {text} - {url} ({attrib})"
+    ).format_map(data)
 
 
 @hook.command("wordusage", "wordexample", "usage")
 def word_usage(text, event):
     """<word> - Returns an example sentence showing the usage of <word>."""
+    lookup = ExamplesLookupRequest(text)
     try:
-        json = word_lookup(text, "examples", limit=10)
+        example = lookup.random()
     except WordNotFound:
         return colors.parse(
             "I could not find any usage examples for $(b){}$(b)."
@@ -151,9 +257,9 @@ def word_usage(text, event):
         event.reply(e.user_msg())
         raise
 
-    out = colors.parse("$(b){}$(b): ").format(text)
-    example = random.choice(json['examples'])
-    out += "{} ".format(example['text'])
+    out = colors.parse("$(b){word}$(b): {text}").format(
+        word=text, text=example['text']
+    )
     return out
 
 
@@ -161,8 +267,9 @@ def word_usage(text, event):
 def pronounce(text, event):
     """<word> - Returns instructions on how to pronounce <word> with an audio
     example."""
+    lookup = PronounciationLookupRequest(text)
     try:
-        json = word_lookup(text, "pronunciations", limit=5)
+        audio_response = list(lookup.get_filtered_results())[:5]
     except WordNotFound:
         return colors.parse(
             "Sorry, I don't know how to pronounce $(b){}$(b)."
@@ -172,18 +279,18 @@ def pronounce(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join([i['raw'] for i in json])
+    out += " • ".join([i['raw'] for i in audio_response])
 
+    audio_lookup = AudioLookupRequest(text)
     try:
-        json = word_lookup(text, "audio", limit=1)
+        audio_response = audio_lookup.first()
     except WordNotFound:
-        json = None
+        pass
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
-
-    if json:
-        url = web.try_shorten(json[0]['fileUrl'])
+    else:
+        url = web.try_shorten(audio_response['fileUrl'])
         out += " - {}".format(url)
 
     return out
@@ -192,11 +299,9 @@ def pronounce(text, event):
 @hook.command()
 def synonym(text, event):
     """<word> - Returns a list of synonyms for <word>."""
+    lookup = RelatedLookupRequest(text, 'synonym')
     try:
-        json = word_lookup(text, "relatedWords", {
-            'relationshipTypes': 'synonym',
-            'limitPerRelationshipType': 5
-        })
+        data = lookup.first()
     except WordNotFound:
         return colors.parse(
             "Sorry, I couldn't find any synonyms for $(b){}$(b)."
@@ -206,7 +311,7 @@ def synonym(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join(json[0]['words'])
+    out += " • ".join(data['words'])
 
     return out
 
@@ -214,12 +319,10 @@ def synonym(text, event):
 @hook.command()
 def antonym(text, event):
     """<word> - Returns a list of antonyms for <word>."""
+    lookup = RelatedLookupRequest(text, 'antonym')
+    lookup.extra_params['useCanonical'] = 'false'
     try:
-        json = word_lookup(text, "relatedWords", {
-            'relationshipTypes': 'antonym',
-            'limitPerRelationshipType': 5,
-            'useCanonical': 'false'
-        })
+        data = lookup.first()
     except WordNotFound:
         return colors.parse(
             "Sorry, I couldn't find any antonyms for $(b){}$(b)."
@@ -229,7 +332,7 @@ def antonym(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join(json[0]['words'])
+    out += " • ".join(data['words'])
 
     return out
 
