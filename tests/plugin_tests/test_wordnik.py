@@ -35,13 +35,28 @@ class WordTestBase:
 
     @classmethod
     def get_paramstring(cls):
-        raise NotImplementedError
+        return None
+
+    @classmethod
+    def get_result_limit(cls):
+        return 5
 
     @classmethod
     def build_url(cls, word, op=None, paramstring=None):
         base = 'http://api.wordnik.com/v4/word.json'
         url = base + '/' + word + '/' + (op or cls.get_op())
-        return url + '?' + (paramstring or cls.get_paramstring()) + '&api_key=APIKEY'
+        if cls.get_result_limit():
+            param_trail = 'limit={}&api_key=APIKEY'.format(cls.get_result_limit())
+        else:
+            param_trail = 'api_key=APIKEY'
+
+        params = paramstring or cls.get_paramstring()
+        if params:
+            params += '&' + param_trail
+        else:
+            params = param_trail
+
+        return url + '?' + params
 
     @classmethod
     def get_func(cls):
@@ -155,10 +170,6 @@ class TestDefine(WordTestBase):
         return 'definitions'
 
     @classmethod
-    def get_paramstring(cls):
-        return 'limit=5'
-
-    @classmethod
     def get_not_found_msg(cls, word):
         return "I could not find a definition for \x02{}\x02.".format(word)
 
@@ -211,8 +222,8 @@ class TestUsage(WordTestBase):
         return 'examples'
 
     @classmethod
-    def get_paramstring(cls):
-        return 'limit=10'
+    def get_result_limit(cls):
+        return 10
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -248,7 +259,7 @@ class TestUsage(WordTestBase):
 
         expected = "\x02word\x02: There is an important and very common " \
                    "use of the word ˜word™ that lexicographers and the rest " \
-                   "of us use frequently. "
+                   "of us use frequently."
 
         out, _ = self.call('word')
         assert out == expected
@@ -262,10 +273,6 @@ class TestPronounce(WordTestBase):
     @classmethod
     def get_op(cls):
         return 'pronunciations'
-
-    @classmethod
-    def get_paramstring(cls):
-        return 'limit=5'
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -321,7 +328,7 @@ class TestPronounce(WordTestBase):
 
         mock_requests.add(
             'GET',
-            self.build_url('word', 'audio', 'limit=1'),
+            self.build_url('word', 'audio'),
             match_querystring=True,
             json=[{'fileUrl': 'https://example.com/word.ogg'}],
         )
@@ -337,7 +344,7 @@ class TestPronounce(WordTestBase):
 
         mock_requests.add(
             'GET',
-            self.build_url('word', 'audio', 'limit=1'),
+            self.build_url('word', 'audio'),
             match_querystring=True,
             status=404,
             json={'error': 'Not Found'},
@@ -353,7 +360,7 @@ class TestPronounce(WordTestBase):
 
         mock_requests.add(
             'GET',
-            self.build_url('word', 'audio', 'limit=1'),
+            self.build_url('word', 'audio'),
             match_querystring=True,
             status=500,
             json={'error': 'FooBar'},
@@ -376,6 +383,10 @@ class TestSynonym(WordTestBase):
     @classmethod
     def get_op(cls):
         return 'relatedWords'
+
+    @classmethod
+    def get_result_limit(cls):
+        return None
 
     @classmethod
     def get_paramstring(cls):
@@ -420,6 +431,10 @@ class TestAntonym(WordTestBase):
         return 'relatedWords'
 
     @classmethod
+    def get_result_limit(cls):
+        return None
+
+    @classmethod
     def get_paramstring(cls):
         return 'relationshipTypes=antonym&limitPerRelationshipType=5&useCanonical=false'
 
@@ -460,10 +475,6 @@ class WordsTestBase(WordTestBase):
         raise NotImplementedError
 
     @classmethod
-    def get_paramstring(cls):
-        raise NotImplementedError
-
-    @classmethod
     def get_not_found_msg(cls, word):
         raise NotImplementedError
 
@@ -481,10 +492,6 @@ class TestWOTD(WordsTestBase):
     @classmethod
     def get_not_found_msg(cls, word):
         return "Sorry I couldn't find the word of the day"
-
-    @classmethod
-    def get_paramstring(cls):
-        return ''
 
     @classmethod
     def get_op(cls):
