@@ -111,10 +111,15 @@ async def onjoin(conn, bot):
 
 @hook.irc_raw('376')
 async def do_joins(conn):
+    """
+    Join config defined channels
+
+    :param cloudbot.client.Client conn: Connecting client
+    """
     while not conn.ready:
         await asyncio.sleep(1)
 
-    chans = copy(conn.channels)
+    chans = copy(conn.config_channels)
 
     # Join config-defined channels
     join_throttle = conn.config.get('join_throttle', 0.4)

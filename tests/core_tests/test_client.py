@@ -47,7 +47,7 @@ def test_client():
         Bot(), 'foo', 'foobot', channels=['#foo'], config={'name': 'foo'}
     )
 
-    assert client.channels == ['#foo']
+    assert client.config_channels == ['#foo']
     assert client.config['name'] == 'foo'
     assert client.type == 'TestClient'
 

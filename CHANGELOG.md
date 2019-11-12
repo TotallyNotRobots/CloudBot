@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Cleaned up the timeformat API and implementation (#32)
+### Fixed
+- Disconnect active vs configured channel lists (#11)
 
 ## [1.2.0] 2019-11-27
 - Many undocumented changes
