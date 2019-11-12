@@ -17,9 +17,9 @@ There are currently four different branches of this repository, each with a diff
 
 Firstly, CloudBot will only run on **Python 3.5.3 or higher**
 
-To install CloudBot on *nix (linux, etc), see [here](https://github.com/CloudBotIRC/CloudBot/wiki/Installing-on-*nix)
+To install CloudBot on *nix (linux, etc), see [here](docs/installing/nix.md)
 
-To install CloudBot on Windows, see [here](https://github.com/CloudBotIRC/CloudBot/wiki/Installing-on-Windows)
+To install CloudBot on Windows, see [here](docs/installing/win.md)
 
 
 ### Running CloudBot
@@ -56,7 +56,7 @@ If you think you have found a bug/have a idea/suggestion, please **open a issue*
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/CloudBotIRC/CloudBot/blob/master/CHANGELOG.md)
+See [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 
