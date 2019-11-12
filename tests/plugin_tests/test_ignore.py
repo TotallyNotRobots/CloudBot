@@ -72,9 +72,29 @@ def test_remove_ignore(mock_db):
 
     assert ignore.is_ignored('testconn', '#chan', 'nick!user@host')
 
-    ignore.remove_ignore(sess, 'testconn', '#chan', '*!*@host')
+    assert ignore.remove_ignore(sess, 'testconn', '#chan', '*!*@host')
+
+    assert not ignore.remove_ignore(sess, 'testconn', '#chan', '*!*@host')
 
     assert not ignore.is_ignored('testconn', '#chan', 'nick!user@host')
+
+
+def test_ignore_case(mock_db):
+    from plugins.core import ignore
+
+    setup_db(mock_db)
+
+    sess = mock_db.session()
+
+    ignore.add_ignore(sess, 'aTestConn', '#AChan', '*!*@OtherHost')
+
+    assert ignore.is_ignored('atestconn', '#achan', 'nick!user@otherhost')
+
+    assert ignore.is_ignored('atestcOnn', '#acHan', 'nICk!uSer@otherHost')
+
+    assert ignore.remove_ignore(sess, 'atestconn', '#achan', '*!*@OTherHost')
+
+    assert mock_db.get_data(ignore.table) == []
 
 
 @pytest.mark.asyncio
