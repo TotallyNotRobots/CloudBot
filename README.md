@@ -13,11 +13,9 @@ There are currently four different branches of this repository, each with a diff
  - **master** *(stable (old))*: This branch contains stable, tested code. This branch is based directly on the upstream master branch and is not currently maintained.
  - **python3.4** *(unstable (old))*: This is the outdated testing branch from the upstream repo.
 
-New releases will be pushed from **python3.4** to **master** whenever we have a stable version to release. These changes will be merged into **gonzobot** then deployed. This should happen on a fairly regular basis, so you'll never be too far behind the latest improvements.
-
 ## Installing CloudBot
 
-Firstly, CloudBot will only run on **Python 3.4 or higher**. Because we use the asyncio module, you will not be able to use any other versions of Python.
+Firstly, CloudBot will only run on **Python 3.5.3 or higher**
 
 To install CloudBot on *nix (linux, etc), see [here](https://github.com/CloudBotIRC/CloudBot/wiki/Installing-on-*nix)
 
@@ -31,12 +29,12 @@ Before you run the bot, rename `config.default.json` to `config.json` and edit i
 Once you have installed the required dependencies and renamed the config file, you can run the bot! Make sure you are in the correct folder and run the following command:
 
 ```
-python3.4 -m cloudbot
+python3 -m cloudbot
 ```
 
 Note that you can also run the `cloudbot/__main__.py` file directly, which will work from any directory.
 ```
-python3.4 CloudBot/cloudbot/__main__.py
+python3 CloudBot/cloudbot/__main__.py
 ```
 Specify the path as /path/to/repository/cloudbot/__main__.py, where `cloudbot` is inside the repository directory.
 

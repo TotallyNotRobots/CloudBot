@@ -1,8 +1,8 @@
 import sys
 
 # check python version
-if sys.version_info < (3, 5, 0):
-    print("CloudBot requires Python 3.5 or newer.")
+if sys.version_info < (3, 5, 3):
+    print("CloudBot requires Python 3.5.3 or newer.")
     sys.exit(1)
 
 import json
