@@ -15,7 +15,7 @@ import cloudbot
 
 def _get_repo_link(bot):
     return bot.config.get(
-        'repo_link', 'https://github.com/snoonetIRC/CloudBot/'
+        'repo_link', 'https://github.com/TotallyNotRobots/CloudBot/'
     )
 
 
