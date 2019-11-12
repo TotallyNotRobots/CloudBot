@@ -161,12 +161,13 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     """<nick|mask> - un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
-    if not ignore_in_cache(conn.name, chan, target):
-        notice("{} is not ignored in {}.".format(target, chan))
-    else:
-        admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
+    if remove_ignore(db, conn.name, chan, target):
+        admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(
+            nick, target, chan
+        ))
         notice("{} has been un-ignored in {}.".format(target, chan))
-        remove_ignore(db, conn.name, chan, target)
+    else:
+        notice("{} is not ignored in {}.".format(target, chan))
 
 
 @hook.command(permissions=["ignore", "chanop"], autohelp=False)
