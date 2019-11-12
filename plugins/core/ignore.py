@@ -39,8 +39,20 @@ def load_cache(db):
     ignore_cache.extend(new_cache)
 
 
+def find_ignore(conn, chan, mask):
+    search = (conn.casefold(), chan.casefold(), mask.casefold())
+    for _conn, _chan, _mask in ignore_cache:
+        if search == (_conn.casefold(), _chan.casefold(), _mask.casefold()):
+            return _conn, _chan, _mask
+
+    return None
+
+
 def ignore_in_cache(conn, chan, mask):
-    return (conn.casefold(), chan.casefold(), mask.casefold()) in ignore_cache
+    if find_ignore(conn, chan, mask):
+        return True
+
+    return False
 
 
 def add_ignore(db, conn, chan, mask):
@@ -53,13 +65,25 @@ def add_ignore(db, conn, chan, mask):
 
 
 def remove_ignore(db, conn, chan, mask):
-    db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan)
-               .where(table.c.mask == mask))
+    item = find_ignore(conn, chan, mask)
+    if not item:
+        return False
+
+    conn, chan, mask = item
+    clause = and_(
+        table.c.connection == conn,
+        table.c.channel == chan,
+        table.c.mask == mask,
+    )
+    db.execute(table.delete().where(clause))
     db.commit()
     load_cache(db)
 
+    return True
+
 
 def is_ignored(conn, chan, mask):
+    chan_key = (conn.casefold(), chan.casefold())
     mask_cf = mask.casefold()
     for _conn, _chan, _mask in ignore_cache:
         _mask_cf = _mask.casefold()
@@ -69,8 +93,9 @@ def is_ignored(conn, chan, mask):
                 return True
         else:
             # this is a channel-specific ignore
-            if (conn, chan) != (_conn, _chan):
+            if chan_key != (_conn.casefold(), _chan.casefold()):
                 continue
+
             if match_mask(mask_cf, _mask_cf):
                 return True
 
