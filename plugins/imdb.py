@@ -5,7 +5,7 @@ import requests
 from cloudbot import hook
 
 id_re = re.compile(r'tt\d+')
-imdb_re = re.compile(r'https?://(?:www\.)?imdb\.com[/\\]+title[/\\]+(tt[0-9]+)', re.I)
+imdb_re = re.compile(r'https?://(?:www\.)?imdb\.com/+title/+(tt[0-9]+)', re.I)
 
 
 @hook.command
