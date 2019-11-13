@@ -1,4 +1,3 @@
-import pytest
 from plugins.imdb import imdb_re
 
 def test_imdb_re():
