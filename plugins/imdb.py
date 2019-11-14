@@ -5,7 +5,7 @@ import requests
 from cloudbot import hook
 
 id_re = re.compile(r'tt\d+')
-imdb_re = re.compile(r'(.*:)//(imdb.com|www.imdb.com)(:[0-9]+)?(.*)', re.I)
+imdb_re = re.compile(r'https?://(?:www\.)?imdb\.com/+title/+(tt[0-9]+)', re.I)
 
 
 @hook.command
@@ -46,11 +46,7 @@ def imdb(text, bot):
 def imdb_url(match, bot):
     headers = {'User-Agent': bot.user_agent}
 
-    imdb_id = match.group(4).split('/')[-1]
-    if imdb_id == "":
-        imdb_id = match.group(4).split('/')[-2]
-
-    params = {'id': imdb_id}
+    params = {'id': match.group(1)}
     request = requests.get(
         "https://imdb-scraper.herokuapp.com/title",
         params=params,
