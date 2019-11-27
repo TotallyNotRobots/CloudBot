@@ -10,10 +10,23 @@ import logging.config
 import logging
 import os
 
-__version__ = "1.0.9"
+version = (1, 2, 0)
+__version__ = '.'.join(str(i) for i in version)
 
-__all__ = ["clients", "util", "bot", "client", "config", "event", "hook", "permissions", "plugin", "reloader",
-           "logging_info"]
+__all__ = (
+    "clients",
+    "util",
+    "bot",
+    "client",
+    "config",
+    "event",
+    "hook",
+    "permissions",
+    "plugin",
+    "reloader",
+    "logging_info",
+    "version",
+)
 
 
 class LoggingInfo:
