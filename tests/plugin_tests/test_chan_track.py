@@ -1,4 +1,5 @@
 import asyncio
+from threading import Thread
 
 from irclib.parser import Message, Prefix
 from mock import MagicMock
@@ -131,18 +132,27 @@ NAMES_MOCK_TRAFFIC = [
     ':server.name 366 BotFoo #foo :End of /NAMES list',
     ':QuickUser!user@host PART #foo',
     ':BotFoo!myname@myhost KICK #foo OtherQuickUser',
+    ':PersonC!name@somehost NICK somenewnick',
+    ':somenewnick!name@somehost PART #foo',
+    ':{aperso}N!person@host JOIN #foo',
+    ':{aperso}N!person@host NICK otherNick',
+    ':otherNick!person@host PART #foo',
+    ':testperson!user@host JOIN #foo',
+    ':FooBar123!user@host QUIT',
+    ':testperson!user@host NICK FooBar123',
 ]
 
 
 def test_names_handling():
     from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.core.chan_track import on_join, on_part, on_kick, on_quit, on_names
+    from plugins.core.chan_track import on_join, on_part, on_kick, on_quit, on_names, on_nick
 
     handlers = {
         'JOIN': on_join,
         'PART': on_part,
         'QUIT': on_quit,
         'KICK': on_kick,
+        'NICK': on_nick,
         '353': on_names,
         '366': on_names,
     }
@@ -153,6 +163,7 @@ def test_names_handling():
         'KICK': 0,
         '353': 2,
         '366': 1,
+        'NICK': 0,
     }
 
     bot = MagicMock()
