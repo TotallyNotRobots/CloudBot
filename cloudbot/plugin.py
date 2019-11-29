@@ -586,6 +586,16 @@ class PluginManager:
             await self.launch(hook, event)
             await asyncio.sleep(interval)
 
+    async def _launch(self, hook, event):
+        # we don't need sieves on on_start hooks.
+        if hook.do_sieve and hook.type not in ("on_start", "on_stop", "periodic"):
+            for sieve in self.bot.plugin_manager.sieves:
+                event = await self._sieve(sieve, event, hook)
+                if event is None:
+                    return False
+
+        return await self._execute_hook(hook, event)
+
     async def launch(self, hook, event):
         """
         Dispatch a given event to a given hook using a given bot object.
@@ -597,21 +607,11 @@ class PluginManager:
         :rtype: bool
         """
 
-        if hook.type not in ("on_start", "on_stop", "periodic"):  # we don't need sieves on on_start hooks.
-            for sieve in self.bot.plugin_manager.sieves:
-                event = await self._sieve(sieve, event, hook)
-                if event is None:
-                    return False
-
         if hook.lock:
             async with hook.lock:
-                # Run the plugin with the message, and wait for it to finish
-                result = await self._execute_hook(hook, event)
-        else:
-            result = await self._execute_hook(hook, event)
+                return await self._launch(hook, event)
 
-        # Return the result
-        return result
+        return await self._launch(hook, event)
 
 
 class Plugin:
