@@ -322,8 +322,7 @@ class CloudBot:
             if hook.clients and _event.conn.type not in hook.clients:
                 return True
 
-            coro = self.plugin_manager.launch(hook, _event)
-            tasks.append(coro)
+            tasks.append((hook, _event))
 
             if hook.action is Action.HALTALL:
                 halted = True
@@ -417,5 +416,10 @@ class CloudBot:
                         # The hook has an action of Action.HALT* so stop adding new tasks
                         break
 
+        tasks.sort(key=lambda t: t[0].priority)
+
         # Run the tasks
-        await asyncio.gather(*tasks, loop=self.loop)
+        await asyncio.gather(*[
+            asyncio.ensure_future(self.plugin_manager.launch(hook, _event))
+            for hook, _event in tasks
+        ], loop=self.loop)
