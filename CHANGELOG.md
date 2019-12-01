@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update tvdb.py to v3 TVDB API
 - Fix channel parameter handling in IRC client
 - Ensure hooks are triggered according to priority
+- chan_track: Ensure hooks acquire the needed locks
 ### Removed
 - twitch.py removed due to outdated API and lack of maintainer
 - metacritic.py removed due to broken scraper and lack of maintainer
