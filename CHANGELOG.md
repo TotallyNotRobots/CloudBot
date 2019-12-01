@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handle 'a' vs 'an' in drinks plugin
 - Apply rate limiting to regex hooks
 - Ensure event order is deterministic
+- Make event queueing happen non-async
 ### Fixed
 - Ensure event order is deterministic
 - Fix matching exception in horoscope test

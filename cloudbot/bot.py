@@ -307,7 +307,7 @@ class CloudBot:
         scanner = Scanner(bot=self)
         scanner.scan(clients, categories=["cloudbot.client"])
 
-    async def process(self, event):
+    def process(self, event):
         """
         :type event: Event
         """
@@ -418,8 +418,5 @@ class CloudBot:
 
         tasks.sort(key=lambda t: t[0].priority)
 
-        # Run the tasks
-        await asyncio.gather(*[
-            asyncio.ensure_future(self.plugin_manager.launch(hook, _event))
-            for hook, _event in tasks
-        ], loop=self.loop)
+        for _hook, _event in tasks:
+            async_util.wrap_future(self.plugin_manager.launch(_hook, _event))

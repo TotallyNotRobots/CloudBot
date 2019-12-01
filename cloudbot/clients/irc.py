@@ -525,8 +525,8 @@ class _IrcProtocol(asyncio.Protocol):
                     self.conn.describe_server(),
                 )
             else:
-                # handle the message, async
-                async_util.wrap_future(self.bot.process(event), loop=self.loop)
+                # handle the message
+                self.bot.process(event)
 
     def parse_line(self, line: str) -> Event:
         message = Message.parse(line)
