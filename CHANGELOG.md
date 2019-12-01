@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply rate limiting to regex hooks
 - Ensure event order is deterministic
 ### Fixed
+- Ensure event order is deterministic
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse
 - Fix grammatical error in food sentence (beer)
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - amazon.py removed due to broken scraper and no maintainer
 - newegg.py removed due to broken scraper and no maintainer
 - Removed path patching in main module
+- Remove unused run_before events/tasks
 
 ## [1.3.0] 2020-03-17
 ### Added

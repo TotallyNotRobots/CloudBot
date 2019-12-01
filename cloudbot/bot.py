@@ -311,11 +311,10 @@ class CloudBot:
         """
         :type event: Event
         """
-        run_before_tasks = []
         tasks = []
         halted = False
 
-        def add_hook(hook, _event, _run_before=False):
+        def add_hook(hook, _event):
             nonlocal halted
             if halted:
                 return False
@@ -324,10 +323,7 @@ class CloudBot:
                 return True
 
             coro = self.plugin_manager.launch(hook, _event)
-            if _run_before:
-                run_before_tasks.append(coro)
-            else:
-                tasks.append(coro)
+            tasks.append(coro)
 
             if hook.action is Action.HALTALL:
                 halted = True
@@ -340,10 +336,8 @@ class CloudBot:
 
         # Raw IRC hook
         for raw_hook in self.plugin_manager.catch_all_triggers:
-            # run catch-all coroutine hooks before all others - TODO: Make this a plugin argument
-            run_before = not raw_hook.threaded
             if not add_hook(
-                raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before
+                raw_hook, Event(hook=raw_hook, base_event=event)
             ):
                 # The hook has an action of Action.HALT* so stop adding new tasks
                 break
@@ -424,5 +418,4 @@ class CloudBot:
                         break
 
         # Run the tasks
-        await asyncio.gather(*run_before_tasks, loop=self.loop)
         await asyncio.gather(*tasks, loop=self.loop)
