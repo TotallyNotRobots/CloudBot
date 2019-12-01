@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expand youtube.py error information
 - Handle 'a' vs 'an' in drinks plugin
 - Apply rate limiting to regex hooks
+- Ensure event order is deterministic
 ### Fixed
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse
