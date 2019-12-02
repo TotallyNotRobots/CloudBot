@@ -57,10 +57,12 @@ class Client:
         self.nick = nick
         self._type = _type
 
+        self.channels = []
+
         if channels is None:
-            self.channels = []
+            self.config_channels = []
         else:
-            self.channels = channels
+            self.config_channels = channels
 
         if config is None:
             self.config = {}

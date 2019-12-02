@@ -1,5 +1,6 @@
 import asyncio
 from collections import defaultdict
+from copy import copy
 from threading import RLock
 
 from sqlalchemy import PrimaryKeyConstraint, Column, String, Table, and_
@@ -41,7 +42,7 @@ async def do_joins(conn):
         await asyncio.sleep(1)
 
     join_throttle = conn.config.get("join_throttle", 0.4)
-    for chan in chan_cache[conn.name]:
+    for chan in copy(chan_cache[conn.name]):
         conn.join(chan)
         await asyncio.sleep(join_throttle)
 
