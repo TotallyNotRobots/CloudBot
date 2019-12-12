@@ -24,7 +24,8 @@ def urban(text, reply):
         parts = text.split()
 
         # if the last word is a number, set the ID to that number
-        if parts[-1].isdigit():
+        # but not if its the only word, in which case the number is the query
+        if parts[-1].isdigit() and len(parts) > 1:
             id_num = int(parts[-1])
             # remove the ID from the input string
             del parts[-1]
