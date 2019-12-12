@@ -1,5 +1,6 @@
 import importlib
 import re
+from copy import deepcopy
 
 import pytest
 from googlemaps.exceptions import ApiError
@@ -161,11 +162,8 @@ FIO_DATA = {
 }
 
 
-def test_find_location(mock_requests, patch_try_shorten, mock_db):
+def setup_api(mock_requests, mock_db):
     from plugins import weather
-    bot = MockBot({}, mock_db)
-    weather.create_maps_api(bot)
-    assert weather.data.maps_api is None
     bot = MockBot({
         'api_keys': {
             'google_dev_key': 'AIzatestapikey',
@@ -192,6 +190,70 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
         json=return_value
     )
     weather.create_maps_api(bot)
+    weather.create_maps_api(bot)
+    weather.location_cache.clear()
+
+    return bot
+
+
+def test_rounding(mock_requests, patch_try_shorten, mock_db):
+    from plugins import weather
+    bot = setup_api(mock_requests, mock_db)
+
+    conn = MagicMock()
+    conn.config = {}
+
+    conn.bot = bot
+
+    cmd_event = CommandEvent(
+        text='', cmd_prefix='.',
+        triggered_command='we',
+        hook=MagicMock(), bot=bot,
+        conn=conn, channel='#foo',
+        nick='foobar'
+    )
+
+    weather.location_cache.append(('foobar', 'test location'))
+
+    new_data = deepcopy(FIO_DATA)
+
+    new_data['json']['currently']['temperature'] = 31.9
+
+    mock_requests.add(
+        mock_requests.GET,
+        re.compile(r'^https://api\.darksky\.net/forecast/.*'),
+        **new_data
+    )
+
+    out_text = (
+        '(foobar) \x02Current\x02: foobar, 32F/0C\x0f; \x02High\x02: 64F/18C\x0f; '
+        '\x02Low\x02: 57F/14C\x0f; \x02Humidity\x02: 45%\x0f; '
+        '\x02Wind\x02: 12MPH/20KPH SE\x0f '
+        '-- 123 Test St, Example City, CA - '
+        '\x1fhttps://darksky.net/forecast/30.123,123.456\x0f '
+        '(\x1dTo get a forecast, use .fc\x1d)'
+    )
+
+    calls = [(
+        'message',
+        (
+            '#foo',
+            out_text,
+        ),
+        {},
+    )]
+
+    assert wrap_result(weather.weather, cmd_event) == calls
+
+
+def test_find_location(mock_requests, patch_try_shorten, mock_db):
+    from plugins import weather
+    bot = MockBot({}, mock_db)
+    weather.create_maps_api(bot)
+    weather.location_cache.clear()
+    assert weather.data.maps_api is None
+
+    bot = setup_api(mock_requests, mock_db)
 
     assert weather.find_location('Foo Bar') == {
         'lat': 30.123,
@@ -301,10 +363,7 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
 
     weather.load_cache(mock_db.session())
     mock_requests.reset()
-    mock_requests.add(
-        mock_requests.GET, 'https://maps.googleapis.com/maps/api/geocode/json',
-        json=return_value
-    )
+    setup_api(mock_requests, mock_db)
     mock_requests.add(
         mock_requests.GET, re.compile(r'^https://api\.darksky\.net/forecast/.*'),
         **FIO_DATA
