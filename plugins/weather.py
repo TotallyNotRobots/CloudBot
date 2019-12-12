@@ -72,6 +72,10 @@ def convert_f2c(temp):
     return float((temp - 32) * Fraction(5, 9))
 
 
+def round_temp(temp):
+    return round(temp)
+
+
 def mph_to_kph(mph):
     return float(mph * MI_TO_KM)
 
@@ -207,18 +211,18 @@ def weather(reply, db, triggered_prefix, event):
         wind_speed_mph=wind_speed,
         wind_speed_kph=mph_to_kph(wind_speed),
         summary=current['summary'].rstrip('.'),
-        temp_f=current['temperature'],
-        temp_c=convert_f2c(current['temperature']),
-        temp_high_f=today_high,
-        temp_high_c=convert_f2c(today_high),
-        temp_low_f=today_low,
-        temp_low_c=convert_f2c(today_low),
+        temp_f=round_temp(current['temperature']),
+        temp_c=round_temp(convert_f2c(current['temperature'])),
+        temp_high_f=round_temp(today_high),
+        temp_high_c=round_temp(convert_f2c(today_high)),
+        temp_low_f=round_temp(today_low),
+        temp_low_c=round_temp(convert_f2c(today_low)),
     )
 
     parts = [
-        ('Current', "{summary}, {temp_f:.0f}F/{temp_c:.0f}C"),
-        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
-        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('Current', "{summary}, {temp_f}F/{temp_c}C"),
+        ('High', "{temp_high_f}F/{temp_high_c}C"),
+        ('Low', "{temp_low_f}F/{temp_low_c}C"),
         ('Humidity', "{humidity:.0%}"),
         ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
     ]
@@ -277,10 +281,10 @@ def forecast(reply, db, event):
         high = fc_data['temperatureHigh']
         low = fc_data['temperatureLow']
         fc_data.update(
-            temp_high_f=high,
-            temp_high_c=convert_f2c(high),
-            temp_low_f=low,
-            temp_low_c=convert_f2c(low),
+            temp_high_f=round_temp(high),
+            temp_high_c=round_temp(convert_f2c(high)),
+            temp_low_f=round_temp(low),
+            temp_low_c=round_temp(convert_f2c(low)),
         )
 
     parts = [
