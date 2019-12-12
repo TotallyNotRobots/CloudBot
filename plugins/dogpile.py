@@ -63,6 +63,6 @@ def dogpile(text):
         return "No results found."
 
     result = results[0]
-    result_url = result.find('span', {'class': 'web-bing__url'}).text
+    result_url = result.find('a', {'class': 'web-bing__title', 'href': True})['href']
     result_description = result.find('span', {'class': 'web-bing__description'}).text
     return "{} -- \x02{}\x02".format(result_url, result_description)
