@@ -102,7 +102,7 @@ def get_video_id(reply, text):
 
         return None, "Error performing search."
 
-    if json['pageInfo']['totalResults'] == 0:
+    if not json.get('items'):
         return None, "No results found."
 
     video_id = json['items'][0]['id']['videoId']
