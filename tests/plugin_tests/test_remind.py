@@ -179,7 +179,7 @@ class TestCheckReminders:
 
     @property
     def now(self):
-        return datetime.datetime.fromtimestamp(time.time())
+        return datetime.datetime.now()
 
     @property
     def set_time(self):
