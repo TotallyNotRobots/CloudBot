@@ -58,13 +58,28 @@ class AVApi:
 
 api = AVApi()
 
-number_suffixes = "TBM"
+number_suffixes = ['', '', 'M', 'B', 'T']
 
 
-def format_num(n):
-    exp = int(math.floor(math.log10(n)) / 3)
-    c = number_suffixes[-(exp - 1):][:1]
-    return "{:,.2f}{}".format(n / (10 ** (exp * 3)), c)
+def _get_group_count(num):
+    if not num:
+        return 0
+
+    n = math.floor(math.log10(abs(num))) // 3
+    if n <= 0:
+        return 0
+
+    return n
+
+
+def format_money(n):
+    idx = min(_get_group_count(n), len(number_suffixes))
+    c = number_suffixes[idx]
+    if c:
+        exp = idx * 3
+        n = n / (10 ** exp)
+
+    return "{:,.2f}{}".format(n, c)
 
 
 @hook.on_start
@@ -96,7 +111,7 @@ def stock(text):
     ]
 
     if price != 0 or change != 0:
-        data['mcap'] = format_num(price * data['volume'])
+        data['mcap'] = format_money(price * data['volume'])
 
         data['change'] = change
 
