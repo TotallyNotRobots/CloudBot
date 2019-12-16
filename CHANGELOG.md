@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cleaned up the timeformat API and implementation (#32)
 ### Fixed
 - Disconnect active vs configured channel lists (#11)
+- Fix reminder tests time based errors
 
 ## [1.2.0] 2019-11-27
 - Many undocumented changes
@@ -49,19 +50,19 @@ This update is pretty big. Be warned.
 ## [1.0.5]
 - Fix geoip for queries with no region, fix youtube bug, add flip command
 
-## [1.0.4] 
+## [1.0.4]
 - Adjust ratelimiter cleanup task, add octopart API key, fix brainfuck, sort mcstatus output.
 
 ## [1.0.3]
 - More minor changes to plugins, fixed rate-limiting properly, banished SCP to CloudBotIRC/Plugins, added wildcard support to permissions (note: don't use this yet, it's still not entirely finalized!)
 
-## [1.0.2] 
+## [1.0.2]
 - Minor internal changes and fixes, banished minecraft_bukget and worldofwarcraft to CloudBotIRC/Plugins
 
 ## [1.0.1]
 - Fix history.py tracking
 
-## [1.0.0] 
+## [1.0.0]
 - Initial stable release
 
 [Unreleased]: https://github.com/TotallyNotRobots/CloudBot/compare/v1.2.0...HEAD
