@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Disconnect active vs configured channel lists (#11)
 - Fix reminder tests time based errors
+- Fix .urban handling numbers in the query
+- Fix the possible `-0` in weather data
+- Fix random truncations of search result URLs
 
 ## [1.2.0] 2019-11-27
 - Many undocumented changes
