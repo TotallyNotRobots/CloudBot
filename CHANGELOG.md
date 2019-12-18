@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Disconnect active vs configured channel lists (#11)
 - Fix reminder tests time based errors
+- Handle empty results in YouTube API responses
 - Fix .urban handling numbers in the query
 - Fix the possible `-0` in weather data
 - Fix random truncations of search result URLs
