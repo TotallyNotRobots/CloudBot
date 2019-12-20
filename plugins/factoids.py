@@ -2,10 +2,10 @@ import re
 import string
 from collections import defaultdict
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, and_
+from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 
 from cloudbot import hook
-from cloudbot.util import database, colors, web
+from cloudbot.util import colors, database, web
 from cloudbot.util.formatting import gen_markdown_table, get_text_list
 from cloudbot.util.web import NoPasteException
 
@@ -215,14 +215,16 @@ def listfactoids(notice, chan):
     reply_text = []
     reply_text_length = 0
     for word in sorted(factoid_cache[chan].keys()):
-        added_length = len(word) + 2
+        text = FACTOID_CHAR + word
+        added_length = len(text) + 2
         if reply_text_length + added_length > 400:
             notice(", ".join(reply_text))
             reply_text = []
             reply_text_length = 0
-        else:
-            reply_text.append(word)
-            reply_text_length += added_length
+
+        reply_text.append(text)
+        reply_text_length += added_length
+
     notice(", ".join(reply_text))
 
 

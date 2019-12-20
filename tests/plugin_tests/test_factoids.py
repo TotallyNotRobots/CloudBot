@@ -1,4 +1,6 @@
 import importlib
+import itertools
+import string
 from textwrap import dedent
 
 from mock import MagicMock, call, patch
@@ -106,3 +108,31 @@ def test_clear_facts():
     """).strip()
 
     assert compiled.params == {'chan_1': '#example'}
+
+
+def test_list_facts(mock_db):
+    from plugins import factoids
+
+    factoids.table.create(mock_db.engine, checkfirst=True)
+
+    names = [
+        ''.join(c) for c in itertools.product(string.ascii_lowercase, repeat=2)
+    ]
+
+    for name in names:
+        factoids.add_factoid(
+            mock_db.session(),
+            name.lower(),
+            '#chan',
+            name,
+            'nick',
+        )
+
+    notice = MagicMock()
+    factoids.listfactoids(notice, '#chan')
+
+    text = ', '.join(call[1][0] for call in notice.mock_calls)
+
+    assert text == ', '.join(
+        '?' + name for name in sorted(names + ['commands'])
+    )
