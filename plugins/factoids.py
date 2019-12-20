@@ -215,13 +215,14 @@ def listfactoids(notice, chan):
     reply_text = []
     reply_text_length = 0
     for word in sorted(factoid_cache[chan].keys()):
-        added_length = len(word) + 2
+        text = FACTOID_CHAR + word
+        added_length = len(text) + 2
         if reply_text_length + added_length > 400:
             notice(", ".join(reply_text))
             reply_text = []
             reply_text_length = 0
 
-        reply_text.append(word)
+        reply_text.append(text)
         reply_text_length += added_length
 
     notice(", ".join(reply_text))

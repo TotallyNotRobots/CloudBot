@@ -133,4 +133,6 @@ def test_list_facts(mock_db):
 
     text = ', '.join(call[1][0] for call in notice.mock_calls)
 
-    assert text == ', '.join(sorted(names + ['commands']))
+    assert text == ', '.join(
+        '?' + name for name in sorted(names + ['commands'])
+    )
