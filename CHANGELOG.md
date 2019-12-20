@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix .urban handling numbers in the query
 - Fix the possible `-0` in weather data
 - Fix random truncations of search result URLs
+- Fix listfacts not listing some facts
 ### Removed
 - Removed rottentomatoes plugin as the API has been removed
 
