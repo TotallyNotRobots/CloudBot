@@ -519,7 +519,7 @@ def replace_user_data(conn, chan_data):
             del chan_data.users[old_nick]
 
 
-@hook.irc_raw(['353', '366'], singlethread=True)
+@hook.irc_raw(['353', '366'], singlethread=True, do_sieve=False)
 def on_names(conn, irc_paramlist, irc_command):
     """
     :type conn: cloudbot.client.Client
@@ -686,7 +686,7 @@ def getdata_cmd(conn, chan, nick):
     return web.paste(MappingSerializer().serialize(memb, indent=2))
 
 
-@hook.irc_raw(['PRIVMSG', 'NOTICE'])
+@hook.irc_raw(['PRIVMSG', 'NOTICE'], do_sieve=False)
 def on_msg(conn, nick, user, host, irc_paramlist):
     chan, *other_data = irc_paramlist
 
@@ -727,7 +727,7 @@ def clean_pms(bot):
                 pass
 
 
-@hook.irc_raw('JOIN')
+@hook.irc_raw('JOIN', do_sieve=False)
 def on_join(nick, user, host, conn, irc_paramlist):
     """
     :type nick: str
@@ -783,7 +783,7 @@ def _parse_mode_string(modes, params, status_modes, mode_types):
     return new_modes
 
 
-@hook.irc_raw('MODE')
+@hook.irc_raw('MODE', do_sieve=False)
 def on_mode(chan, irc_paramlist, conn):
     """
     :type chan: str
@@ -822,7 +822,7 @@ def on_mode(chan, irc_paramlist, conn):
         member.sort_status()
 
 
-@hook.irc_raw('PART')
+@hook.irc_raw('PART', do_sieve=False)
 def on_part(chan, nick, conn):
     """
     :type chan: str
@@ -837,7 +837,7 @@ def on_part(chan, nick, conn):
         del chan_data.users[nick]
 
 
-@hook.irc_raw('KICK')
+@hook.irc_raw('KICK', do_sieve=False)
 def on_kick(chan, target, conn):
     """
     :type chan: str
@@ -847,7 +847,7 @@ def on_kick(chan, target, conn):
     on_part(chan, target, conn)
 
 
-@hook.irc_raw('QUIT')
+@hook.irc_raw('QUIT', do_sieve=False)
 def on_quit(nick, conn):
     """
     :type nick: str
@@ -861,7 +861,7 @@ def on_quit(nick, conn):
             del chan.users[nick]
 
 
-@hook.irc_raw('NICK')
+@hook.irc_raw('NICK', do_sieve=False)
 def on_nick(nick, irc_paramlist, conn):
     """
     :type nick: str
@@ -888,7 +888,7 @@ def on_nick(nick, irc_paramlist, conn):
             user_chans[new_nick] = user_chans.pop(nick)
 
 
-@hook.irc_raw('ACCOUNT')
+@hook.irc_raw('ACCOUNT', do_sieve=False)
 def on_account(conn, nick, irc_paramlist):
     """
     :type nick: str
@@ -898,7 +898,7 @@ def on_account(conn, nick, irc_paramlist):
     get_users(conn).getuser(nick).account = irc_paramlist[0]
 
 
-@hook.irc_raw('CHGHOST')
+@hook.irc_raw('CHGHOST', do_sieve=False)
 def on_chghost(conn, nick, irc_paramlist):
     """
     :type nick: str
@@ -911,7 +911,7 @@ def on_chghost(conn, nick, irc_paramlist):
     user.host = host
 
 
-@hook.irc_raw('AWAY')
+@hook.irc_raw('AWAY', do_sieve=False)
 def on_away(conn, nick, irc_paramlist):
     """
     :type nick: str
@@ -928,7 +928,7 @@ def on_away(conn, nick, irc_paramlist):
     user.away_message = reason
 
 
-@hook.irc_raw('352')
+@hook.irc_raw('352', do_sieve=False)
 def on_who(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
@@ -948,7 +948,7 @@ def on_who(conn, irc_paramlist):
     user.is_oper = is_oper
 
 
-@hook.irc_raw('311')
+@hook.irc_raw('311', do_sieve=False)
 def on_whois_name(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
@@ -961,7 +961,7 @@ def on_whois_name(conn, irc_paramlist):
     user.realname = realname
 
 
-@hook.irc_raw('330')
+@hook.irc_raw('330', do_sieve=False)
 def on_whois_acct(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
@@ -971,7 +971,7 @@ def on_whois_acct(conn, irc_paramlist):
     get_users(conn).getuser(nick).account = acct
 
 
-@hook.irc_raw('301')
+@hook.irc_raw('301', do_sieve=False)
 def on_whois_away(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
@@ -983,7 +983,7 @@ def on_whois_away(conn, irc_paramlist):
     user.away_message = msg
 
 
-@hook.irc_raw('312')
+@hook.irc_raw('312', do_sieve=False)
 def on_whois_server(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList
@@ -993,7 +993,7 @@ def on_whois_server(conn, irc_paramlist):
     get_users(conn).getuser(nick).server = server
 
 
-@hook.irc_raw('313')
+@hook.irc_raw('313', do_sieve=False)
 def on_whois_oper(conn, irc_paramlist):
     """
     :type irc_paramlist: cloudbot.util.parsers.irc.ParamList

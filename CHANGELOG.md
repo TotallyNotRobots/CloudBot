@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Added `do_sieve` keyword to hooks
 - Add the factoid character in the listfacts output
 ### Changed
 - Cleaned up the timeformat API and implementation (#32)
