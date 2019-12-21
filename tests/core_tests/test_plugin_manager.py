@@ -1,27 +1,33 @@
 import asyncio
+import itertools
 from pathlib import Path
 
 import pytest
 from mock import patch
 
+from cloudbot import hook
 from cloudbot.plugin import PluginManager
 
 
 @pytest.fixture()
 def mock_bot():
     class MockBot:
-        __slots__ = ()
+        __slots__ = ('plugin_manager',)
 
-        loop = asyncio.get_event_loop()
         config = {}
         base_dir = Path().resolve()
+
+        @property
+        def loop(self):
+            return asyncio.get_event_loop()
 
     yield MockBot()
 
 
 @pytest.fixture()
 def mock_manager(mock_bot):
-    yield PluginManager(mock_bot)
+    mock_bot.plugin_manager = mgr = PluginManager(mock_bot)
+    yield mgr
 
 
 class MockModule:
@@ -166,3 +172,53 @@ def test_safe_resolve(mock_manager):
     assert str(path) == str(base_path.absolute())
     assert path.is_absolute()
     assert not path.exists()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('do_sieve,sieve_allow,single_thread', list(
+    itertools.product([True, False], [True, False], [True, False])
+))
+async def test_launch(
+        mock_manager, patch_import_module, do_sieve,
+        sieve_allow, single_thread
+):
+    called = False
+    sieve_called = False
+
+    @hook.command('test', do_sieve=do_sieve, singlethread=single_thread)
+    def foo_cb():
+        nonlocal called
+        called = True
+
+    @hook.sieve()
+    def sieve_cb(_bot, _event, _hook):
+        nonlocal sieve_called
+        sieve_called = True
+        if sieve_allow:
+            return _event
+
+        return None
+
+    mod = MockModule()
+
+    mod.sieve_cb = sieve_cb
+    mod.foo_cb = foo_cb
+
+    patch_import_module.return_value = mod
+
+    await mock_manager.load_plugin('plugins/test.py')
+
+    from cloudbot.event import CommandEvent
+
+    event = CommandEvent(
+        bot=mock_manager.bot,
+        hook=mock_manager.commands['test'],
+        cmd_prefix='.',
+        text='',
+        triggered_command='test',
+    )
+
+    result = await mock_manager.launch(event.hook, event)
+
+    assert result == called and called == (sieve_allow or not do_sieve)
+    assert sieve_called == do_sieve
