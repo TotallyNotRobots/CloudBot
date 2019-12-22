@@ -1,6 +1,7 @@
 # CloudBot
 [![Build Status](https://travis-ci.com/TotallyNotRobots/CloudBot.svg?branch=gonzobot)](https://travis-ci.com/TotallyNotRobots/CloudBot) 
 [![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/gonzobot) 
+[![codebeat badge](https://codebeat.co/badges/3e5866e3-fe94-4c92-9dd7-8fbd616bc2ac)](https://codebeat.co/projects/github-com-totallynotrobots-cloudbot-gonzobot) 
 [![codecov](https://codecov.io/gh/TotallyNotRobots/CloudBot/branch/gonzobot/graph/badge.svg)](https://codecov.io/gh/TotallyNotRobots/CloudBot) 
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
