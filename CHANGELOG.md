@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix listfacts not listing some facts
 ### Removed
 - Removed rottentomatoes plugin as the API has been removed
+- Removed dig plugin as jsondns is gone
 
 ## [1.2.0] 2019-11-27
 - Many undocumented changes
