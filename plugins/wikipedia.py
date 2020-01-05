@@ -17,6 +17,28 @@ random_url = api_prefix + "?action=query&format=xml&list=random&rnlimit=1&rnname
 paren_re = re.compile(r'\s*\(.*\)$')
 
 
+def get_description(request_title):
+    """ Returns the description of the wikipedia article with the requested title. """
+    try:
+        maximum_desc_len = 200
+        desc_request_params = {'exchars': maximum_desc_len,
+                               'titles': request_title}
+        description_request = requests.get(description_fetch_url, params=desc_request_params)
+        description_request.raise_for_status()
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        reply("Could not get Wikipedia page description: {}".format(e))
+        raise
+
+    y = parse_xml(description_request.text)
+    try:
+        plain_desc = y.find('query').find('pages').find('page').find('extract').text
+    except AttributeError as e:
+        reply("Could not extract the description of the article: {}".format(e))
+        raise
+
+    return plain_desc
+
+
 @hook.command("wiki", "wikipedia", "w")
 def wiki(text, reply):
     """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
@@ -44,26 +66,6 @@ def wiki(text, reply):
                 ('Text', 'Url')]
 
     title, url = extract(items[0])
-
-    def get_description(request_title):
-        try:
-            maximum_desc_len = 200
-            desc_request_params = {'exchars': maximum_desc_len,
-                                   'titles': request_title}
-            description_request = requests.get(description_fetch_url, params=desc_request_params)
-            description_request.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            reply("Could not get Wikipedia page description: {}".format(e))
-            raise
-
-        y = parse_xml(description_request.text)
-        try:
-            plain_desc = y.find('query').find('pages').find('page').find('extract').text
-        except AttributeError as e:
-            reply("Could not extract the description of the article: {}".format(e))
-            raise
-
-        return plain_desc
 
     desc = get_description(title)
 
