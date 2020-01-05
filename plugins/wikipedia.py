@@ -17,7 +17,7 @@ random_url = api_prefix + "?action=query&format=xml&list=random&rnlimit=1&rnname
 paren_re = re.compile(r'\s*\(.*\)$')
 
 
-def get_description(request_title):
+def get_description(request_title, reply):
     """ Returns the description of the wikipedia article with the requested title. """
     try:
         maximum_desc_len = 200
@@ -67,11 +67,11 @@ def wiki(text, reply):
 
     title, url = extract(items[0])
 
-    desc = get_description(title)
+    desc = get_description(title, reply)
 
     if 'may refer to' in desc:
         title, url = extract(items[1])
-        desc = get_description(title)
+        desc = get_description(title, reply)
 
     title = paren_re.sub('', title)
 
