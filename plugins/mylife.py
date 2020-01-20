@@ -1,5 +1,4 @@
 import functools
-import re
 
 import requests
 
