@@ -31,5 +31,9 @@ def drink_cmd(text, chan, action):
             out += " and {}".format(x)
         else:
             out += " {},".format(x)
-    out += "\x0F and makes {} a(n) \x02{}\x02. {}".format(text, drink, url)
+    if drink[0].lower() in ['a', 'e', 'i', 'o', 'u']:
+        article = 'an'
+    else:
+        article = 'a'
+    out += "\x0F and makes {} {} \x02{}\x02. {}".format(text, article, drink, url)
     action(out, chan)
