@@ -1,17 +1,14 @@
 """Searches wikipedia and returns first sentence of article
 Scaevolus 2009"""
 
+import json
 import re
-
 import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting
-from cloudbot.util.http import parse_xml
 
-api_prefix = "http://en.wikipedia.org/w/api.php"
-search_url = api_prefix + "?action=opensearch&format=xml"
-random_url = api_prefix + "?action=query&format=xml&list=random&rnlimit=1&rnnamespace=0"
+api_url = "http://en.wikipedia.org/w/api.php"
 
 paren_re = re.compile(r'\s*\(.*\)$')
 
@@ -20,39 +17,41 @@ paren_re = re.compile(r'\s*\(.*\)$')
 def wiki(text, reply):
     """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
+    text = text.strip()
+
+    # both 'info' and 'extracts' are needed to fetch the URL
+    search_params = {
+        'format': 'json',
+        'action': 'query',
+        'generator': 'search',
+        'prop': 'info|extracts',
+        'inprop': 'url',
+        'exintro': 1,
+        'explaintext': 1,
+        'gsrsearch': text
+    }
+
+    # Fetch data from the Wikipedia API
     try:
-        request = requests.get(search_url, params={'search': text.strip()})
+        request = requests.get(api_url, params=search_params)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         reply("Could not get Wikipedia page: {}".format(e))
         raise
+    response = json.loads(request.text)
 
-    x = parse_xml(request.text)
-
-    ns = '{http://opensearch.org/searchsuggest2}'
-    items = x.findall(ns + 'Section/' + ns + 'Item')
-
-    if not items:
-        if x.find('error') is not None:
-            return 'Could not get Wikipedia page: %(code)s: %(info)s' % x.find('error').attrib
-
+    if 'query' not in response:
         return 'No results found.'
 
-    def extract(item):
-        return [item.find(ns + i).text for i in
-                ('Text', 'Description', 'Url')]
+    # Take most relevant result
+    for p in response['query']['pages'].items():
+        if p[1]['index'] == 1:
+            page = p[1]
 
-    title, desc, url = extract(items[0])
+    # Format the URL for output
+    url = requests.utils.quote(page['fullurl'], ':/%')
 
-    if 'may refer to' in desc:
-        title, desc, url = extract(items[1])
+    # Format the description for output
+    desc = formatting.truncate(page['extract'], (370 - len(url)))
 
-    title = paren_re.sub('', title)
-
-    if title.lower() not in desc.lower():
-        desc = title + desc
-
-    desc = ' '.join(desc.split())  # remove excess spaces
-    desc = formatting.truncate(desc, 200)
-
-    return '{} :: {}'.format(desc, requests.utils.quote(url, ':/%'))
+    return '{} {}'.format(desc, url)
