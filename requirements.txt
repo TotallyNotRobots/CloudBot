@@ -4,7 +4,7 @@ feedparser==5.2.1
 forecastiopy==0.22
 geoip2==2.9.0
 git+https://github.com/CloudBotIRC/mcstatus.git@master
-googlemaps==4.0.0
+googlemaps==4.1.0
 imgurpython==1.1.7
 isodate==0.6.0
 lxml==4.4.2
