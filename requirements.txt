@@ -2,7 +2,7 @@ beautifulsoup4==4.8.2
 cleverwrap==0.3.0.2
 feedparser==5.2.1
 forecastiopy==0.22
-geoip2==2.9.0
+geoip2==3.0.0
 git+https://github.com/CloudBotIRC/mcstatus.git@master
 googlemaps==4.2.0
 imgurpython==1.1.7
