@@ -19,7 +19,7 @@ def mock(text, chan, conn, message):
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"
-        line = line[8:].strip(' \x01')
+        line = line[8:].strip(" \x01")
     else:
         fmt = "<{nick}> {msg}"
 

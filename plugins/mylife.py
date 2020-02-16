@@ -11,19 +11,19 @@ fml_cache = []
 
 async def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
-    url = 'http://www.fmylife.com/random/'
+    url = "http://www.fmylife.com/random/"
     _func = functools.partial(requests.get, url, timeout=6)
     request = await loop.run_in_executor(None, _func)
     soup = parse_soup(request.text)
 
-    for e in soup.find_all('p', {'class': 'block'}):
+    for e in soup.find_all("p", {"class": "block"}):
         # the /today bit is there to exclude fml news etc.
-        a = e.find('a', {'href': re.compile('/article/today')})
+        a = e.find("a", {"href": re.compile("/article/today")})
         if not a:
             continue
 
         # the .html in the url must be removed before extracting the id
-        fml_id = int(a['href'][:-5].split('_')[-1])
+        fml_id = int(a["href"][:-5].split("_")[-1])
         text = a.text.strip()
 
         # exclude lengthy submissions and FML photos
@@ -48,7 +48,7 @@ async def fml(reply, loop):
     # grab the last item in the fml cache and remove it
     fml_id, text = fml_cache.pop()
     # reply with the fml we grabbed
-    reply('(#{}) {}'.format(fml_id, text))
+    reply("(#{}) {}".format(fml_id, text))
 
     # refresh fml cache if its getting empty
     if len(fml_cache) < 3:

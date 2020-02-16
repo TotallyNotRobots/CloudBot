@@ -14,7 +14,7 @@ class Reloader(ABC):
         self.event_handler = handler(self, patterns=[pattern])
         self.watch = None
 
-    def start(self, path='.'):
+    def start(self, path="."):
         self.watch = self.observer.schedule(
             self.event_handler, path=path, recursive=self.recursive
         )

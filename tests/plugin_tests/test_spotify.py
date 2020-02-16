@@ -1,7 +1,7 @@
 import importlib
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 from tests.util.mock_bot import MockBot
 
@@ -76,6 +76,7 @@ def setup_api(unset_bot, mock_requests):
         json={"access_token": "foo", "expires_in": 3600},
     )
     from plugins import spotify
+
     importlib.reload(spotify)
     spotify.set_keys()
 
@@ -90,6 +91,7 @@ def test_api_active(setup_api):
 
 def test_api_inactive():
     from plugins import spotify
+
     importlib.reload(spotify)
 
     assert not spotify.api
@@ -141,6 +143,7 @@ def test_search_no_results(mock_requests, setup_api):
 )
 def test_format_search_track(data, output, mock_requests, setup_api):
     from plugins import spotify
+
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()

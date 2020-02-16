@@ -3,22 +3,22 @@ import random
 from collections import defaultdict
 from threading import RLock
 
-from sqlalchemy import Table, Column, String
+from sqlalchemy import Column, String, Table
 from sqlalchemy.exc import SQLAlchemyError
 
 from cloudbot import hook
 from cloudbot.util import database
-from cloudbot.util.pager import paginated_list, CommandPager
+from cloudbot.util.pager import CommandPager, paginated_list
 
 search_pages = defaultdict(dict)
 
 table = Table(
-    'grab',
+    "grab",
     database.metadata,
-    Column('name', String),
-    Column('time', String),
-    Column('quote', String),
-    Column('chan', String)
+    Column("name", String),
+    Column("time", String),
+    Column("quote", String),
+    Column("chan", String),
 )
 
 grab_cache = {}
@@ -90,7 +90,9 @@ def grab(text, nick, chan, db, conn):
         return "Didn't your mother teach you not to grab yourself?"
 
     with grab_locks_lock:
-        grab_lock = grab_locks[conn.name.casefold()].setdefault(chan.casefold(), RLock())
+        grab_lock = grab_locks[conn.name.casefold()].setdefault(
+            chan.casefold(), RLock()
+        )
 
     with grab_lock:
         name, timestamp, msg = get_latest_line(conn, chan, text)
@@ -189,7 +191,9 @@ def grabsearch(text, chan, conn):
 
         for name, quotes in chan_grabs.items():
             if name != lower_text:
-                result.extend((name, quote) for quote in quotes if lower_text in quote.lower())
+                result.extend(
+                    (name, quote) for quote in quotes if lower_text in quote.lower()
+                )
 
     if not result:
         return "I couldn't find any matches for {}.".format(text)

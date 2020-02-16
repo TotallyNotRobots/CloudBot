@@ -1,19 +1,20 @@
 import importlib
+from unittest.mock import MagicMock, patch
 
 from irclib.parser import Prefix
-from unittest.mock import MagicMock, patch
 
 
 def test_tellcmd(mock_db):
     from cloudbot.util import database
     from plugins import tell
+
     database = importlib.reload(database)
     importlib.reload(tell)
     metadata = database.metadata
 
-    assert 'tells' in metadata.tables
-    assert 'tell_ignores' in metadata.tables
-    assert 'tell_user_ignores' in metadata.tables
+    assert "tells" in metadata.tables
+    assert "tell_ignores" in metadata.tables
+    assert "tell_user_ignores" in metadata.tables
 
     db_engine = mock_db.engine
     metadata.create_all(db_engine)
@@ -32,12 +33,7 @@ def test_tellcmd(mock_db):
 
     def _test(text, output):
         tell.tell_cmd(
-            text,
-            sender.nick,
-            session,
-            mock_conn,
-            sender.mask,
-            mock_event,
+            text, sender.nick, session, mock_conn, sender.mask, mock_event,
         )
 
         mock_event.notice.assert_called_with(output)
@@ -45,12 +41,7 @@ def test_tellcmd(mock_db):
         mock_event.reset_mock()
 
     tell.tell_cmd(
-        "OtherUser",
-        sender.nick,
-        session,
-        mock_conn,
-        sender.mask,
-        mock_event,
+        "OtherUser", sender.nick, session, mock_conn, sender.mask, mock_event,
     )
 
     mock_event.notice_doc.assert_called_once_with()
@@ -59,7 +50,7 @@ def test_tellcmd(mock_db):
 
     _test(
         "OtherUser some message",
-        "Your message has been saved, and OtherUser will be notified once they are active."
+        "Your message has been saved, and OtherUser will be notified once they are active.",
     )
 
     assert tell.count_unread(session, mock_conn.name, "OtherUser") == 1
@@ -67,7 +58,7 @@ def test_tellcmd(mock_db):
     for i in range(9):
         _test(
             "OtherUser some message",
-            "Your message has been saved, and OtherUser will be notified once they are active."
+            "Your message has been saved, and OtherUser will be notified once they are active.",
         )
 
         assert tell.count_unread(session, mock_conn.name, "OtherUser") == 2 + i
@@ -76,33 +67,24 @@ def test_tellcmd(mock_db):
 
     _test(
         "OtherUser some message",
-        "Sorry, OtherUser has too many messages queued already."
+        "Sorry, OtherUser has too many messages queued already.",
     )
 
     assert tell.count_unread(session, mock_conn.name, "OtherUser") == 10
 
     mock_event.is_nick_valid.return_value = False
 
-    _test(
-        "OtherUser some message",
-        "Invalid nick 'OtherUser'."
-    )
+    _test("OtherUser some message", "Invalid nick 'OtherUser'.")
 
     assert tell.count_unread(session, mock_conn.name, "OtherUser") == 10
 
     mock_event.is_nick_valid.return_value = True
-    _test(
-        sender.nick + " some message",
-        "Have you looked in a mirror lately?"
-    )
+    _test(sender.nick + " some message", "Have you looked in a mirror lately?")
 
     assert tell.count_unread(session, mock_conn.name, "OtherUser") == 10
 
-    with patch('plugins.tell.can_send_to_user') as mocked:
+    with patch("plugins.tell.can_send_to_user") as mocked:
         mocked.return_value = False
-        _test(
-            "OtherUser some message",
-            "You may not send a tell to that user."
-        )
+        _test("OtherUser some message", "You may not send a tell to that user.")
 
     assert tell.count_unread(session, mock_conn.name, "OtherUser") == 10

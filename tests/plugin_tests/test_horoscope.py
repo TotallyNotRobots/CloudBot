@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock
+
 import pytest
 import requests
-from unittest.mock import MagicMock
 
 URL = (
     "http://www.horoscope.com/us/horoscopes/general/"
@@ -23,9 +24,9 @@ def test_horoscope(mock_requests, mock_db):
 
     sess = setup_db(mock_db)
     mock_requests.add(
-        'GET',
+        "GET",
         URL.format(sign=1),
-        headers={'User-Agent': "Some user agent"},
+        headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
             <p>Some horoscope text</p>
@@ -38,13 +39,13 @@ def test_horoscope(mock_requests, mock_db):
     bot = MagicMock()
     bot.user_agent = "Some user agent"
 
-    response = horoscope.horoscope("aries", sess, bot, 'some_user', event)
+    response = horoscope.horoscope("aries", sess, bot, "some_user", event)
 
     assert response is None
 
     event.message.assert_called_once_with("\x02aries\x02 Some horoscope text")
 
-    assert mock_db.get_data(horoscope.table) == [('some_user', 'aries')]
+    assert mock_db.get_data(horoscope.table) == [("some_user", "aries")]
 
 
 def test_invalid_syntax(mock_requests, mock_db):
@@ -56,7 +57,7 @@ def test_invalid_syntax(mock_requests, mock_db):
     bot = MagicMock()
     bot.user_agent = "Some user agent"
 
-    response = horoscope.horoscope('', sess, bot, 'some_user', event)
+    response = horoscope.horoscope("", sess, bot, "some_user", event)
 
     assert response is None
 
@@ -69,9 +70,9 @@ def test_database_read(mock_requests, mock_db):
     sess = setup_db(mock_db)
 
     mock_requests.add(
-        'GET',
+        "GET",
         URL.format(sign=4),
-        headers={'User-Agent': "Some user agent"},
+        headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
             <p>Some horoscope text</p>
@@ -80,13 +81,13 @@ def test_database_read(mock_requests, mock_db):
         match_querystring=True,
     )
 
-    mock_db.add_row(horoscope.table, nick='some_user', sign='cancer')
+    mock_db.add_row(horoscope.table, nick="some_user", sign="cancer")
 
     event = MagicMock()
     bot = MagicMock()
     bot.user_agent = "Some user agent"
 
-    response = horoscope.horoscope('', sess, bot, 'some_user', event)
+    response = horoscope.horoscope("", sess, bot, "some_user", event)
 
     assert response is None
 
@@ -99,9 +100,9 @@ def test_parse_fail(mock_requests, mock_db):
     sess = setup_db(mock_db)
 
     mock_requests.add(
-        'GET',
+        "GET",
         URL.format(sign=4),
-        headers={'User-Agent': "Some user agent"},
+        headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
         </div>
@@ -114,7 +115,7 @@ def test_parse_fail(mock_requests, mock_db):
     bot.user_agent = "Some user agent"
 
     with pytest.raises(horoscope.HoroscopeParseError):
-        horoscope.horoscope('cancer', sess, bot, 'some_user', event)
+        horoscope.horoscope("cancer", sess, bot, "some_user", event)
 
     event.reply.assert_called_once_with("Unable to parse horoscope posting")
 
@@ -129,7 +130,7 @@ def test_page_error(mock_requests, mock_db):
     bot.user_agent = "Some user agent"
 
     with pytest.raises(requests.RequestException):
-        horoscope.horoscope('aries', sess, bot, 'some_user', event)
+        horoscope.horoscope("aries", sess, bot, "some_user", event)
 
     event.reply.assert_called_once_with(
         "Could not get horoscope: Connection refused by Responses: GET "

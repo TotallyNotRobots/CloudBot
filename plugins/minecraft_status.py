@@ -17,7 +17,12 @@ def mcstatus(reply):
         raise
 
     # lets just reformat this data to get in a nice format
-    data = json.loads(request.text.replace("}", "").replace("{", "").replace("]", "}").replace("[", "{"))
+    data = json.loads(
+        request.text.replace("}", "")
+        .replace("{", "")
+        .replace("]", "}")
+        .replace("[", "{")
+    )
     out = []
 
     # use a loop so we don't have to update it if they add more servers
@@ -44,5 +49,4 @@ def mcstatus(reply):
 
     out = " ".join(out)
 
-    return "\x0f" + out.replace(".mojang.com", ".mj") \
-        .replace(".minecraft.net", ".mc")
+    return "\x0f" + out.replace(".mojang.com", ".mj").replace(".minecraft.net", ".mc")

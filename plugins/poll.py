@@ -73,7 +73,11 @@ def poll(text, conn, nick, chan, message, reply):
             return "You have no active poll to close."
 
         p = polls.get(uid)
-        reply("Your poll has been closed. Final results for \x02\"{}\"\x02:".format(p.question))
+        reply(
+            'Your poll has been closed. Final results for \x02"{}"\x02:'.format(
+                p.question
+            )
+        )
         message(p.format_results())
         del polls[uid]
         return
@@ -81,11 +85,11 @@ def poll(text, conn, nick, chan, message, reply):
     if uid in polls.keys():
         return "You already have an active poll in this channel, you must close it before you can create a new one."
 
-    if ':' in text:
-        question, options = text.strip().split(':')
-        c = findall(r'([^,]+)', options)
+    if ":" in text:
+        question, options = text.strip().split(":")
+        c = findall(r"([^,]+)", options)
         if len(c) == 1:
-            c = findall(r'(\S+)', options)
+            c = findall(r"(\S+)", options)
         options = list(set(x.strip() for x in c))
         _poll = Poll(question, nick, options)
     else:
@@ -95,16 +99,22 @@ def poll(text, conn, nick, chan, message, reply):
     # store poll in list
     polls[uid] = _poll
 
-    option_str = get_text_list([option.title for option in _poll.options.values()], "and")
-    message('Created poll \x02\"{}\"\x02 with the following options: {}'.format(_poll.question, option_str))
+    option_str = get_text_list(
+        [option.title for option in _poll.options.values()], "and"
+    )
+    message(
+        'Created poll \x02"{}"\x02 with the following options: {}'.format(
+            _poll.question, option_str
+        )
+    )
     message("Use .vote {} <option> to vote on this poll!".format(nick.lower()))
 
 
 @hook.command(autohelp=True)
 def vote(text, nick, conn, chan, notice):
     """<poll> <choice> - Vote on a poll; responds on error and silently records on success."""
-    if len(text.split(' ', 1)) == 2:
-        _user, option = text.split(' ', 1)
+    if len(text.split(" ", 1)) == 2:
+        _user, option = text.split(" ", 1)
         uid = ":".join([conn.name, chan, _user]).lower()
     else:
         return "Invalid input, please use .vote <user> <option> to vote on a poll."
@@ -119,7 +129,7 @@ def vote(text, nick, conn, chan, notice):
     except PollError as e:
         return "{}".format(e)
 
-    notice("Voted \x02\"{}\"\x02 on {}'s poll!".format(o.title, p.creator))
+    notice('Voted \x02"{}"\x02 on {}\'s poll!'.format(o.title, p.creator))
 
 
 @hook.command(autohelp=False)
@@ -136,5 +146,5 @@ def results(text, conn, chan, nick, message, reply):
 
     p = polls.get(uid)
 
-    reply("Results for \x02\"{}\"\x02 by \x02{}\x02:".format(p.question, p.creator))
+    reply('Results for \x02"{}"\x02 by \x02{}\x02:'.format(p.question, p.creator))
     message(p.format_results())

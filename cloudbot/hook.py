@@ -1,7 +1,7 @@
 import collections
 import inspect
 import re
-from enum import Enum, unique, IntEnum
+from enum import Enum, IntEnum, unique
 
 from cloudbot.event import EventType
 from cloudbot.util import HOOK_ATTR
@@ -22,6 +22,7 @@ class Priority(IntEnum):
 @unique
 class Action(Enum):
     """Defines the action to take after executing a hook"""
+
     HALTTYPE = 0  # Once this hook executes, no other hook of that type should run
     HALTALL = 1  # Once this hook executes, No other hook should run
     CONTINUE = 2  # Normal execution of all hooks
@@ -68,7 +69,7 @@ class _CommandHook(_Hook):
         if function.__doc__:
             doc = inspect.cleandoc(function.__doc__)
             # Split on the first entirely blank line
-            self.doc = ' '.join(doc.split('\n\n', 1)[0].strip('\n').split('\n')).strip()
+            self.doc = " ".join(doc.split("\n\n", 1)[0].strip("\n").split("\n")).strip()
         else:
             self.doc = None
 
@@ -271,8 +272,12 @@ def irc_raw(triggers_param, **kwargs):
         hook.add_hook(triggers_param, kwargs)
         return func
 
-    if callable(triggers_param):  # this decorator is being used directly, which isn't good
-        raise TypeError("@irc_raw() must be used as a function that returns a decorator")
+    if callable(
+        triggers_param
+    ):  # this decorator is being used directly, which isn't good
+        raise TypeError(
+            "@irc_raw() must be used as a function that returns a decorator"
+        )
 
     # this decorator is being used as a function, so return a decorator
     return _raw_hook
@@ -293,7 +298,9 @@ def event(types_param, **kwargs):
         return func
 
     if callable(types_param):  # this decorator is being used directly, which isn't good
-        raise TypeError("@irc_raw() must be used as a function that returns a decorator")
+        raise TypeError(
+            "@irc_raw() must be used as a function that returns a decorator"
+        )
 
     # this decorator is being used as a function, so return a decorator
     return _event_hook
@@ -315,7 +322,9 @@ def regex(regex_param, **kwargs):
         return func
 
     if callable(regex_param):  # this decorator is being used directly, which isn't good
-        raise TypeError("@regex() hook must be used as a function that returns a decorator")
+        raise TypeError(
+            "@regex() hook must be used as a function that returns a decorator"
+        )
 
     # this decorator is being used as a function, so return a decorator
     return _regex_hook
@@ -327,12 +336,15 @@ def sieve(param=None, **kwargs):
     """
 
     def _sieve_hook(func):
-        assert len(inspect.signature(func).parameters) == 3, \
-            "Sieve plugin has incorrect argument count. Needs params: bot, input, plugin"
+        assert (
+            len(inspect.signature(func).parameters) == 3
+        ), "Sieve plugin has incorrect argument count. Needs params: bot, input, plugin"
 
         hook = _get_hook(func, "sieve")
         if hook is None:
-            hook = _Hook(func, "sieve")  # there's no need to have a specific SieveHook object
+            hook = _Hook(
+                func, "sieve"
+            )  # there's no need to have a specific SieveHook object
             _add_hook(func, hook)
 
         hook._add_hook(kwargs)
@@ -359,7 +371,9 @@ def periodic(interval, **kwargs):
         return func
 
     if callable(interval):  # this decorator is being used directly, which isn't good
-        raise TypeError("@periodic() hook must be used as a function that returns a decorator")
+        raise TypeError(
+            "@periodic() hook must be used as a function that returns a decorator"
+        )
 
     # this decorator is being used as a function, so return a decorator
     return _periodic_hook

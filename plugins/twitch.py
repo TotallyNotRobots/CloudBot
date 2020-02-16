@@ -4,12 +4,12 @@ import re
 from cloudbot import hook
 from cloudbot.util import http
 
-twitch_re = re.compile(r'(.*:)//(twitch.tv|www.twitch.tv)(:[0-9]+)?(.*)', re.I)
-multitwitch_re = re.compile(r'(.*:)//(www.multitwitch.tv|multitwitch.tv)/(.*)', re.I)
+twitch_re = re.compile(r"(.*:)//(twitch.tv|www.twitch.tv)(:[0-9]+)?(.*)", re.I)
+multitwitch_re = re.compile(r"(.*:)//(www.multitwitch.tv|multitwitch.tv)/(.*)", re.I)
 
 
 def check_name(s):
-    valid = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/')
+    valid = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/")
     return set(s) <= valid
 
 
@@ -27,18 +27,18 @@ def twitch_lookup(location, reply):
     if _type and _id:
         if _type == "b":  # I haven't found an API to retrieve broadcast info
             soup = http.get_soup("http://twitch.tv/" + location)
-            title = soup.find('span', {'class': 'real_title js-title'}).text
-            playing = soup.find('a', {'class': 'game js-game'}).text
-            views = soup.find('span', {'id': 'views-count'}).text + " view"
+            title = soup.find("span", {"class": "real_title js-title"}).text
+            playing = soup.find("a", {"class": "game js-game"}).text
+            views = soup.find("span", {"id": "views-count"}).text + " view"
             views = views + "s" if not views[0:2] == "1 " else views
             return html.unescape(fmt.format(title, channel, playing, views))
 
         if _type == "c":
             data = http.get_json("https://api.twitch.tv/kraken/videos/" + _type + _id)
-            title = data['title']
-            playing = data['game']
-            views = str(data['views']) + " view"
-            views = views + "s" if views[0:2] != '1 ' else views
+            title = data["title"]
+            playing = data["game"]
+            views = str(data["views"]) + " view"
+            views = views + "s" if views[0:2] != "1 " else views
             return html.unescape(fmt.format(title, channel, playing, views))
     else:
         data = http.get_json("https://api.twitch.tv/kraken/streams?channel=" + channel)
@@ -46,16 +46,23 @@ def twitch_lookup(location, reply):
             title = data["streams"][0]["channel"]["status"]
             playing = data["streams"][0]["game"]
             v = data["streams"][0]["viewers"]
-            viewers = "\x033\x02Online now!\x02\x0f " + str(v) + " viewer" + ("s" if v != 1 else "")
+            viewers = (
+                "\x033\x02Online now!\x02\x0f "
+                + str(v)
+                + " viewer"
+                + ("s" if v != 1 else "")
+            )
             return html.unescape(fmt.format(title, channel, playing, viewers))
 
         try:
             data = http.get_json("https://api.twitch.tv/kraken/channels/" + channel)
         except Exception:
-            reply("Unable to get channel data. Maybe channel is on justin.tv instead of twitch.tv?")
+            reply(
+                "Unable to get channel data. Maybe channel is on justin.tv instead of twitch.tv?"
+            )
             raise
-        title = data['status']
-        playing = data['game']
+        title = data["status"]
+        playing = data["game"]
         viewers = "\x034\x02Offline\x02\x0f"
         return html.unescape(fmt.format(title, channel, playing, viewers))
 
@@ -83,7 +90,7 @@ def twitch_url(match, reply):
     return twitch_lookup(location, reply)
 
 
-@hook.command('twitch', 'twitchtv')
+@hook.command("twitch", "twitchtv")
 def twitch(text, reply):
     """<channel name> - Retrieves the channel and shows it's offline/offline status"""
     text = text.split("/")[-1]
@@ -91,4 +98,9 @@ def twitch(text, reply):
         location = text
     else:
         return "Not a valid channel name."
-    return twitch_lookup(location, reply).split("(")[-1].split(")")[0].replace("Online now! ", "")
+    return (
+        twitch_lookup(location, reply)
+        .split("(")[-1]
+        .split(")")[0]
+        .replace("Online now! ", "")
+    )

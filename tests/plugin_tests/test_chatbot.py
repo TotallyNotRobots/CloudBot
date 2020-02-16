@@ -16,9 +16,10 @@ class MockBot:
 def test_make_api():
     from plugins import chatbot
     from plugins.chatbot import make_api
-    bot = MockBot({'api_keys': {'cleverbot': 'testapikey'}})
+
+    bot = MockBot({"api_keys": {"cleverbot": "testapikey"}})
     make_api(bot)
-    assert chatbot.container.api.key == 'testapikey'
+    assert chatbot.container.api.key == "testapikey"
 
 
 def test_chitchat():
@@ -27,11 +28,14 @@ def test_chitchat():
 
     chatbot.container.api = None
 
-    assert chitchat('foobar') == "Please add an API key from http://www.cleverbot.com/api to enable this feature."
+    assert (
+        chitchat("foobar")
+        == "Please add an API key from http://www.cleverbot.com/api to enable this feature."
+    )
 
     mock_api = MagicMock()
     chatbot.container.api = mock_api
 
-    chitchat('foobar123')
+    chitchat("foobar123")
 
-    mock_api.say.assert_called_with('foobar123')
+    mock_api.say.assert_called_with("foobar123")

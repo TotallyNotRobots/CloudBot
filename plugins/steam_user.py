@@ -54,7 +54,7 @@ def get_data(user):
     data = {}
 
     # form the request
-    params = {'xml': 1}
+    params = {"xml": 1}
 
     # get the page
     try:
@@ -66,9 +66,9 @@ def get_data(user):
     profile = parse_xml(request.content)
 
     try:
-        data["name"] = profile.find('steamID').text
-        data["id_64"] = int(profile.find('steamID64').text)
-        online_state = profile.find('stateMessage').text
+        data["name"] = profile.find("steamID").text
+        data["id_64"] = int(profile.find("steamID64").text)
+        online_state = profile.find("stateMessage").text
     except AttributeError:
         raise SteamError("Could not get data for this user.")
 
@@ -84,7 +84,7 @@ def get_data(user):
 @hook.on_start
 def set_headers(bot):
     """ Runs on initial plugin load and sets the HTTP headers for this plugin. """
-    headers['User-Agent'] = bot.user_agent
+    headers["User-Agent"] = bot.user_agent
 
 
 @hook.command("steamid", "sid", "steamuser", "su")
@@ -97,4 +97,6 @@ def steamid(text, reply):
         reply("{}".format(e))
         raise
 
-    return "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, \x02ID3:\x02 {id_3}".format(**data)
+    return "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, \x02ID3:\x02 {id_3}".format(
+        **data
+    )

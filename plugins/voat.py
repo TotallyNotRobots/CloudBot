@@ -19,9 +19,9 @@ import isodate
 import requests
 
 from cloudbot import hook
-from cloudbot.util import timeformat, formatting
+from cloudbot.util import formatting, timeformat
 
-voat_re = re.compile(r'.*(((www\.)?voat\.co/v)[^ ]+)', re.I)
+voat_re = re.compile(r".*(((www\.)?voat\.co/v)[^ ]+)", re.I)
 
 base_url = "https://voat.co/api/subversefrontpage?subverse={}"
 voat_fill_url = "https://voat.co/v/{}/comments/{}"
@@ -35,11 +35,11 @@ def format_output(item, show_url=False):
         item["Title"] = formatting.truncate(item["Title"], 70)
     item["link"] = voat_fill_url.format(item["Subverse"], item["Id"])
 
-    raw_time = isodate.parse_date(item['Date'])
+    raw_time = isodate.parse_date(item["Date"])
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize_auto(item["CommentCount"], 'comment')
-    item["points"] = formatting.pluralize_auto(item["Likes"], 'point')
+    item["comments"] = formatting.pluralize_auto(item["CommentCount"], "comment")
+    item["points"] = formatting.pluralize_auto(item["Likes"], "point")
 
     if item["Type"] == 2:
         item["warning"] = " \x02Link\x02"
@@ -47,18 +47,22 @@ def format_output(item, show_url=False):
         item["warning"] = ""
 
     if show_url:
-        return "\x02{Title} : {Subverse}\x02 - {comments}, {points}" \
-               " - \x02{Name}\x02 {timesince} ago - {link}{warning}".format(**item)
+        return (
+            "\x02{Title} : {Subverse}\x02 - {comments}, {points}"
+            " - \x02{Name}\x02 {timesince} ago - {link}{warning}".format(**item)
+        )
 
-    return "\x02{Title} : {Subverse}\x02 - {comments}, {points}" \
-           " - \x02{Name}\x02, {timesince} ago{warning}".format(**item)
+    return (
+        "\x02{Title} : {Subverse}\x02 - {comments}, {points}"
+        " - \x02{Name}\x02, {timesince} ago{warning}".format(**item)
+    )
 
 
 @hook.regex(voat_re)
 def voat_url(match, bot):
-    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
+    headers = {"User-Agent": bot.user_agent, "content-type": "text/json"}
     url = match.group(1)
-    url = url.split('/')
+    url = url.split("/")
     url = "https://voat.co/api/singlesubmission?id={}".format(url[4])
 
     # the voat API gets grumpy if we don't include headers
@@ -73,7 +77,7 @@ def voat_url(match, bot):
 async def voat(text, bot, loop, reply):
     """<subverse> [n] - gets a random post from <subverse>, or gets the [n]th post in the subverse"""
     id_num = None
-    headers = {'User-Agent': bot.user_agent, 'content-type': 'text/json'}
+    headers = {"User-Agent": bot.user_agent, "content-type": "text/json"}
 
     if text:
         # clean and split the input
@@ -93,7 +97,9 @@ async def voat(text, bot, loop, reply):
 
     try:
         # Again, identify with Voat using an User Agent
-        inquiry = await loop.run_in_executor(None, functools.partial(requests.get, url, headers=headers))
+        inquiry = await loop.run_in_executor(
+            None, functools.partial(requests.get, url, headers=headers)
+        )
         inquiry.raise_for_status()
         data = inquiry.json()
     except Exception as e:
@@ -106,7 +112,9 @@ async def voat(text, bot, loop, reply):
             item = data[id_num]
         except IndexError:
             length = len(data)
-            return "Invalid post number. Number must be between 1 and {}.".format(length)
+            return "Invalid post number. Number must be between 1 and {}.".format(
+                length
+            )
     else:
         item = random.choice(data)
 

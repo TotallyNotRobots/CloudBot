@@ -16,15 +16,15 @@ def load_drinks(bot):
         drink_data.extend(json.load(json_data))
 
 
-@hook.command('drink')
+@hook.command("drink")
 def drink_cmd(text, chan, action):
     """<nick> - makes the user a random cocktail."""
     index = random.randint(0, len(drink_data) - 1)
-    drink = drink_data[index]['title']
-    url = web.try_shorten(drink_data[index]['url'])
-    if drink.endswith(' recipe'):
+    drink = drink_data[index]["title"]
+    url = web.try_shorten(drink_data[index]["url"])
+    if drink.endswith(" recipe"):
         drink = drink[:-7]
-    contents = drink_data[index]['ingredients']
+    contents = drink_data[index]["ingredients"]
     out = "grabs some"
     for x in contents:
         if x == contents[len(contents) - 1]:

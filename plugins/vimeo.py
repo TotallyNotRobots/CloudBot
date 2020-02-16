@@ -3,7 +3,7 @@ import re
 from cloudbot import hook
 from cloudbot.util import http, timeformat
 
-url_re = re.compile(r'vimeo\.com/([0-9]+)')
+url_re = re.compile(r"vimeo\.com/([0-9]+)")
 api_url = "http://vimeo.com/api/v2/video/{id}.json"
 
 

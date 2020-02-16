@@ -36,7 +36,7 @@ class Config(OrderedDict):
         try:
             return self._api_keys[name]
         except LookupError:
-            self._api_keys[name] = value = self.get('api_keys', {}).get(name, default)
+            self._api_keys[name] = value = self.get("api_keys", {}).get(name, default)
             return value
 
     def load_config(self):
@@ -47,7 +47,9 @@ class Config(OrderedDict):
             logger.critical("No config file found, bot shutting down!")
             print("No config file found! Bot shutting down in five seconds.")
             print("Copy 'config.default.json' to 'config.json' for defaults.")
-            print("For help, see http://git.io/cloudbotirc. Thank you for using CloudBot!")
+            print(
+                "For help, see http://git.io/cloudbotirc. Thank you for using CloudBot!"
+            )
             time.sleep(5)
             sys.exit()
 
@@ -64,7 +66,7 @@ class Config(OrderedDict):
 
     def save_config(self):
         """saves the contents of the config dict to the config file"""
-        with open(self.path, 'w') as f:
+        with open(self.path, "w") as f:
             json.dump(self, f, indent=4)
 
         logger.info("Config saved to file.")

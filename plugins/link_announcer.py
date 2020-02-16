@@ -3,7 +3,7 @@ import re
 import requests
 
 from cloudbot import hook
-from cloudbot.hook import Priority, Action
+from cloudbot.hook import Action, Priority
 from cloudbot.util.http import parse_soup
 
 MAX_TITLE = 100
@@ -23,14 +23,14 @@ url_re = re.compile(
     r"""
     https? # Scheme
     ://
-    
+
     # Username and Password
     (?:
         (?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*
         (?::(?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*)?
         @
     )?
-    
+
     # Domain
     (?:
         # TODO Add support for IDNA hostnames as specified by RFC5891
@@ -41,38 +41,47 @@ url_re = re.compile(
         )
         (?<![.,?!\]])  # Invalid end chars
     )
-    
+
     (?::\d*)?  # port
-    
-    (?:/(?:""" + no_parens(PATH_SEG_CHARS) + r""")*(?<![.,?!\]]))*  # Path segment
-    
-    (?:\?(?:""" + no_parens(QUERY_CHARS) + r""")*(?<![.,!\]]))?  # Query
-    
-    (?:\#(?:""" + no_parens(FRAG_CHARS) + r""")*(?<![.,?!\]]))?  # Fragment
+
+    (?:/(?:"""
+    + no_parens(PATH_SEG_CHARS)
+    + r""")*(?<![.,?!\]]))*  # Path segment
+
+    (?:\?(?:"""
+    + no_parens(QUERY_CHARS)
+    + r""")*(?<![.,!\]]))?  # Query
+
+    (?:\#(?:"""
+    + no_parens(FRAG_CHARS)
+    + r""")*(?<![.,?!\]]))?  # Fragment
     """,
-    re.IGNORECASE | re.VERBOSE
+    re.IGNORECASE | re.VERBOSE,
 )
 
 HEADERS = {
-    'Accept-Language': 'en-US,en;q=0.5',
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                  'Chrome/53.0.2785.116 Safari/537.36'
+    "Accept-Language": "en-US,en;q=0.5",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/53.0.2785.116 Safari/537.36",
 }
 
 MAX_RECV = 1000000
 
 
 def get_encoding(soup):
-    meta_charset = soup.find('meta', charset=True)
+    meta_charset = soup.find("meta", charset=True)
 
     if meta_charset:
-        return meta_charset['charset']
+        return meta_charset["charset"]
 
     meta_content_type = soup.find(
-        'meta', {'http-equiv': lambda t: t and t.lower() == 'content-type', 'content': True}
+        "meta",
+        {"http-equiv": lambda t: t and t.lower() == "content-type", "content": True},
     )
     if meta_content_type:
-        return requests.utils.get_encoding_from_headers({'content-type': meta_content_type['content']})
+        return requests.utils.get_encoding_from_headers(
+            {"content-type": meta_content_type["content"]}
+        )
 
     return None
 

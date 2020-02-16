@@ -3,7 +3,7 @@ import re
 import time
 from collections import defaultdict
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
+from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -12,12 +12,12 @@ delay = 10
 floodcheck = {}
 
 table = Table(
-    'herald',
+    "herald",
     database.metadata,
-    Column('name', String),
-    Column('chan', String),
-    Column('quote', String),
-    PrimaryKeyConstraint('name', 'chan')
+    Column("name", String),
+    Column("chan", String),
+    Column("quote", String),
+    PrimaryKeyConstraint("name", "chan"),
 )
 
 herald_cache = defaultdict(dict)
@@ -49,19 +49,28 @@ def herald(text, nick, chan, db, reply):
         if greeting is None:
             return "no herald set, unable to delete."
 
-        query = table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        query = (
+            table.delete()
+            .where(table.c.name == nick.lower())
+            .where(table.c.chan == chan.lower())
+        )
         db.execute(query)
         db.commit()
 
-        reply("greeting \'{}\' for {} has been removed".format(greeting, nick))
+        reply("greeting '{}' for {} has been removed".format(greeting, nick))
 
         load_cache(db)
     else:
         res = db.execute(
-            table.update().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower()).values(quote=text)
+            table.update()
+            .where(table.c.name == nick.lower())
+            .where(table.c.chan == chan.lower())
+            .values(quote=text)
         )
         if res.rowcount == 0:
-            db.execute(table.insert().values(name=nick.lower(), chan=chan.lower(), quote=text))
+            db.execute(
+                table.insert().values(name=nick.lower(), chan=chan.lower(), quote=text)
+            )
 
         db.commit()
         reply("greeting successfully added")
@@ -76,7 +85,9 @@ def deleteherald(text, chan, db, reply):
     nick = text.strip()
 
     res = db.execute(
-        table.delete().where(table.c.name == nick.lower()).where(table.c.chan == chan.lower())
+        table.delete()
+        .where(table.c.name == nick.lower())
+        .where(table.c.chan == chan.lower())
     )
 
     db.commit()
@@ -91,10 +102,10 @@ def deleteherald(text, chan, db, reply):
 
 @hook.irc_raw("JOIN", singlethread=True)
 def welcome(nick, message, bot, chan):
-    decoy = re.compile('[Òo○O0öøóȯôőŏᴏōο][<>＜]')
-    colors_re = re.compile(r'\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?', re.UNICODE)
-    bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
-    offensive_re = re.compile('卐')
+    decoy = re.compile("[Òo○O0öøóȯôőŏᴏōο][<>＜]")
+    colors_re = re.compile(r"\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?", re.UNICODE)
+    bino_re = re.compile("b+i+n+o+", re.IGNORECASE)
+    offensive_re = re.compile("卐")
 
     grab = bot.plugin_manager.find_plugin("grab")
 
@@ -108,8 +119,8 @@ def welcome(nick, message, bot, chan):
     if greet:
         stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
         stripped = colors_re.sub("", stripped)
-        greet = re.sub(bino_re, 'flenny', greet)
-        greet = re.sub(offensive_re, ' freespeech oppression ', greet)
+        greet = re.sub(bino_re, "flenny", greet)
+        greet = re.sub(offensive_re, " freespeech oppression ", greet)
 
         words = greet.lower().split()
         cmd = words.pop(0)

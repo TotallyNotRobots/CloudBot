@@ -1,19 +1,19 @@
 import re
 from collections import defaultdict
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, select
+from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, select
 
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
 
 table = Table(
-    'badwords',
+    "badwords",
     database.metadata,
-    Column('word', String),
-    Column('nick', String),
-    Column('chan', String),
-    PrimaryKeyConstraint('word', 'chan')
+    Column("word", String),
+    Column("nick", String),
+    Column("chan", String),
+    PrimaryKeyConstraint("word", "chan"),
 )
 
 badcache = defaultdict(list)
@@ -37,7 +37,7 @@ def load_bad(db):
         words.append(word)
 
     new_regex = re.compile(
-        r'(\s|^|[^\w\s])({0})(\s|$|[^\w\s])'.format('|'.join(words)), re.IGNORECASE
+        r"(\s|^|[^\w\s])({0})(\s|$|[^\w\s])".format("|".join(words)), re.IGNORECASE
     )
 
     matcher.regex = new_regex
@@ -51,20 +51,18 @@ def add_bad(text, nick, db):
     """<word> <channel> - adds a bad word to the auto kick list must specify a channel with each word"""
     splt = text.lower().split(None, 1)
     word, channel = splt
-    if not channel.startswith('#'):
+    if not channel.startswith("#"):
         return "Please specify a valid channel name after the bad word."
 
     word = re.escape(word)
     wordlist = list_bad(channel)
     if word in wordlist:
-        return "{} is already added to the bad word list for {}".format(
-            word, channel
-        )
+        return "{} is already added to the bad word list for {}".format(word, channel)
 
     if len(badcache[channel]) >= 10:
-        return "There are too many words listed for channel {}. Please remove a word using .rmbad before adding " \
-               "anymore. For a list of bad words use .listbad".format(
-            channel
+        return (
+            "There are too many words listed for channel {}. Please remove a word using .rmbad before adding "
+            "anymore. For a list of bad words use .listbad".format(channel)
         )
 
     db.execute(table.insert().values(word=word, nick=nick, chan=channel))
@@ -79,26 +77,26 @@ def del_bad(text, db):
     """<word> <channel> - removes the specified word from the specified channels bad word list"""
     splt = text.lower().split(None, 1)
     word, channel = splt
-    if not channel.startswith('#'):
+    if not channel.startswith("#"):
         return "Please specify a valid channel name after the bad word."
 
-    db.execute(table.delete().where(table.c.word == word).where(table.c.chan == channel))
+    db.execute(
+        table.delete().where(table.c.word == word).where(table.c.chan == channel)
+    )
     db.commit()
     newlist = list_bad(channel)
     load_bad(db)
-    return "Removing {} new bad word list for {} is: {}".format(
-        word, channel, newlist
-    )
+    return "Removing {} new bad word list for {} is: {}".format(word, channel, newlist)
 
 
 @hook.command("listbad", permissions=["badwords"])
 def list_bad(text):
     """<channel> - Returns a list of bad words specify a channel to see words for a particular channel"""
-    text = text.split(' ')[0].lower()
-    if not text.startswith('#'):
+    text = text.split(" ")[0].lower()
+    if not text.startswith("#"):
         return "Please specify a valid channel name"
 
-    return '|'.join(badcache[text])
+    return "|".join(badcache[text])
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)

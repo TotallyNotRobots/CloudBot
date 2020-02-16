@@ -1,7 +1,7 @@
 import asyncio
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 from cloudbot.client import Client
 
@@ -14,20 +14,19 @@ class Bot(MagicMock):
 
 class TestClient(Client):  # pylint: disable=abstract-method
     def __init__(self, bot, *args, **kwargs):
-        super().__init__(bot, 'TestClient', *args, **kwargs)
+        super().__init__(bot, "TestClient", *args, **kwargs)
         self.active = True
 
     join = MagicMock()
 
 
 async def test_do_joins():
-    client = TestClient(
-        Bot(), 'foo', 'foobot', channels=['#foo']
-    )
+    client = TestClient(Bot(), "foo", "foobot", channels=["#foo"])
     from plugins.core import core_misc
+
     client.ready = True
-    client.config['join_throttle'] = 0
+    client.config["join_throttle"] = 0
 
     await core_misc.do_joins(client)
 
-    client.join.assert_called_once_with('#foo')
+    client.join.assert_called_once_with("#foo")

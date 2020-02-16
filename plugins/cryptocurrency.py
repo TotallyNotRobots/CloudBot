@@ -23,9 +23,9 @@ from cloudbot.util import colors, web
 from cloudbot.util.func_utils import call_with_args
 
 CURRENCY_SYMBOLS = {
-    'USD': '$',
-    'GBP': '£',
-    'EUR': '€',
+    "USD": "$",
+    "GBP": "£",
+    "EUR": "€",
 }
 
 
@@ -68,13 +68,15 @@ class CMCApi:
             user_agent = requests.utils.default_user_agent()
 
         with self._lock:
-            self._session.headers['User-Agent'] = user_agent
+            self._session.headers["User-Agent"] = user_agent
 
     def close(self):
         self._session.close()
 
     def _request(self, endpoint, params=None):
-        self._request_times[:] = [t for t in self._request_times if (self._now - t) < timedelta(minutes=1)]
+        self._request_times[:] = [
+            t for t in self._request_times if (self._now - t) < timedelta(minutes=1)
+        ]
         if len(self._request_times) > 10:
             raise APIRateLimitError
 
@@ -100,14 +102,16 @@ class CMCApi:
         self._now = datetime.now()
         old_data = self._cache[id_or_symbol.lower()]
         _id = old_data.get("id", id_or_symbol)
-        last_updated = datetime.fromtimestamp(float(old_data.get('last_updated', "0")))
+        last_updated = datetime.fromtimestamp(float(old_data.get("last_updated", "0")))
         diff = self._now - last_updated
         price_key = "price_" + out_currency.lower()
         if diff > timedelta(minutes=5) or price_key not in old_data:
-            responses = self._request("ticker/" + _id.lower(), params={'limit': 0, 'convert': out_currency})
+            responses = self._request(
+                "ticker/" + _id.lower(), params={"limit": 0, "convert": out_currency}
+            )
             self._handle_obj(*responses)
             data = self._cache[id_or_symbol.lower()]
-            last_updated = datetime.fromtimestamp(float(data.get('last_updated', "0")))
+            last_updated = datetime.fromtimestamp(float(data.get("last_updated", "0")))
             diff = self._now - last_updated
             if diff > timedelta(days=2):
                 raise TickerNotFound(id_or_symbol)
@@ -121,7 +125,7 @@ class CMCApi:
     def update_cache(self):
         with self._lock:
             self._now = datetime.now()
-            data = self._request("ticker", params={'limit': 0})
+            data = self._request("ticker", params={"limit": 0})
             self._handle_obj(*data)
 
     def get_currency_data(self, id_or_symbol, out_currency="USD"):
@@ -149,9 +153,9 @@ class Alias:
 
 
 ALIASES = (
-    Alias('bitcoin', 'btc'),
-    Alias('litecoin', 'ltc'),
-    Alias('dogecoin', 'doge'),
+    Alias("bitcoin", "btc"),
+    Alias("litecoin", "ltc"),
+    Alias("dogecoin", "doge"),
 )
 
 
@@ -192,7 +196,7 @@ def crypto_command(text):
     ticker = args.pop(0)
 
     if not args:
-        currency = 'USD'
+        currency = "USD"
     else:
         currency = args.pop(0).upper()
 
@@ -205,7 +209,7 @@ def crypto_command(text):
     except APIRateLimitError:
         return "API rate limit reached, please try again later"
 
-    change = float(data['percent_change_24h'])
+    change = float(data["percent_change_24h"])
     if change > 0:
         change_str = "$(dark_green) {}%$(clear)".format(change)
     elif change < 0:
@@ -213,26 +217,33 @@ def crypto_command(text):
     else:
         change_str = "{}%".format(change)
 
-    currency_sign = CURRENCY_SYMBOLS.get(currency, '')
+    currency_sign = CURRENCY_SYMBOLS.get(currency, "")
 
-    converted_value = data['price_' + currency.lower()]
+    converted_value = data["price_" + currency.lower()]
 
-    return colors.parse("{} ({}) // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
-        data['symbol'], data['id'], currency_sign, float(converted_value), currency.upper(),
-        float(data['price_btc']), change_str
-    ))
+    return colors.parse(
+        "{} ({}) // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
+            data["symbol"],
+            data["id"],
+            currency_sign,
+            float(converted_value),
+            currency.upper(),
+            float(data["price_btc"]),
+            change_str,
+        )
+    )
 
 
 @hook.command("currencies", "currencylist", autohelp=False)
 def currency_list():
     """- List all available currencies from the API"""
-    currencies = sorted(set((obj["symbol"], obj["id"]) for obj in api.currencies), key=itemgetter(0))
-    lst = [
-        '{: <10} {}'.format(symbol, name) for symbol, name in currencies
-    ]
-    lst.insert(0, 'Symbol     Name')
+    currencies = sorted(
+        set((obj["symbol"], obj["id"]) for obj in api.currencies), key=itemgetter(0)
+    )
+    lst = ["{: <10} {}".format(symbol, name) for symbol, name in currencies]
+    lst.insert(0, "Symbol     Name")
 
-    return "Available currencies: " + web.paste('\n'.join(lst))
+    return "Available currencies: " + web.paste("\n".join(lst))
 
 
 init_aliases()

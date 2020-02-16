@@ -22,18 +22,18 @@ If you only have command-line access, run the following in your terminal:
   ```
   wget https://github.com/CloudBotIRC/CloudBot/archive/master.zip
   ```
-  
+
   **On OS X:**
   ```
   curl -O https://github.com/CloudBotIRC/CloudBot/archive/master.zip
   ```
-  
+
   Followed by `unzip master.zip` on both OSs.
-  
+
 #### Using Git
-  
+
   You can also use Git to pull a new version of CloudBot, (which is useful for making upgrades easier). This can be accomplished with
-  
+
   ```
   git clone https://github.com/CloudBotIRC/CloudBot.git
   cd CloudBot
@@ -53,7 +53,7 @@ Setting up Python 3.4 on most OSs usually goes as follows.
 
   **On Windows:**
   You can download releases of Python 3.4 for Windows at https://www.python.org/downloads/
-  
+
   **todo**: section on adding python to PATH on windows so it is usable from the console!!!
 
   **On another OS (Solaris/BSD/ActivePython/etc):**
@@ -89,5 +89,3 @@ Before running CloudBot, you'll need to get some of the required dependencies an
   ```
   pip install -r requirements.txt
   ```
-  
-

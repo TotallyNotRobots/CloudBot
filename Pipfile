@@ -10,6 +10,8 @@ freezegun = "*"
 pytest-random-order = "*"
 responses = "*"
 pytest-asyncio = "*"
+pre-commit = "*"
+black = "==19.10b0"
 
 [packages]
 beautifulsoup4 = "==4.8.2"

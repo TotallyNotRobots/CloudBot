@@ -147,10 +147,10 @@ def imguralbum(text, conn):
     nsfw = any([item.nsfw for item in items])
 
     params = {
-        'title': '{} presents: "{}"'.format(conn.nick, text or "random images"),
-        'ids': ",".join([item.id for item in items]),
-        'layout': 'blog',
-        'account_url': None
+        "title": '{} presents: "{}"'.format(conn.nick, text or "random images"),
+        "ids": ",".join([item.id for item in items]),
+        "layout": "blog",
+        "account_url": None,
     }
     album = container.api.create_album(params)
 

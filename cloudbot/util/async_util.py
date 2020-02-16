@@ -29,7 +29,9 @@ async def run_func(loop, func, *args, **kwargs):
 
 async def run_func_with_args(loop, func, arg_data, executor=None):
     if asyncio.iscoroutine(func):
-        raise TypeError('A coroutine function or a normal, non-async callable are required')
+        raise TypeError(
+            "A coroutine function or a normal, non-async callable are required"
+        )
 
     if asyncio.iscoroutinefunction(func):
         coro = call_with_args(func, arg_data)
@@ -46,7 +48,7 @@ def run_coroutine_threadsafe(coro, loop):
     :type loop: asyncio.AbstractEventLoop
     """
     if not asyncio.iscoroutine(coro):
-        raise TypeError('A coroutine object is required')
+        raise TypeError("A coroutine object is required")
 
     if sys.version_info < (3, 5, 1):
         loop.call_soon_threadsafe(partial(wrap_future, coro, loop=loop))

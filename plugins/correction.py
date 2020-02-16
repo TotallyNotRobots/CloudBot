@@ -4,7 +4,7 @@ from cloudbot import hook
 from cloudbot.util.formatting import ireplace
 
 correction_re = re.compile(r"^[sS]/(?:(.*?)(?<!\\)/(.*?)(?:(?<!\\)/([igx]{,4}))?)\s*$")
-unescape_re = re.compile(r'\\(.)')
+unescape_re = re.compile(r"\\(.)")
 
 
 @hook.regex(correction_re)
@@ -31,14 +31,16 @@ def correction(match, conn, nick, chan, message):
         if find.lower() in msg.lower():
             find_esc = re.escape(find)
             replace_esc = re.escape(replace)
-            if msg.startswith('\x01ACTION'):
-                mod_msg = msg[7:].strip(' \x01')
+            if msg.startswith("\x01ACTION"):
+                mod_msg = msg[7:].strip(" \x01")
                 fmt = "* {} {}"
             else:
                 mod_msg = msg
                 fmt = "<{}> {}"
 
-            mod_msg = ireplace(re.escape(mod_msg), find_esc, "\x02" + replace_esc + "\x02")
+            mod_msg = ireplace(
+                re.escape(mod_msg), find_esc, "\x02" + replace_esc + "\x02"
+            )
 
             mod_msg = unescape_re.sub(r"\1", mod_msg)
 

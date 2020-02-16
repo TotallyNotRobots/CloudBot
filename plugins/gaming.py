@@ -15,10 +15,12 @@ import re
 
 from cloudbot import hook
 
-whitespace_re = re.compile(r'\s+')
-valid_diceroll = re.compile(r'^([+-]?(?:\d+|\d*d(?:\d+|F))(?:[+-](?:\d+|\d*d(?:\d+|F)))*)( .+)?$', re.I)
-sign_re = re.compile(r'[+-]?(?:\d*d)?(?:\d+|F)', re.I)
-split_re = re.compile(r'([\d+-]*)d?(F|\d*)', re.I)
+whitespace_re = re.compile(r"\s+")
+valid_diceroll = re.compile(
+    r"^([+-]?(?:\d+|\d*d(?:\d+|F))(?:[+-](?:\d+|\d*d(?:\d+|F)))*)( .+)?$", re.I
+)
+sign_re = re.compile(r"[+-]?(?:\d*d)?(?:\d+|F)", re.I)
+split_re = re.compile(r"([\d+-]*)d?(F|\d*)", re.I)
 
 
 def clamp(n, min_value, max_value):
@@ -37,7 +39,7 @@ def n_rolls(count, n):
     :type count: int
     :type n: int | str
     """
-    if n in ('f', 'F'):
+    if n in ("f", "F"):
         return [random.randint(-1, 1) for _ in range(min(count, 100))]
 
     if count < 100:
@@ -45,7 +47,7 @@ def n_rolls(count, n):
 
     # Calculate a random sum approximated using a randomized normal variate with the midpoint used as the mu
     # and an approximated standard deviation based on variance as the sigma
-    mid = .5 * (n + 1) * count
+    mid = 0.5 * (n + 1) * count
     var = (n ** 2 - 1) / 12
     adj_var = (var * count) ** 0.5
 
@@ -72,7 +74,7 @@ def dice(text, notice):
     if "d" not in text:
         return
 
-    spec = whitespace_re.sub('', text)
+    spec = whitespace_re.sub("", text)
     if not valid_diceroll.match(spec):
         notice("Invalid dice roll '{}'".format(text))
         return
@@ -122,9 +124,9 @@ def choose(text, event):
 
     :type text: str
     """
-    choices = re.findall(r'([^,]+)', text.strip())
+    choices = re.findall(r"([^,]+)", text.strip())
     if len(choices) == 1:
-        choices = choices[0].split(' or ')
+        choices = choices[0].split(" or ")
         if len(choices) == 1:
             event.notice_doc()
             return
@@ -153,9 +155,13 @@ def coin(text, notice, action):
     elif amount == 0:
         action("makes a coin flipping motion")
     else:
-        mu = .5 * amount
-        sigma = (.75 * amount) ** .5
+        mu = 0.5 * amount
+        sigma = (0.75 * amount) ** 0.5
         n = random.normalvariate(mu, sigma)
         heads = clamp(int(round(n)), 0, amount)
         tails = amount - heads
-        action("flips {} coins and gets {} heads and {} tails.".format(amount, heads, tails))
+        action(
+            "flips {} coins and gets {} heads and {} tails.".format(
+                amount, heads, tails
+            )
+        )

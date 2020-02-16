@@ -16,7 +16,7 @@ def client(_type):
         def callback_cb(context, name, obj):
             context.bot.register_client(_type, cls)
 
-        venusian.attach(cls, callback_cb, category='cloudbot.client')
+        venusian.attach(cls, callback_cb, category="cloudbot.client")
         return cls
 
     return _decorate
@@ -24,7 +24,9 @@ def client(_type):
 
 class ClientConnectError(Exception):
     def __init__(self, client_name, server):
-        super().__init__("Unable to connect to client {} with server {}".format(client_name, server))
+        super().__init__(
+            "Unable to connect to client {} with server {}".format(client_name, server)
+        )
         self.client_name = client_name
         self.server = server
 

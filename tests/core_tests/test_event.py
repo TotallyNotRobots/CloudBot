@@ -2,9 +2,14 @@ def test_event_copy():
     from cloudbot.event import Event
 
     event = Event(
-        bot=object(), conn=object(), hook=object(),
-        event_type=object(), channel=object(), nick=object(),
-        user=object(), host=object()
+        bot=object(),
+        conn=object(),
+        hook=object(),
+        event_type=object(),
+        channel=object(),
+        nick=object(),
+        user=object(),
+        host=object(),
     )
 
     new_event = Event(base_event=event)

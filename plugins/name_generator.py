@@ -20,8 +20,9 @@ from cloudbot.util import formatting, textgen
 
 def get_generator(_json):
     data = json.loads(_json)
-    return textgen.TextGenerator(data["templates"],
-                                 data["parts"], default_templates=data["default_templates"])
+    return textgen.TextGenerator(
+        data["templates"], data["parts"], default_templates=data["default_templates"]
+    )
 
 
 @hook.command(autohelp=False)
@@ -37,13 +38,15 @@ def namegen(text, bot, notice):
 
     # get a list of available name generators
     files = os.listdir(os.path.join(bot.data_dir, "name_files"))
-    all_modules = [os.path.splitext(i)[0] for i in files if os.path.splitext(i)[1] == ".json"]
+    all_modules = [
+        os.path.splitext(i)[0] for i in files if os.path.splitext(i)[1] == ".json"
+    ]
     all_modules.sort()
 
     # command to return a list of all available generators
     if inp == "list":
         message = "Available generators: "
-        message += formatting.get_text_list(all_modules, 'and')
+        message += formatting.get_text_list(all_modules, "and")
         notice(message)
         return
 
@@ -70,4 +73,6 @@ def namegen(text, bot, notice):
     name_list = generator.generate_strings(10)
 
     # and finally return the final message :D
-    return "Some names to ponder: {}.".format(formatting.get_text_list(name_list, 'and'))
+    return "Some names to ponder: {}.".format(
+        formatting.get_text_list(name_list, "and")
+    )
