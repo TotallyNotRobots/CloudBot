@@ -37,3 +37,6 @@ mcstatus = {git = "https://github.com/CloudBotIRC/mcstatus.git",ref = "master"}
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
