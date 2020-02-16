@@ -1,0 +1,5 @@
+version: '3.7'
+
+sut:
+  build: .
+  command: pipenv -m pytest
