@@ -2,7 +2,7 @@ import asyncio
 import importlib
 
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from cloudbot.event import CommandEvent, Event
 from cloudbot.util.func_utils import call_with_args

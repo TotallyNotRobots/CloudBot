@@ -1,7 +1,7 @@
 import importlib
 
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 
 @pytest.mark.parametrize('prefix,items,result', [

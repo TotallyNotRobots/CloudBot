@@ -4,7 +4,7 @@ import time
 from contextlib import contextmanager
 
 import pytest
-from mock import MagicMock, call
+from unittest.mock import MagicMock, call
 
 from cloudbot.util import database
 from plugins import remind

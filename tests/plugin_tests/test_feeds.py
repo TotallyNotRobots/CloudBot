@@ -1,6 +1,6 @@
 import pytest
 from feedparser import FeedParserDict
-from mock import patch
+from unittest.mock import patch
 
 
 @pytest.fixture()

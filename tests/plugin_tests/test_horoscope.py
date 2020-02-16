@@ -1,6 +1,6 @@
 import pytest
 import requests
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 URL = (
     "http://www.horoscope.com/us/horoscopes/general/"

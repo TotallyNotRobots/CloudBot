@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from cloudbot.client import Client
 

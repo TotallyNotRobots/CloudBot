@@ -1,4 +1,4 @@
-from mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from plugins.core import optout
 from plugins.core.optout import get_conn_optouts, optout_cache

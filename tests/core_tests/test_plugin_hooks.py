@@ -10,7 +10,7 @@ from numbers import Number
 from pathlib import Path
 
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 import cloudbot.bot
 from cloudbot.event import (

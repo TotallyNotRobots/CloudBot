@@ -3,7 +3,7 @@ import itertools
 import string
 from textwrap import dedent
 
-from mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call, patch
 
 
 def test_forget():

@@ -3,7 +3,7 @@ import itertools
 from pathlib import Path
 
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 from cloudbot import hook
 from cloudbot.plugin import PluginManager

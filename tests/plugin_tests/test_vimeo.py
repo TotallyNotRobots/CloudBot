@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 
 @pytest.fixture()

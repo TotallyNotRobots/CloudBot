@@ -1,5 +1,5 @@
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from plugins import cypher
 

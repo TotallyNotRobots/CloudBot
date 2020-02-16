@@ -1,4 +1,4 @@
-import mock
+import unittest.mock as mock
 import pytest
 
 from cloudbot.util.colors import parse, strip, get_available_colours, get_available_formats, get_color, get_format, \

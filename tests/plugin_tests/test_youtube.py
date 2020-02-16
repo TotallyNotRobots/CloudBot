@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 from responses import RequestsMock
 
 from cloudbot.bot import bot

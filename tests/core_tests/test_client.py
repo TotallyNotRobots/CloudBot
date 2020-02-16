@@ -1,6 +1,6 @@
 import asyncio
 
-from mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from cloudbot.client import Client
 

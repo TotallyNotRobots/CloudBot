@@ -1,7 +1,7 @@
 import textwrap
 
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 from cloudbot import config
 

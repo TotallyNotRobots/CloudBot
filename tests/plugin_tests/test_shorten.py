@@ -1,6 +1,6 @@
 import pytest
 import requests
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 
 def test_shorten(mock_requests):

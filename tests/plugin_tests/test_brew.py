@@ -1,4 +1,4 @@
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from tests.util.mock_bot import MockBot
 

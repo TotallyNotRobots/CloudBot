@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 from googlemaps.exceptions import ApiError
-from mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent

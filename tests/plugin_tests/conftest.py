@@ -1,5 +1,5 @@
 import pytest
-from mock import patch
+from unittest.mock import patch
 from responses import RequestsMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker

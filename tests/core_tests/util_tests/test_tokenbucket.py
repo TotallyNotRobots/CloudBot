@@ -1,7 +1,7 @@
 import time
 
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 from cloudbot.util import tokenbucket
 

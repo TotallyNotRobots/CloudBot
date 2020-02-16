@@ -1,7 +1,7 @@
 import asyncio
 import ssl
 
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from cloudbot.clients.irc import IrcClient
 
