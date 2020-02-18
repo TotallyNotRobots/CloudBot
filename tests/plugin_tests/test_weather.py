@@ -4,11 +4,12 @@ from copy import deepcopy
 
 import pytest
 from googlemaps.exceptions import ApiError
-from mock import MagicMock, patch
+from mock import MagicMock
 
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
+from tests.util import wrap_hook_response
 
 
 class MockConfig(Config):
@@ -20,33 +21,6 @@ class MockBot:
     def __init__(self, config, db):
         self.config = MockConfig(self, config)
         self.db_session = db.session
-
-
-def wrap_result(func, event, results=None):
-    """
-    Wrap the response from a hook, allowing easy assertion against calls to
-    event.notice(), event.reply(), etc instead of just returning a string
-    """
-    if results is None:
-        results = []
-
-    def notice(*args, **kwargs):  # pragma: no cover
-        results.append(('notice', args, kwargs))
-
-    def message(*args, **kwargs):  # pragma: no cover
-        results.append(('message', args, kwargs))
-
-    def action(*args, **kwargs):  # pragma: no cover
-        results.append(('action', args, kwargs))
-
-    with patch.object(event.conn, 'notice', notice), \
-            patch.object(event.conn, 'message', message), \
-            patch.object(event.conn, 'action', action):
-        res = call_with_args(func, event)
-        if res is not None:
-            results.append(('return', res))
-
-    return results
 
 
 @pytest.mark.parametrize('bearing,direction', [
@@ -243,7 +217,7 @@ def test_rounding(mock_requests, patch_try_shorten, mock_db):
         {},
     )]
 
-    assert wrap_result(weather.weather, cmd_event) == calls
+    assert wrap_hook_response(weather.weather, cmd_event) == calls
 
 
 def test_find_location(mock_requests, patch_try_shorten, mock_db):
@@ -279,7 +253,7 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
 
     cmd_event.prepare_threaded()
 
-    assert wrap_result(weather.weather, cmd_event) == [(
+    assert wrap_hook_response(weather.weather, cmd_event) == [(
         'notice', ('foobar', '.we - foobar'), {}
     )]
     weather.location_cache.append(('foobar', 'test location'))
@@ -289,7 +263,7 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
         re.compile(r'^https://api\.darksky\.net/forecast/.*'),
         **FIO_DATA
     )
-    assert wrap_result(weather.weather, cmd_event) == [(
+    assert wrap_hook_response(weather.weather, cmd_event) == [(
         'message',
         (
             '#foo',
@@ -302,7 +276,7 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
         ),
         {},
     )]
-    assert wrap_result(weather.forecast, cmd_event) == [(
+    assert wrap_hook_response(weather.forecast, cmd_event) == [(
         'message',
         (
             '#foo',
@@ -324,7 +298,7 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
 
     response = []
     with pytest.raises(ApiError):
-        wrap_result(weather.weather, cmd_event, response)
+        wrap_hook_response(weather.weather, cmd_event, response)
 
     assert response == [(
         'message', ('#foo', '(foobar) API Error occurred.'), {}
@@ -333,20 +307,20 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
     bot.config['api_keys']['google_dev_key'] = None
     bot.config.load_config()
     weather.create_maps_api(bot)
-    assert wrap_result(weather.weather, cmd_event) == [
+    assert wrap_hook_response(weather.weather, cmd_event) == [
         ('return', 'This command requires a Google Developers Console API key.')
     ]
-    assert wrap_result(weather.forecast, cmd_event) == [
+    assert wrap_hook_response(weather.forecast, cmd_event) == [
         ('return', 'This command requires a Google Developers Console API key.')
     ]
 
     bot.config['api_keys']['darksky'] = None
     bot.config.load_config()
     weather.create_maps_api(bot)
-    assert wrap_result(weather.weather, cmd_event) == [
+    assert wrap_hook_response(weather.weather, cmd_event) == [
         ('return', 'This command requires a DarkSky API key.')
     ]
-    assert wrap_result(weather.forecast, cmd_event) == [
+    assert wrap_hook_response(weather.forecast, cmd_event) == [
         ('return', 'This command requires a DarkSky API key.')
     ]
 
@@ -453,5 +427,5 @@ def test_parse_no_results(mock_requests, patch_try_shorten, mock_db):
 
     cmd_event.prepare_threaded()
 
-    res = wrap_result(weather.check_and_parse, cmd_event)
+    res = wrap_hook_response(weather.check_and_parse, cmd_event)
     assert res == [('return', (None, "Unable to find location 'myloc'"))]
