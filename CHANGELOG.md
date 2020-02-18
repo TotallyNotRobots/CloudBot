@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix the possible `-0` in weather data
 - Fix random truncations of search result URLs
 - Fix listfacts not listing some facts
+- Fix wikipedia summary fetching
 ### Removed
 - Removed rottentomatoes plugin as the API has been removed
 - Removed dig plugin as jsondns is gone

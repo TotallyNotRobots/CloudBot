@@ -1,58 +1,57 @@
 """Searches wikipedia and returns first sentence of article
 Scaevolus 2009"""
 
-import re
-
 import requests
+from requests import RequestException
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import formatting
-from cloudbot.util.http import parse_xml
 
 api_prefix = "http://en.wikipedia.org/w/api.php"
-search_url = api_prefix + "?action=opensearch&format=xml"
-random_url = api_prefix + "?action=query&format=xml&list=random&rnlimit=1&rnnamespace=0"
+query_url = api_prefix + "?action=query&format=json"
+search_url = query_url + "&list=search&redirect=1"
+wp_api_url = URL('https://en.wikipedia.org/api/rest_v1/')
 
-paren_re = re.compile(r'\s*\(.*\)$')
+
+def make_summary_url(title) -> str:
+    return str(wp_api_url / 'page/summary' / title.replace(' ', '_'))
+
+
+def get_info(title):
+    with requests.get(make_summary_url(title)) as response:
+        return response.json()
 
 
 @hook.command("wiki", "wikipedia", "w")
 def wiki(text, reply):
     """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
+    search_params = {'srsearch': text.strip()}
     try:
-        request = requests.get(search_url, params={'search': text.strip()})
-        request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        reply("Could not get Wikipedia page: {}".format(e))
+        with requests.get(search_url, params=search_params) as response:
+            response.raise_for_status()
+            data = response.json()
+    except RequestException:
+        reply("Could not get Wikipedia page")
         raise
 
-    x = parse_xml(request.text)
+    for result in data['query']['search']:
+        title = result['title']
+        info = get_info(title)
+        if info['type'] != 'standard':
+            continue
 
-    ns = '{http://opensearch.org/searchsuggest2}'
-    items = x.findall(ns + 'Section/' + ns + 'Item')
+        desc = info['extract']
+        url = info['content_urls']['desktop']['page']
 
-    if not items:
-        if x.find('error') is not None:
-            return 'Could not get Wikipedia page: %(code)s: %(info)s' % x.find('error').attrib
+        break
+    else:
+        return "No results found."
 
-        return 'No results found.'
+    if desc:
+        desc = formatting.truncate(desc, 200)
+    else:
+        desc = "(No Summary)"
 
-    def extract(item):
-        return [item.find(ns + i).text for i in
-                ('Text', 'Description', 'Url')]
-
-    title, desc, url = extract(items[0])
-
-    if 'may refer to' in desc:
-        title, desc, url = extract(items[1])
-
-    title = paren_re.sub('', title)
-
-    if title.lower() not in desc.lower():
-        desc = title + desc
-
-    desc = ' '.join(desc.split())  # remove excess spaces
-    desc = formatting.truncate(desc, 200)
-
-    return '{} :: {}'.format(desc, requests.utils.quote(url, ':/%'))
+    return '{} :: {} :: {}'.format(title, desc, url)
