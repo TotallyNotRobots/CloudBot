@@ -3,7 +3,7 @@ import itertools
 from pathlib import Path
 
 import pytest
-from mock import patch
+from mock import MagicMock, patch
 
 from cloudbot import hook
 from cloudbot.plugin import PluginManager
@@ -31,7 +31,8 @@ def mock_manager(mock_bot):
 
 
 class MockModule:
-    pass
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 
 def test_get_plugin(mock_manager):
@@ -145,6 +146,52 @@ def test_plugin_load(mock_manager, patch_import_module, patch_import_reload):
     patch_import_reload.assert_called_once_with(mod)
 
     assert mock_manager.get_plugin('plugins/test.py').code is newmod
+
+
+class WeirdObject:
+    """
+    This represents an object that returns a value for any attribute you ask for
+    """
+
+    def __init__(self, func):
+        self.func = func
+
+    def __getattr__(self, item):
+        return self.func(self, item)
+
+
+def _test_weird_obj(patch_import_module, mock_manager, weird_obj):
+    patch_import_module.return_value = MockModule(some_import=weird_obj)
+
+    mock_manager.bot.loop.run_until_complete(
+        mock_manager.load_plugin('plugins/test.py')
+    )
+
+
+def test_plugin_with_objs_none_attr(mock_manager, patch_import_module):
+    _test_weird_obj(
+        patch_import_module, mock_manager, WeirdObject(lambda *args: None)
+    )
+
+
+def test_plugin_with_objs_mock_attr(mock_manager, patch_import_module):
+    _test_weird_obj(
+        patch_import_module, mock_manager, WeirdObject(lambda *args: MagicMock())
+    )
+
+
+def test_plugin_with_objs_dict_attr(mock_manager, patch_import_module):
+    _test_weird_obj(
+        patch_import_module, mock_manager, WeirdObject(lambda *args: {})
+    )
+
+
+def test_plugin_with_objs_full_dict_attr(mock_manager, patch_import_module):
+    _test_weird_obj(
+        patch_import_module, mock_manager, WeirdObject(lambda *args: {
+            'some_thing': object(),
+        })
+    )
 
 
 def test_plugin_load_disabled(mock_manager, patch_import_module, patch_import_reload):

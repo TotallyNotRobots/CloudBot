@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix random truncations of search result URLs
 - Fix listfacts not listing some facts
 - Fix wikipedia summary fetching
+- Fix loading modules with dynamic objects at the module scope (#102)
 ### Removed
 - Removed rottentomatoes plugin as the API has been removed
 - Removed dig plugin as jsondns is gone

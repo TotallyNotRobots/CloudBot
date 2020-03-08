@@ -28,7 +28,7 @@ def find_hooks(parent, module):
     """
     hooks = defaultdict(list)
     for func in module.__dict__.values():
-        if hasattr(func, HOOK_ATTR):
+        if hasattr(func, HOOK_ATTR) and not hasattr(func, "_not_" + HOOK_ATTR):
             # if it has cloudbot hook
             func_hooks = getattr(func, HOOK_ATTR)
 
