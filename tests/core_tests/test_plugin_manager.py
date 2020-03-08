@@ -31,7 +31,8 @@ def mock_manager(mock_bot):
 
 
 class MockModule:
-    pass
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 
 def test_get_plugin(mock_manager):
@@ -160,9 +161,7 @@ class WeirdObject:
 
 
 def _test_weird_obj(patch_import_module, mock_manager, weird_obj):
-    patch_import_module.return_value = mod = MockModule()
-
-    mod.some_import = weird_obj
+    patch_import_module.return_value = MockModule(some_import=weird_obj)
 
     mock_manager.bot.loop.run_until_complete(
         mock_manager.load_plugin('plugins/test.py')
