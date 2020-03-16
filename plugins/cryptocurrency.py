@@ -9,149 +9,548 @@ Created By:
 License:
     GPL v3
 """
-from collections import defaultdict
-from datetime import datetime, timedelta
+import inspect
+import time
+import warnings
+from numbers import Number
 from operator import itemgetter
 from threading import RLock
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import requests
-from requests import Session
+from requests import Response
 from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import colors, web
 from cloudbot.util.func_utils import call_with_args
 
-CURRENCY_SYMBOLS = {
-    'USD': '$',
-    'GBP': '£',
-    'EUR': '€',
-}
-
 
 class APIError(Exception):
-    pass
+    def __init__(self, msg: str):
+        super().__init__(msg)
+        self.msg = msg
 
 
-class APIRateLimitError(APIError):
-    pass
-
-
-class TickerNotFound(APIError):
-    def __init__(self, name):
+class UnknownSymbolError(APIError):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.currency = name
+        self.name = name
 
 
-class CurrencyConversionError(APIError):
-    def __init__(self, in_name, out_name):
-        super().__init__(in_name, out_name)
-        self.in_name = in_name
-        self.out_name = out_name
+class UnknownFiatCurrencyError(APIError):
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.name = name
 
 
-class CMCApi:
-    def __init__(self, user_agent=None, url="https://api.coinmarketcap.com/v1"):
-        self.url = URL(url)
-        self._request_times = []
+class APIResponse:
+    def __init__(self, api, data: 'UntypedResponse', response: Response) -> None:
+        self.api = api
+        self.data = data
+        self.response = response
 
-        self._cache = defaultdict(dict)
-        self._lock = RLock()
-        self._now = datetime.now()
+    @classmethod
+    def from_response(cls, api: 'CoinMarketCapAPI', response: Response):
+        return cls(api, read_data(response.json(), UntypedResponse), response)
 
-        self._session = Session()
 
-        self.set_user_agent(user_agent)
+class SchemaField:
+    empty = object()
 
-    def set_user_agent(self, user_agent=None):
-        if user_agent is None:
-            user_agent = requests.utils.default_user_agent()
+    def __init__(self, name: str, field_type: Type, default=empty):
+        self.name = name
+        self.field_type = field_type
+        self.default = default
 
+
+def _get_fields(init_func):
+    signature = inspect.signature(init_func)
+    for parameter in signature.parameters.values():
+        if parameter.annotation is parameter.empty:
+            continue
+
+        if parameter.default is parameter.empty:
+            default = SchemaField.empty
+        else:
+            default = parameter.default
+
+        yield SchemaField(parameter.name, parameter.annotation, default)
+
+
+class SchemaMeta(type):
+    def __new__(cls, name, bases, members):
+        if members.setdefault('_abstract', False):
+            super_fields = tuple()
+            for base in bases:
+                if not getattr(base, '_abstract', False) and isinstance(base, cls):
+                    super_fields = getattr(base, '_fields')
+                    break
+
+            members['_fields'] = super_fields
+        else:
+            members['_fields'] = tuple(_get_fields(members['__init__']))
+
+        return type.__new__(cls, name, bases, members)
+
+
+T = TypeVar('T')
+
+
+class Schema(metaclass=SchemaMeta):
+    # noinspection PyUnusedName
+    _abstract = True
+
+    def __init__(self):
+        self.unknown_fields = {}
+
+    def cast_to(self, new_type: Type[T]) -> T:
+        return read_data(serialize(self), new_type)
+
+
+class ResponseStatus(Schema):
+    def __init__(
+        self,
+        timestamp: str,
+        error_code: int,
+        elapsed: int,
+        credit_count: int,
+        error_message: str = None,
+        notice: str = None,
+    ):
+        super().__init__()
+        self.timestamp = timestamp
+        self.error_code = error_code
+        self.error_message = error_message
+        self.elapsed = elapsed
+        self.credit_count = credit_count
+        self.notice = notice
+
+
+class APIRequestResponse(Schema):
+    def __init__(self, status: ResponseStatus):
+        super().__init__()
+        self.status = status
+
+
+class UntypedResponse(APIRequestResponse):
+    def __init__(self, data: Any, status: ResponseStatus):
+        super().__init__(status)
+        self.data = data
+
+
+class Platform(Schema):
+    # noinspection PyShadowingBuiltins
+    def __init__(self, id: int, name: str, symbol: str, slug: str, token_address: str):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+        self.slug = slug
+        self.token_address = token_address
+
+
+class Quote(Schema):
+    def __init__(
+        self,
+        price: Number,
+        volume_24h: Number,
+        market_cap: Number,
+        percent_change_1h: Number,
+        percent_change_24h: Number,
+        percent_change_7d: Number,
+        last_updated: str,
+        volume_24h_reported: Number = None,
+        volume_7d: Number = None,
+        volume_7d_reported: Number = None,
+        volume_30d: Number = None,
+        volume_30d_reported: Number = None,
+    ):
+        super().__init__()
+        self.price = price
+        self.volume_24h = volume_24h
+        self.volume_24h_reported = volume_24h_reported
+        self.volume_7d = volume_7d
+        self.volume_7d_reported = volume_7d_reported
+        self.volume_30d = volume_30d
+        self.volume_30d_reported = volume_30d_reported
+        self.market_cap = market_cap
+        self.percent_change_1h = percent_change_1h
+        self.percent_change_24h = percent_change_24h
+        self.percent_change_7d = percent_change_7d
+        self.last_updated = last_updated
+
+
+class CryptoCurrency(Schema):
+    # noinspection PyShadowingBuiltins
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        symbol: str,
+        slug: str,
+        circulating_supply: Number,
+        total_supply: Number,
+        date_added: str,
+        num_market_pairs: int,
+        cmc_rank: int,
+        last_updated: str,
+        tags: List[str],
+        quote: Dict[str, Quote],
+        max_supply: Number = None,
+        market_cap_by_total_supply: Number = None,
+        platform: Platform = None,
+    ):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+        self.slug = slug
+        self.circulating_supply = circulating_supply
+        self.total_supply = total_supply
+        self.max_supply = max_supply
+        self.market_cap_by_total_supply = market_cap_by_total_supply
+        self.date_added = date_added
+        self.num_market_pairs = num_market_pairs
+        self.cmc_rank = cmc_rank
+        self.last_updated = last_updated
+        self.tags = tags
+        self.platform = platform
+        self.quote = quote
+
+
+class QuoteRequestResponse(APIRequestResponse):
+    def __init__(self, data: Dict[str, CryptoCurrency], status: ResponseStatus):
+        super().__init__(status)
+        self.data = data
+
+
+class FiatCurrency(Schema):
+    # noinspection PyShadowingBuiltins
+    def __init__(self, id: int, name: str, sign: str, symbol: str):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.sign = sign
+        self.symbol = symbol
+
+
+class FiatCurrencyMap(APIRequestResponse):
+    def __init__(self, data: List[FiatCurrency], status: ResponseStatus):
+        super().__init__(status)
+        self.data = data
+
+        self.symbols = {currency.symbol: currency.sign for currency in self.data}
+
+
+class CryptoCurrencyEntry(Schema):
+    # noinspection PyShadowingBuiltins
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        symbol: str,
+        slug: str,
+        is_active: int,
+        first_historical_data: str = None,
+        last_historical_data: str = None,
+        platform: Platform = None,
+        status: str = None,
+    ) -> None:
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+        self.slug = slug
+        self.is_active = is_active
+        self.status = status
+        self.first_historical_data = first_historical_data
+        self.last_historical_data = last_historical_data
+        self.platform = platform
+
+
+class CryptoCurrencyMap(APIRequestResponse):
+    def __init__(self, data: List[CryptoCurrencyEntry], status: ResponseStatus):
+        super().__init__(status)
+        self.data = data
+
+        self.names = set(currency.symbol for currency in self.data)
+
+
+BAD_FIELD_TYPE_MSG = "field {field!r} expected type {exp_type!r}, got type {act_type!r}"
+
+
+def sentinel(name: str):
+    try:
+        storage = getattr(sentinel, '_sentinels')
+    except AttributeError:
+        storage = {}
+        setattr(sentinel, '_sentinels', storage)
+
+    try:
+        return storage[name]
+    except KeyError:
+        storage[name] = obj = object()
+        return obj
+
+
+_unset = sentinel("unset")
+
+
+class TypeAssertError(TypeError):
+    def __init__(self, obj, cls):
+        super().__init__()
+        self.cls = cls
+        self.obj = obj
+
+
+class MissingSchemaField(KeyError):
+    pass
+
+
+class ParseError(ValueError):
+    pass
+
+
+def _assert_type(obj, cls, display_cls=_unset):
+    if display_cls is _unset:
+        display_cls = cls
+
+    if not isinstance(obj, cls):
+        raise TypeAssertError(obj, display_cls)
+
+
+def _hydrate_object(_value, _cls):
+    if _cls is Any:
+        return _value
+
+    if isinstance(_cls, type) and issubclass(_cls, Schema):
+        _assert_type(_value, dict)
+        return read_data(_value, _cls)
+
+    try:
+        typing_cls = _cls.__origin__
+    except AttributeError:
+        pass
+    else:
+        type_args = _cls.__args__
+        if issubclass(typing_cls, list):
+            _assert_type(_value, list, _cls)
+
+            return [_hydrate_object(v, type_args[0]) for v in _value]
+
+        if issubclass(typing_cls, dict):
+            _assert_type(_value, dict, _cls)
+
+            return {
+                _hydrate_object(k, type_args[0]): _hydrate_object(v, type_args[1])
+                for k, v in _value.items()
+            }
+
+        raise TypeError("Can't match typing alias {!r}".format(typing_cls))  # pragma: no cover
+
+    _assert_type(_value, _cls)
+
+    return _value
+
+
+def read_data(data: Dict, schema_cls: Type[T]) -> T:
+    fields = schema_cls._fields
+
+    out = {}
+    field_names = []
+
+    for schema_field in fields:  # type: SchemaField
+        try:
+            param_type = schema_field.field_type
+            name = schema_field.name
+            field_names.append(name)
+            try:
+                value = data[name]
+            except KeyError:
+                if schema_field.default is schema_field.empty:
+                    raise MissingSchemaField(name)
+
+                value = schema_field.default
+
+            if value is None and schema_field.default is None:
+                out[name] = value
+                continue
+
+            try:
+                out[name] = _hydrate_object(value, param_type)
+            except TypeAssertError as e:
+                raise TypeError(
+                    BAD_FIELD_TYPE_MSG.format(
+                        field=name, exp_type=e.cls, act_type=type(e.obj)
+                    )
+                ) from e
+        except (MissingSchemaField, TypeAssertError, ParseError) as e:
+            raise ParseError(
+                "Unable to parse schema {!r}".format(schema_cls.__name__)
+            ) from e
+
+    obj = schema_cls(**out)
+
+    obj.unknown_fields.update(
+        {key: data[key] for key in data if key not in field_names}
+    )
+
+    if obj.unknown_fields:
+        warnings.warn(
+            "Unknown fields: {} while parsing schema {!r}".format(
+                list(obj.unknown_fields.keys()), schema_cls.__name__
+            )
+        )
+
+    return obj
+
+
+def serialize(obj):
+    if isinstance(obj, Schema):
+        out = {}
+        for field in obj._fields:  # type: SchemaField
+            val = getattr(obj, field.name)
+            out[field.name] = serialize(val)
+
+        if obj.unknown_fields:
+            out.update(obj.unknown_fields)
+
+        return out
+
+    if isinstance(obj, list):
+        return [serialize(o) for o in obj]
+
+    if isinstance(obj, dict):
+        return {k: serialize(v) for k, v in obj.items()}
+
+    return obj
+
+
+class CacheEntry:
+    def __init__(self, value, expire):
+        self.value = value
+        self.expire = expire
+
+
+class Cache:
+    def __init__(self, lock_cls=RLock):
+        self._data = {}
+        self._lock = lock_cls()
+
+    def clear(self):
+        self._data.clear()
+
+    def put(self, key, value, ttl) -> CacheEntry:
         with self._lock:
-            self._session.headers['User-Agent'] = user_agent
+            self._data[key] = out = CacheEntry(value, time.time() + ttl)
+            return out
 
-    def close(self):
-        self._session.close()
-
-    def _request(self, endpoint, params=None):
-        self._request_times[:] = [t for t in self._request_times if (self._now - t) < timedelta(minutes=1)]
-        if len(self._request_times) > 10:
-            raise APIRateLimitError
-
-        with self._session.get(self.url / endpoint, params=params) as response:
-            self._request_times.append(self._now)
-            response.raise_for_status()
-            return response.json()
-
-    def _update(self, key, obj):
-        old_obj = self._cache[key.lower()]
-        if old_obj.get("last_updated") != obj["last_updated"]:
-            old_obj.clear()
-
-        old_obj.update(obj)
-
-    def _handle_obj(self, *objs):
+    def get(self, key: str) -> Optional[CacheEntry]:
         with self._lock:
-            for obj in objs:
-                self._update(obj["id"], obj)
-                self._update(obj["symbol"], obj)
+            try:
+                entry = self._data[key]
+            except KeyError:
+                return None
 
-    def _get_currency_data(self, id_or_symbol, out_currency="USD"):
-        self._now = datetime.now()
-        old_data = self._cache[id_or_symbol.lower()]
-        _id = old_data.get("id", id_or_symbol)
-        last_updated = datetime.fromtimestamp(float(old_data.get('last_updated', "0")))
-        diff = self._now - last_updated
-        price_key = "price_" + out_currency.lower()
-        if diff > timedelta(minutes=5) or price_key not in old_data:
-            responses = self._request("ticker/" + _id.lower(), params={'limit': 0, 'convert': out_currency})
-            self._handle_obj(*responses)
-            data = self._cache[id_or_symbol.lower()]
-            last_updated = datetime.fromtimestamp(float(data.get('last_updated', "0")))
-            diff = self._now - last_updated
-            if diff > timedelta(days=2):
-                raise TickerNotFound(id_or_symbol)
-            elif price_key not in data:
-                raise CurrencyConversionError(data["symbol"], out_currency)
+            if time.time() >= entry.expire:
+                del self._data[key]
+                return None
 
-            return self._cache[id_or_symbol.lower()]
+            return entry
 
-        return old_data
 
-    def update_cache(self):
-        with self._lock:
-            self._now = datetime.now()
-            data = self._request("ticker", params={'limit': 0})
-            self._handle_obj(*data)
-
-    def get_currency_data(self, id_or_symbol, out_currency="USD"):
-        with self._lock:
-            data = self._get_currency_data(id_or_symbol, out_currency)
-            return data
+class CoinMarketCapAPI:
+    def __init__(
+        self,
+        api_key: str = None,
+        api_url: str = 'https://pro-api.coinmarketcap.com/v1/',
+    ) -> None:
+        self.api_key = api_key
+        self.api_url = URL(api_url)
+        self.cache = Cache()
 
     @property
-    def currencies(self):
-        return self._cache.values()
+    def request_headers(self):
+        return {
+            'Accepts': 'application/json',
+            'X-CMC_PRO_API_KEY': self.api_key,
+        }
+
+    def get_currency_sign(self, currency: str) -> str:
+        return self.get_fiat_currency_map().symbols[currency]
+
+    def get_quote(self, symbol: str, currency: str = 'USD') -> CryptoCurrency:
+        symbol = symbol.upper()
+        if symbol not in self.get_crypto_currency_map().names:
+            raise UnknownSymbolError(symbol)
+
+        if currency not in self.get_fiat_currency_map().symbols:
+            raise UnknownFiatCurrencyError(currency)
+
+        data = self.request(
+            'cryptocurrency/quotes/latest',
+            symbol=symbol.upper(),
+            convert="{},BTC".format(currency),
+        ).data.cast_to(QuoteRequestResponse)
+        _, out = data.data.popitem()
+        return out
+
+    def get_fiat_currency_map(self) -> FiatCurrencyMap:
+        return self._request_cache(
+            "fiat_currency_map", 'fiat/map', FiatCurrencyMap, 86400
+        )
+
+    def get_crypto_currency_map(self) -> CryptoCurrencyMap:
+        return self._request_cache(
+            "crypto_currency_map", 'cryptocurrency/map', CryptoCurrencyMap, 86400
+        )
+
+    def _request_cache(self, name: str, endpoint: str, fmt: Type[T], ttl: int) -> T:
+        out = self.cache.get(name)
+        if out is None:
+            currencies = self.request(endpoint).data.cast_to(fmt)
+            out = self.cache.put(name, currencies, ttl)
+
+        return out.value
+
+    def request(self, endpoint: str, **params) -> APIResponse:
+        url = str(self.api_url / endpoint)
+        with requests.get(url, headers=self.request_headers, params=params) as response:
+            api_response = APIResponse.from_response(self, response)
+            self.check(api_response)
+
+        return api_response
+
+    def check(self, response: APIResponse) -> None:
+        msg = response.data.status.error_message
+        if msg:
+            raise APIError(msg)
 
 
-api = CMCApi()
+api = CoinMarketCapAPI()
+
+
+@hook.onload
+def init_api(bot):
+    api.api_key = bot.config.get_api_key('coinmarketcap')
 
 
 class Alias:
     __slots__ = ("name", "cmds")
 
-    def __init__(self, name, *cmds):
-        self.name = name
-        if name not in cmds:
-            cmds = (name,) + cmds
+    def __init__(self, symbol, *cmds):
+        self.name = symbol
+        if symbol not in cmds:
+            cmds += (symbol,)
 
         self.cmds = cmds
 
 
 ALIASES = (
-    Alias('bitcoin', 'btc'),
-    Alias('litecoin', 'ltc'),
-    Alias('dogecoin', 'doge'),
+    Alias('btc', 'bitcoin'),
+    Alias('ltc', 'litecoin'),
+    Alias('doge', 'dogecoin'),
 )
 
 
@@ -172,64 +571,61 @@ def init_aliases():
         globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(_hook)
 
 
-@hook.onload
-@hook.periodic(3600)
-def update_cache(bot):
-    api.set_user_agent(bot.user_agent)
-    api.update_cache()
-
-
-@hook.on_unload
-def close_api():
-    api.close()
-
-
 # main command
 @hook.command("crypto", "cryptocurrency")
-def crypto_command(text):
-    """<ticker> [currency] - Returns current value of a cryptocurrency"""
+def crypto_command(text, event):
+    """<symbol> [currency] - Returns current value of a cryptocurrency"""
     args = text.split()
     ticker = args.pop(0)
 
-    if not args:
-        currency = 'USD'
-    else:
+    if args:
         currency = args.pop(0).upper()
+    else:
+        currency = 'USD'
 
     try:
-        data = api.get_currency_data(ticker, currency.upper())
-    except TickerNotFound as e:
-        return "Unable to find ticker for '{}'".format(e.currency)
-    except CurrencyConversionError as e:
-        return "Unable to convert '{}' to '{}'".format(e.in_name, e.out_name)
-    except APIRateLimitError:
-        return "API rate limit reached, please try again later"
+        data = api.get_quote(ticker, currency)
+    except UnknownFiatCurrencyError as e:
+        return "Unknown fiat currency {!r}".format(e.name)
+    except UnknownSymbolError as e:
+        return "Unknown cryptocurrency {!r}".format(e.name)
+    except APIError:
+        event.reply("Unknown API error")
+        raise
 
-    change = float(data['percent_change_24h'])
+    quote = data.quote[currency]
+    btc_quote = data.quote['BTC']
+    change = quote.percent_change_24h
     if change > 0:
-        change_str = "$(dark_green) {}%$(clear)".format(change)
+        change_str = "$(dark_green)+{}%$(clear)".format(change)
     elif change < 0:
-        change_str = "$(dark_red) {}%$(clear)".format(change)
+        change_str = "$(dark_red){}%$(clear)".format(change)
     else:
         change_str = "{}%".format(change)
 
-    currency_sign = CURRENCY_SYMBOLS.get(currency, '')
+    currency_sign = api.get_currency_sign(currency)
 
-    converted_value = data['price_' + currency.lower()]
-
-    return colors.parse("{} ({}) // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
-        data['symbol'], data['id'], currency_sign, float(converted_value), currency.upper(),
-        float(data['price_btc']), change_str
-    ))
+    return colors.parse(
+        "{} ({}) // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
+            data.symbol,
+            data.slug,
+            currency_sign,
+            quote.price,
+            currency,
+            btc_quote.price,
+            change_str,
+        )
+    )
 
 
 @hook.command("currencies", "currencylist", autohelp=False)
 def currency_list():
     """- List all available currencies from the API"""
-    currencies = sorted(set((obj["symbol"], obj["id"]) for obj in api.currencies), key=itemgetter(0))
-    lst = [
-        '{: <10} {}'.format(symbol, name) for symbol, name in currencies
-    ]
+    currency_map = api.get_crypto_currency_map()
+    currencies = sorted(
+        set((obj.symbol, obj.name) for obj in currency_map.data), key=itemgetter(0)
+    )
+    lst = ['{: <10} {}'.format(symbol, name) for symbol, name in currencies]
     lst.insert(0, 'Symbol     Name')
 
     return "Available currencies: " + web.paste('\n'.join(lst))
