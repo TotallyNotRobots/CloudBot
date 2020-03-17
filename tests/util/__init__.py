@@ -3,6 +3,7 @@ from unittest.mock import patch
 from cloudbot.util.func_utils import call_with_args
 
 __all__ = (
+    'HookResult',
     'wrap_hook_response',
 )
 
@@ -38,7 +39,7 @@ class HookResult:
             ', '.join(
                 '{}={!r}'.format(k, getattr(self, k))
                 for k in ('return_type', 'value', 'data')
-            )
+            ),
         )
 
 

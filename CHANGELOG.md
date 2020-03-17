@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the factoid character in the listfacts output
 ### Changed
 - Cleaned up the timeformat API and implementation (#32)
+- Updated cryptocurrency to new CoinMarketCap API
 ### Fixed
 - Disconnect active vs configured channel lists (#11)
 - Fix reminder tests time based errors
