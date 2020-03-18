@@ -1,7 +1,7 @@
 import importlib
+from unittest.mock import MagicMock
 
 import pytest
-from mock import MagicMock
 
 
 @pytest.mark.parametrize('prefix,items,result', [
@@ -109,7 +109,7 @@ def test_display_scores(mock_db):
 
     assert duckhunt.killers('#channel', event, chan, conn, session) is None
 
-    event.notice_doc.assert_called_once()
+    assert event.notice_doc.call_count == 1
 
 
 def test_ignore_integration():

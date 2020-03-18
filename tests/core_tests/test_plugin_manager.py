@@ -1,9 +1,9 @@
 import asyncio
 import itertools
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
-from mock import MagicMock, patch
 
 from cloudbot import hook
 from cloudbot.plugin import PluginManager

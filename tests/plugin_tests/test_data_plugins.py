@@ -1,8 +1,8 @@
 import asyncio
 import importlib
+from unittest.mock import MagicMock
 
 import pytest
-from mock import MagicMock
 
 from cloudbot.event import CommandEvent, Event
 from cloudbot.util.func_utils import call_with_args
@@ -68,9 +68,9 @@ def _do_test(plugin_name, loader, data_name, cmd, text='test _ data',
 ])
 def test_message_reply(plugin_name, loader, data_name, cmd):
     _, event = _do_test(plugin_name, loader, data_name, cmd, None)
-    event.conn.message.assert_called()
+    assert event.conn.message.called
     _, event = _do_test(plugin_name, loader, data_name, cmd)
-    event.conn.message.assert_called()
+    assert event.conn.message.called
 
 
 @pytest.mark.parametrize('plugin_name,loader,data_name,cmd', [
@@ -80,7 +80,7 @@ def test_message_reply(plugin_name, loader, data_name, cmd):
 ])
 def test_action_reply(plugin_name, loader, data_name, cmd):
     _, event = _do_test(plugin_name, loader, data_name, cmd)
-    event.conn.action.assert_called()
+    assert event.conn.action.called
 
 
 @pytest.mark.parametrize('plugin_name,loader,data_name,cmd', [
@@ -101,11 +101,11 @@ def test_foods(food):
     _, event = _do_test(
         'foods', 'load_foods', 'basic_food_data', food
     )
-    event.conn.action.assert_called()
+    assert event.conn.action.called
     _, event = _do_test(
         'foods', 'load_foods', 'basic_food_data', food, None
     )
-    event.conn.action.assert_called()
+    assert event.conn.action.called
     res, event = _do_test(
         'foods', 'load_foods', 'basic_food_data', food,
         is_nick_valid=lambda *args: False
@@ -123,18 +123,18 @@ def test_attacks(attack):
     )
 
     if attack.response == RespType.ACTION:
-        event.conn.action.assert_called()
+        assert event.conn.action.called
     else:
-        event.conn.message.assert_called()
+        assert event.conn.message.called
 
     _, event = _do_test(
         'attacks', 'load_attacks', 'attack_data', attack.name
     )
 
     if attack.response == RespType.ACTION:
-        event.conn.action.assert_called()
+        assert event.conn.action.called
     else:
-        event.conn.message.assert_called()
+        assert event.conn.message.called
 
     _, event = _do_test(
         'attacks', 'load_attacks', 'attack_data', attack.name, 'yourself',
@@ -142,9 +142,9 @@ def test_attacks(attack):
     )
 
     if attack.response is RespType.ACTION:
-        event.conn.action.assert_called()
+        assert event.conn.action.called
     else:
-        event.conn.message.assert_called()
+        assert event.conn.message.called
 
     if not attack.require_target:
         _, event = _do_test(
@@ -152,9 +152,9 @@ def test_attacks(attack):
         )
 
         if attack.response is RespType.ACTION:  # pragma: no cover
-            event.conn.action.assert_called()
+            assert event.conn.action.called
         else:
-            event.conn.message.assert_called()
+            assert event.conn.message.called
 
     res, event = _do_test(
         'attacks', 'load_attacks', 'attack_data', attack.name,

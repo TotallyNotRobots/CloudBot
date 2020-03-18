@@ -1,10 +1,10 @@
 import importlib
 import re
 from copy import deepcopy
+from unittest.mock import MagicMock
 
 import pytest
 from googlemaps.exceptions import ApiError
-from mock import MagicMock
 
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent

@@ -1,5 +1,6 @@
+from unittest.mock import MagicMock
+
 import pytest
-from mock import MagicMock
 
 from plugins import cypher
 
@@ -47,11 +48,11 @@ def test_encipher_param_error():
     event = MagicMock()
     assert cypher.cypher("", event) is None
 
-    event.notice_doc.assert_called_once()
+    assert event.notice_doc.call_count == 1
 
 
 def test_decipher_param_error():
     event = MagicMock()
     assert cypher.decypher("", event) is None
 
-    event.notice_doc.assert_called_once()
+    assert event.notice_doc.call_count == 1
