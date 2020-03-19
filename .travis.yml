@@ -1,11 +1,11 @@
 language: python
-dist: xenial
 sudo: true
 python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
-  - "pypy3.5"
+- '3.5'
+- '3.6'
+- '3.7'
+- '3.8'
+- 'pypy3.5'
 
 branches:
   only:
@@ -17,31 +17,31 @@ cache: pip
 
 jobs:
   include:
-    - name: py3.5.3
-      before_install:
-        - sudo apt-get install -qy make build-essential libssl-dev zlib1g-dev libbz2-dev
-          libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev
-          xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
-        - deactivate
-        - unset PYENV_ROOT
-        - curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-        - export PATH="$HOME/.pyenv/bin:$PATH"
-        - pyenv update
-        - pyenv install 3.5.3
-        - eval "$(pyenv init -)"
-        - pyenv shell 3.5.3
-        - pyenv rehash
+  - name: py3.5.3
+    before_install:
+    - sudo apt-get install -qy make build-essential libssl-dev zlib1g-dev libbz2-dev
+      libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev
+      xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+    - deactivate
+    - unset PYENV_ROOT
+    - curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+    - export PATH="$HOME/.pyenv/bin:$PATH"
+    - pyenv update
+    - pyenv install 3.5.3
+    - eval "$(pyenv init -)"
+    - pyenv shell 3.5.3
+    - pyenv rehash
 
 install:
-  - "sudo apt-get update -q"
-  - "sudo apt-get install -y python3-lxml libenchant-dev"
-  - "pip install -Ur ./travis/requirements.txt"
+- sudo apt-get update -q
+- sudo apt-get install -y python3-lxml libenchant-dev
+- pip install -Ur ./travis/requirements.txt
 
 script:
-  - "pytest"
+- pytest
 
 after_success:
-  - codecov --required -e PYTHONASYNCIODEBUG
+- codecov --required -e PYTHONASYNCIODEBUG
 
 env:
   - PYTHONPATH=.
