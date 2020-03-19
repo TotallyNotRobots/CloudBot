@@ -1,7 +1,7 @@
 import importlib
+from unittest.mock import MagicMock, patch
 
 from irclib.parser import Prefix
-from mock import MagicMock, patch
 
 
 def test_tellcmd(mock_db):

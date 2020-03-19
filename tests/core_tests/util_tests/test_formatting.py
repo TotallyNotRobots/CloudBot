@@ -2,9 +2,24 @@ from textwrap import dedent
 
 import pytest
 
-from cloudbot.util.formatting import munge, dict_format, strip_colors, truncate, truncate_str, \
-    strip_html, multi_replace, multiword_replace, truncate_words, smart_split, get_text_list, ireplace, chunk_str, \
-    pluralize_suffix, pluralize_auto, gen_markdown_table
+from cloudbot.util.formatting import (
+    chunk_str,
+    dict_format,
+    gen_markdown_table,
+    get_text_list,
+    ireplace,
+    multi_replace,
+    multiword_replace,
+    munge,
+    pluralize_auto,
+    pluralize_suffix,
+    smart_split,
+    strip_colors,
+    strip_html,
+    truncate,
+    truncate_str,
+    truncate_words,
+)
 
 test_munge_input = "The quick brown fox jumps over the lazy dog"
 test_munge_count = 3

@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock
+
 import pytest
 import requests
-from mock import MagicMock
 
 
 def test_shorten(mock_requests):
@@ -10,7 +11,7 @@ def test_shorten(mock_requests):
     with pytest.raises(web.ServiceError):
         shorten.shorten('https://example.com', reply)
 
-    reply.assert_called()
+    assert reply.called
 
     mock_requests.add(
         mock_requests.GET,

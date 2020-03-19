@@ -1,5 +1,6 @@
+from unittest.mock import MagicMock
+
 import pytest
-from mock import MagicMock
 
 
 @pytest.mark.parametrize('text,post_id', [

@@ -1,7 +1,7 @@
 import asyncio
+from unittest.mock import MagicMock
 
 from irclib.parser import Message, Prefix
-from mock import MagicMock
 
 from cloudbot.util.func_utils import call_with_args
 

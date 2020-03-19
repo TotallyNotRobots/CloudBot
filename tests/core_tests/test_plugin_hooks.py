@@ -8,13 +8,19 @@ import re
 from collections import OrderedDict
 from numbers import Number
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
-from mock import patch
 
 import cloudbot.bot
 from cloudbot.event import (
-    CapEvent, CommandEvent, Event, EventType, IrcOutEvent, PostHookEvent, RegexEvent,
+    CapEvent,
+    CommandEvent,
+    Event,
+    EventType,
+    IrcOutEvent,
+    PostHookEvent,
+    RegexEvent,
 )
 from cloudbot.hook import Action
 from cloudbot.plugin import Plugin

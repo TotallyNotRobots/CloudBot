@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock
+
 import pytest
 import requests
-from mock import MagicMock
 
 URL = (
     "http://www.horoscope.com/us/horoscopes/general/"
@@ -60,7 +61,7 @@ def test_invalid_syntax(mock_requests, mock_db):
 
     assert response is None
 
-    event.notice_doc.assert_called_once()
+    assert event.notice_doc.call_count == 1
 
 
 def test_database_read(mock_requests, mock_db):

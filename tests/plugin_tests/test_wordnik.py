@@ -1,8 +1,8 @@
 import json
+from unittest.mock import MagicMock
 
 import pytest
 import requests
-from mock import MagicMock
 
 from cloudbot.bot import bot
 from plugins import wordnik

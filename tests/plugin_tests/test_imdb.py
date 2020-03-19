@@ -1,5 +1,6 @@
 from plugins.imdb import imdb_re
 
+
 def test_imdb_re():
     def match(text):
         return imdb_re.match(text)

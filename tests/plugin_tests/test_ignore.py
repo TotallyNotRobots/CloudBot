@@ -1,5 +1,6 @@
+from unittest.mock import MagicMock
+
 import pytest
-from mock import MagicMock
 
 
 class MockConn:

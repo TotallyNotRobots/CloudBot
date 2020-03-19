@@ -1,9 +1,9 @@
 import codecs
+from unittest.mock import MagicMock
 
 import pytest
 import requests
 from bs4 import BeautifulSoup
-from mock import MagicMock
 from responses import RequestsMock
 
 from plugins.link_announcer import (

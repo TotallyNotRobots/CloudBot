@@ -2,9 +2,9 @@ import datetime
 import importlib
 import time
 from contextlib import contextmanager
+from unittest.mock import MagicMock, call
 
 import pytest
-from mock import MagicMock, call
 
 from cloudbot.util import database
 from plugins import remind
@@ -47,7 +47,7 @@ async def test_invalid_reminder(mock_db, freeze_time, refresh_mods, setup_db):
         "1 day some reminder", "user", "#chan", mock_db, mock_conn, mock_event
     )
 
-    mock_event.notice_doc.assert_called()
+    assert mock_event.notice_doc.called
 
     assert not result
 
