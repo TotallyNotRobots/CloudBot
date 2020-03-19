@@ -5,5 +5,5 @@ responses==0.10.9
 pytest-cov==2.8.1
 pytest-random-order==1.0.4
 pytest-travis-fold==1.3.0
-codecov==2.0.16
+codecov==2.0.22
 -r ../requirements.txt
