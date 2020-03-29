@@ -232,17 +232,26 @@ async def restart(text, bot):
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 async def join(text, conn, nick, notice, admin_log):
-    """<channel> - joins <channel>
+    """<channel> [key] - joins <channel> with the optional [key]
 
     :type text: str
     :type conn: cloudbot.client.Client
+    :type nick: str
     """
-    for target in text.split():
-        if not target.startswith("#"):
-            target = "#{}".format(target)
-        admin_log("{} used JOIN to make me join {}.".format(nick, target))
-        notice("Attempting to join {}...".format(target))
-        conn.join(target)
+    parts = text.split(None, 1)
+    target = parts.pop(0)
+
+    if parts:
+        key = parts.pop(0)
+    else:
+        key = None
+
+    if not target.startswith("#"):
+        target = "#{}".format(target)
+
+    admin_log("{} used JOIN to make me join {}.".format(nick, target))
+    notice("Attempting to join {}...".format(target))
+    conn.join(target, key)
 
 
 def parse_targets(text, chan):
