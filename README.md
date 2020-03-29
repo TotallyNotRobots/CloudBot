@@ -1,8 +1,8 @@
 # CloudBot
-[![Build Status](https://travis-ci.com/TotallyNotRobots/CloudBot.svg?branch=gonzobot)](https://travis-ci.com/TotallyNotRobots/CloudBot) 
-[![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/gonzobot) 
-[![codebeat badge](https://codebeat.co/badges/3e5866e3-fe94-4c92-9dd7-8fbd616bc2ac)](https://codebeat.co/projects/github-com-totallynotrobots-cloudbot-gonzobot) 
-[![codecov](https://codecov.io/gh/TotallyNotRobots/CloudBot/branch/gonzobot/graph/badge.svg)](https://codecov.io/gh/TotallyNotRobots/CloudBot) 
+![Python application](https://github.com/TotallyNotRobots/CloudBot/workflows/Python%20application/badge.svg)
+[![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/gonzobot)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/gonzobot)
+[![codebeat badge](https://codebeat.co/badges/3e5866e3-fe94-4c92-9dd7-8fbd616bc2ac)](https://codebeat.co/projects/github-com-totallynotrobots-cloudbot-gonzobot)
+[![codecov](https://codecov.io/gh/TotallyNotRobots/CloudBot/branch/gonzobot/graph/badge.svg)](https://codecov.io/gh/TotallyNotRobots/CloudBot)
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
 
@@ -64,7 +64,7 @@ See [CHANGELOG.md](CHANGELOG.md)
 CloudBot is **licensed** under the **GPL v3** license. The terms are as follows.
 
 ![GPL V3](https://www.gnu.org/graphics/gplv3-127x51.png)
-    
+
     CloudBot
 
     Copyright © 2011-2015 Luke Rogers / CloudBot Project
@@ -81,7 +81,7 @@ CloudBot is **licensed** under the **GPL v3** license. The terms are as follows.
 
     You should have received a copy of the GNU General Public License
     along with CloudBot.  If not, see <http://www.gnu.org/licenses/>.
-    
+
 This product includes GeoLite2 data created by MaxMind, available from
 <a href="http://www.maxmind.com">http://www.maxmind.com</a>. GeoLite2 databases are distributed under the [Creative Commons Attribution-ShareAlike 3.0 Unported License](https://creativecommons.org/licenses/by-sa/3.0/)
 
