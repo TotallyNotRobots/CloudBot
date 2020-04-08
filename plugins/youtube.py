@@ -1,5 +1,4 @@
 import re
-import time
 
 import isodate
 import requests
