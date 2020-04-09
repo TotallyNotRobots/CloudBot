@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor tests to remove dependency on mock library
 ### Fixed
 - Fix matching exception in horoscope test
+- Fix youtube.py ISO time parse
 
 ## [1.3.0] 2020-03-17
 ### Added

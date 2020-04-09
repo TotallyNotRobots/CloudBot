@@ -1,5 +1,4 @@
 import re
-import time
 
 import isodate
 import requests
@@ -72,9 +71,9 @@ def get_video_description(video_id):
 
     uploader = snippet['channelTitle']
 
-    upload_time = time.strptime(snippet['publishedAt'], "%Y-%m-%dT%H:%M:%S.000Z")
+    upload_time = isodate.parse_datetime(snippet['publishedAt'])
     out += ' - \x02{}\x02 on \x02{}\x02'.format(uploader,
-                                                time.strftime("%Y.%m.%d", upload_time))
+                                                upload_time.strftime("%Y.%m.%d"))
 
     if 'contentRating' in content_details:
         out += ' - \x034NSFW\x02'

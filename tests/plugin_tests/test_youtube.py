@@ -33,7 +33,7 @@ video_data = {
             'etag': '"p4VTdlkQv3HQeTEaXgvLePAydmU/8GTj_EHYgQmPYCDpJbQ4NM6r5B8"',
             'id': 'phL7P6gtZRM',
             'snippet': {
-                'publishedAt': '2019-10-10T15:00:09.000Z',
+                'publishedAt': '2019-10-10T15:00:09Z',
                 'channelId': 'UCRUULstZRWS1lDvJBzHnkXA',
                 'title': 'some title',
                 'description': 'a description',
