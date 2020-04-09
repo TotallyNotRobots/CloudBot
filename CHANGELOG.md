@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Python 3.8 to testing matrix
 ### Changed
 - Refactor tests to remove dependency on mock library
+- Change link_announcer.py to only warn on connection errors
 ### Fixed
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse

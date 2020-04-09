@@ -23,14 +23,14 @@ url_re = re.compile(
     r"""
     https? # Scheme
     ://
-    
+
     # Username and Password
     (?:
         (?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*
         (?::(?:[^\[\]?/<~#`!@$%^&*()=+}|:";',>{\s]|%[0-9A-F]{2})*)?
         @
     )?
-    
+
     # Domain
     (?:
         # TODO Add support for IDNA hostnames as specified by RFC5891
@@ -41,13 +41,13 @@ url_re = re.compile(
         )
         (?<![.,?!\]])  # Invalid end chars
     )
-    
+
     (?::\d*)?  # port
-    
+
     (?:/(?:""" + no_parens(PATH_SEG_CHARS) + r""")*(?<![.,?!\]]))*  # Path segment
-    
+
     (?:\?(?:""" + no_parens(QUERY_CHARS) + r""")*(?<![.,!\]]))?  # Query
-    
+
     (?:\#(?:""" + no_parens(FRAG_CHARS) + r""")*(?<![.,?!\]]))?  # Fragment
     """,
     re.IGNORECASE | re.VERBOSE
@@ -98,8 +98,11 @@ def print_url_title(message, match, logger):
 
             content = r.raw.read(MAX_RECV, decode_content=True)
             encoding = r.encoding
-    except requests.ReadTimeout:
+    except requests.exceptions.ReadTimeout:
         logger.debug("Read timeout reached for %r", match.group())
+        return
+    except requests.ConnectionError:
+        logger.warning("Connection error in link_announcer.py", exc_info=1)
         return
 
     html = parse_content(content, encoding)
