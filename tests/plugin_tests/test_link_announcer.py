@@ -239,3 +239,16 @@ def test_read_timeout(mock_requests):
 def test_change_encoding(body, encoding):
     # ISO-8859-1 is the default encoding requests would return if none is found
     assert parse_content(body, 'ISO-8859-1').original_encoding == encoding
+
+
+def test_connection_error(mock_requests):
+    url = "http://example.com"
+
+    match = url_re.search(url)
+    assert match
+    mck = MagicMock()
+    logger = MagicMock()
+
+    assert print_url_title(match=match, message=mck, logger=logger) is None
+
+    assert logger.warning.called
