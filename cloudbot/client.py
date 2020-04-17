@@ -162,10 +162,11 @@ class Client:
         """
         raise NotImplementedError
 
-    def join(self, channel):
+    def join(self, channel, key=None):
         """
         Joins a given channel
         :type channel: str
+        :type key: str
         """
         raise NotImplementedError
 
