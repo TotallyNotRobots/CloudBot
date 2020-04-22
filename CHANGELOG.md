@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse
+- Fix grammatical error in food sentence (beer)
 
 ## [1.3.0] 2020-03-17
 ### Added
