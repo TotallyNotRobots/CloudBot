@@ -1,14 +1,14 @@
 {
     "templates": [
-        "hands {user} a {size} {container} of {beer}."
+        "hands {user} {size} {container} of {beer}."
     ],
     "parts": {
         "size": [
-            "small",
-            "medium",
-            "large",
-            "enormous",
-            "half-empty"
+            "a small",
+            "a medium",
+            "a large",
+            "an enormous",
+            "a half-empty"
         ],
         "container": [
             "glass",
