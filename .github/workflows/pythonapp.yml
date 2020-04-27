@@ -46,7 +46,7 @@ jobs:
       env:
         PYTHONASYNCIODEBUG: ${{ matrix.asyncio-debug }}
         PYTHONPATH: .
-    - uses: codecov/codecov-action@v1
-      with:
-        name: build-${{ matrix.python-ver}}-${{ matrix.asyncio-debug }}
-        fail_ci_if_error: true
+    - name: Upload coverage
+      run: codecov --required -e PYTHONASYNCIODEBUG
+      env:
+        PYTHONASYNCIODEBUG: ${{ matrix.asyncio-debug }}
