@@ -5,7 +5,7 @@ import requests
 
 from cloudbot import hook
 from cloudbot.bot import bot
-from cloudbot.util import timeformat
+from cloudbot.util import colors, timeformat
 from cloudbot.util.formatting import pluralize_auto
 
 youtube_re = re.compile(r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I)
@@ -75,8 +75,13 @@ def get_video_description(video_id):
     out += ' - \x02{}\x02 on \x02{}\x02'.format(uploader,
                                                 upload_time.strftime("%Y.%m.%d"))
 
-    if 'contentRating' in content_details:
-        out += ' - \x034NSFW\x02'
+    try:
+        yt_rating = content_details['contentRating']['ytRating']
+    except KeyError:
+        pass
+    else:
+        if yt_rating == "ytAgeRestricted":
+            out += colors.parse(' - $(red)NSFW$(reset)')
 
     return out
 
