@@ -1,22 +1,28 @@
 comment:
-  require_changes: yes
+  require_changes: true
 coverage:
   status:
     patch:
       default: false
       tests:
         target: 100%
-        paths: "tests/"
+        paths:
+        - "tests/"
       core:
-        paths: "cloudbot/"
+        paths:
+        - "cloudbot/"
         target: 100%
       plugins:
-        paths: "plugins/"
+        paths:
+        - "plugins/"
     project:
       tests:
         target: 100%
-        paths: "tests/"
+        paths:
+        - "tests/"
       core:
-        paths: "cloudbot/"
+        paths:
+        - "cloudbot/"
       plugins:
-        paths: "plugins/"
+        paths:
+        - "plugins/"
