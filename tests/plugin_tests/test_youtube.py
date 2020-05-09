@@ -159,7 +159,7 @@ class TestGetVideoDescription:
         from plugins import youtube
 
         data = deepcopy(video_data)
-        data['items'][0]['contentDetails']['contentRating'] = "18+"
+        data['items'][0]['contentDetails']['contentRating'] = {"ytRating": "ytAgeRestricted"}
 
         mock_requests.add(
             'GET',
@@ -172,7 +172,7 @@ class TestGetVideoDescription:
             '\x02some title\x02 - length \x0217m 2s\x02 - '
             '4,633 likes, 31 dislikes (\x0299.3\x02%) - '
             '\x0268,905\x02 views - \x02a channel\x02 on \x022019.10.10\x02 - '
-            '\x034NSFW\x02'
+            '\x0304NSFW\x0f'
         )
 
         assert youtube.get_video_description('phL7P6gtZRM') == result
