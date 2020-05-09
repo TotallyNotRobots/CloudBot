@@ -22,6 +22,10 @@ table = Table(
 
 
 def format_user(user):
+    """
+    >>> format_user('someuser')
+    's\u200bomeuser'
+    """
     return '\u200B'.join((user[:1], user[1:]))
 
 
@@ -32,6 +36,10 @@ def filter_tags(tags, artist, limit=4):
      * All lowercase
      * Artist name removed
      * Blacklist of words removed
+
+    >>> filter_tags(['sometag', 'artist', 'seen live', 'Some RaNDoM tAG',
+    ... 'tag5', 'tag6', 'tag7'], 'artist')
+    ['sometag', 'some random tag', 'tag5', 'tag6']
     """
 
     # We never want to see these specific tags
@@ -49,15 +57,15 @@ def filter_tags(tags, artist, limit=4):
     artist = artist.translate(translator).lower()
 
     # Perform the actual filtering, stop when we reach the desired number of tags
-    count = 0
     filtered_tags = []
     for tag in tags:
-        if not tag == artist:
-            if tag not in blacklist:
-                filtered_tags.append(tag)
-        count += 1
-        if count == limit:
-            return filtered_tags
+        if not tag == artist and tag not in blacklist:
+            filtered_tags.append(tag)
+
+        if len(filtered_tags) >= limit:
+            break
+
+    return filtered_tags
 
 
 last_cache = {}
@@ -116,7 +124,7 @@ def get_tags(method, artist, **params):
         for item in tags['toptags']['tag']:
             tag_list.append(item['name'])
 
-    tag_list = filter_tags(tag_list, artist, limit=4)
+    tag_list = filter_tags(tag_list, artist)
 
     return ', '.join(tag_list) if tag_list else 'no tags'
 
@@ -165,27 +173,21 @@ def getartistinfo(artist, user=''):
     return artist
 
 
-def check_key_and_user(nick, text, lookup=False):
+def check_key_and_user(nick, text):
     """
     Verify an API key is set and perform basic user lookups
 
     Used as a prerequisite for multiple API commands
+
     :param nick: The nick of the calling user
     :param text: The text passed to the command, possibly a different username to use
-    :param lookup: Whether to look up `text` as another user's nick in the user table
     :return: The parsed username and any error message that occurred
     """
     api_key = bot.config.get_api_key("lastfm")
     if not api_key:
         return None, "Error: No API key set."
 
-    if text:
-        if lookup:
-            username = get_account(text, text)
-        else:
-            username = text
-    else:
-        username = get_account(nick)
+    username = text or get_account(nick)
 
     if not username:
         return None, "No last.fm username specified and no last.fm username is set in the database."
@@ -194,7 +196,7 @@ def check_key_and_user(nick, text, lookup=False):
 
 
 def _topartists(text, nick, period=None, limit=10):
-    username, err = check_key_and_user(nick, text, True)
+    username, err = check_key_and_user(nick, text)
     if err:
         return err
 
@@ -422,7 +424,7 @@ def lastfmcompare(text, nick):
 @hook.command("ltop", "ltt", autohelp=False)
 def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a last.fm username"""
-    username, err = check_key_and_user(nick, text, True)
+    username, err = check_key_and_user(nick, text)
     if err:
         return err
 
