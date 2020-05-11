@@ -12,7 +12,7 @@ class Bot(MagicMock):
     loop = asyncio.get_event_loop()
 
 
-class TestClient(Client):  # pylint: disable=abstract-method
+class MockClient(Client):  # pylint: disable=abstract-method
     def __init__(self, bot, *args, **kwargs):
         super().__init__(bot, 'TestClient', *args, **kwargs)
         self.active = True
@@ -21,7 +21,7 @@ class TestClient(Client):  # pylint: disable=abstract-method
 
 
 async def test_do_joins():
-    client = TestClient(
+    client = MockClient(
         Bot(), 'foo', 'foobot', channels=['#foo']
     )
     from plugins.core import core_misc

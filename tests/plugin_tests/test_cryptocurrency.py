@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import Dict, List
 from unittest.mock import MagicMock
@@ -239,7 +240,7 @@ def test_schema_unknown_fields():
     input_data = {'a': {'a': 'hello', 'b': 'world'}, 'c': 1}
     with pytest.warns(
         UserWarning,
-        match=r"Unknown fields: \['c'\] while parsing schema 'NestedSchema'",
+        match=re.escape("Unknown fields: ['c'] while parsing schema 'NestedSchema'"),
     ):
         cryptocurrency.read_data(input_data, NestedSchema)
 

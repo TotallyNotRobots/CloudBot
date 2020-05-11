@@ -8,7 +8,7 @@ class Bot(MagicMock):
     loop = asyncio.get_event_loop()
 
 
-class TestClient(Client):  # pylint: disable=abstract-method
+class MockClient(Client):  # pylint: disable=abstract-method
     _connected = False
 
     def __init__(self, bot, *args, **kwargs):
@@ -23,7 +23,7 @@ class TestClient(Client):  # pylint: disable=abstract-method
         self._connected = True
 
 
-class FailingTestClient(TestClient):  # pylint: disable=abstract-method
+class FailingMockClient(MockClient):  # pylint: disable=abstract-method
     def __init__(self, *args, fail_count=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fail_count = fail_count
@@ -35,14 +35,14 @@ class FailingTestClient(TestClient):  # pylint: disable=abstract-method
 
 
 def test_client_no_config():
-    client = TestClient(
+    client = MockClient(
         Bot(), 'foo', 'foobot', channels=['#foo']
     )
     assert client.config.get('a') is None
 
 
 def test_client():
-    client = TestClient(
+    client = MockClient(
         Bot(), 'foo', 'foobot', channels=['#foo'], config={'name': 'foo'}
     )
 
@@ -60,7 +60,7 @@ def test_client():
 
 def test_client_connect_exc():
     with patch('random.randrange', return_value=1):
-        client = FailingTestClient(
+        client = FailingMockClient(
             Bot(), 'foo', 'foobot', channels=['#foo'], config={'name': 'foo'},
             fail_count=1
         )
@@ -68,7 +68,7 @@ def test_client_connect_exc():
 
 
 def test_auto_reconnect():
-    client = TestClient(
+    client = MockClient(
         Bot(), 'foo', 'foobot', channels=['#foo'], config={'name': 'foo'}
     )
 
