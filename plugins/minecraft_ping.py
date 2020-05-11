@@ -1,15 +1,35 @@
 import socket
 
 from mcstatus import MinecraftServer
+from mcstatus.pinger import PingResponse
 
 from cloudbot import hook
+from cloudbot.util import colors
 
-mc_colors = [('\xa7f', '\x0300'), ('\xa70', '\x0301'), ('\xa71', '\x0302'), ('\xa72', '\x0303'),
-             ('\xa7c', '\x0304'), ('\xa74', '\x0305'), ('\xa75', '\x0306'), ('\xa76', '\x0307'),
-             ('\xa7e', '\x0308'), ('\xa7a', '\x0309'), ('\xa73', '\x0310'), ('\xa7b', '\x0311'),
-             ('\xa71', '\x0312'), ('\xa7d', '\x0313'), ('\xa78', '\x0314'), ('\xa77', '\x0315'),
-             ('\xa7l', '\x02'), ('\xa79', '\x0310'), ('\xa7o', ''), ('\xa7m', '\x13'),
-             ('\xa7r', '\x0f'), ('\xa7n', '\x15')]
+mc_colors = [
+    ("\xa7f", "\x0300"),
+    ("\xa70", "\x0301"),
+    ("\xa71", "\x0302"),
+    ("\xa72", "\x0303"),
+    ("\xa7c", "\x0304"),
+    ("\xa74", "\x0305"),
+    ("\xa75", "\x0306"),
+    ("\xa76", "\x0307"),
+    ("\xa7e", "\x0308"),
+    ("\xa7a", "\x0309"),
+    ("\xa73", "\x0310"),
+    ("\xa7b", "\x0311"),
+    ("\xa71", "\x0312"),
+    ("\xa7d", "\x0313"),
+    ("\xa78", "\x0314"),
+    ("\xa77", "\x0315"),
+    ("\xa7l", "\x02"),
+    ("\xa79", "\x0310"),
+    ("\xa7o", ""),
+    ("\xa7m", "\x13"),
+    ("\xa7r", "\x0f"),
+    ("\xa7n", "\x15"),
+]
 
 
 def format_colors(description):
@@ -24,10 +44,10 @@ def mcping(text):
     try:
         server = MinecraftServer.lookup(text)
     except (IOError, ValueError) as e:
-        return e
+        return str(e)
 
     try:
-        s = server.status()
+        s = server.status()  # type: PingResponse
     except socket.gaierror:
         return "Invalid hostname"
     except socket.timeout:
@@ -44,13 +64,10 @@ def mcping(text):
     else:
         description = format_colors(" ".join(s.description.split()))
 
-    # I really hate people for putting colors IN THE VERSION
-    # WTF REALLY THIS IS A THING NOW?
+    output_format = colors.parse(
+        "{}$(clear) - $(bold){}$(clear) - $(bold){:.1f}ms$(clear) - $(bold){}/{}$(clear) players"
+    )
 
-    if s.latency:
-        return "{}\x0f - \x02{}\x0f - \x02{:.1f}ms\x02" \
-               " - \x02{}/{}\x02 players".format(description, s.version.name_clean, s.latency,
-                                                 s.players.online, s.players.max).replace("\n", "\x0f - ")
-    return "{}\x0f - \x02{}\x0f" \
-           " - \x02{}/{}\x02 players".format(description, s.version.name_clean,
-                                             s.players.online, s.players.max).replace("\n", "\x0f - ")
+    return output_format.format(
+        description, s.version.name, s.latency, s.players.online, s.players.max
+    ).replace("\n", colors.parse("$(clear) - "))

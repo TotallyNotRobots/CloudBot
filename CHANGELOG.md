@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor tests to remove dependency on mock library
 - Change link_announcer.py to only warn on connection errors
 - Change user lookup logic in last.fm plugin
+- Refactor minecraft_ping plugin for updated mcstatus library
 ### Fixed
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse
