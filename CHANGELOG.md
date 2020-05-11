@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix grammatical error in food sentence (beer)
 - Update youtube plugin to use proper contentRating API
 - Update mylife.py for website changes
+- Fixed handling of colons in core IRC parser
 ### Removed
 - twitch.py removed due to outdated API and lack of maintainer
 

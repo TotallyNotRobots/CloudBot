@@ -2,6 +2,7 @@ import concurrent.futures
 import enum
 import logging
 from functools import partial
+from typing import Any, Iterator, Mapping
 
 from irclib.parser import Message
 
@@ -20,7 +21,7 @@ class EventType(enum.Enum):
     other = 6
 
 
-class Event:
+class Event(Mapping[str, Any]):
     """
     :type bot: cloudbot.bot.CloudBot
     :type conn: cloudbot.client.Client
@@ -38,7 +39,7 @@ class Event:
     :type irc_raw: str
     :type irc_prefix: str
     :type irc_command: str
-    :type irc_paramlist: str
+    :type irc_paramlist: list[str]
     :type irc_ctcp_text: str
     """
 
@@ -134,6 +135,18 @@ class Event:
             self.irc_command = irc_command
             self.irc_paramlist = irc_paramlist
             self.irc_ctcp_text = irc_ctcp_text
+
+    def __len__(self) -> int:
+        return len(self.__dict__)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.__dict__)
+
+    def __getitem__(self, item: str) -> Any:
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            raise KeyError(item)
 
     async def prepare(self):
         """
@@ -382,12 +395,6 @@ class Event:
         :return: Whether or not it is valid
         """
         return self.conn.is_nick_valid(nick)
-
-    def __getitem__(self, item):
-        try:
-            return getattr(self, item)
-        except AttributeError:
-            raise KeyError(item)
 
 
 class CommandEvent(Event):

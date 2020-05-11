@@ -13,3 +13,4 @@ def test_event_copy():
     assert event.conn is new_event.conn
     assert event.hook is new_event.hook
     assert event.nick is new_event.nick
+    assert len(event) == 19
