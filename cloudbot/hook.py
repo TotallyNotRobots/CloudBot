@@ -117,7 +117,7 @@ class _RegexHook(_Hook):
             # we only use regex.search anyways, so this is a good determiner
             self.regexes.append(regex_param)
         else:
-            assert isinstance(regex_param, collections.Iterable)
+            assert isinstance(regex_param, collections.abc.Iterable)
             # if the parameter is a list, add each one
             for re_to_match in regex_param:
                 if isinstance(re_to_match, str):
