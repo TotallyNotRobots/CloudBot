@@ -8,14 +8,15 @@ from cloudbot.bot import bot
 from cloudbot.util import colors, timeformat
 from cloudbot.util.formatting import pluralize_auto
 
-youtube_re = re.compile(r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I)
+youtube_re = re.compile(
+    r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I
+)
 
 base_url = 'https://www.googleapis.com/youtube/v3/'
 api_url = base_url + 'videos?part=contentDetails%2C+snippet%2C+statistics&id={}&key={}'
 search_api_url = base_url + 'search?part=id&maxResults=1'
 playlist_api_url = base_url + 'playlists?part=snippet%2CcontentDetails%2Cstatus'
 video_url = "http://youtu.be/%s"
-err_no_api = "The YouTube API is off in the Google Developers Console."
 
 
 class APIError(Exception):
@@ -25,16 +26,41 @@ class APIError(Exception):
         self.response = response
 
 
+class NoApiKeyError(APIError):
+    def __init__(self):
+        super().__init__("Missing API key")
+
+
+class NoResultsError(APIError):
+    def __init__(self):
+        super().__init__("No results")
+
+
+def handle_api_errors(response):
+    try:
+        response.raise_for_status()
+    except requests.RequestException as e:
+        try:
+            data = response.json()
+        except ValueError:
+            raise e
+
+        errors = data.get('errors')
+        if not errors:
+            return
+
+        first_error = errors[0]
+        domain = first_error['domain']
+        reason = first_error['reason']
+        raise APIError("API Error ({}/{})".format(domain, reason), data) from e
+
+
 def get_video_description(video_id):
     dev_key = bot.config.get_api_key("google_dev_key")
     request = requests.get(api_url.format(video_id, dev_key))
     json = request.json()
 
-    if json.get('error'):
-        if json['error']['code'] == 403:
-            raise APIError(err_no_api, json)
-
-        raise APIError("Unknown error", json)
+    handle_api_errors(request)
 
     data = json['items']
     if not data:
@@ -50,7 +76,9 @@ def get_video_description(video_id):
         return out
 
     length = isodate.parse_duration(content_details['duration'])
-    out += ' - length \x02{}\x02'.format(timeformat.format_time(int(length.total_seconds()), simple=True))
+    out += ' - length \x02{}\x02'.format(
+        timeformat.format_time(int(length.total_seconds()), simple=True)
+    )
     try:
         total_votes = float(statistics['likeCount']) + float(statistics['dislikeCount'])
     except (LookupError, ValueError):
@@ -62,18 +90,18 @@ def get_video_description(video_id):
         dislikes = pluralize_auto(int(statistics['dislikeCount']), "dislike")
 
         percent = 100 * float(statistics['likeCount']) / total_votes
-        out += ' - {}, {} (\x02{:.1f}\x02%)'.format(likes,
-                                                    dislikes, percent)
+        out += ' - {}, {} (\x02{:.1f}\x02%)'.format(likes, dislikes, percent)
 
     if 'viewCount' in statistics:
         views = int(statistics['viewCount'])
-        out += ' - \x02{:,}\x02 view{}'.format(views, "s"[views == 1:])
+        out += ' - \x02{:,}\x02 view{}'.format(views, "s"[views == 1 :])
 
     uploader = snippet['channelTitle']
 
     upload_time = isodate.parse_datetime(snippet['publishedAt'])
-    out += ' - \x02{}\x02 on \x02{}\x02'.format(uploader,
-                                                upload_time.strftime("%Y.%m.%d"))
+    out += ' - \x02{}\x02 on \x02{}\x02'.format(
+        uploader, upload_time.strftime("%Y.%m.%d")
+    )
 
     try:
         yt_rating = content_details['contentRating']['ytRating']
@@ -86,31 +114,27 @@ def get_video_description(video_id):
     return out
 
 
-def get_video_id(reply, text):
+def get_video_id(text):
     dev_key = bot.config.get_api_key('google_dev_key')
     if not dev_key:
-        return None, "This command requires a Google Developers Console API key."
+        raise NoApiKeyError()
 
     try:
-        request = requests.get(search_api_url, params={'q': text, 'key': dev_key, 'type': 'video'})
-        request.raise_for_status()
-    except Exception:
-        reply("Error performing search.")
-        raise
+        request = requests.get(
+            search_api_url, params={'q': text, 'key': dev_key, 'type': 'video'}
+        )
+    except requests.RequestException as e:
+        raise APIError("Unable to connect to API") from e
 
     json = request.json()
 
-    if json.get('error'):
-        if json['error']['code'] == 403:
-            return None, err_no_api
-
-        return None, "Error performing search."
+    handle_api_errors(request)
 
     if not json.get('items'):
-        return None, "No results found."
+        raise NoResultsError()
 
     video_id = json['items'][0]['id']['videoId']
-    return video_id, None
+    return video_id
 
 
 @hook.regex(youtube_re)
@@ -121,11 +145,8 @@ def youtube_url(match):
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text, reply):
     """<query> - Returns the first YouTube search result for <query>."""
-    video_id, err = get_video_id(reply, text)
-    if err:
-        return err
-
     try:
+        video_id = get_video_id(text)
         return get_video_description(video_id) + " - " + video_url % video_id
     except APIError as e:
         reply(e.message)
@@ -135,18 +156,17 @@ def youtube(text, reply):
 @hook.command("youtime", "ytime")
 def youtime(text, reply):
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
-    video_id, err = get_video_id(reply, text)
-    if err:
-        return err
-
     dev_key = bot.config.get_api_key('google_dev_key')
-    request = requests.get(api_url.format(video_id, dev_key))
-    request.raise_for_status()
+    try:
+        video_id = get_video_id(text)
+        request = requests.get(api_url.format(video_id, dev_key))
+        handle_api_errors(request)
+    except APIError as e:
+        reply(e.message)
+        raise
 
     json = request.json()
 
-    if json.get('error'):
-        return
     data = json['items']
     snippet = data[0]['snippet']
     content_details = data[0]['contentDetails']
@@ -163,36 +183,31 @@ def youtime(text, reply):
     length_text = timeformat.format_time(l_sec, simple=True)
     total_text = timeformat.format_time(total, accuracy=8)
 
-    return 'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for ' \
-           'a total run time of {}!'.format(snippet['title'], length_text, views,
-                                            total_text)
+    return (
+        'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for '
+        'a total run time of {}!'.format(
+            snippet['title'], length_text, views, total_text
+        )
+    )
 
 
-ytpl_re = re.compile(r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I)
+ytpl_re = re.compile(
+    r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I
+)
 
 
 @hook.regex(ytpl_re)
-def ytplaylist_url(match, reply):
+def ytplaylist_url(match):
     location = match.group(4).split("=")[-1]
     dev_key = bot.config.get_api_key("google_dev_key")
-    try:
-        request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
-        request.raise_for_status()
-    except Exception:
-        reply("Error looking up playlist.")
-        raise
+    request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
+    handle_api_errors(request)
 
     json = request.json()
 
-    if json.get('error'):
-        if json['error']['code'] == 403:
-            return err_no_api
-
-        return 'Error looking up playlist.'
-
     data = json['items']
     if not data:
-        return "No results found."
+        return
 
     snippet = data[0]['snippet']
     content_details = data[0]['contentDetails']
@@ -200,5 +215,5 @@ def ytplaylist_url(match, reply):
     title = snippet['title']
     author = snippet['channelTitle']
     num_videos = int(content_details['itemCount'])
-    count_videos = ' - \x02{:,}\x02 video{}'.format(num_videos, "s"[num_videos == 1:])
+    count_videos = ' - \x02{:,}\x02 video{}'.format(num_videos, "s"[num_videos == 1 :])
     return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)

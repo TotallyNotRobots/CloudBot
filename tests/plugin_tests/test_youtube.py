@@ -79,11 +79,14 @@ class TestGetVideoDescription:
             'GET',
             self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
-            json={'error': {'code': 403}},
+            json={
+                'error': {'code': 500},
+                'errors': [{'domain': 'foo', 'reason': 'bar'}],
+            },
             status=403,
         )
 
-        with pytest.raises(youtube.APIError, match="YouTube API is off"):
+        with pytest.raises(youtube.APIError, match="API Error (foo/bar)"):
             youtube.get_video_description('foobar')
 
     def test_http_error(self, mock_requests, mock_api_keys):
@@ -93,7 +96,10 @@ class TestGetVideoDescription:
             'GET',
             self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
-            json={'error': {'code': 500}},
+            json={
+                'error': {'code': 500},
+                'errors': [{'domain': 'foo', 'reason': 'bar'}],
+            },
             status=500,
         )
 
@@ -159,7 +165,9 @@ class TestGetVideoDescription:
         from plugins import youtube
 
         data = deepcopy(video_data)
-        data['items'][0]['contentDetails']['contentRating'] = {"ytRating": "ytAgeRestricted"}
+        data['items'][0]['contentDetails']['contentRating'] = {
+            "ytRating": "ytAgeRestricted"
+        }
 
         mock_requests.add(
             'GET',
@@ -208,7 +216,10 @@ class TestGetVideoDescription:
             'GET',
             self.api_url.format(id='foobar', key='APIKEY'),
             match_querystring=True,
-            json={'error': {'code': 500}},
+            json={
+                'error': {'code': 500},
+                'errors': [{'domain': 'foo', 'reason': 'bar'}],
+            },
             status=500,
         )
 
@@ -217,4 +228,4 @@ class TestGetVideoDescription:
         with pytest.raises(youtube.APIError):
             youtube.youtube('test video', reply)
 
-        reply.assert_called_with("Unknown error")
+        reply.assert_called_with('API Error (foo/bar)')
