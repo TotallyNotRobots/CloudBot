@@ -1,4 +1,5 @@
 import re
+from typing import Iterable, Mapping, Match, Optional, Union
 
 import isodate
 import requests
@@ -6,37 +7,37 @@ import requests
 from cloudbot import hook
 from cloudbot.bot import bot
 from cloudbot.util import colors, timeformat
-from cloudbot.util.formatting import pluralize_auto
+from cloudbot.util.formatting import pluralize_suffix
 
 youtube_re = re.compile(
     r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I
 )
+ytpl_re = re.compile(
+    r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I
+)
+
 
 base_url = 'https://www.googleapis.com/youtube/v3/'
-api_url = base_url + 'videos?part=contentDetails%2C+snippet%2C+statistics&id={}&key={}'
-search_api_url = base_url + 'search?part=id&maxResults=1'
-playlist_api_url = base_url + 'playlists?part=snippet%2CcontentDetails%2Cstatus'
-video_url = "http://youtu.be/%s"
 
 
 class APIError(Exception):
-    def __init__(self, message, response=None):
+    def __init__(self, message: str, response: Optional[str] = None) -> None:
         super().__init__(message)
         self.message = message
         self.response = response
 
 
 class NoApiKeyError(APIError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Missing API key")
 
 
 class NoResultsError(APIError):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("No results")
 
 
-def handle_api_errors(response):
+def raise_api_errors(response: requests.Response) -> None:
     try:
         response.raise_for_status()
     except requests.RequestException as e:
@@ -55,20 +56,59 @@ def handle_api_errors(response):
         raise APIError("API Error ({}/{})".format(domain, reason), data) from e
 
 
-def get_video_description(video_id):
-    dev_key = bot.config.get_api_key("google_dev_key")
-    request = requests.get(api_url.format(video_id, dev_key))
-    json = request.json()
+def make_short_url(video_id: str) -> str:
+    return "http://youtu.be/{}".format(video_id)
 
-    handle_api_errors(request)
+
+ParamValues = Union[int, str]
+ParamMap = Mapping[str, ParamValues]
+Parts = Iterable[str]
+
+
+def do_request(
+    method: str, parts: Parts, params: Optional[ParamMap] = None, **kwargs: ParamValues
+) -> requests.Response:
+    api_key = bot.config.get_api_key("google_dev_key")
+    if not api_key:
+        raise NoApiKeyError()
+
+    if params:
+        kwargs.update(params)
+
+    kwargs['part'] = ','.join(parts)
+    kwargs['key'] = api_key
+    return requests.get(base_url + method, kwargs)
+
+
+def get_video(video_id: str, parts: Parts) -> requests.Response:
+    return do_request('videos', parts, params={'maxResults': 1, 'id': video_id})
+
+
+def get_playlist(playlist_id: str, parts: Parts) -> requests.Response:
+    return do_request('playlists', parts, params={'maxResults': 1, 'id': playlist_id})
+
+
+def do_search(term: str, result_type: str = 'video') -> requests.Response:
+    return do_request(
+        'search', ['snippet'], params={'maxResults': 1, 'q': term, 'type': result_type}
+    )
+
+
+def get_video_description(video_id: str) -> str:
+    parts = ['statistics', 'contentDetails', 'snippet']
+    request = get_video(video_id, parts)
+    raise_api_errors(request)
+
+    json = request.json()
 
     data = json['items']
     if not data:
-        return None
+        raise NoResultsError()
 
-    snippet = data[0]['snippet']
-    statistics = data[0]['statistics']
-    content_details = data[0]['contentDetails']
+    item = data[0]
+    snippet = item['snippet']
+    statistics = item['statistics']
+    content_details = item['contentDetails']
 
     out = '\x02{}\x02'.format(snippet['title'])
 
@@ -86,8 +126,8 @@ def get_video_description(video_id):
 
     if total_votes != 0:
         # format
-        likes = pluralize_auto(int(statistics['likeCount']), "like")
-        dislikes = pluralize_auto(int(statistics['dislikeCount']), "dislike")
+        likes = pluralize_suffix(int(statistics['likeCount']), "like")
+        dislikes = pluralize_suffix(int(statistics['dislikeCount']), "dislike")
 
         percent = 100 * float(statistics['likeCount']) / total_votes
         out += ' - {}, {} (\x02{:.1f}\x02%)'.format(likes, dislikes, percent)
@@ -114,53 +154,50 @@ def get_video_description(video_id):
     return out
 
 
-def get_video_id(text):
-    dev_key = bot.config.get_api_key('google_dev_key')
-    if not dev_key:
-        raise NoApiKeyError()
-
+def get_video_id(text: str) -> str:
     try:
-        request = requests.get(
-            search_api_url, params={'q': text, 'key': dev_key, 'type': 'video'}
-        )
+        request = do_search(text)
     except requests.RequestException as e:
         raise APIError("Unable to connect to API") from e
 
+    raise_api_errors(request)
     json = request.json()
-
-    handle_api_errors(request)
 
     if not json.get('items'):
         raise NoResultsError()
 
-    video_id = json['items'][0]['id']['videoId']
+    video_id = json['items'][0]['id']['videoId']  # type: str
     return video_id
 
 
 @hook.regex(youtube_re)
-def youtube_url(match):
+def youtube_url(match: Match[str]) -> str:
     return get_video_description(match.group(1))
 
 
 @hook.command("youtube", "you", "yt", "y")
-def youtube(text, reply):
+def youtube(text: str, reply) -> str:
     """<query> - Returns the first YouTube search result for <query>."""
     try:
         video_id = get_video_id(text)
-        return get_video_description(video_id) + " - " + video_url % video_id
+        return get_video_description(video_id) + " - " + make_short_url(video_id)
+    except NoResultsError as e:
+        return e.message
     except APIError as e:
         reply(e.message)
         raise
 
 
 @hook.command("youtime", "ytime")
-def youtime(text, reply):
+def youtime(text: str, reply) -> str:
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
-    dev_key = bot.config.get_api_key('google_dev_key')
+    parts = ['statistics', 'contentDetails', 'snippet']
     try:
         video_id = get_video_id(text)
-        request = requests.get(api_url.format(video_id, dev_key))
-        handle_api_errors(request)
+        request = get_video(video_id, parts)
+        raise_api_errors(request)
+    except NoResultsError as e:
+        return e.message
     except APIError as e:
         reply(e.message)
         raise
@@ -168,14 +205,16 @@ def youtime(text, reply):
     json = request.json()
 
     data = json['items']
-    snippet = data[0]['snippet']
-    content_details = data[0]['contentDetails']
-    statistics = data[0]['statistics']
+    item = data[0]
+    snippet = item['snippet']
+    content_details = item['contentDetails']
+    statistics = item['statistics']
 
-    if not content_details.get('duration'):
-        return
+    duration = content_details.get('duration')
+    if not duration:
+        return "Missing duration in API response"
 
-    length = isodate.parse_duration(content_details['duration'])
+    length = isodate.parse_duration(duration)
     l_sec = int(length.total_seconds())
     views = int(statistics['viewCount'])
     total = int(l_sec * views)
@@ -191,26 +230,21 @@ def youtime(text, reply):
     )
 
 
-ytpl_re = re.compile(
-    r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I
-)
-
-
 @hook.regex(ytpl_re)
-def ytplaylist_url(match):
+def ytplaylist_url(match: Match[str]) -> str:
     location = match.group(4).split("=")[-1]
-    dev_key = bot.config.get_api_key("google_dev_key")
-    request = requests.get(playlist_api_url, params={"id": location, "key": dev_key})
-    handle_api_errors(request)
+    request = get_playlist(location, ['contentDetails', 'snippet'])
+    raise_api_errors(request)
 
     json = request.json()
 
     data = json['items']
     if not data:
-        return
+        raise NoResultsError()
 
-    snippet = data[0]['snippet']
-    content_details = data[0]['contentDetails']
+    item = data[0]
+    snippet = item['snippet']
+    content_details = item['contentDetails']
 
     title = snippet['title']
     author = snippet['channelTitle']

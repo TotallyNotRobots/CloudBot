@@ -67,26 +67,18 @@ video_data = {
 
 class TestGetVideoDescription:
     base_url = 'https://www.googleapis.com/youtube/v3/'
+    "videos?maxResults=1&id=phL7P6gtZRM&parts=statistics%2CcontentDetails%2Csnippet&key=APIKEY"
     api_url = base_url + (
-        'videos?part=contentDetails%2C+snippet%2C+statistics&id={id}&key={key}'
+        'videos?maxResults=1&id={id}&part=statistics%2CcontentDetails%2Csnippet&key={key}'
     )
     search_api_url = base_url + 'search?part=id&maxResults=1'
 
     def test_no_key(self, mock_requests, mock_api_keys):
         from plugins import youtube
 
-        mock_requests.add(
-            'GET',
-            self.api_url.format(id='foobar', key='APIKEY'),
-            match_querystring=True,
-            json={
-                'error': {'code': 500},
-                'errors': [{'domain': 'foo', 'reason': 'bar'}],
-            },
-            status=403,
-        )
+        bot.config.get_api_key.return_value = None
 
-        with pytest.raises(youtube.APIError, match="API Error (foo/bar)"):
+        with pytest.raises(youtube.NoApiKeyError):
             youtube.get_video_description('foobar')
 
     def test_http_error(self, mock_requests, mock_api_keys):
@@ -103,7 +95,7 @@ class TestGetVideoDescription:
             status=500,
         )
 
-        with pytest.raises(youtube.APIError, match="Unknown error"):
+        with pytest.raises(youtube.APIError, match=r'API Error \(foo/bar\)'):
             youtube.get_video_description('foobar')
 
     def test_success(self, mock_requests, mock_api_keys):
@@ -198,7 +190,8 @@ class TestGetVideoDescription:
             json=data,
         )
 
-        assert youtube.get_video_description('phL7P6gtZRM') is None
+        with pytest.raises(youtube.NoResultsError):
+            youtube.get_video_description('phL7P6gtZRM')
 
     def test_command_error_reply(self, mock_requests, mock_api_keys):
         from plugins import youtube
