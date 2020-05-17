@@ -106,7 +106,7 @@ def welcome(nick, message, bot, chan):
 
     greet = herald_cache[chan.casefold()].get(nick.casefold())
     if greet:
-        stripped = greet.translate(dict.fromkeys(["\u200b", " ", "\u202f", "\x02"]))
+        stripped = greet.translate(dict.fromkeys(map(ord, ["\u200b", " ", "\u202f", "\x02"])))
         stripped = colors_re.sub("", stripped)
         greet = re.sub(bino_re, 'flenny', greet)
         greet = re.sub(offensive_re, ' freespeech oppression ', greet)
