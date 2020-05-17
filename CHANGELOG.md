@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix grammatical error in food sentence (beer)
 - Update youtube plugin to use proper contentRating API
 - Update mylife.py for website changes
+### Removed
+- twitch.py removed due to outdated API and lack of maintainer
 
 ## [1.3.0] 2020-03-17
 ### Added
