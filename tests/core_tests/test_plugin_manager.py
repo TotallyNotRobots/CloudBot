@@ -7,6 +7,7 @@ import pytest
 
 from cloudbot import hook
 from cloudbot.plugin import PluginManager
+from tests.util.mock_module import MockModule
 
 
 @pytest.fixture()
@@ -28,11 +29,6 @@ def mock_bot():
 def mock_manager(mock_bot):
     mock_bot.plugin_manager = mgr = PluginManager(mock_bot)
     yield mgr
-
-
-class MockModule:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
 
 
 def test_get_plugin(mock_manager):
