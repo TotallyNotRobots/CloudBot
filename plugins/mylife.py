@@ -12,7 +12,7 @@ fml_cache = []
 @hook.on_start()
 async def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
-    url = "http://www.fmylife.com/random/"
+    url = "http://www.fmylife.com/random"
     _func = functools.partial(requests.get, url, timeout=6)
     request = await loop.run_in_executor(None, _func)
     soup = parse_soup(request.text)

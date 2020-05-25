@@ -10,7 +10,7 @@ from plugins import mylife
 async def test_mylife(mock_requests):
     mock_requests.add(
         "GET",
-        "http://www.fmylife.com/random/",
+        "http://www.fmylife.com/random",
         body="""\
 <!DOCTYPE html>
 <html lang="us">
