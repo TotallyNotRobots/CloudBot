@@ -16,8 +16,8 @@ sys.path.insert(0, str(install_dir))
 os.chdir(str(install_dir))
 
 # import bot
-from cloudbot.bot import CloudBot
-from cloudbot.util import async_util
+from cloudbot.bot import CloudBot  # isort:skip
+from cloudbot.util import async_util  # isort:skip
 
 
 def main():
