@@ -1,6 +1,6 @@
 {
     "templates": [
-        "{method} {user} a {flavor} {size} {type} cake and serves it with a small {side}!"
+        "{method} {user} a {flavor} {size} {type} cake and serves it with a {sidesize} {side}!"
     ],
     "parts": {
         "method": [
@@ -43,6 +43,16 @@
             "Stack",
             "Welsh",
             "Yokan"
+        ],
+        "sidesize": [
+            "small",
+            "large",
+            "extra large",
+            "godlike",
+            "impressively large",
+            "impressively small",
+            "minute",
+            "microscopic"
         ],
         "side": [
             "glass of chocolate milk",
