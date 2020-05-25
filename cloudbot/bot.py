@@ -419,4 +419,6 @@ class CloudBot:
         tasks.sort(key=lambda t: t[0].priority)
 
         for _hook, _event in tasks:
-            async_util.wrap_future(self.plugin_manager.launch(_hook, _event))
+            async_util.wrap_future(
+                self.plugin_manager.launch(_hook, _event), loop=self.loop
+            )

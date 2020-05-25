@@ -46,7 +46,7 @@ class TestLineParsing:
                 task.cancel()
 
         try:
-            conn.loop.run_until_complete(asyncio.gather(*tasks))
+            conn.loop.run_until_complete(asyncio.gather(*tasks, loop=conn.loop))
         except CancelledError:
             if not cancel:
                 raise  # pragma: no cover
@@ -61,7 +61,7 @@ class TestLineParsing:
         conn.loop = asyncio.get_event_loop_policy().new_event_loop()
         out = []
 
-        async def func(e):
+        def func(e):
             out.append(self._filter_event(e))
 
         conn.bot.process = func
@@ -132,6 +132,8 @@ class TestLineParsing:
         )
 
         self.wait_tasks(conn)
+
+        assert len(out) == 2
 
         assert out == [
             {
