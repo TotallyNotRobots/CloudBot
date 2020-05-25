@@ -47,7 +47,12 @@
         "sidesize": [
             "small",
             "large",
-            "extra large"
+            "extra large",
+            "godlike",
+            "impressively large",
+            "impressively small",
+            "minute",
+            "microscopic"
         ],
         "side": [
             "glass of chocolate milk",
