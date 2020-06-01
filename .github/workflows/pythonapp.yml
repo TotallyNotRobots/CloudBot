@@ -31,7 +31,7 @@ jobs:
         path: ~/.cache/pip
         key: ${{ runner.os }}-${{ matrix.python-ver }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-${{ matrix.python-ver }}-pip-
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libenchant-dev libxml2-dev libxslt1-dev
     - name: Install dependencies
