@@ -11,6 +11,4 @@ jobs:
     - uses: actions/checkout@v2
     - run: |
         git fetch --all
-        git checkout gonzobot
-        git checkout master
-        git push origin master:gonzobot
+        git push -f origin master:gonzobot
