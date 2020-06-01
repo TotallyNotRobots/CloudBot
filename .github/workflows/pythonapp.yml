@@ -5,10 +5,10 @@ name: Python application
 on:
   push:
     branches:
-    - gonzobot
+    - master
   pull_request:
     branches:
-    - gonzobot
+    - master
 jobs:
   build:
     strategy:

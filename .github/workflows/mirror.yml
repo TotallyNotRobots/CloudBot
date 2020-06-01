@@ -1,0 +1,13 @@
+name: Mirror to gonzobot branch
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run a one-line script
+      run: git push origin master:gonzobot
