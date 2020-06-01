@@ -21,7 +21,7 @@ This project uses [pre-commit]
 
 ## Submit Changes
 1. Push your changes to a topic branch in your fork of the repository.
-2. Open a pull request to the original repository and choose the `gonzobot` branch.
+2. Open a pull request to the original repository and choose the `master` branch.
 3. Correct any issues shown by the automated checks
 4. Join the [IRC channel] if you have any questions or concerns, or if you just want to talk with other devs
 

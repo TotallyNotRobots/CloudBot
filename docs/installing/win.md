@@ -15,7 +15,7 @@ If that doesn't work, follow [this guide](http://simpledeveloper.com/how-to-inst
 
 ### Downloading
 
-Download CloudBot from [https://github.com/TotallyNotRobots/CloudBot/zipball/gonzobot.zip](https://github.com/TotallyNotRobots/CloudBot/archive/gonzobot.zip).
+Download CloudBot from [https://github.com/TotallyNotRobots/CloudBot/archive/master.zip](https://github.com/TotallyNotRobots/CloudBot/archive/master.zip).
 
 Unzip the resulting file, and continue to read this document.
 
