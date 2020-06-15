@@ -26,12 +26,16 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
     """
     Handle config ACLs
     """
+    if event.chan is None:
+        return event
+
     conn = event.conn
 
     # check acls
     acl = conn.config.get("acls", {}).get(_hook.function_name, {})
     allowlist = acl.get("deny-except")
     denylist = acl.get("allow-except")
+
     chan = event.chan.lower()
     if allowlist is not None:
         allowed_channels = list(map(str.lower, allowlist))
