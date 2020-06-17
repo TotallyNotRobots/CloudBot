@@ -1,3 +1,7 @@
+import json
+import logging
+import logging.config
+import os
 import sys
 
 # check python version
@@ -5,13 +9,9 @@ if sys.version_info < (3, 5, 3):
     print("CloudBot requires Python 3.5.3 or newer.")
     sys.exit(1)
 
-import json
-import logging.config
-import logging
-import os
 
 version = (1, 3, 0)
-__version__ = '.'.join(str(i) for i in version)
+__version__ = ".".join(str(i) for i in version)
 
 __all__ = (
     "clients",
@@ -52,7 +52,9 @@ def _setup():
         logging_config = {}
 
     file_log = logging_config.get("file_log", False)
-    console_level = "INFO" if logging_config.get("console_log_info", True) else "WARNING"
+    console_level = (
+        "INFO" if logging_config.get("console_log_info", True) else "WARNING"
+    )
 
     logging_info.dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
 
@@ -60,32 +62,31 @@ def _setup():
 
     logging.captureWarnings(True)
 
+    logger_names = ["cloudbot", "plugins"]
+
     dict_config = {
         "version": 1,
         "formatters": {
             "brief": {
                 "format": "[%(asctime)s] [%(levelname)s] %(message)s",
-                "datefmt": "%H:%M:%S"
+                "datefmt": "%H:%M:%S",
             },
             "full": {
                 "format": "[%(asctime)s] [%(levelname)s] %(message)s",
-                "datefmt": "%Y-%m-%d][%H:%M:%S"
-            }
+                "datefmt": "%Y-%m-%d][%H:%M:%S",
+            },
         },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "brief",
                 "level": console_level,
-                "stream": "ext://sys.stdout"
+                "stream": "ext://sys.stdout",
             }
         },
         "loggers": {
-            "cloudbot": {
-                "level": "DEBUG",
-                "handlers": ["console"]
-            }
-        }
+            name: {"level": "DEBUG", "handlers": ["console"]} for name in logger_names
+        },
     }
 
     if file_log:
@@ -96,17 +97,15 @@ def _setup():
             "formatter": "full",
             "level": "INFO",
             "encoding": "utf-8",
-            "filename": logging_info.add_path("bot.log")
+            "filename": logging_info.add_path("bot.log"),
         }
 
-        dict_config["loggers"]["cloudbot"]["handlers"].append("file")
+        for name in logger_names:
+            dict_config["loggers"][name]["handlers"].append("file")
 
     if logging_config.get("console_debug", False):
         dict_config["handlers"]["console"]["level"] = "DEBUG"
-        dict_config["loggers"]["asyncio"] = {
-            "level": "DEBUG",
-            "handlers": ["console"]
-        }
+        dict_config["loggers"]["asyncio"] = {"level": "DEBUG", "handlers": ["console"]}
         if file_log:
             dict_config["loggers"]["asyncio"]["handlers"].append("file")
 
@@ -118,9 +117,10 @@ def _setup():
             "formatter": "full",
             "encoding": "utf-8",
             "level": "DEBUG",
-            "filename": logging_info.add_path("debug.log")
+            "filename": logging_info.add_path("debug.log"),
         }
-        dict_config["loggers"]["cloudbot"]["handlers"].append("debug_file")
+        for name in logger_names:
+            dict_config["loggers"][name]["handlers"].append("debug_file")
 
     logging.config.dictConfig(dict_config)
 
