@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
@@ -99,6 +100,11 @@ def test_check_acls(config, allowed) -> None:
         assert res is None
 
 
+def test_check_acls_no_chan() -> None:
+    event = make_command_event(chan=None)
+    assert core_sieve.check_acls(event.bot, event, event.hook) is event
+
+
 @pytest.mark.asyncio()
 async def test_permissions() -> None:
     event = make_command_event()
@@ -113,7 +119,7 @@ async def test_permissions() -> None:
     assert res is None
 
 
-def make_command_event():
+def make_command_event(chan: Optional[str] = "#foo") -> CommandEvent:
     conn = MagicMock()
     conn.name = "foobarconn"
     conn.config = {}
@@ -129,7 +135,7 @@ def make_command_event():
         hook=hook,
         bot=conn.bot,
         conn=conn,
-        channel="#foo",
+        channel=chan,
         nick="foobaruser",
         user="user",
         host="host",
