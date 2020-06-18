@@ -8,7 +8,7 @@ googlemaps==4.2.0
 imgurpython==1.1.7
 isodate==0.6.0
 lxml==4.5.0
-multidict==4.7.5
+multidict==4.7.6
 nltk==3.5
 psutil==5.7.0
 py-irclib==0.2.1
