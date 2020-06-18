@@ -10,14 +10,14 @@ from cloudbot.util import colors, timeformat
 from cloudbot.util.formatting import pluralize_suffix
 
 youtube_re = re.compile(
-    r'(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)', re.I
+    r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)", re.I
 )
 ytpl_re = re.compile(
-    r'(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)', re.I
+    r"(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)", re.I
 )
 
 
-base_url = 'https://www.googleapis.com/youtube/v3/'
+base_url = "https://www.googleapis.com/youtube/v3/"
 
 
 class APIError(Exception):
@@ -46,13 +46,16 @@ def raise_api_errors(response: requests.Response) -> None:
         except ValueError:
             raise e
 
-        errors = data.get('errors')
+        errors = data.get("errors")
+        if not errors:
+            errors = data.get("error", {}).get("errors")
+
         if not errors:
             return
 
         first_error = errors[0]
-        domain = first_error['domain']
-        reason = first_error['reason']
+        domain = first_error["domain"]
+        reason = first_error["reason"]
         raise APIError("API Error ({}/{})".format(domain, reason), data) from e
 
 
@@ -75,81 +78,81 @@ def do_request(
     if params:
         kwargs.update(params)
 
-    kwargs['part'] = ','.join(parts)
-    kwargs['key'] = api_key
+    kwargs["part"] = ",".join(parts)
+    kwargs["key"] = api_key
     return requests.get(base_url + method, kwargs)
 
 
 def get_video(video_id: str, parts: Parts) -> requests.Response:
-    return do_request('videos', parts, params={'maxResults': 1, 'id': video_id})
+    return do_request("videos", parts, params={"maxResults": 1, "id": video_id})
 
 
 def get_playlist(playlist_id: str, parts: Parts) -> requests.Response:
-    return do_request('playlists', parts, params={'maxResults': 1, 'id': playlist_id})
+    return do_request("playlists", parts, params={"maxResults": 1, "id": playlist_id})
 
 
-def do_search(term: str, result_type: str = 'video') -> requests.Response:
+def do_search(term: str, result_type: str = "video") -> requests.Response:
     return do_request(
-        'search', ['snippet'], params={'maxResults': 1, 'q': term, 'type': result_type}
+        "search", ["snippet"], params={"maxResults": 1, "q": term, "type": result_type}
     )
 
 
 def get_video_description(video_id: str) -> str:
-    parts = ['statistics', 'contentDetails', 'snippet']
+    parts = ["statistics", "contentDetails", "snippet"]
     request = get_video(video_id, parts)
     raise_api_errors(request)
 
     json = request.json()
 
-    data = json['items']
+    data = json["items"]
     if not data:
         raise NoResultsError()
 
     item = data[0]
-    snippet = item['snippet']
-    statistics = item['statistics']
-    content_details = item['contentDetails']
+    snippet = item["snippet"]
+    statistics = item["statistics"]
+    content_details = item["contentDetails"]
 
-    out = '\x02{}\x02'.format(snippet['title'])
+    out = "\x02{}\x02".format(snippet["title"])
 
-    if not content_details.get('duration'):
+    if not content_details.get("duration"):
         return out
 
-    length = isodate.parse_duration(content_details['duration'])
-    out += ' - length \x02{}\x02'.format(
+    length = isodate.parse_duration(content_details["duration"])
+    out += " - length \x02{}\x02".format(
         timeformat.format_time(int(length.total_seconds()), simple=True)
     )
     try:
-        total_votes = float(statistics['likeCount']) + float(statistics['dislikeCount'])
+        total_votes = float(statistics["likeCount"]) + float(statistics["dislikeCount"])
     except (LookupError, ValueError):
         total_votes = 0
 
     if total_votes != 0:
         # format
-        likes = pluralize_suffix(int(statistics['likeCount']), "like")
-        dislikes = pluralize_suffix(int(statistics['dislikeCount']), "dislike")
+        likes = pluralize_suffix(int(statistics["likeCount"]), "like")
+        dislikes = pluralize_suffix(int(statistics["dislikeCount"]), "dislike")
 
-        percent = 100 * float(statistics['likeCount']) / total_votes
-        out += ' - {}, {} (\x02{:.1f}\x02%)'.format(likes, dislikes, percent)
+        percent = 100 * float(statistics["likeCount"]) / total_votes
+        out += " - {}, {} (\x02{:.1f}\x02%)".format(likes, dislikes, percent)
 
-    if 'viewCount' in statistics:
-        views = int(statistics['viewCount'])
-        out += ' - \x02{:,}\x02 view{}'.format(views, "s"[views == 1 :])
+    if "viewCount" in statistics:
+        views = int(statistics["viewCount"])
+        out += " - \x02{:,}\x02 view{}".format(views, "s"[views == 1 :])
 
-    uploader = snippet['channelTitle']
+    uploader = snippet["channelTitle"]
 
-    upload_time = isodate.parse_datetime(snippet['publishedAt'])
-    out += ' - \x02{}\x02 on \x02{}\x02'.format(
+    upload_time = isodate.parse_datetime(snippet["publishedAt"])
+    out += " - \x02{}\x02 on \x02{}\x02".format(
         uploader, upload_time.strftime("%Y.%m.%d")
     )
 
     try:
-        yt_rating = content_details['contentRating']['ytRating']
+        yt_rating = content_details["contentRating"]["ytRating"]
     except KeyError:
         pass
     else:
         if yt_rating == "ytAgeRestricted":
-            out += colors.parse(' - $(red)NSFW$(reset)')
+            out += colors.parse(" - $(red)NSFW$(reset)")
 
     return out
 
@@ -163,10 +166,10 @@ def get_video_id(text: str) -> str:
     raise_api_errors(request)
     json = request.json()
 
-    if not json.get('items'):
+    if not json.get("items"):
         raise NoResultsError()
 
-    video_id = json['items'][0]['id']['videoId']  # type: str
+    video_id = json["items"][0]["id"]["videoId"]  # type: str
     return video_id
 
 
@@ -191,7 +194,7 @@ def youtube(text: str, reply) -> str:
 @hook.command("youtime", "ytime")
 def youtime(text: str, reply) -> str:
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
-    parts = ['statistics', 'contentDetails', 'snippet']
+    parts = ["statistics", "contentDetails", "snippet"]
     try:
         video_id = get_video_id(text)
         request = get_video(video_id, parts)
@@ -204,28 +207,28 @@ def youtime(text: str, reply) -> str:
 
     json = request.json()
 
-    data = json['items']
+    data = json["items"]
     item = data[0]
-    snippet = item['snippet']
-    content_details = item['contentDetails']
-    statistics = item['statistics']
+    snippet = item["snippet"]
+    content_details = item["contentDetails"]
+    statistics = item["statistics"]
 
-    duration = content_details.get('duration')
+    duration = content_details.get("duration")
     if not duration:
         return "Missing duration in API response"
 
     length = isodate.parse_duration(duration)
     l_sec = int(length.total_seconds())
-    views = int(statistics['viewCount'])
+    views = int(statistics["viewCount"])
     total = int(l_sec * views)
 
     length_text = timeformat.format_time(l_sec, simple=True)
     total_text = timeformat.format_time(total, accuracy=8)
 
     return (
-        'The video \x02{}\x02 has a length of {} and has been viewed {:,} times for '
-        'a total run time of {}!'.format(
-            snippet['title'], length_text, views, total_text
+        "The video \x02{}\x02 has a length of {} and has been viewed {:,} times for "
+        "a total run time of {}!".format(
+            snippet["title"], length_text, views, total_text
         )
     )
 
@@ -233,21 +236,21 @@ def youtime(text: str, reply) -> str:
 @hook.regex(ytpl_re)
 def ytplaylist_url(match: Match[str]) -> str:
     location = match.group(4).split("=")[-1]
-    request = get_playlist(location, ['contentDetails', 'snippet'])
+    request = get_playlist(location, ["contentDetails", "snippet"])
     raise_api_errors(request)
 
     json = request.json()
 
-    data = json['items']
+    data = json["items"]
     if not data:
         raise NoResultsError()
 
     item = data[0]
-    snippet = item['snippet']
-    content_details = item['contentDetails']
+    snippet = item["snippet"]
+    content_details = item["contentDetails"]
 
-    title = snippet['title']
-    author = snippet['channelTitle']
-    num_videos = int(content_details['itemCount'])
-    count_videos = ' - \x02{:,}\x02 video{}'.format(num_videos, "s"[num_videos == 1 :])
+    title = snippet["title"]
+    author = snippet["channelTitle"]
+    num_videos = int(content_details["itemCount"])
+    count_videos = " - \x02{:,}\x02 video{}".format(num_videos, "s"[num_videos == 1 :])
     return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)
