@@ -1,4 +1,4 @@
-beautifulsoup4==4.9.0
+beautifulsoup4==4.9.1
 cleverwrap==0.3.0.2
 feedparser==5.2.1
 forecastiopy==0.22
