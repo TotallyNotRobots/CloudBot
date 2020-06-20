@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 from cloudbot.util.irc import ChannelMode, ModeType, StatusMode
 from plugins.core import server_info
-from tests.util.mock_irc_client import MockIrcClient
 
 
 def test_parse_isupport():

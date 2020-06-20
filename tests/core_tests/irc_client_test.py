@@ -26,6 +26,7 @@ class TestLineParsing:
 
         assert out == [
             {
+                "irc_tags": None,
                 "chan": "server.host",
                 "content": None,
                 "content_raw": None,
@@ -45,6 +46,7 @@ class TestLineParsing:
                 "user": "",
             },
             {
+                "irc_tags": None,
                 "chan": "server.host",
                 "content": "hi",
                 "content_raw": "hi",
@@ -88,6 +90,7 @@ class TestLineParsing:
 
         assert out == [
             {
+                "irc_tags": None,
                 "chan": "server.host",
                 "content": None,
                 "content_raw": None,
@@ -107,6 +110,7 @@ class TestLineParsing:
                 "user": "",
             },
             {
+                "irc_tags": None,
                 "chan": "server.host",
                 "content": "hi",
                 "content_raw": "hi",
@@ -138,6 +142,7 @@ class TestLineParsing:
         event = proto.parse_line(":server.host COMMAND this is :a command")
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": "server.host",
             "content": None,
             "content_raw": None,
@@ -164,6 +169,7 @@ class TestLineParsing:
         )
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": "#channel",
             "content": "this is a message",
             "content_raw": "this is a message",
@@ -190,6 +196,7 @@ class TestLineParsing:
         )
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": "#channel",
             "content": "this is an action",
             "content_raw": "\x01ACTION this is an action\x01",
@@ -215,6 +222,7 @@ class TestLineParsing:
         event = proto.parse_line(":sender!user@host PRIVMSG #channel :\1VERSION\1")
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": "#channel",
             "content": "\x01VERSION\x01",
             "content_raw": "\x01VERSION\x01",
@@ -251,6 +259,7 @@ class TestLineParsing:
             "irc_paramlist": ["#channel", "\x01VERSION\x01aa"],
             "irc_prefix": "sender!user@host",
             "irc_raw": ":sender!user@host PRIVMSG #channel :\x01VERSION\x01aa",
+            "irc_tags": None,
             "mask": "sender!user@host",
             "nick": "sender",
             "target": None,
@@ -263,6 +272,7 @@ class TestLineParsing:
         event = proto.parse_line("SOMECMD thing")
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": None,
             "content": None,
             "content_raw": None,
@@ -287,6 +297,7 @@ class TestLineParsing:
         event = proto.parse_line(":sender!user@host PRIVMSG me :this is a message")
 
         assert self._filter_event(event) == {
+            "irc_tags": None,
             "chan": "sender",
             "content": "this is a message",
             "content_raw": "this is a message",
