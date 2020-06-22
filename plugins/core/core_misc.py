@@ -11,7 +11,7 @@ logger = logging.getLogger("cloudbot")
 
 # Auto-join on Invite (Configurable, defaults to True)
 @hook.irc_raw("INVITE")
-async def invite(irc_paramlist, conn):
+def invite(irc_paramlist, conn):
     """
     :type irc_paramlist: list[str]
     :type conn: cloudbot.client.Client
@@ -111,8 +111,13 @@ async def onjoin(conn, bot):
         conn.cmd("MODE", conn.nick, mode)
 
     log_chan = conn.config.get("log_channel")
+    if " " in log_chan:
+        log_chan, key = log_chan.split(None, 1)
+    else:
+        key = None
+
     if log_chan:
-        conn.join(log_chan)
+        conn.join(log_chan, key)
 
     conn.ready = True
     logger.info(
