@@ -43,7 +43,7 @@ jobs:
       env:
         PYTHONASYNCIODEBUG: 1
         PYTHONPATH: .
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v1.0.7
       with:
         name: build-${{ matrix.python-ver }}
         fail_ci_if_error: true
