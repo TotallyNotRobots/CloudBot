@@ -55,6 +55,9 @@ def test_handle_modes(mock_db):
     )
     assert conn.get_channel_key("#foo") is None
 
+    assert chan_key_db.handle_modes([conn.nick, "-ok"], conn, db, "server.host") is None
+    assert conn.get_channel_key("#foo") is None
+
 
 def test_check_send_key(mock_db):
     conn = make_conn()
