@@ -45,6 +45,9 @@ def handle_modes(irc_paramlist: List[str], conn: IrcClient, db, chan: str) -> No
     """
     Handle mode changes
     """
+    if not chan.startswith("#"):
+        return
+
     modes = irc_paramlist[1]
     mode_params = list(irc_paramlist[2:])
     serv_info = get_server_info(conn)
