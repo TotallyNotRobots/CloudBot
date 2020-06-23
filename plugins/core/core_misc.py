@@ -111,12 +111,12 @@ async def onjoin(conn, bot):
         conn.cmd("MODE", conn.nick, mode)
 
     log_chan = conn.config.get("log_channel")
-    if " " in log_chan:
-        log_chan, key = log_chan.split(None, 1)
-    else:
-        key = None
-
     if log_chan:
+        if " " in log_chan:
+            log_chan, key = log_chan.split(None, 1)
+        else:
+            key = None
+
         conn.join(log_chan, key)
 
     conn.ready = True
