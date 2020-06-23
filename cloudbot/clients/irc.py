@@ -146,6 +146,35 @@ class IrcClient(Client):
 
         self._connecting = False
 
+        self._channel_keys = {}
+
+    def set_channel_key(self, channel: str, key: str, *, override: bool = True) -> None:
+        if override or channel not in self._channel_keys:
+            self._channel_keys[channel] = key
+
+    def clear_channel_keys(self) -> None:
+        self._channel_keys.clear()
+
+    def clear_channel_key(self, channel: str) -> bool:
+        if channel in self._channel_keys:
+            del self._channel_keys[channel]
+            return True
+
+        return False
+
+    def get_channel_key(
+        self, channel: str, default: Optional[str] = None, *, set_key: bool = True
+    ) -> Optional[str]:
+        if channel in self._channel_keys:
+            key = self._channel_keys[channel]
+            if key is not None:
+                return key
+
+        if set_key:
+            self._channel_keys[channel] = default
+
+        return default
+
     def make_ssl_context(self, conn_config):
         if self.use_ssl:
             ssl_context = ssl.create_default_context()
@@ -304,6 +333,7 @@ class IrcClient(Client):
         self.cmd("NICK", nick)
 
     def join(self, channel, key=None):
+        key = self.get_channel_key(channel, key)
         if key:
             self.cmd("JOIN", channel, key)
         else:

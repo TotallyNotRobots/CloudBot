@@ -1,6 +1,6 @@
 import datetime
 import logging
-from collections import Sized
+from collections.abc import Sized
 from enum import Enum
 from functools import wraps
 from typing import (

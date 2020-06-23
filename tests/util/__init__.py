@@ -1,4 +1,4 @@
-from collections import Mapping
+from collections.abc import Mapping
 from unittest.mock import patch
 
 from cloudbot.util.func_utils import call_with_args
