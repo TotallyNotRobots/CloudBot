@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix channel parameter handling in IRC client
 ### Removed
 - twitch.py removed due to outdated API and lack of maintainer
+- metacritic.py removed due to broken scraper and lack of maintainer
 
 ## [1.3.0] 2020-03-17
 ### Added
