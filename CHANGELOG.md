@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - twitch.py removed due to outdated API and lack of maintainer
 - metacritic.py removed due to broken scraper and lack of maintainer
+- amazon.py removed due to broken scraper and no maintainer
 
 ## [1.3.0] 2020-03-17
 ### Added
