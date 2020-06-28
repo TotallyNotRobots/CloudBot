@@ -3,6 +3,10 @@
         {
             "name": "esper",
             "type": "irc",
+            "auto_rejoin": false,
+            "invite_join": true,
+            "join_throttle": 0.4,
+            "require_registered_channels": false,
             "connection": {
                 "server": "irc.esper.net",
                 "port": 6667,
@@ -10,20 +14,28 @@
                 "ignore_cert": true,
                 "password": "",
                 "timeout": 300,
-                "client_cert": "cloudbot.pem"
+                "client_cert": "cloudbot.pem",
+                "bind_addr": "",
+                "bind_port": 0
             },
             "ping_settings": {
                 "interval": 60,
                 "warn": 120,
                 "timeout": 300
             },
+            "user_agent": "CloudBot/3.0 - CloudBot Refresh <https://github.com/TotallyNotRobots/CloudBot/>",
+            "reply_ping": true,
             "nick": "MyCloudBot",
             "user": "cloudbot",
+            "realname": "CloudBot - https://git.io/CloudBot",
             "avoid_notices": false,
             "channels": [
                 "#cloudbot",
                 "#cloudbot2"
             ],
+            "mode": null,
+            "oper_user": null,
+            "oper_pw": null,
             "log_channel": "#MyAdminChannel",
             "disabled_commands": [],
             "acls": {},
@@ -40,6 +52,12 @@
                 "nickserv_name": "nickserv",
                 "nickserv_command": "IDENTIFY"
             },
+            "keep_alive": false,
+            "strip_newlines": true,
+            "max_line_length": 510,
+            "encoding": "utf-8",
+            "encoding_errors": "replace",
+            "strip_cmd_chars": "!.@;$",
             "ratelimit": {
                 "max_tokens": 17.5,
                 "restore_rate": 2.5,
@@ -110,9 +128,11 @@
         "cleverbot": "",
         "brewerydb": "",
         "alphavantage": "",
-        "coinmarketcap": ""
+        "coinmarketcap": "",
+        "giphy": ""
     },
     "database": "sqlite:///cloudbot.db",
+    "location_bias_cc": null,
     "plugin_loading": {
         "use_whitelist": false,
         "blacklist": [
