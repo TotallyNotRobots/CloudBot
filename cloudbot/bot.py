@@ -18,11 +18,11 @@ from watchdog.observers import Observer
 from cloudbot import clients
 from cloudbot.client import Client
 from cloudbot.config import Config
-from cloudbot.event import Event, CommandEvent, RegexEvent, EventType
+from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
-from cloudbot.reloader import PluginReloader, ConfigReloader
-from cloudbot.util import database, formatting, async_util
+from cloudbot.reloader import ConfigReloader, PluginReloader
+from cloudbot.util import async_util, database, formatting
 from cloudbot.util.mapping import KeyFoldDict
 
 logger = logging.getLogger("cloudbot")
@@ -58,28 +58,34 @@ def clean_name(n):
     :type n: str
     :rtype: str
     """
-    return re.sub('[^A-Za-z0-9_]+', '', n.replace(" ", "_"))
+    return re.sub("[^A-Za-z0-9_]+", "", n.replace(" ", "_"))
 
 
 def get_cmd_regex(event):
     conn = event.conn
     is_pm = event.chan.lower() == event.nick.lower()
-    command_prefix = re.escape(conn.config.get('command_prefix', '.'))
+    command_prefix = re.escape(conn.config.get("command_prefix", "."))
     conn_nick = re.escape(event.conn.nick)
     cmd_re = re.compile(
         r"""
         ^
         # Prefix or nick
         (?:
-            (?P<prefix>[""" + command_prefix + r"""])""" + ('?' if is_pm else '') + r"""
+            (?P<prefix>["""
+        + command_prefix
+        + r"""])"""
+        + ("?" if is_pm else "")
+        + r"""
             |
-            """ + conn_nick + r"""[,;:]+\s+
+            """
+        + conn_nick
+        + r"""[,;:]+\s+
         )
         (?P<command>\w+)  # Command
         (?:$|\s+)
         (?P<text>.*)     # Text
         """,
-        re.IGNORECASE | re.VERBOSE
+        re.IGNORECASE | re.VERBOSE,
     )
     return cmd_re
 
@@ -126,7 +132,7 @@ class CloudBot:
         self.memory = collections.defaultdict()
 
         # declare and create data folder
-        self.data_dir = os.path.abspath('data')
+        self.data_dir = os.path.abspath("data")
         if not os.path.exists(self.data_dir):
             logger.debug("Data folder not found, creating.")
             os.mkdir(self.data_dir)
@@ -141,11 +147,15 @@ class CloudBot:
         self.config_reloading_enabled = reloading_conf.get("config_reloading", True)
 
         # this doesn't REALLY need to be here but it's nice
-        self.user_agent = self.config.get('user_agent', 'CloudBot/3.0 - CloudBot Refresh '
-                                                        '<https://github.com/CloudBotIRC/CloudBot/>')
+        self.repo_link = self.config.get(
+            "repo_link", "https://github.com/TotallyNotRobots/CloudBot/"
+        )
+        self.user_agent = self.config.get(
+            "user_agent", "CloudBot/3.0 - CloudBot Refresh <{repo_link}>"
+        ).format(repo_link=self.repo_link)
 
         # setup db
-        db_path = self.config.get('database', 'sqlite:///cloudbot.db')
+        db_path = self.config.get("database", "sqlite:///cloudbot.db")
         self.db_engine = create_engine(db_path)
         self.db_factory = sessionmaker(bind=self.db_engine)
         self.db_session = scoped_session(self.db_factory)
@@ -201,15 +211,14 @@ class CloudBot:
 
     def create_connections(self):
         """ Create a BotConnection for all the networks defined in the config """
-        for config in self.config['connections']:
+        for config in self.config["connections"]:
             # strip all spaces and capitalization from the connection name
-            name = clean_name(config['name'])
-            nick = config['nick']
+            name = clean_name(config["name"])
+            nick = config["nick"]
             _type = config.get("type", "irc")
 
             self.connections[name] = self.get_client(_type)(
-                self, _type, name, nick, config=config,
-                channels=config['channels']
+                self, _type, name, nick, config=config, channels=config["channels"]
             )
             logger.debug("[%s] Created connection.", name)
 
@@ -283,7 +292,9 @@ class CloudBot:
             conn.active = True
 
         # Connect to servers
-        await asyncio.gather(*[conn.try_connect() for conn in self.connections.values()], loop=self.loop)
+        await asyncio.gather(
+            *[conn.try_connect() for conn in self.connections.values()], loop=self.loop
+        )
         logger.debug("Connections created.")
 
         # Run a manual garbage collection cycle, to clean up any unused objects created during initialization
@@ -294,7 +305,7 @@ class CloudBot:
         Load all clients from the "clients" directory
         """
         scanner = Scanner(bot=self)
-        scanner.scan(clients, categories=['cloudbot.client'])
+        scanner.scan(clients, categories=["cloudbot.client"])
 
     async def process(self, event):
         """
@@ -331,7 +342,9 @@ class CloudBot:
         for raw_hook in self.plugin_manager.catch_all_triggers:
             # run catch-all coroutine hooks before all others - TODO: Make this a plugin argument
             run_before = not raw_hook.threaded
-            if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before):
+            if not add_hook(
+                raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before
+            ):
                 # The hook has an action of Action.HALT* so stop adding new tasks
                 break
 
@@ -355,12 +368,16 @@ class CloudBot:
             cmd_match = get_cmd_regex(event).match(event.content)
 
             if cmd_match:
-                command_prefix = event.conn.config.get('command_prefix', '.')
-                prefix = cmd_match.group('prefix') or command_prefix[0]
-                command = cmd_match.group('command').lower()
-                text = cmd_match.group('text').strip()
+                command_prefix = event.conn.config.get("command_prefix", ".")
+                prefix = cmd_match.group("prefix") or command_prefix[0]
+                command = cmd_match.group("command").lower()
+                text = cmd_match.group("text").strip()
                 cmd_event = partial(
-                    CommandEvent, text=text, triggered_command=command, base_event=event, cmd_prefix=prefix
+                    CommandEvent,
+                    text=text,
+                    triggered_command=command,
+                    base_event=event,
+                    cmd_prefix=prefix,
                 )
                 if command in self.plugin_manager.commands:
                     command_hook = self.plugin_manager.commands[command]
@@ -380,7 +397,9 @@ class CloudBot:
                             command_event = cmd_event(hook=command_hook)
                             add_hook(command_hook, command_event)
                         else:
-                            commands = sorted(command for command, plugin in potential_matches)
+                            commands = sorted(
+                                command for command, plugin in potential_matches
+                            )
                             txt_list = formatting.get_text_list(commands)
                             event.notice("Possible matches: {}".format(txt_list))
 
@@ -397,7 +416,9 @@ class CloudBot:
                 regex_match = regex.search(event.content)
                 if regex_match:
                     regex_matched = True
-                    regex_event = RegexEvent(hook=regex_hook, match=regex_match, base_event=event)
+                    regex_event = RegexEvent(
+                        hook=regex_hook, match=regex_match, base_event=event
+                    )
                     if not add_hook(regex_hook, regex_event):
                         # The hook has an action of Action.HALT* so stop adding new tasks
                         break

@@ -13,8 +13,13 @@ def conn_nick(conn):
 
 
 @hook.connect(priority=20, clients="irc")
-def conn_user(conn):
+def conn_user(conn, bot):
     conn.cmd(
-        "USER", conn.config.get('user', 'cloudbot'), "3", "*",
-        conn.config.get('realname', 'CloudBot - https://git.io/CloudBot')
+        "USER",
+        conn.config.get("user", "cloudbot"),
+        "3",
+        "*",
+        conn.config.get("realname", "CloudBot - {repo_link}").format(
+            repo_link=bot.repo_link
+        ),
     )
