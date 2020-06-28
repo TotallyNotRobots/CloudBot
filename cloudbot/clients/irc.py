@@ -622,6 +622,7 @@ class _IrcProtocol(asyncio.Protocol):
             irc_command=command,
             irc_paramlist=command_params,
             irc_ctcp_text=ctcp_text,
+            irc_tags=message.tags,
         )
         return event
 

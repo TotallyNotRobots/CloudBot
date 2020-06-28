@@ -15,23 +15,18 @@ from numbers import Number
 from operator import attrgetter
 from typing import Dict
 
-from irclib.parser import Prefix
+from irclib.parser import MessageTag, Prefix, TagList
 
 import cloudbot.bot
 from cloudbot import hook
 from cloudbot.client import Client
 from cloudbot.clients.irc import IrcClient
+from cloudbot.hook import Priority
 from cloudbot.util import web
 from cloudbot.util.irc import ChannelMode, StatusMode, parse_mode_string
 from cloudbot.util.mapping import KeyFoldDict, KeyFoldMixin
 
 logger = logging.getLogger("cloudbot")
-
-
-class WeakDict(dict):
-    """
-    A subclass of dict to allow it to be weakly referenced
-    """
 
 
 class MemberNotFoundException(KeyError):
@@ -361,6 +356,7 @@ SUPPORTED_CAPS = frozenset(
         "account-notify",
         "away-notify",
         "chghost",
+        "account-tag",
     }
 )
 
@@ -678,9 +674,20 @@ def getdata_cmd(conn, chan, nick):
     return web.paste(MappingSerializer().serialize(memb, indent=2))
 
 
+@hook.irc_raw("*", priority=Priority.HIGHEST, do_sieve=False)
+def handle_tags(conn: IrcClient, nick: str, irc_tags: TagList) -> None:
+    users = get_users(conn)
+
+    if irc_tags:
+        account_tag = irc_tags.get("account")  # type: MessageTag
+        if account_tag:
+            user_data = users.getuser(nick)
+            user_data.account = account_tag.value
+
+
 @hook.irc_raw(["PRIVMSG", "NOTICE"], do_sieve=False)
 def on_msg(conn, nick, user, host, irc_paramlist):
-    chan, *other_data = irc_paramlist
+    chan = irc_paramlist[0]
 
     if chan.lower() != conn.nick.lower():
         return
