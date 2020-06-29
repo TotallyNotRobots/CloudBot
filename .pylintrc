@@ -62,33 +62,32 @@ confidence=
 # --disable=W".
 disable=invalid-name,
         missing-docstring,
-        too-many-arguments,
-        too-many-locals,
-        too-few-public-methods,
-        too-many-return-statements,
         inconsistent-return-statements,
         redefined-outer-name,
-        too-many-branches,
         unused-argument,
         broad-except,
-        too-many-instance-attributes,
         no-self-use,
         ungrouped-imports,
-        too-many-statements,
         wrong-import-position,
-        trailing-whitespace,
         useless-object-inheritance,
-        no-name-in-module,
         superfluous-parens,
-        function-redefined,
-        too-many-ancestors,
         arguments-differ,
         duplicate-string-formatting-argument,
         simplifiable-if-expression,
         implicit-str-concat-in-sequence,
         abstract-method,
-        literal-comparison,
-        protected-access
+        protected-access,
+        duplicate-code,
+        no-else-raise,
+        arguments-out-of-order,
+        redefined-builtin,
+        no-else-continue,
+        unnecessary-comprehension,
+        bad-continuation,
+        no-value-for-parameter,
+        fixme,
+        not-callable,
+        import-outside-toplevel
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -182,7 +181,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=
+ignored-modules=plugins.cryptocurrency
 
 # Show a hint with possible names when a member name was not found. The aspect
 # of finding the hint is based on edit distance.
@@ -445,40 +444,56 @@ int-import-graph=
 known-standard-library=
 
 # Force import order to recognize a module as part of a third party library.
-known-third-party=enchant
+known-third-party=enchant,
+                  requests,
+                  yarl,
+                  pytest,
+                  isodate,
+                  bs4,
+                  geoip2,
+                  mcstatus,
+                  sqlalchemy,
+                  lxml,
+                  freezegun,
+                  responses,
+                  irclib,
+                  googlemaps,
+                  forecastiopy,
+                  multidict,
+                  tweepy
 
 
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=16
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=24
 
 # Maximum number of boolean expressions in an if statement.
 max-bool-expr=5
 
 # Maximum number of branch for function / method body.
-max-branches=12
+max-branches=33
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=33
 
 # Maximum number of parents for a class (see R0901).
-max-parents=7
+max-parents=10
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=20
+max-public-methods=24
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=14
 
 # Maximum number of statements in function / method body.
-max-statements=50
+max-statements=66
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
+min-public-methods=0
 
 
 [CLASSES]

@@ -2,13 +2,15 @@ import asyncio
 import ssl
 from unittest.mock import MagicMock
 
+import pytest
+
 from cloudbot.clients.irc import IrcClient
 
 
 class MockClient(IrcClient):
     send = MagicMock()
 
-    def connect(self, timeout=None):
+    async def connect(self, timeout=None):
         pass
 
 
@@ -66,7 +68,8 @@ def test_ssl_client_no_verify():
     assert client.ssl_context.verify_mode is ssl.CERT_NONE
 
 
-def test_core_connects():
+@pytest.mark.asyncio()
+async def test_core_connects():
     bot = MockBot()
     client = MockClient(
         bot,
@@ -77,7 +80,7 @@ def test_core_connects():
     )
     assert client.type == "mock"
 
-    client.connect()
+    await client.connect()
 
     from plugins.core.core_connect import conn_pass, conn_nick, conn_user
 
