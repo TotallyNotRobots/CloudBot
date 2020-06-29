@@ -37,7 +37,7 @@ class Hook:
 
         # don't process args starting with "_"
         self.required_args = [
-            arg for arg in sig.parameters.keys() if not arg.startswith('_')
+            arg for arg in sig.parameters.keys() if not arg.startswith("_")
         ]
 
         if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(
@@ -79,13 +79,13 @@ class Hook:
 
     def __repr__(self):
         parts = [
-            ('type', self.type),
-            ('plugin', self.plugin.title),
-            ('permissions', self.permissions),
-            ('single_thread', self.single_thread),
-            ('threaded', self.threaded),
+            ("type", self.type),
+            ("plugin", self.plugin.title),
+            ("permissions", self.permissions),
+            ("single_thread", self.single_thread),
+            ("threaded", self.threaded),
         ]
-        return ", ".format("{}: {}".format(k, v) for k, v in parts)
+        return ", ".join("{}: {}".format(k, v) for k, v in parts)
 
 
 class CommandHook(Hook):
@@ -169,9 +169,7 @@ class PeriodicHook(Hook):
         """
 
         interval = periodic_hook.interval
-        initial_interval = periodic_hook.kwargs.pop(
-            "initial_interval", interval
-        )
+        initial_interval = periodic_hook.kwargs.pop("initial_interval", interval)
 
         super().__init__("periodic", plugin, periodic_hook)
 
@@ -179,9 +177,7 @@ class PeriodicHook(Hook):
         self.initial_interval = initial_interval
 
     def __repr__(self):
-        return "Periodic[interval: [{}], {}]".format(
-            self.interval, Hook.__repr__(self)
-        )
+        return "Periodic[interval: [{}], {}]".format(self.interval, Hook.__repr__(self))
 
     def __str__(self):
         return "periodic hook ({} seconds) {} from {}".format(
@@ -207,9 +203,7 @@ class RawHook(Hook):
         return "*" in self.triggers
 
     def __repr__(self):
-        return "Raw[triggers: {}, {}]".format(
-            list(self.triggers), Hook.__repr__(self)
-        )
+        return "Raw[triggers: {}, {}]".format(list(self.triggers), Hook.__repr__(self))
 
     def __str__(self):
         return "irc raw {} ({}) from {}".format(
@@ -346,9 +340,7 @@ class PostHookHook(Hook):
         return "Post_hook[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "post_hook {} from {}".format(
-            self.function_name, self.plugin.file_name
-        )
+        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
 
 
 class PermHook(Hook):
@@ -361,9 +353,7 @@ class PermHook(Hook):
         return "PermHook[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "perm hook {} from {}".format(
-            self.function_name, self.plugin.file_name
-        )
+        return "perm hook {} from {}".format(self.function_name, self.plugin.file_name)
 
 
 _hook_name_to_plugin = {
