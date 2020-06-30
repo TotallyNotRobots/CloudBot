@@ -26,6 +26,7 @@ __all__ = (
     "reloader",
     "logging_info",
     "version",
+    "__version__",
 )
 
 
