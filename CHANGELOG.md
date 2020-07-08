@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - metacritic.py removed due to broken scraper and lack of maintainer
 - amazon.py removed due to broken scraper and no maintainer
 - newegg.py removed due to broken scraper and no maintainer
+- Removed path patching in main module
 
 ## [1.3.0] 2020-03-17
 ### Added

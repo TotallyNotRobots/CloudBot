@@ -3,24 +3,16 @@ import os
 import signal
 import sys
 import time
-
 from pathlib import Path
 
-# store the original working directory, for use when restarting
-original_wd = Path().resolve()
-
-# set up environment - we need to make sure we are in the install directory
-path0 = Path(sys.path[0] or '.').resolve()
-install_dir = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(install_dir))
-os.chdir(str(install_dir))
-
-# import bot
-from cloudbot.bot import CloudBot  # isort:skip
-from cloudbot.util import async_util  # isort:skip
+from cloudbot.bot import CloudBot
+from cloudbot.util import async_util
 
 
 def main():
+    # store the original working directory, for use when restarting
+    original_wd = Path().resolve()
+
     # Logging optimizations, doing it here because we only want to change this if we're the main file
     logging._srcfile = None
     logging.logThreads = 0
@@ -48,7 +40,9 @@ def main():
             # we are currently in the process of restarting
             stopped_while_restarting = True
         else:
-            async_util.run_coroutine_threadsafe(_bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop)
+            async_util.run_coroutine_threadsafe(
+                _bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop
+            )
 
         logger.warning("Bot received Signal Interrupt (%s)", signum)
 
@@ -88,5 +82,5 @@ def main():
     logging.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
