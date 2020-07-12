@@ -28,30 +28,31 @@ def octopart(text, reply):
     if not api_key:
         return "Octopart API key required."
 
-    params = {
-        'apikey': api_key,
-        'q': text,
-        'start': 0,
-        'limit': 1
-    }
+    params = {"apikey": api_key, "q": text, "start": 0, "limit": 1}
 
     try:
         request = requests.get(API_URL, params=params)
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         reply("Could not fetch part data: {}".format(e))
         raise
 
     response = request.json()
 
-    if not response['results']:
+    if not response["results"]:
         return "No results."
 
     # get part
-    results = response['results']
+    results = response["results"]
 
     for result in results:
-        part = result['item']
+        part = result["item"]
 
         # print matched part
-        reply("{} - {} - {}".format(part['brand']['name'], part['mpn'], part['octopart_url']))
+        msg = "{} - {} - {}".format(
+            part["brand"]["name"], part["mpn"], part["octopart_url"]
+        )
+        reply(msg)

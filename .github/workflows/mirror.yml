@@ -1,8 +1,9 @@
+---
 name: Mirror to gonzobot branch
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   mirror:

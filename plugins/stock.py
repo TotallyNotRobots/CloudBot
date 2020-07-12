@@ -12,6 +12,10 @@ import requests
 from cloudbot import hook
 from cloudbot.util import colors
 
+no_key = (
+    "This command requires an AlphaVantage API key from https://alphavantage.co"
+)
+
 
 class APIError(Exception):
     pass
@@ -24,7 +28,12 @@ class StockSymbolNotFoundError(APIError):
 
 
 class AVApi:
-    def __init__(self, api_key=None, url="https://www.alphavantage.co/query", user_agent=None):
+    def __init__(
+        self,
+        api_key=None,
+        url="https://www.alphavantage.co/query",
+        user_agent=None,
+    ):
         self.api_key = api_key
         self.url = url
         self.user_agent = user_agent
@@ -33,32 +42,43 @@ class AVApi:
         return bool(self.api_key)
 
     def _request(self, **args):
-        args['apikey'] = self.api_key
+        args["apikey"] = self.api_key
         response = requests.get(self.url, params=args)
         response.raise_for_status()
         return response.json()
 
-    def _time_series(self, func, symbol, data_type='json', output_size='compact'):
+    def _time_series(
+        self, func, symbol, data_type="json", output_size="compact"
+    ):
         _data = self._request(
-            function="time_series_{}".format(func).upper(), symbol=symbol, outputsize=output_size, datatype=data_type
+            function="time_series_{}".format(func).upper(),
+            symbol=symbol,
+            outputsize=output_size,
+            datatype=data_type,
         )
         try:
-            return _data["Time Series ({})".format(func.title())], _data['Meta Data']['2. Symbol']
+            return (
+                _data["Time Series ({})".format(func.title())],
+                _data["Meta Data"]["2. Symbol"],
+            )
         except LookupError:
             raise StockSymbolNotFoundError(symbol)
 
     def lookup(self, symbol):
-        _data, sym = self._time_series('daily', symbol)
+        _data, sym = self._time_series("daily", symbol)
         today = max(_data.keys())
         current_data = _data[today]
-        current_data = {key.split(None, 1)[1]: Decimal(value) for key, value in current_data.items()}
-        current_data['symbol'] = sym
+        current_data = {
+            key.split(None, 1)[1]: Decimal(value)
+            for key, value in current_data.items()
+        }
+        current_data["symbol"] = sym
         return current_data
 
 
 api = AVApi()
 
-number_suffixes = ['', '', 'M', 'B', 'T']
+number_suffixes = ["", "", "M", "B", "T"]
 
 
 def _get_group_count(num):
@@ -92,7 +112,7 @@ def setup_api(bot):
 def stock(text):
     """<symbol> - Get stock information from the AlphaVantage API"""
     if not api:
-        return "This command requires an AlphaVantage API key from https://alphavantage.co"
+        return no_key
 
     symbol = text.strip().split()[0]
 
@@ -103,34 +123,36 @@ def stock(text):
 
     out = "$(bold){symbol}$(bold):"
 
-    price = data['close']
-    change = price - data['open']
+    price = data["close"]
+    change = price - data["open"]
 
     parts = [
         "{close:,.2f}",
     ]
 
     if price != 0 or change != 0:
-        data['mcap'] = format_money(price * data['volume'])
+        data["mcap"] = format_money(price * data["volume"])
 
-        data['change'] = change
+        data["change"] = change
 
-        data['pct_change'] = change / (price - change)
+        data["pct_change"] = change / (price - change)
 
         if change < 0:
             change_str = "$(red){change:+,.2f} ({pct_change:.2%})$(clear)"
         else:
             change_str = "$(dgreen){change:+,.2f} ({pct_change:.2%})$(clear)"
 
-        data['change_str'] = change_str.format_map(data)
+        data["change_str"] = change_str.format_map(data)
 
-        parts.extend([
-            "{change_str}",
-            "Day Open: {open:,.2f}",
-            "Day Range: {low:,.2f} - {high:,.2f}",
-            "Market Cap: {mcap}"
-        ])
+        parts.extend(
+            [
+                "{change_str}",
+                "Day Open: {open:,.2f}",
+                "Day Range: {low:,.2f} - {high:,.2f}",
+                "Market Cap: {mcap}",
+            ]
+        )
 
-    return colors.parse("$(clear){} {}$(clear)".format(
-        out, ' | '.join(parts)
-    ).format_map(data))
+    return colors.parse(
+        "$(clear){} {}$(clear)".format(out, " | ".join(parts)).format_map(data)
+    )

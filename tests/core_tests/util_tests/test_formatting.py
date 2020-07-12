@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import pytest
 
 from cloudbot.util.formatting import (
@@ -61,39 +59,69 @@ test_multiword_replace_result = "<replace1> likes [replace2]"
 test_ireplace_input = "The quick brown FOX fox FOX jumped over the lazy dog"
 
 test_chunk_str_input = "The quick brown fox jumped over the lazy dog"
-test_chunk_str_result = ['The quick', 'brown fox', 'jumped', 'over the', 'lazy dog']
+test_chunk_str_result = [
+    "The quick",
+    "brown fox",
+    "jumped",
+    "over the",
+    "lazy dog",
+]
 
 
-def test_munge():
-    assert munge(test_munge_input) == test_munge_result_a
-    assert munge(test_munge_input, test_munge_count) == test_munge_result_b
+@pytest.mark.parametrize(
+    "text,count,result",
+    [
+        (test_munge_input, None, test_munge_result_a),
+        (test_munge_input, test_munge_count, test_munge_result_b),
+    ],
+)
+def test_munge(text, count, result):
+    if count is None:
+        assert munge(text) == result
+    else:
+        assert munge(text, count) == result
 
 
-def test_dict_format():
-    assert dict_format(test_format_data, test_format_formats) == test_format_result
-    assert dict_format({}, test_format_formats) is None
+@pytest.mark.parametrize(
+    "strings,data,result",
+    [
+        (test_format_formats, test_format_data, test_format_result),
+        (test_format_formats, {}, None),
+    ],
+)
+def test_dict_format(strings, data, result):
+    assert dict_format(data, strings) == result
 
 
-def test_pluralize():
-    assert pluralize_suffix(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
-    assert pluralize_suffix(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
+@pytest.mark.parametrize(
+    "num,text,result",
+    [
+        (test_pluralize_num_a, test_pluralize_text, test_pluralize_result_a),
+        (test_pluralize_num_b, test_pluralize_text, test_pluralize_result_b),
+    ],
+)
+def test_pluralize(num, text, result):
+    assert pluralize_suffix(num, text) == result
 
 
-@pytest.mark.parametrize('item,count,output', [
-    ('foo', 1, '1 foo'),
-    ('bar', 2, '2 bars'),
-    ('foos', 2, '2 fooses'),
-    ('leaf', 2, '2 leaves'),
-    ('city', 2, '2 cities'),
-    ('day', 2, '2 days'),
-    ('foe', 2, '2 foes'),
-    ('volcano', 2, '2 volcanoes'),
-    ('radius', 2, '2 radii'),
-    ('hoof', 2, '2 hooves'),
-    ('axis', 2, '2 axes'),
-    ('automaton', 2, '2 automata'),
-    ('tree', 2, '2 trees'),
-])
+@pytest.mark.parametrize(
+    "item,count,output",
+    [
+        ("foo", 1, "1 foo"),
+        ("bar", 2, "2 bars"),
+        ("foos", 2, "2 fooses"),
+        ("leaf", 2, "2 leaves"),
+        ("city", 2, "2 cities"),
+        ("day", 2, "2 days"),
+        ("foe", 2, "2 foes"),
+        ("volcano", 2, "2 volcanoes"),
+        ("radius", 2, "2 radii"),
+        ("hoof", 2, "2 hooves"),
+        ("axis", 2, "2 axes"),
+        ("automaton", 2, "2 automata"),
+        ("tree", 2, "2 trees"),
+    ],
+)
 def test_auto_pluralize(item, count, output):
     assert pluralize_auto(count, item) == output
 
@@ -103,71 +131,155 @@ def test_strip_colors():
     assert strip_colors(test_strip_colors_input) == test_strip_colors_result
 
 
-def test_truncate_str():
-    assert truncate(test_truncate_str_input, length=test_truncate_str_length_a) == test_truncate_str_result_a
-    assert truncate(test_truncate_str_input, length=test_truncate_str_length_b) == test_truncate_str_result_b
+@pytest.mark.parametrize(
+    "text,length,result",
+    [
+        (
+            test_truncate_str_input,
+            test_truncate_str_length_a,
+            test_truncate_str_result_a,
+        ),
+        (
+            test_truncate_str_input,
+            test_truncate_str_length_b,
+            test_truncate_str_result_b,
+        ),
+    ],
+)
+def test_truncate_str(text, length, result):
+    assert truncate(text, length=length) == result
 
     # compatibility
-    assert truncate_str(test_truncate_str_input, length=test_truncate_str_length_a) == test_truncate_str_result_a
-    assert truncate_str(test_truncate_str_input, length=test_truncate_str_length_b) == test_truncate_str_result_b
+    assert truncate_str(text, length=length) == result
 
 
-# noinspection PyPep8
-def test_truncate_words():
-    assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_a) == \
-           test_truncate_words_result_a
-    assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_b) == \
-           test_truncate_words_result_b
+@pytest.mark.parametrize(
+    "text,length,result",
+    [
+        (
+            test_truncate_words_input,
+            test_truncate_words_length_a,
+            test_truncate_words_result_a,
+        ),
+        (
+            test_truncate_words_input,
+            test_truncate_words_length_b,
+            test_truncate_words_result_b,
+        ),
+    ],
+)
+def test_truncate_words(text, length, result):
+    assert truncate_words(text, length=length) == result
 
 
 def test_strip_html():
     assert strip_html(test_strip_html_input) == test_strip_html_result
 
 
-def test_multiword_replace():
-    assert multi_replace(test_multiword_replace_text, test_multiword_replace_dict) == test_multiword_replace_result
+@pytest.mark.parametrize(
+    "text,data,result",
+    [
+        (
+            test_multiword_replace_text,
+            test_multiword_replace_dict,
+            test_multiword_replace_result,
+        ),
+    ],
+)
+def test_multiword_replace(text, data, result):
+    assert multi_replace(text, data) == result
 
     # compatibility
-    assert multiword_replace(test_multiword_replace_text, test_multiword_replace_dict) == test_multiword_replace_result
+    assert multiword_replace(text, data) == result
 
 
-def test_ireplace():
-    assert ireplace(test_ireplace_input, "fox", "cat") == "The quick brown cat cat cat jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "FOX", "cAt") == "The quick brown cAt cAt cAt jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "fox", "cat", 1) == "The quick brown cat fox FOX jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "fox", "cat", 2) == "The quick brown cat cat FOX jumped over the lazy dog"
-
-    # test blank input - this should behave like the native string.replace()
-    assert ireplace("Hello", "", "?") == "?H?e?l?l?o?"
+@pytest.mark.parametrize(
+    "text,old,new,count,result",
+    [
+        (
+            test_ireplace_input,
+            "fox",
+            "cat",
+            None,
+            "The quick brown cat cat cat jumped over the lazy dog",
+        ),
+        (
+            test_ireplace_input,
+            "FOX",
+            "cAt",
+            None,
+            "The quick brown cAt cAt cAt jumped over the lazy dog",
+        ),
+        (
+            test_ireplace_input,
+            "fox",
+            "cat",
+            1,
+            "The quick brown cat fox FOX jumped over the lazy dog",
+        ),
+        (
+            test_ireplace_input,
+            "fox",
+            "cat",
+            2,
+            "The quick brown cat cat FOX jumped over the lazy dog",
+        ),
+        ("Hello", "", "?", None, "?H?e?l?l?o?"),
+    ],
+)
+def test_ireplace(text, old, new, count, result):
+    assert ireplace(text, old, new, count) == result
 
 
 def test_chunk_str():
     assert chunk_str(test_chunk_str_input, 10) == test_chunk_str_result
 
 
-def test_get_text_list():
-    assert get_text_list(['a', 'b', 'c', 'd']) == 'a, b, c or d'
-    assert get_text_list(['a', 'b', 'c'], 'and') == 'a, b and c'
-    assert get_text_list(['a', 'b'], 'and') == 'a and b'
-    assert get_text_list(['a']) == 'a'
-    assert get_text_list([]) == ''
+@pytest.mark.parametrize(
+    "data,word,result",
+    [
+        (["a", "b", "c", "d"], None, "a, b, c or d"),
+        (["a", "b", "c"], "and", "a, b and c"),
+        (["a"], None, "a"),
+        ([], None, ""),
+    ],
+)
+def test_get_text_list(data, word, result):
+    if word is None:
+        res = get_text_list(data)
+    else:
+        res = get_text_list(data, word)
+
+    assert res == result
 
 
-def test_smart_split():
-    assert list(smart_split(r'This is "a person\'s" test.')) == ['This', 'is', '"a person\\\'s"', 'test.']
-    assert list(smart_split(r"Another 'person\'s' test.")) == ['Another', "'person\\'s'", 'test.']
-    assert list(smart_split(r'A "\"funky\" style" test.')) == ['A', '"\\"funky\\" style"', 'test.']
+@pytest.mark.parametrize(
+    "text,result",
+    [
+        (
+            r'This is "a person\'s" test.',
+            ["This", "is", '"a person\\\'s"', "test.",],
+        ),
+        (r"Another 'person\'s' test.", ["Another", "'person\\'s'", "test.",]),
+        (r'A "\"funky\" style" test.', ["A", '"\\"funky\\" style"', "test.",]),
+    ],
+)
+def test_smart_split(text, result):
+    assert list(smart_split(text)) == result
 
 
 def test_gen_md_table():
-    headers = ['ColumnA', 'Column B']
+    headers = ["ColumnA", "Column B"]
     data = [
-        ['1', '2'],
-        ['3', '4'],
+        ["1", "2"],
+        ["3", "4"],
     ]
-    assert gen_markdown_table(headers, data) == dedent("""
-    | ColumnA | Column B |
-    | ------- | -------- |
-    | 1       | 2        |
-    | 3       | 4        |
-    """).strip()
+    expected = (
+        """\
+| ColumnA | Column B |
+| ------- | -------- |
+| 1       | 2        |
+| 3       | 4        |
+"""
+    ).strip()
+    assert gen_markdown_table(headers, data) == expected

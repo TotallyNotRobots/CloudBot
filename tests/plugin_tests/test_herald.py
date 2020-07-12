@@ -21,7 +21,11 @@ class TestWelcome:
     def _run(self):
         conn = MagicMock()
         event = Event(
-            hook=MagicMock(), bot=conn.bot, conn=conn, channel="#foo", nick="foobaruser"
+            hook=MagicMock(),
+            bot=conn.bot,
+            conn=conn,
+            channel="#foo",
+            nick="foobaruser",
         )
         return wrap_hook_response(herald.welcome, event)
 
@@ -48,7 +52,9 @@ class TestWelcome:
         nick = "foobaruser"
         nick1 = "foonick"
         chan1 = "#barchan"
-        herald.herald_cache[chan].update({nick: "Some herald", nick1: "Other herald,"})
+        herald.herald_cache[chan].update(
+            {nick: "Some herald", nick1: "Other herald,"}
+        )
         herald.herald_cache[chan1].update(
             {nick: "Someother herald", nick1: "Yet another herald"}
         )
@@ -67,7 +73,9 @@ class TestWelcome:
         assert check(event) == []
         assert check(event1) == []
 
-        assert check(event2) == [("message", ("#barchan", "\u200b Someother herald"))]
+        assert check(event2) == [
+            ("message", ("#barchan", "\u200b Someother herald"))
+        ]
         assert check(event3) == []
 
         freeze_time.tick(timedelta(seconds=10))

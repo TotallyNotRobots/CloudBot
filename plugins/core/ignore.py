@@ -2,7 +2,13 @@ from collections import OrderedDict
 
 from irclib.util.compare import match_mask
 from sqlalchemy import (
-    Boolean, Column, PrimaryKeyConstraint, String, Table, UniqueConstraint, and_,
+    Boolean,
+    Column,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    UniqueConstraint,
+    and_,
     select,
 )
 
@@ -17,7 +23,7 @@ table = Table(
     Column("mask", String),
     Column("status", Boolean, default=True),
     UniqueConstraint("connection", "channel", "mask", "status"),
-    PrimaryKeyConstraint("connection", "channel", "mask")
+    PrimaryKeyConstraint("connection", "channel", "mask"),
 )
 
 ignore_cache = []
@@ -115,7 +121,10 @@ async def ignore_sieve(bot, event, _hook):
         return event
 
     # don't block an event that could be unignoring
-    if _hook.type == "command" and event.triggered_command in ("unignore", "global_unignore"):
+    if _hook.type == "command" and event.triggered_command in (
+        "unignore",
+        "global_unignore",
+    ):
         return event
 
     if event.mask is None:
@@ -137,7 +146,7 @@ def get_user(conn, text):
     else:
         mask = "*!*@{host}".format_map(user)
 
-    if '@' not in mask:
+    if "@" not in mask:
         mask += "!*@*"
 
     return mask
@@ -151,7 +160,11 @@ def ignore(text, db, chan, conn, notice, admin_log, nick):
     if ignore_in_cache(conn.name, chan, target):
         notice("{} is already ignored in {}.".format(target, chan))
     else:
-        admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
+        admin_log(
+            "{} used IGNORE to make me ignore {} in {}".format(
+                nick, target, chan
+            )
+        )
         notice("{} has been ignored in {}.".format(target, chan))
         add_ignore(db, conn.name, chan, target)
 
@@ -162,9 +175,11 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     target = get_user(conn, text)
 
     if remove_ignore(db, conn.name, chan, target):
-        admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(
-            nick, target, chan
-        ))
+        admin_log(
+            "{} used UNIGNORE to make me stop ignoring {} in {}".format(
+                nick, target, chan
+            )
+        )
         notice("{} has been un-ignored in {}.".format(target, chan))
     else:
         notice("{} is not ignored in {}.".format(target, chan))
@@ -174,12 +189,17 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
 def listignores(db, conn, chan):
     """- List all active ignores for the current channel"""
 
-    rows = db.execute(select([table.c.mask], and_(
-        table.c.connection == conn.name.lower(),
-        table.c.channel == chan.lower(),
-    ))).fetchall()
+    rows = db.execute(
+        select(
+            [table.c.mask],
+            and_(
+                table.c.connection == conn.name.lower(),
+                table.c.channel == chan.lower(),
+            ),
+        )
+    ).fetchall()
 
-    out = '\n'.join(row['mask'] for row in rows) + '\n'
+    out = "\n".join(row["mask"] for row in rows) + "\n"
 
     return web.paste(out)
 
@@ -193,7 +213,11 @@ def global_ignore(text, db, conn, notice, nick, admin_log):
         notice("{} is already globally ignored.".format(target))
     else:
         notice("{} has been globally ignored.".format(target))
-        admin_log("{} used GLOBAL_IGNORE to make me ignore {} everywhere".format(nick, target))
+        admin_log(
+            "{} used GLOBAL_IGNORE to make me ignore {} everywhere".format(
+                nick, target
+            )
+        )
         add_ignore(db, conn.name, "*", target)
 
 
@@ -206,7 +230,8 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
         notice("{} is not globally ignored.".format(target))
     else:
         notice("{} has been globally un-ignored.".format(target))
-        admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
+        fmt = "{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere"
+        admin_log(fmt.format(nick, target))
         remove_ignore(db, conn.name, "*", target)
 
 
@@ -224,19 +249,21 @@ def list_all_ignores(db, conn, text):
     if text:
         whereclause = and_(whereclause, table.c.channel == text.lower())
 
-    rows = db.execute(select([table.c.channel, table.c.mask], whereclause)).fetchall()
+    rows = db.execute(
+        select([table.c.channel, table.c.mask], whereclause)
+    ).fetchall()
 
     ignores = OrderedDict()
 
     for row in rows:
-        ignores.setdefault(row['channel'], []).append(row['mask'])
+        ignores.setdefault(row["channel"], []).append(row["mask"])
 
     out = ""
     for chan, masks in ignores.items():
         out += "Ignores for {}:\n".format(chan)
         for mask in masks:
-            out += '- {}\n'.format(mask)
+            out += "- {}\n".format(mask)
 
-        out += '\n'
+        out += "\n"
 
     return web.paste(out)

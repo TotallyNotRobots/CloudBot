@@ -66,7 +66,9 @@ async def onjoin(conn, bot):
     :type conn: cloudbot.clients.clients.IrcClient
     :type bot: cloudbot.bot.CloudBot
     """
-    logger.info("[%s|misc] Bot is sending join commands for network.", conn.name)
+    logger.info(
+        "[%s|misc] Bot is sending join commands for network.", conn.name
+    )
     nickserv = conn.config.get("nickserv")
     if nickserv and nickserv.get("enabled", True):
         logger.info("[%s|misc] Bot is authenticating with NickServ.", conn.name)
@@ -84,12 +86,15 @@ async def onjoin(conn, bot):
                 conn.message(
                     nickserv_name,
                     "{} {} {}".format(
-                        nickserv_command, nickserv_account_name, nickserv_password
+                        nickserv_command,
+                        nickserv_account_name,
+                        nickserv_password,
                     ),
                 )
             else:
                 conn.message(
-                    nickserv_name, "{} {}".format(nickserv_command, nickserv_password)
+                    nickserv_name,
+                    "{} {}".format(nickserv_command, nickserv_password),
                 )
             if "censored_strings" in bot.config:
                 bot.config["censored_strings"].append(nickserv_password)
@@ -107,7 +112,9 @@ async def onjoin(conn, bot):
     # Set bot modes
     mode = conn.config.get("mode")
     if mode:
-        logger.info("[%s|misc] Bot is setting mode on itself: %s", conn.name, mode)
+        logger.info(
+            "[%s|misc] Bot is setting mode on itself: %s", conn.name, mode
+        )
         conn.cmd("MODE", conn.nick, mode)
 
     log_chan = conn.config.get("log_channel")
@@ -121,7 +128,8 @@ async def onjoin(conn, bot):
 
     conn.ready = True
     logger.info(
-        "[%s|misc] Bot has finished sending join commands for network.", conn.name
+        "[%s|misc] Bot has finished sending join commands for network.",
+        conn.name,
     )
 
 
@@ -183,6 +191,6 @@ async def on_invalid_nick(conn):
     nick = conn.config["nick"]
     conn.nick = nick
     conn.cmd("NICK", conn.nick)
-    await asyncio.sleep(
-        30
-    )  # Just in case, we make sure to wait at least 30 seconds between sending this
+    # Just in case, we make sure to wait at least 30 seconds between
+    # sending this
+    await asyncio.sleep(30)

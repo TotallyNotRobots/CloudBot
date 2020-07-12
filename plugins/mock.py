@@ -2,7 +2,7 @@ from cloudbot import hook
 
 
 def get_latest_line(conn, chan, nick):
-    for name, _, msg in reversed(conn.history[chan.casefold()]):
+    for name, _, msg in reversed(conn.history.get(chan.casefold(), [])):
         if nick.casefold() == name.casefold():
             return msg
 
@@ -19,10 +19,13 @@ def mock(text, chan, conn, message):
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"
-        line = line[8:].strip(' \x01')
+        line = line[7:].strip(" \x01")
     else:
         fmt = "<{nick}> {msg}"
 
     # Return the message in aLtErNaTiNg cApS
-    line = "".join(c.upper() if i & 1 else c.lower() for i, c in enumerate(line))
+    def alt_cap(i, c):
+        return c.upper() if i & 1 else c.lower()
+
+    line = "".join(alt_cap(i, c) for i, c in enumerate(line))
     message(fmt.format(nick=nick, msg=line))

@@ -18,9 +18,11 @@ with open("data/password_words.txt") as f:
 
 @hook.command(autohelp=False)
 def password(text, notice):
-    """[length [types]] - generates a password of <length> (default 12).
-    [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols'
-    (default: alpha numeric no caps)"""
+    """
+    [length [types]] - generates a password of <length> (default 12).
+    [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any
+    combination: eg. 'numbers symbols' (default: alpha numeric no caps)
+    """
     okay = ""
 
     # find the length needed for the password
@@ -68,7 +70,10 @@ def password(text, notice):
 
 @hook.command("wpass", "wordpass", "wordpassword", autohelp=False)
 def word_password(text, notice):
-    """[length] - generates an easy to remember password with [length] (default 4) commonly used words"""
+    """
+    [length] - generates an easy to remember password with [length] (default 4)
+    commonly used words
+    """
     try:
         length = int(text)
     except ValueError:
@@ -83,4 +88,5 @@ def word_password(text, notice):
     for _ in range(length):
         words.append(gen.choice(common_words))
 
-    notice("Your password is '{}'. Feel free to remove the spaces when using it.".format(" ".join(words)))
+    fmt = "Your password is '{}'. Feel free to remove the spaces when using it."
+    notice(fmt.format(" ".join(words)))

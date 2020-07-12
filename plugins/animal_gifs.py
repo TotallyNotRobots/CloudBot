@@ -17,8 +17,9 @@ DOG_PAGES = (
 
 def get_gifs(url):
     soup = get_soup(url)
-    container = soup.find('div', class_="row")
-    gifs = [urljoin(url, elem["data-src"]) for elem in container.find_all('img', {'data-src': True})]
+    container = soup.find("div", class_="row")
+    imgs = container.find_all("img", {"data-src": True})
+    gifs = [urljoin(url, elem["data-src"]) for elem in imgs]
     return gifs
 
 

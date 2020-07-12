@@ -70,8 +70,11 @@ def get_items(text):
 
 @hook.command(autohelp=False)
 def imgur(text):
-    """[search term] / [/r/subreddit] / [/user/username] / memes / random - returns a link to a random imgur image based
-     on your input. if no input is given the bot will get an image from the imgur frontpage """
+    """
+    [search term] / [/r/subreddit] / [/user/username] / memes / random -
+    returns a link to a random imgur image based on your input.
+    If no input is given the bot will get an image from the imgur frontpage
+    """
     text = text.strip().lower()
 
     if not container.api:
@@ -102,7 +105,9 @@ def imgur(text):
     # if it's an imgur meme, add the meme name
     # if not, AttributeError will trigger and code will carry on
     with suppress(AttributeError):
-        title = "\x02{}\x02 - {}".format(item.meme_metadata["meme_name"].lower(), title)
+        title = "\x02{}\x02 - {}".format(
+            item.meme_metadata["meme_name"].lower(), title
+        )
 
     # if the item has a tag, show that
     if item.section:
@@ -126,8 +131,11 @@ def imgur(text):
 
 @hook.command("imguralbum", "multiimgur", "imgalbum", "album", autohelp=False)
 def imguralbum(text, conn):
-    """[search term] / [/r/subreddit] / [/user/username] / memes / random - returns a link to lots of random images
-    based on your input. if no input is given the bot will get images from the imgur frontpage """
+    """
+    [search term] / [/r/subreddit] / [/user/username] / memes / random -
+    returns a link to lots of random images based on your input.
+    If no input is given the bot will get images from the imgur frontpage
+    """
     text = text.strip().lower()
 
     if not container.api:
@@ -147,10 +155,10 @@ def imguralbum(text, conn):
     nsfw = any([item.nsfw for item in items])
 
     params = {
-        'title': '{} presents: "{}"'.format(conn.nick, text or "random images"),
-        'ids': ",".join([item.id for item in items]),
-        'layout': 'blog',
-        'account_url': None
+        "title": '{} presents: "{}"'.format(conn.nick, text or "random images"),
+        "ids": ",".join([item.id for item in items]),
+        "layout": "blog",
+        "account_url": None,
     }
     album = container.api.create_album(params)
 

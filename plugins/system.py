@@ -15,11 +15,14 @@ except ImportError:
 
 @hook.command(autohelp=False)
 def about(text, conn, bot):
-    """- Gives information about CloudBot. Use .about license for licensing information"""
+    """
+    - Gives information about CloudBot. Use .about license for licensing
+    information
+    """
     if text.lower() in ("license", "gpl", "source"):
         return (
-            "CloudBot Refresh is released under the GPL v3 license, get the source code "
-            "at {}".format(bot.repo_link)
+            "CloudBot Refresh is released under the GPL v3 license, "
+            "get the source code at {}".format(bot.repo_link)
         )
 
     return "{} is powered by CloudBot Refresh! ({}) - {}".format(

@@ -2,10 +2,11 @@ import asyncio
 import socket
 from asyncio import CancelledError
 from typing import Any, Dict
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+import cloudbot
 import cloudbot.clients.irc as irc
 from cloudbot.client import ClientConnectError
 from cloudbot.event import Event, EventType
@@ -16,10 +17,8 @@ def map_calls(calls):
     return [tuple(c) for c in calls]
 
 
-def make_mock_conn(name="testconn", loop=None):
-    if loop is None:
-        loop = asyncio.get_event_loop()
-
+def make_mock_conn(name="testconn"):
+    loop = asyncio.get_event_loop()
     conn = MagicMock()
     conn.name = name
     conn.loop = loop
@@ -40,15 +39,15 @@ def filter_logs(caplog):
 
 
 class TestLineParsing:
-    def wait_tasks(self, conn, cancel=False):
+    async def wait_tasks(self, conn, cancel=False):
         tasks = async_util.get_all_tasks(conn.loop)
         if cancel:
             for task in tasks:
                 task.cancel()
 
         try:
-            conn.loop.run_until_complete(asyncio.gather(*tasks))
-        except CancelledError:
+            await asyncio.gather(*tasks)
+        except CancelledError:  # pragma: no cover
             if not cancel:
                 raise  # pragma: no cover
 
@@ -56,10 +55,12 @@ class TestLineParsing:
     def _filter_event(event: Event) -> Dict[str, Any]:
         return {k: v for k, v in dict(event).items() if not callable(v)}
 
-    def make_proto(self):
+    @pytest.mark.asyncio
+    async def make_proto(self):
+        cloudbot._configure_logger({})
         conn = make_mock_conn()
         conn.nick = "me"
-        conn.loop = asyncio.get_event_loop_policy().new_event_loop()
+        conn.loop = asyncio.get_event_loop()
         out = []
 
         async def func(e):
@@ -70,14 +71,16 @@ class TestLineParsing:
         proto = irc._IrcProtocol(conn)
         return conn, out, proto
 
-    def test_data_received(self, caplog):
+    @pytest.mark.asyncio
+    async def test_data_received(self, caplog):
         caplog.set_level(0)
-        conn, out, proto = self.make_proto()
+        conn, out, proto = await self.make_proto()
         proto.data_received(
-            b":server.host COMMAND this is :a command\r\n:server.host PRIVMSG me :hi\r\n"
+            b":server.host COMMAND this is :a command\r\n"
+            b":server.host PRIVMSG me :hi\r\n"
         )
 
-        self.wait_tasks(conn)
+        await asyncio.sleep(1)
 
         assert out == [
             {
@@ -125,14 +128,16 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_broken_line_doesnt_interrupt(self, caplog):
+    @pytest.mark.asyncio
+    async def test_broken_line_doesnt_interrupt(self, caplog):
         caplog.set_level(0)
-        conn, out, proto = self.make_proto()
+        conn, out, proto = await self.make_proto()
         proto.data_received(
-            b":server\2.host CMD this is :a command\r\nPRIVMSG\r\n:server.host PRIVMSG me :hi\r\n"
+            b":server\2.host CMD this is :a command\r\nPRIVMSG\r\n"
+            b":server.host PRIVMSG me :hi\r\n"
         )
 
-        self.wait_tasks(conn)
+        await asyncio.sleep(1)
 
         assert out == [
             {
@@ -180,24 +185,26 @@ class TestLineParsing:
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while parsing IRC line 'PRIVMSG' from "
-                "server.name:port",
+                "[testconn] Error occurred while parsing IRC line "
+                "'PRIVMSG' from server.name:port",
             )
         ]
         assert map_calls(conn.mock_calls) == [("describe_server", (), {})]
 
-    def test_pong(self, caplog):
+    @pytest.mark.asyncio
+    async def test_pong(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
+        conn, _, proto = await self.make_proto()
         proto.data_received(b":server PING hi\r\n")
 
         conn.send.assert_called_with("PONG hi", log=False)
-        self.wait_tasks(conn, cancel=True)
+        await self.wait_tasks(conn, cancel=True)
         assert filter_logs(caplog) == []
 
-    def test_simple_cmd(self, caplog):
+    @pytest.mark.asyncio
+    async def test_simple_cmd(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
+        conn, _, proto = await self.make_proto()
         event = proto.parse_line(":server.host COMMAND this is :a command")
 
         assert self._filter_event(event) == {
@@ -223,9 +230,10 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_privmsg(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_privmsg(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
+        conn, _, proto = await self.make_proto()
         event = proto.parse_line(
             ":sender!user@host PRIVMSG #channel :this is a message"
         )
@@ -253,9 +261,10 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_privmsg_ctcp_action(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_privmsg_ctcp_action(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
+        conn, _, proto = await self.make_proto()
         event = proto.parse_line(
             ":sender!user@host PRIVMSG #channel :\1ACTION this is an action\1"
         )
@@ -273,8 +282,10 @@ class TestLineParsing:
             "irc_ctcp_text": "ACTION this is an action",
             "irc_paramlist": ["#channel", "\x01ACTION this is an action\x01"],
             "irc_prefix": "sender!user@host",
-            "irc_raw": ":sender!user@host PRIVMSG #channel :\x01ACTION this is an "
-            "action\x01",
+            "irc_raw": (
+                ":sender!user@host PRIVMSG #channel "
+                ":\x01ACTION this is an action\x01"
+            ),
             "mask": "sender!user@host",
             "nick": "sender",
             "target": None,
@@ -284,10 +295,13 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_privmsg_ctcp_version(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_privmsg_ctcp_version(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG #channel :\1VERSION\1")
+        conn, _, proto = await self.make_proto()
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG #channel :\1VERSION\1"
+        )
 
         assert self._filter_event(event) == {
             "irc_tags": None,
@@ -312,10 +326,13 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_privmsg_bad_ctcp(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_privmsg_bad_ctcp(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG #channel :\1VERSION\1aa")
+        conn, _, proto = await self.make_proto()
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG #channel :\1VERSION\1aa"
+        )
 
         assert self._filter_event(event) == {
             "chan": "#channel",
@@ -337,18 +354,17 @@ class TestLineParsing:
             "type": EventType.message,
             "user": "user",
         }
-        assert filter_logs(caplog) == [
-            (
-                "cloudbot",
-                10,
-                "[testconn] Invalid CTCP message received, treating it as a mornal message",
-            )
-        ]
+        msg = (
+            "[testconn] Invalid CTCP message received, "
+            "treating it as a mornal message"
+        )
+        assert filter_logs(caplog) == [("cloudbot", 10, msg,)]
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_no_prefix(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_no_prefix(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
+        conn, _, proto = await self.make_proto()
         event = proto.parse_line("SOMECMD thing")
 
         assert self._filter_event(event) == {
@@ -374,10 +390,13 @@ class TestLineParsing:
         assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
-    def test_parse_pm_privmsg(self, caplog):
+    @pytest.mark.asyncio
+    async def test_parse_pm_privmsg(self, caplog):
         caplog.set_level(0)
-        conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG me :this is a message")
+        conn, _, proto = await self.make_proto()
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG me :this is a message"
+        )
 
         assert self._filter_event(event) == {
             "irc_tags": None,
@@ -403,6 +422,12 @@ class TestLineParsing:
         assert map_calls(conn.mock_calls) == []
 
 
+@pytest.fixture(name="patch_rand_range")
+def fixture_patch_rand_range():
+    with patch("random.randrange") as mocked:
+        mocked.return_value = 1
+
+
 class TestConnect:
     async def make_client(self) -> irc.IrcClient:
         bot = MagicMock(loop=asyncio.get_event_loop(), config={})
@@ -414,32 +439,38 @@ class TestConnect:
                 "bind_port": 0,
             }
         }
-        client = irc.IrcClient(bot, "irc", "testconn", "foo", config=conn_config)
+        client = irc.IrcClient(
+            bot, "irc", "testconn", "foo", config=conn_config
+        )
         client.active = True
         return client
 
     @pytest.mark.asyncio()
-    async def test_exc(self, caplog):
+    async def test_exc(self, caplog, patch_rand_range):
         caplog.set_level(0)
         client = await self.make_client()
+        client.cancelled_future.set_result(False)
         runs = 0
+        client._connecting = True
 
         # noinspection PyUnusedLocal
-        async def connect(timeout):
+        async def connect(self, timeout):
             nonlocal runs
-            if runs == 5:
-                return
-
             runs += 1
+            if runs == 6:
+                self._protocol = MagicMock(connected=True)
+                return 1
+
             raise socket.error("foo")
 
-        client.connect = connect
+        client.connect = connect.__get__(client, irc.IrcClient)
         await client.try_connect()
         assert filter_logs(caplog) == [
             (
                 "cloudbot",
                 20,
-                "[testconn|permissions] Created permission manager for testconn.",
+                "[testconn|permissions] Created permission "
+                "manager for testconn.",
             ),
             (
                 "cloudbot",
@@ -452,58 +483,62 @@ class TestConnect:
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
-                "foo)",
+                "[testconn] Error occurred while connecting to "
+                "host.invalid:6667 (OSError: foo)",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
-                "foo)",
+                "[testconn] Error occurred while connecting to "
+                "host.invalid:6667 (OSError: foo)",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
-                "foo)",
+                "[testconn] Error occurred while connecting to "
+                "host.invalid:6667 (OSError: foo)",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
-                "foo)",
+                "[testconn] Error occurred while connecting to "
+                "host.invalid:6667 (OSError: foo)",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
-                "foo)",
+                "[testconn] Error occurred while connecting to "
+                "host.invalid:6667 (OSError: foo)",
             ),
         ]
         assert map_calls(client.bot.mock_calls) == []
 
     @pytest.mark.asyncio()
-    async def test_timeout_exc(self, caplog):
+    async def test_timeout_exc(self, caplog, patch_rand_range):
         caplog.set_level(0)
         client = await self.make_client()
+        client.cancelled_future.set_result(False)
         runs = 0
 
         # noinspection PyUnusedLocal
-        async def connect(timeout):
+        async def connect(self, timeout):
             nonlocal runs
-            if runs == 5:
-                return
-
             runs += 1
+            if runs == 6:
+                self._protocol = MagicMock(connected=True)
+                return 1
+
             raise TimeoutError("foo")
 
-        client.connect = connect
+        assert client.timeout == 1
+        client.connect = connect.__get__(client, irc.IrcClient)
         await client.try_connect()
         assert filter_logs(caplog) == [
             (
                 "cloudbot",
                 20,
-                "[testconn|permissions] Created permission manager for testconn.",
+                "[testconn|permissions] Created permission manager "
+                "for testconn.",
             ),
             (
                 "cloudbot",
@@ -516,27 +551,32 @@ class TestConnect:
             (
                 "cloudbot",
                 40,
-                "[testconn] Timeout occurred while connecting to host.invalid:6667",
+                "[testconn] Timeout occurred while connecting to "
+                "host.invalid:6667",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Timeout occurred while connecting to host.invalid:6667",
+                "[testconn] Timeout occurred while connecting to "
+                "host.invalid:6667",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Timeout occurred while connecting to host.invalid:6667",
+                "[testconn] Timeout occurred while connecting to "
+                "host.invalid:6667",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Timeout occurred while connecting to host.invalid:6667",
+                "[testconn] Timeout occurred while connecting to "
+                "host.invalid:6667",
             ),
             (
                 "cloudbot",
                 40,
-                "[testconn] Timeout occurred while connecting to host.invalid:6667",
+                "[testconn] Timeout occurred while connecting to "
+                "host.invalid:6667",
             ),
         ]
         assert map_calls(client.bot.mock_calls) == []
@@ -558,7 +598,8 @@ class TestConnect:
             (
                 "cloudbot",
                 20,
-                "[testconn|permissions] Created permission manager for testconn.",
+                "[testconn|permissions] Created permission manager "
+                "for testconn.",
             ),
             (
                 "cloudbot",
@@ -580,9 +621,9 @@ class TestConnect:
             await asyncio.sleep(timeout)
 
         client._connect = _connect
+        msg = "Attempted to connect while another connect attempt is happening"
         with pytest.raises(
-            ValueError,
-            match="Attempted to connect while another connect attempt is happening",
+            ValueError, match=msg,
         ):
             await asyncio.gather(client.connect(2), client.connect(0))
 
@@ -590,7 +631,8 @@ class TestConnect:
             (
                 "cloudbot",
                 20,
-                "[testconn|permissions] Created permission manager for testconn.",
+                "[testconn|permissions] Created permission manager "
+                "for testconn.",
             ),
             (
                 "cloudbot",
@@ -608,8 +650,10 @@ class TestConnect:
         caplog.set_level(0)
         client = await self.make_client()
         client.loop.create_connection = mock = MagicMock()
+
         fut = asyncio.Future(loop=client.loop)
         fut.set_result((None, None))
+
         mock.return_value = fut
 
         await client.connect()
@@ -618,7 +662,8 @@ class TestConnect:
             (
                 "cloudbot",
                 20,
-                "[testconn|permissions] Created permission manager for testconn.",
+                "[testconn|permissions] Created permission "
+                "manager for testconn.",
             ),
             (
                 "cloudbot",
@@ -643,12 +688,16 @@ class TestSend:
         proto = irc._IrcProtocol(conn)
         proto._connected = True
         proto._transport = MagicMock()
+
         sieve = object()
-        proto.bot.plugin_manager.out_sieves = [sieve]
-        proto.bot.plugin_manager.internal_launch = launch = MagicMock()
+
+        manager = proto.bot.plugin_manager
+        manager.out_sieves = [sieve]
+        manager.internal_launch = launch = MagicMock()
+
         fut = async_util.create_future(proto.loop)
-        fut.set_result((False, None))
         launch.return_value = fut
+        fut.set_result((False, None))
 
         await proto.send("PRIVMSG #foo bar")
         assert len(launch.mock_calls) == 1
@@ -658,7 +707,8 @@ class TestSend:
             (
                 "cloudbot",
                 30,
-                "Error occurred in outgoing sieve, falling back to old behavior",
+                "Error occurred in outgoing sieve, "
+                "falling back to old behavior",
             ),
             ("cloudbot", 10, "Line was: PRIVMSG #foo bar"),
             ("cloudbot", 10, "[testconn|out] >> b'PRIVMSG #foo bar\\r\\n'"),

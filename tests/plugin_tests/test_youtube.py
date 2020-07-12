@@ -2,26 +2,8 @@ from copy import deepcopy
 from unittest.mock import MagicMock
 
 import pytest
-from responses import RequestsMock
 
 from cloudbot.bot import bot
-
-
-@pytest.fixture()
-def mock_requests():
-    with RequestsMock() as reqs:
-        yield reqs
-
-
-@pytest.fixture()
-def mock_api_keys():
-    try:
-        bot.set(MagicMock())
-        bot.config.get_api_key.return_value = "APIKEY"
-        yield
-    finally:
-        bot.set(None)
-
 
 video_data = {
     "kind": "youtube#videoListResponse",
@@ -42,7 +24,10 @@ video_data = {
                 "tags": ["a tag"],
                 "categoryId": "24",
                 "liveBroadcastContent": "none",
-                "localized": {"title": "some title", "description": "a description"},
+                "localized": {
+                    "title": "some title",
+                    "description": "a description",
+                },
                 "defaultAudioLanguage": "en",
             },
             "contentDetails": {
@@ -67,9 +52,9 @@ video_data = {
 
 class TestGetVideoDescription:
     base_url = "https://www.googleapis.com/youtube/v3/"
-    "videos?maxResults=1&id=phL7P6gtZRM&parts=statistics%2CcontentDetails%2Csnippet&key=APIKEY"
     api_url = base_url + (
-        "videos?maxResults=1&id={id}&part=statistics%2CcontentDetails%2Csnippet&key={key}"
+        "videos?maxResults=1&id={id}&part=statistics%2CcontentDetails%2Csnippet"
+        "&key={key}"
     )
     search_api_url = base_url + "search?part=id&maxResults=1"
 
@@ -84,13 +69,17 @@ class TestGetVideoDescription:
     def test_http_error(self, mock_requests, mock_api_keys):
         from plugins import youtube
 
+        body = {
+            "error": {
+                "code": 500,
+                "errors": [{"domain": "foo", "reason": "bar"}],
+            },
+        }
         mock_requests.add(
             "GET",
             self.api_url.format(id="foobar", key="APIKEY"),
             match_querystring=True,
-            json={
-                "error": {"code": 500, "errors": [{"domain": "foo", "reason": "bar"}],},
-            },
+            json=body,
             status=500,
         )
 
@@ -137,6 +126,7 @@ class TestGetVideoDescription:
 
         data = deepcopy(video_data)
         del data["items"][0]["statistics"]["likeCount"]
+        del data["items"][0]["statistics"]["dislikeCount"]
 
         mock_requests.add(
             "GET",
@@ -146,8 +136,8 @@ class TestGetVideoDescription:
         )
 
         result = (
-            "\x02some title\x02 - length \x0217m 2s\x02 - \x0268,905\x02 views - "
-            "\x02a channel\x02 on \x022019.10.10\x02"
+            "\x02some title\x02 - length \x0217m 2s\x02 - "
+            "\x0268,905\x02 views - \x02a channel\x02 on \x022019.10.10\x02"
         )
 
         assert youtube.get_video_description("phL7P6gtZRM") == result
@@ -209,7 +199,10 @@ class TestGetVideoDescription:
             self.api_url.format(id="foobar", key="APIKEY"),
             match_querystring=True,
             json={
-                "error": {"code": 500, "errors": [{"domain": "foo", "reason": "bar"}],}
+                "error": {
+                    "code": 500,
+                    "errors": [{"domain": "foo", "reason": "bar"}],
+                }
             },
             status=500,
         )

@@ -9,7 +9,6 @@ if sys.version_info < (3, 5, 4):
     print("CloudBot requires Python 3.5.4 or newer.")
     sys.exit(1)
 
-
 version = (1, 3, 0)
 __version__ = ".".join(str(i) for i in version)
 
@@ -52,19 +51,19 @@ def _setup():
     else:
         logging_config = {}
 
+    _configure_logger(logging_config)
+
+
+def _configure_logger(logging_config):
     file_log = logging_config.get("file_log", False)
-    console_level = (
-        "INFO" if logging_config.get("console_log_info", True) else "WARNING"
-    )
+    con_log_info = logging_config.get("console_log_info", True)
+    console_level = "INFO" if con_log_info else "WARNING"
 
     logging_info.dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
-
     logging_info.make_dir()
-
     logging.captureWarnings(True)
 
     logger_names = ["cloudbot", "plugins"]
-
     dict_config = {
         "version": 1,
         "formatters": {
@@ -86,7 +85,8 @@ def _setup():
             }
         },
         "loggers": {
-            name: {"level": "DEBUG", "handlers": ["console"]} for name in logger_names
+            name: {"level": "DEBUG", "handlers": ["console"]}
+            for name in logger_names
         },
     }
 
@@ -106,7 +106,10 @@ def _setup():
 
     if logging_config.get("console_debug", False):
         dict_config["handlers"]["console"]["level"] = "DEBUG"
-        dict_config["loggers"]["asyncio"] = {"level": "DEBUG", "handlers": ["console"]}
+        dict_config["loggers"]["asyncio"] = {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        }
         if file_log:
             dict_config["loggers"]["asyncio"]["handlers"].append("file")
 

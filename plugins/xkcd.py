@@ -7,7 +7,7 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.util.http import parse_soup
 
-xkcd_re = re.compile(r'(.*:)//(www.xkcd.com|xkcd.com)(.*)', re.I)
+xkcd_re = re.compile(r"(.*:)//(www.xkcd.com|xkcd.com)(.*)", re.I)
 
 XKCD_URL = URL("http://www.xkcd.com/")
 ONR_URL = URL("http://www.ohnorobot.com/")
@@ -20,38 +20,36 @@ def xkcd_info(xkcd_id, url=False):
     data = request.json()
 
     date = datetime.date(
-        year=int(data['year']),
-        month=int(data['month']),
-        day=int(data['day']),
+        year=int(data["year"]), month=int(data["month"]), day=int(data["day"]),
     )
-    date_str = date.strftime('%d %B %Y')
+    date_str = date.strftime("%d %B %Y")
 
     if url:
         url = " | {}".format(XKCD_URL / xkcd_id.replace("/", ""))
     else:
         url = ""
 
-    return "xkcd: \x02{}\x02 ({}){}".format(data['title'], date_str, url)
+    return "xkcd: \x02{}\x02 ({}){}".format(data["title"], date_str, url)
 
 
 def xkcd_search(term):
     params = {
-        's': term,
-        'Search': 'Search',
-        'comic': 56,
-        'e': 0,
-        'n': 0,
-        'b': 0,
-        'm': 0,
-        'd': 0,
-        't': 0,
+        "s": term,
+        "Search": "Search",
+        "comic": 56,
+        "e": 0,
+        "n": 0,
+        "b": 0,
+        "m": 0,
+        "d": 0,
+        "t": 0,
     }
     request = requests.get(str(ONR_URL), params=params)
     request.raise_for_status()
     soup = parse_soup(request.text)
-    result = soup.find('li')
+    result = soup.find("li")
     if result:
-        url = result.find('div', {'class': 'tinylink'}).text
+        url = result.find("div", {"class": "tinylink"}).text
         xkcd_id = url[:-1].split("/")[-1]
         return xkcd_info(xkcd_id, url=True)
 

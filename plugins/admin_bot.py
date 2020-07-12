@@ -4,8 +4,14 @@ from cloudbot import hook
 from cloudbot.util import formatting
 
 
-@hook.command("groups", "listgroups", "permgroups", permissions=["permissions_users"], autohelp=False)
-async def get_permission_groups(conn):
+@hook.command(
+    "groups",
+    "listgroups",
+    "permgroups",
+    permissions=["permissions_users"],
+    autohelp=False,
+)
+def get_permission_groups(conn):
     """- lists all valid groups
 
     :type conn: cloudbot.client.Client
@@ -14,7 +20,7 @@ async def get_permission_groups(conn):
 
 
 @hook.command("gperms", permissions=["permissions_users"])
-async def get_group_permissions(text, conn, notice):
+def get_group_permissions(text, conn, notice):
     """<group> - lists permissions given to <group>
 
     :type text: str
@@ -68,7 +74,10 @@ def parse_self(event):
 
 @hook.command("uperms", autohelp=False)
 async def get_user_permissions(event):
-    """[user] - lists all permissions given to [user], or the caller if no user is specified"""
+    """
+    [user] - lists all permissions given to [user], or the caller if no user
+    is specified
+    """
     user = parse_self(event)
     if not user:
         return None
@@ -84,7 +93,10 @@ async def get_user_permissions(event):
 
 @hook.command("ugroups", autohelp=False)
 async def get_user_groups(event):
-    """[user] - lists all permissions given to [user], or the caller if no user is specified"""
+    """
+    [user] - lists all permissions given to [user], or the caller if no user
+    is specified
+    """
     user = parse_self(event)
     if not user:
         return None
@@ -104,20 +116,19 @@ def remove_user_from_group(user, group, event):
         group.lower(), user.lower()
     )
 
-    mask_list = formatting.get_text_list(changed_masks, 'and')
-    event.reply("Removed {} from {}".format(
-        mask_list, group
-    ))
-    event.admin_log("{} used deluser remove {} from {}.".format(
-        event.nick, mask_list, group
-    ))
+    mask_list = formatting.get_text_list(changed_masks, "and")
+    event.reply("Removed {} from {}".format(mask_list, group))
+    log_msg = "{} used deluser remove {} from {}."
+    event.admin_log(log_msg.format(event.nick, mask_list, group))
 
     return bool(changed_masks)
 
 
 @hook.command("deluser", permissions=["permissions_users"])
 async def remove_permission_user(text, event, bot, conn, notice, reply):
-    """<user> [group] - removes <user> from [group], or from all groups if no group is specified
+    """
+    <user> [group] - removes <user> from [group], or from all groups
+    if no group is specified
 
     :type text: str
     :type bot: cloudbot.bot.CloudBot
@@ -180,8 +191,9 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
     user = split[0]
     group = split[1]
 
-    if not re.search('.+!.+@.+', user):
-        # TODO: When we have presence tracking, check if there are any users in the channel with the nick given
+    if not re.search(".+!.+@.+", user):
+        # TODO: When we have presence tracking, check if there are any users
+        #  in the channel with the nick given
         notice("The user must be in the format 'nick!user@host'")
         return
 
@@ -198,7 +210,11 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
         admin_log("{} used adduser to add {} to {}.".format(nick, user, group))
     else:
         reply("Group {} created with user {}".format(group, user))
-        admin_log("{} used adduser to create group {} and add {} to it.".format(nick, group, user))
+        admin_log(
+            "{} used adduser to create group {} and add {} to it.".format(
+                nick, group, user
+            )
+        )
 
     bot.config.save_config()
     permission_manager.reload()
@@ -265,7 +281,9 @@ def parse_targets(text, chan):
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
 async def part(text, conn, nick, chan, notice, admin_log):
-    """[#channel] - parts [#channel], or the caller's channel if no channel is specified
+    """
+    [#channel] - parts [#channel], or the caller's channel if no channel
+    is specified
 
     :type text: str
     :type conn: cloudbot.client.Client
@@ -279,7 +297,9 @@ async def part(text, conn, nick, chan, notice, admin_log):
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 async def cycle(text, conn, chan, notice):
-    """[#channel] - cycles [#channel], or the caller's channel if no channel is specified
+    """
+    [#channel] - cycles [#channel], or the caller's channel if no channel
+    is specified
 
     :type text: str
     :type conn: cloudbot.client.Client
@@ -291,7 +311,7 @@ async def cycle(text, conn, chan, notice):
         conn.join(target)
 
 
-@hook.command('nick', permissions=['botcontrol'])
+@hook.command("nick", permissions=["botcontrol"])
 async def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>
 
@@ -320,7 +340,7 @@ async def raw(text, conn, notice):
 
 def get_chan(chan, text):
     stripped_text = text.strip()
-    if stripped_text.startswith("#") and ' ' in stripped_text:
+    if stripped_text.startswith("#") and " " in stripped_text:
         return stripped_text.split(None, 1)
 
     return chan, stripped_text
@@ -328,14 +348,17 @@ def get_chan(chan, text):
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 async def say(text, conn, chan, nick, admin_log):
-    """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified
+    """
+    [#channel] <message> - says <message> to [#channel], or to the caller's
+    channel if no channel is specified
 
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
     """
     channel, text = get_chan(chan, text)
-    admin_log("{} used SAY to make me SAY \"{}\" in {}.".format(nick, text, channel))
+    fmt = '{} used SAY to make me SAY "{}" in {}.'
+    admin_log(fmt.format(nick, text, channel))
     conn.message(channel, text)
 
 
@@ -349,27 +372,31 @@ async def send_message(text, conn, nick, admin_log):
     split = text.split(None, 1)
     channel = split[0]
     text = split[1]
-    admin_log("{} used MESSAGE to make me SAY \"{}\" in {}.".format(nick, text, channel))
+    fmt = '{} used MESSAGE to make me SAY "{}" in {}.'
+    admin_log(fmt.format(nick, text, channel))
     conn.message(channel, text)
 
 
 @hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
 async def me(text, conn, chan, nick, admin_log):
-    """[#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
+    """
+    [#channel] <action> - acts out <action> in a [#channel], or in the current
+    channel of none is specified
 
     :type text: str
     :type conn: cloudbot.client.Client
     :type chan: str
     """
     channel, text = get_chan(chan, text)
-    admin_log("{} used ME to make me ACT \"{}\" in {}.".format(nick, text, channel))
+    fmt = '{} used ME to make me ACT "{}" in {}.'
+    admin_log(fmt.format(nick, text, channel))
     conn.ctcp(channel, "ACTION", text)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 async def listchans(conn, chan, message, notice):
     """- Lists the current channels the bot is in"""
-    chans = ', '.join(sorted(conn.channels, key=lambda x: x.strip('#').lower()))
+    chans = ", ".join(sorted(conn.channels, key=lambda x: x.strip("#").lower()))
     lines = formatting.chunk_str("I am currently in: {}".format(chans))
     func = notice if chan[:1] == "#" else message
     for line in lines:

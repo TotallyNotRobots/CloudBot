@@ -6,7 +6,8 @@ from cloudbot import hook
 
 def get_data(url, reply, bot, params=None):
     try:
-        r = requests.get(url, headers={'User-Agent': bot.user_agent}, params=params)
+        headers = {"User-Agent": bot.user_agent}
+        r = requests.get(url, headers=headers, params=params)
         r.raise_for_status()
     except HTTPError:
         reply("API error occurred.")
@@ -18,9 +19,10 @@ def get_data(url, reply, bot, params=None):
 @hook.command(autohelp=False)
 def cats(reply, bot):
     """- gets a fucking fact about cats."""
-    r = get_data('https://catfact.ninja/fact', reply, bot, params={'max_length': 100})
+    params = {"max_length": 100}
+    r = get_data("https://catfact.ninja/fact", reply, bot, params=params)
     json = r.json()
-    response = json['fact']
+    response = json["fact"]
     return response
 
 

@@ -6,14 +6,16 @@ import requests
 
 from cloudbot import hook
 from cloudbot.bot import bot
-from cloudbot.util import colors, timeformat
+from cloudbot.util import colors, formatting, timeformat
 from cloudbot.util.formatting import pluralize_suffix
 
 youtube_re = re.compile(
-    r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)", re.I
+    r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)",
+    re.I,
 )
 ytpl_re = re.compile(
-    r"(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)", re.I
+    r"(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)",
+    re.I,
 )
 
 
@@ -69,7 +71,10 @@ Parts = Iterable[str]
 
 
 def do_request(
-    method: str, parts: Parts, params: Optional[ParamMap] = None, **kwargs: ParamValues
+    method: str,
+    parts: Parts,
+    params: Optional[ParamMap] = None,
+    **kwargs: ParamValues
 ) -> requests.Response:
     api_key = bot.config.get_api_key("google_dev_key")
     if not api_key:
@@ -88,12 +93,16 @@ def get_video(video_id: str, parts: Parts) -> requests.Response:
 
 
 def get_playlist(playlist_id: str, parts: Parts) -> requests.Response:
-    return do_request("playlists", parts, params={"maxResults": 1, "id": playlist_id})
+    return do_request(
+        "playlists", parts, params={"maxResults": 1, "id": playlist_id}
+    )
 
 
 def do_search(term: str, result_type: str = "video") -> requests.Response:
     return do_request(
-        "search", ["snippet"], params={"maxResults": 1, "q": term, "type": result_type}
+        "search",
+        ["snippet"],
+        params={"maxResults": 1, "q": term, "type": result_type},
     )
 
 
@@ -122,17 +131,17 @@ def get_video_description(video_id: str) -> str:
     out += " - length \x02{}\x02".format(
         timeformat.format_time(int(length.total_seconds()), simple=True)
     )
-    try:
-        total_votes = float(statistics["likeCount"]) + float(statistics["dislikeCount"])
-    except (LookupError, ValueError):
-        total_votes = 0
+
+    like_count = int(statistics.get("likeCount", 0))
+    dislike_count = int(statistics.get("dislikeCount", 0))
+    total_votes = like_count + dislike_count
 
     if total_votes != 0:
         # format
-        likes = pluralize_suffix(int(statistics["likeCount"]), "like")
-        dislikes = pluralize_suffix(int(statistics["dislikeCount"]), "dislike")
+        likes = pluralize_suffix(int(like_count), "like")
+        dislikes = pluralize_suffix(int(dislike_count), "dislike")
 
-        percent = 100 * float(statistics["likeCount"]) / total_votes
+        percent = 100 * float(like_count) / total_votes
         out += " - {}, {} (\x02{:.1f}\x02%)".format(likes, dislikes, percent)
 
     if "viewCount" in statistics:
@@ -183,7 +192,9 @@ def youtube(text: str, reply) -> str:
     """<query> - Returns the first YouTube search result for <query>."""
     try:
         video_id = get_video_id(text)
-        return get_video_description(video_id) + " - " + make_short_url(video_id)
+        return "{} - {}".format(
+            get_video_description(video_id), make_short_url(video_id)
+        )
     except NoResultsError as e:
         return e.message
     except APIError as e:
@@ -193,7 +204,10 @@ def youtube(text: str, reply) -> str:
 
 @hook.command("youtime", "ytime")
 def youtime(text: str, reply) -> str:
-    """<query> - Gets the total run time of the first YouTube search result for <query>."""
+    """
+    <query> - Gets the total run time of the first YouTube search result
+    for <query>.
+    """
     parts = ["statistics", "contentDetails", "snippet"]
     try:
         video_id = get_video_id(text)
@@ -225,12 +239,12 @@ def youtime(text: str, reply) -> str:
     length_text = timeformat.format_time(l_sec, simple=True)
     total_text = timeformat.format_time(total, accuracy=8)
 
-    return (
-        "The video \x02{}\x02 has a length of {} and has been viewed {:,} times for "
-        "a total run time of {}!".format(
-            snippet["title"], length_text, views, total_text
-        )
+    fmt = (
+        "The video \x02{}\x02 has a length of {} and has been "
+        "viewed {:,} times for "
+        "a total run time of {}!"
     )
+    return fmt.format(snippet["title"], length_text, views, total_text)
 
 
 @hook.regex(ytpl_re)
@@ -252,5 +266,7 @@ def ytplaylist_url(match: Match[str]) -> str:
     title = snippet["title"]
     author = snippet["channelTitle"]
     num_videos = int(content_details["itemCount"])
-    count_videos = " - \x02{:,}\x02 video{}".format(num_videos, "s"[num_videos == 1 :])
-    return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)
+    count_videos = formatting.pluralize_suffix(
+        num_videos, "video", fmt=colors.parse("$(bold){count:,}$(bold) {name}")
+    )
+    return "\x02{}\x02 - {} - \x02{}\x02".format(title, count_videos, author)

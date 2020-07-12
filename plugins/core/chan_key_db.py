@@ -30,18 +30,21 @@ table = Table(
 
 
 @hook.connect(clients=["irc"])
-def load_keys(conn: IrcClient, db) -> None:
+def load_keys(conn: IrcClient, db: Session) -> None:
     """
     Load channel keys to the client
     """
-    query = select([table.c.chan, table.c.key], table.c.conn == conn.name.lower())
+    cause = table.c.conn == conn.name.lower()
+    query = select([table.c.chan, table.c.key], cause)
     conn.clear_channel_keys()
     for row in db.execute(query):
         conn.set_channel_key(row["chan"], row["key"])
 
 
 @hook.irc_raw("MODE")
-def handle_modes(irc_paramlist: List[str], conn: IrcClient, db, chan: str) -> None:
+def handle_modes(
+    irc_paramlist: List[str], conn: IrcClient, db: Session, chan: str
+) -> None:
     """
     Handle mode changes
     """
@@ -51,7 +54,8 @@ def handle_modes(irc_paramlist: List[str], conn: IrcClient, db, chan: str) -> No
     modes = irc_paramlist[1]
     mode_params = list(irc_paramlist[2:])
     serv_info = get_server_info(conn)
-    mode_changes = parse_mode_string(modes, mode_params, get_channel_modes(serv_info))
+    chan_modes = get_channel_modes(serv_info)
+    mode_changes = parse_mode_string(modes, mode_params, chan_modes)
     updated = False
     for change in mode_changes:
         if change.char == "k":
@@ -82,7 +86,7 @@ def make_clause(conn: Client, chan: str) -> BooleanClauseList:
     """
     Generate a WHERE clause to match keys for this conn+channel
     """
-    return and_(table.c.conn == conn.name.lower(), table.c.chan == chan.lower(),)
+    return and_(table.c.conn == conn.name.lower(), table.c.chan == chan.lower())
 
 
 def clear_key(db: Session, conn, chan: str) -> None:
@@ -92,7 +96,9 @@ def clear_key(db: Session, conn, chan: str) -> None:
     db.execute(table.delete().where(make_clause(conn, chan)))
 
 
-def set_key(db: Session, conn: IrcClient, chan: str, key: Optional[str]) -> None:
+def set_key(
+    db: Session, conn: IrcClient, chan: str, key: Optional[str]
+) -> None:
     """
     Set the key for a channel
     """
@@ -106,7 +112,9 @@ def set_key(db: Session, conn: IrcClient, chan: str, key: Optional[str]) -> None
 
 
 @hook.irc_out()
-def check_send_key(conn: IrcClient, parsed_line: Message, db: Session) -> Message:
+def check_send_key(
+    conn: IrcClient, parsed_line: Message, db: Session
+) -> Message:
     """
     Parse outgoing JOIN messages and store used channel keys
     """

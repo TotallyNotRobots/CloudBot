@@ -15,15 +15,19 @@ import re
 
 from cloudbot import hook
 
-whitespace_re = re.compile(r'\s+')
-valid_diceroll = re.compile(r'^([+-]?(?:\d+|\d*d(?:\d+|F))(?:[+-](?:\d+|\d*d(?:\d+|F)))*)( .+)?$', re.I)
-sign_re = re.compile(r'[+-]?(?:\d*d)?(?:\d+|F)', re.I)
-split_re = re.compile(r'([\d+-]*)d?(F|\d*)', re.I)
+whitespace_re = re.compile(r"\s+")
+valid_diceroll = re.compile(
+    r"^([+-]?(?:\d+|\d*d(?:\d+|F))(?:[+-](?:\d+|\d*d(?:\d+|F)))*)( .+)?$", re.I
+)
+sign_re = re.compile(r"[+-]?(?:\d*d)?(?:\d+|F)", re.I)
+split_re = re.compile(r"([\d+-]*)d?(F|\d*)", re.I)
 
 
 def clamp(n, min_value, max_value):
-    """Restricts a number to a certain range of values,
-    returning the min or max value if the value is too small or large, respectively
+    """
+    Restricts a number to a certain range of values, returning the min or
+    max value if the value is too small or large, respectively
+
     :param n: The value to clamp
     :param min_value: The minimum possible value
     :param max_value: The maximum possible value
@@ -37,15 +41,16 @@ def n_rolls(count, n):
     :type count: int
     :type n: int | str
     """
-    if n in ('f', 'F'):
+    if n in ("f", "F"):
         return [random.randint(-1, 1) for _ in range(min(count, 100))]
 
     if count < 100:
         return [random.randint(1, n) for _ in range(count)]
 
-    # Calculate a random sum approximated using a randomized normal variate with the midpoint used as the mu
-    # and an approximated standard deviation based on variance as the sigma
-    mid = .5 * (n + 1) * count
+    # Calculate a random sum approximated using a randomized normal variate
+    # with the midpoint used as the mu and an approximated standard deviation
+    # based on variance as the sigma
+    mid = 0.5 * (n + 1) * count
     var = (n ** 2 - 1) / 12
     adj_var = (var * count) ** 0.5
 
@@ -54,7 +59,9 @@ def n_rolls(count, n):
 
 @hook.command("roll", "dice")
 def dice(text, notice):
-    """<dice roll> - simulates dice rolls. Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4
+    """
+    <dice roll> - simulates dice rolls.
+    Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4
 
     :type text: str
     """
@@ -72,7 +79,7 @@ def dice(text, notice):
     if "d" not in text:
         return
 
-    spec = whitespace_re.sub('', text)
+    spec = whitespace_re.sub("", text)
     if not valid_diceroll.match(spec):
         notice("Invalid dice roll '{}'".format(text))
         return
@@ -107,7 +114,8 @@ def dice(text, notice):
                     rolls += [str(-x) for x in d]
                     total -= sum(d)
             except OverflowError:
-                # I have never seen this happen. If you make this happen, you win a cookie
+                # I have never seen this happen. If you make this happen,
+                # you win a cookie
                 return "Thanks for overflowing a float, jerk >:["
 
     if desc:
@@ -118,13 +126,15 @@ def dice(text, notice):
 
 @hook.command
 def choose(text, event):
-    """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
+    """
+    <choice1>, [choice2], [choice3], etc. - randomly picks one of the
+    given choices
 
     :type text: str
     """
-    choices = re.findall(r'([^,]+)', text.strip())
+    choices = re.findall(r"([^,]+)", text.strip())
     if len(choices) == 1:
-        choices = choices[0].split(' or ')
+        choices = choices[0].split(" or ")
         if len(choices) == 1:
             event.notice_doc()
             return
@@ -149,13 +159,21 @@ def coin(text, notice, action):
         amount = 1
 
     if amount == 1:
-        action("flips a coin and gets {}.".format(random.choice(["heads", "tails"])))
+        action(
+            "flips a coin and gets {}.".format(
+                random.choice(["heads", "tails"])
+            )
+        )
     elif amount == 0:
         action("makes a coin flipping motion")
     else:
-        mu = .5 * amount
-        sigma = (.75 * amount) ** .5
+        mu = 0.5 * amount
+        sigma = (0.75 * amount) ** 0.5
         n = random.normalvariate(mu, sigma)
         heads = clamp(int(round(n)), 0, amount)
         tails = amount - heads
-        action("flips {} coins and gets {} heads and {} tails.".format(amount, heads, tails))
+        action(
+            "flips {} coins and gets {} heads and {} tails.".format(
+                amount, heads, tails
+            )
+        )

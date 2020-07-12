@@ -40,7 +40,9 @@ def format_colors(description):
 
 @hook.command("mcping", "mcp")
 def mcping(text):
-    """<server[:port]> - gets info about the Minecraft server at <server[:port]>"""
+    """
+    <server[:port]> - gets info about the Minecraft server at <server[:port]>
+    """
     try:
         server = MinecraftServer.lookup(text)
     except (IOError, ValueError) as e:
@@ -65,7 +67,8 @@ def mcping(text):
         description = format_colors(" ".join(s.description.split()))
 
     output_format = colors.parse(
-        "{}$(clear) - $(bold){}$(clear) - $(bold){:.1f}ms$(clear) - $(bold){}/{}$(clear) players"
+        "{}$(clear) - $(bold){}$(clear) - $(bold){:.1f}ms$(clear) - "
+        "$(bold){}/{}$(clear) players"
     )
 
     return output_format.format(

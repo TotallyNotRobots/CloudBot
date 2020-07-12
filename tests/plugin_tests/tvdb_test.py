@@ -7,7 +7,13 @@ import requests
 from cloudbot.bot import bot
 from cloudbot.event import CommandEvent
 from plugins import tvdb
+from plugins.tvdb import LazyCollection
 from tests.util import wrap_hook_response
+
+
+def test_lazy_collection():
+    col = LazyCollection([1, 2, 3, 4])
+    assert list(iter(col)) == [1, 2, 3, 4]
 
 
 @pytest.fixture()
@@ -48,14 +54,18 @@ def test_token(mock_requests, reset_api, mock_api_keys):
 
 def test_refresh(mock_requests, reset_api, mock_api_keys, enable_api):
     mock_requests.add(
-        "GET", "https://api.thetvdb.com/refresh_token", json={"token": "foobar1"}
+        "GET",
+        "https://api.thetvdb.com/refresh_token",
+        json={"token": "foobar1"},
     )
     tvdb.refresh(MagicMock(config=bot.config))
     assert tvdb.api.jwt_token == "foobar1"
 
 
 def test_refresh_expired(mock_requests, reset_api, mock_api_keys, enable_api):
-    mock_requests.add("GET", "https://api.thetvdb.com/refresh_token", status=401)
+    mock_requests.add(
+        "GET", "https://api.thetvdb.com/refresh_token", status=401
+    )
     mock_requests.add(
         "POST", "https://api.thetvdb.com/login", json={"token": "foobar2"}
     )
@@ -63,8 +73,12 @@ def test_refresh_expired(mock_requests, reset_api, mock_api_keys, enable_api):
     assert tvdb.api.jwt_token == "foobar2"
 
 
-def test_refresh_other_error(mock_requests, reset_api, mock_api_keys, enable_api):
-    mock_requests.add("GET", "https://api.thetvdb.com/refresh_token", status=502)
+def test_refresh_other_error(
+    mock_requests, reset_api, mock_api_keys, enable_api
+):
+    mock_requests.add(
+        "GET", "https://api.thetvdb.com/refresh_token", status=502
+    )
     with pytest.raises(requests.HTTPError):
         tvdb.api.refresh_token(MagicMock(config=bot.config))
 
@@ -344,7 +358,10 @@ class _Base(ABC):
         res = self.call("Foo")
         if self.shows_old_eps():
             assert res == [
-                ("return", "The last episode of Foo: Bar aired 2017-02-02 (S01E01).")
+                (
+                    "return",
+                    "The last episode of Foo: Bar aired 2017-02-02 (S01E01).",
+                )
             ]
         else:
             assert res == [
@@ -386,11 +403,17 @@ class _Base(ABC):
         res = self.call("Foo")
         if self.shows_new_eps():
             assert res == [
-                ("return", "The next episode of Foo: Bar airs 2020-02-02 (S01E01)")
+                (
+                    "return",
+                    "The next episode of Foo: Bar airs 2020-02-02 (S01E01)",
+                )
             ]
         else:
             assert res == [
-                ("return", "There are no previously aired episodes for Foo: Bar.")
+                (
+                    "return",
+                    "There are no previously aired episodes for Foo: Bar.",
+                )
             ]
 
     def test_only_new_eps_tba(self, mock_requests, enable_api):
@@ -443,17 +466,20 @@ class _Base(ABC):
             },
         )
 
+        new_ep_msg = (
+            "The next episodes of Foo: Bar: Today (S01E00), "
+            "2020-02-02 (S01E01), 2020-02-05 (S01E02), "
+            "2020-02-05 (S01E03 - baz), TBA (S01E04)"
+        )
         res = self.call("Foo")
         if self.shows_new_eps():
+            assert res == [("return", new_ep_msg,)]
+        else:
             assert res == [
                 (
                     "return",
-                    "The next episodes of Foo: Bar: Today (S01E00), 2020-02-02 (S01E01), 2020-02-05 (S01E02), 2020-02-05 (S01E03 - baz), TBA (S01E04)",
+                    "There are no previously aired episodes for Foo: Bar.",
                 )
-            ]
-        else:
-            assert res == [
-                ("return", "There are no previously aired episodes for Foo: Bar.")
             ]
 
     def test_series_ended(self, mock_requests, enable_api):
@@ -496,7 +522,8 @@ class _Base(ABC):
             assert res == [
                 (
                     "return",
-                    "Foo: Bar ended. The last episode aired 2018-01-01 (S01E01).",
+                    "Foo: Bar ended. The last episode aired "
+                    "2018-01-01 (S01E01).",
                 )
             ]
 
@@ -538,7 +565,8 @@ class _Base(ABC):
             assert res == [
                 (
                     "return",
-                    "The next episodes of TBA: 2020-02-02 (S01E01), TBA (S01E02)",
+                    "The next episodes of TBA: 2020-02-02 (S01E01), "
+                    "TBA (S01E02)",
                 )
             ]
         else:
@@ -569,7 +597,9 @@ class TestPrev(_Base):
         return False
 
     def get_no_ep_msg(self):
-        return [("return", "There are no previously aired episodes for Foo: Bar.")]
+        return [
+            ("return", "There are no previously aired episodes for Foo: Bar.")
+        ]
 
     def get_func(self):
         return tvdb.tv_last

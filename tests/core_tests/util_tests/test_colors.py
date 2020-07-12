@@ -15,9 +15,14 @@ from cloudbot.util.colors import (
     strip_irc,
 )
 
-test_input = "The quick $(brown, red)brown$(clear) fox$(fake) jumps over the $(bold)lazy dog$(clear)."
+test_input = (
+    "The quick $(brown, red)brown$(clear) fox$(fake) jumps over "
+    "the $(bold)lazy dog$(clear)."
+)
 
-test_parse_output = "The quick \x0305,04brown\x0f fox jumps over the \x02lazy dog\x0f."
+test_parse_output = (
+    "The quick \x0305,04brown\x0f fox jumps over the \x02lazy dog\x0f."
+)
 test_strip_output = "The quick brown fox jumps over the lazy dog."
 
 test_strip_irc_input = "\x02I am $(bold)bold\x02"
@@ -46,13 +51,13 @@ def test_available_formats():
 def test_invalid_color():
     with pytest.raises(KeyError) as excinfo:
         get_color("cake")
-    assert 'not in the list of available colours' in str(excinfo.value)
+    assert "not in the list of available colours" in str(excinfo.value)
 
 
 def test_invalid_format():
     with pytest.raises(KeyError) as excinfo:
         get_format("cake")
-    assert 'not found in the list of available formats' in str(excinfo.value)
+    assert "not found in the list of available formats" in str(excinfo.value)
 
 
 def test_get_color():
@@ -62,13 +67,15 @@ def test_get_color():
 
 def test_get_random_color():
     assert get_color("random") in ["\x03" + i for i in IRC_COLOUR_DICT.values()]
-    assert get_color("random", return_formatted=False) in list(IRC_COLOUR_DICT.values())
+    assert get_color("random", return_formatted=False) in list(
+        IRC_COLOUR_DICT.values()
+    )
 
     with patch(
-            'cloudbot.util.colors.randint',
-            return_value=4  # chosen by fair dice roll, guranteed to be random.
+        "cloudbot.util.colors.randint",
+        return_value=4,  # chosen by fair dice roll, guranteed to be random.
     ):
-        assert get_color('random') == '\x0304'
+        assert get_color("random") == "\x0304"
 
 
 def test_get_format():

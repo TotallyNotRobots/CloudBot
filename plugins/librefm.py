@@ -1,10 +1,15 @@
 from datetime import datetime
 
 import requests
-from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
+from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
-from cloudbot.util import timeformat, web, database
+from cloudbot.util import database, timeformat, web
+
+NO_USERNAME = (
+    "No librefm username specified and no librefm username "
+    "is set in the database."
+)
 
 api_url = "https://libre.fm/2.0/?format=json"
 
@@ -14,9 +19,9 @@ unsupported_msg = "This feature is not supported in the libre.fm API"
 table = Table(
     "librefm",
     database.metadata,
-    Column('nick', String),
-    Column('acc', String),
-    PrimaryKeyConstraint('nick')
+    Column("nick", String),
+    Column("acc", String),
+    PrimaryKeyConstraint("nick"),
 )
 
 last_cache = []
@@ -60,7 +65,10 @@ def get_account(nick):
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
 def librefm(text, nick, db, event):
-    """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
+    """
+    [user] [dontsave] - displays the now playing (or last played) track of
+    libre.fm user [user]
+    """
 
     # check if the user asked us not to save his details
     dontsave = text.endswith(" dontsave")
@@ -75,40 +83,49 @@ def librefm(text, nick, db, event):
             event.notice_doc()
             return
 
-    response, err = api_request('user.getrecenttracks', user=user, limit=1)
+    response, err = api_request("user.getrecenttracks", user=user, limit=1)
     if err:
         return err
 
-    if 'error' in response:
+    if "error" in response:
         # return "libre.fm Error: {}.".format(response["message"])
-        return "libre.fm Error: {} Code: {}.".format(response["error"]["#text"], response["error"]["code"])
+        return "libre.fm Error: {} Code: {}.".format(
+            response["error"]["#text"], response["error"]["code"]
+        )
 
-    if 'track' not in response['recenttracks'] or response['recenttracks']['track']:
-        return "No recent tracks for user \"{}\" found.".format(user)
+    if (
+        "track" not in response["recenttracks"]
+        or response["recenttracks"]["track"]
+    ):
+        return 'No recent tracks for user "{}" found.'.format(user)
 
     tracks = response["recenttracks"]["track"]
 
     if isinstance(tracks, list):
         track = tracks[0]
 
-        if "@attr" in track and "nowplaying" in track["@attr"] and track["@attr"]["nowplaying"] == "true":
-            # if the user is listening to something, the first track (a dict) of the
-            # tracks list will contain an item with the "@attr" key.
+        if (
+            "@attr" in track
+            and "nowplaying" in track["@attr"]
+            and track["@attr"]["nowplaying"] == "true"
+        ):
+            # if the user is listening to something, the first track (a dict)
+            # of the tracks list will contain an item with the "@attr" key.
             # this item will will contain another item with the "nowplaying" key
             # which value will be "true"
-            status = 'is listening to'
-            ending = '.'
+            status = "is listening to"
+            ending = "."
         else:
             return
 
     elif isinstance(tracks, dict):
         track = tracks
         # otherwise, the user is not listening to anything right now
-        status = 'last listened to'
+        status = "last listened to"
         # lets see how long ago they listened to it
         time_listened = datetime.fromtimestamp(int(track["date"]["uts"]))
         time_since = timeformat.time_since(time_listened)
-        ending = ' ({} ago)'.format(time_since)
+        ending = " ({} ago)".format(time_since)
 
     else:
         return "error: could not parse track listing"
@@ -133,7 +150,9 @@ def librefm(text, nick, db, event):
     out += ending
 
     if text and not dontsave:
-        res = db.execute(table.update().values(acc=user).where(table.c.nick == nick.lower()))
+        res = db.execute(
+            table.update().values(acc=user).where(table.c.nick == nick.lower())
+        )
         if res.rowcount <= 0:
             db.execute(table.insert().values(nick=nick.lower(), acc=user))
 
@@ -143,27 +162,27 @@ def librefm(text, nick, db, event):
 
 
 def getartisttags(artist):
-    tags, err = api_request('artist.getTopTags', artist=artist)
+    tags, err = api_request("artist.getTopTags", artist=artist)
     if err:
         return "error returning tags ({})".format(err)
 
     try:
-        tag = tags['toptags']['tag']
+        tag = tags["toptags"]["tag"]
     except LookupError:
-        return 'no tags'
+        return "no tags"
 
     if isinstance(tag, dict):
-        tag_list = tag['name']
+        tag_list = tag["name"]
     elif isinstance(tag, list):
         tag_list = []
         for item in tag:
-            tag_list.append(item['name'])
+            tag_list.append(item["name"])
     else:
         return "error returning tags"
 
     if isinstance(tag_list, list):
         tag_list = tag_list[0:4]
-        return ', '.join(tag_list)
+        return ", ".join(tag_list)
 
     return tag_list
 
@@ -181,10 +200,10 @@ def displaybandinfo(text, bot):
     if err:
         return err
 
-    if 'error' in artist:
-        return 'No such artist.'
+    if "error" in artist:
+        return "No such artist."
 
-    a = artist['artist']
+    a = artist["artist"]
     summary = a["bio"]["summary"]
     tags = getartisttags(a)
 
@@ -198,12 +217,12 @@ def displaybandinfo(text, bot):
     return out
 
 
-def getartistinfo(artist, user=''):
+def getartistinfo(artist, user=""):
     params = {}
     if user:
-        params['username'] = user
+        params["username"] = user
 
-    return api_request('artist.getInfo', artist=artist, autocorrect=1, **params)
+    return api_request("artist.getInfo", artist=artist, autocorrect=1, **params)
 
 
 @hook.command("librecompare", "librelc")
@@ -212,7 +231,9 @@ def librefmcompare():
     return unsupported_msg
 
 
-@hook.command("libretoptrack", "libretoptracks", "libretop", "librett", autohelp=False)
+@hook.command(
+    "libretoptrack", "libretoptracks", "libretop", "librett", autohelp=False
+)
 def toptrack(text, nick):
     """[username] - Grabs a list of the top tracks for a libre.fm username"""
     if text:
@@ -223,13 +244,13 @@ def toptrack(text, nick):
         username = get_account(nick)
 
     if not username:
-        return "No librefm username specified and no librefm username is set in the database."
+        return NO_USERNAME
 
-    data, err = api_request('user.gettoptracks', user=username, limit=5)
+    data, err = api_request("user.gettoptracks", user=username, limit=5)
     if err:
         return err
 
-    if 'error' in data:
+    if "error" in data:
         return "Error: {}.".format(data["message"])
 
     out = "{}'s favorite songs: ".format(username)
@@ -237,14 +258,18 @@ def toptrack(text, nick):
         track_name = data["toptracks"]["track"][r]["name"]
         artist_name = data["toptracks"]["track"][r]["artist"]["name"]
         play_count = data["toptracks"]["track"][r]["playcount"]
-        out += "{} by {} listened to {:,} times. ".format(track_name, artist_name, int(play_count))
+        out += "{} by {} listened to {:,} times. ".format(
+            track_name, artist_name, int(play_count)
+        )
     return out
 
 
 @hook.command("libretopartists", "libreta", autohelp=False)
 def libretopartists(text, nick):
-    """[username] - Grabs a list of the top artists for a libre.fm username. You can set your libre.fm username
-    with .librefm username"""
+    """
+    [username] - Grabs a list of the top artists for a libre.fm username.
+    You can set your libre.fm username with .librefm username
+    """
     if text:
         username = get_account(text)
         if not username:
@@ -253,42 +278,50 @@ def libretopartists(text, nick):
         username = get_account(nick)
 
     if not username:
-        return "No libre.fm username specified and no libre.fm username is set in the database."
+        return NO_USERNAME
 
-    data, err = api_request('user.gettopartists', user=username, limit=5)
+    data, err = api_request("user.gettopartists", user=username, limit=5)
     if err:
         return err
 
-    if 'error' in data:
+    if "error" in data:
         return "Error: {}.".format(data["message"])
 
     out = "{}'s favorite artists: ".format(username)
     for r in range(5):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
-        out += "{} listened to {:,} times. ".format(artist_name, int(play_count))
+        out += "{} listened to {:,} times. ".format(
+            artist_name, int(play_count)
+        )
     return out
 
 
 @hook.command("libreltw", "libretopweek", autohelp=False)
 def topweek(text, nick):
-    """[username] - Grabs a list of the top artists in the last week for a libre.fm username. You can set your
-    librefm username with .l username"""
-    return topartists(text, nick, '7day')
+    """
+    [username] - Grabs a list of the top artists in the last week for a
+    libre.fm username. You can set your librefm username with .l username
+    """
+    return topartists(text, nick, "7day")
 
 
 @hook.command("libreltm", "libretopmonth", autohelp=False)
 def topmonth(text, nick):
-    """[username] - Grabs a list of the top artists in the last month for a libre.fm username. You can set your
-    librefm username with .l username"""
-    return topartists(text, nick, '1month')
+    """
+    [username] - Grabs a list of the top artists in the last month for a
+    libre.fm username. You can set your librefm username with .l username
+    """
+    return topartists(text, nick, "1month")
 
 
 @hook.command("librelibrelta", "libretopall", autohelp=False)
 def topall(text, nick):
-    """[username] - Grabs a list of the top artists in the last year for a libre.fm username. You can set your
-    librefm username with .l username"""
-    return topartists(text, nick, '12month')
+    """
+    [username] - Grabs a list of the top artists in the last year for a
+    libre.fm username. You can set your librefm username with .l username
+    """
+    return topartists(text, nick, "12month")
 
 
 def topartists(text, nick, period):
@@ -300,16 +333,16 @@ def topartists(text, nick, period):
         username = get_account(nick)
 
     if not username:
-        return "No librefm username specified and no librefm username is set in the database."
+        return NO_USERNAME
 
     data, err = api_request(
-        'user.gettopartists', user=username, period=period, limit=10
+        "user.gettopartists", user=username, period=period, limit=10
     )
 
     if err:
         return err
 
-    if 'error' in data:
+    if "error" in data:
         return data
         # return "Error: {}.".format(data["message"])
 
@@ -323,4 +356,5 @@ def topartists(text, nick, period):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
         out += "{} [{:,}] ".format(artist_name, int(play_count))
+
     return out

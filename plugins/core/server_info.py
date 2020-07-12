@@ -60,11 +60,15 @@ def get_server_info(conn):
     return conn.memory["server_info"]
 
 
-def get_status_modes(serv_info, *, clear: bool = False) -> Dict[str, StatusMode]:
+def get_status_modes(
+    serv_info, *, clear: bool = False
+) -> Dict[str, StatusMode]:
     return _get_set_clear(serv_info, "statuses", dict, clear=clear)
 
 
-def get_channel_modes(serv_info, *, clear: bool = False) -> Dict[str, ChannelMode]:
+def get_channel_modes(
+    serv_info, *, clear: bool = False
+) -> Dict[str, ChannelMode]:
     return _get_set_clear(serv_info, "channel_modes", dict, clear=clear)
 
 
@@ -122,9 +126,8 @@ isupport_handlers = {
 def on_isupport(conn, irc_paramlist):
     serv_info = get_server_info(conn)
     token_data = serv_info["isupport_tokens"]
-    tokens = irc_paramlist[
-        1:-1
-    ]  # strip the nick and trailing ':are supported by this server' message
+    # strip the nick and trailing ':are supported by this server' message
+    tokens = irc_paramlist[1:-1]
     for token in tokens:
         name, _, value = token.partition("=")
         name = name.upper()

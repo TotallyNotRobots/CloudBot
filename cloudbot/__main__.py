@@ -13,7 +13,8 @@ def main():
     # store the original working directory, for use when restarting
     original_wd = Path().resolve()
 
-    # Logging optimizations, doing it here because we only want to change this if we're the main file
+    # Logging optimizations, doing it here because we only want to change
+    # this if we're the main file
     logging._srcfile = None
     logging.logThreads = 0
     logging.logProcesses = 0
@@ -31,7 +32,8 @@ def main():
     original_sigint = signal.getsignal(signal.SIGINT)
 
     # define closure for signal handling
-    # The handler is called with two arguments: the signal number and the current stack frame
+    # The handler is called with two arguments: the signal number and the
+    # current stack frame
     # These parameters should NOT be removed
     # noinspection PyUnusedLocal
     def exit_gracefully(signum, frame):
@@ -41,7 +43,8 @@ def main():
             stopped_while_restarting = True
         else:
             async_util.run_coroutine_threadsafe(
-                _bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop
+                _bot.stop("Killed (Received SIGINT {})".format(signum)),
+                _bot.loop,
             )
 
         logger.warning("Bot received Signal Interrupt (%s)", signum)

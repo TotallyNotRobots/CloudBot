@@ -3,22 +3,22 @@ import random
 from collections import defaultdict
 from threading import RLock
 
-from sqlalchemy import Table, Column, String
+from sqlalchemy import Column, String, Table
 from sqlalchemy.exc import SQLAlchemyError
 
 from cloudbot import hook
 from cloudbot.util import database
-from cloudbot.util.pager import paginated_list, CommandPager
+from cloudbot.util.pager import CommandPager, paginated_list
 
 search_pages = defaultdict(dict)
 
 table = Table(
-    'grab',
+    "grab",
     database.metadata,
-    Column('name', String),
-    Column('time', String),
-    Column('quote', String),
-    Column('chan', String)
+    Column("name", String),
+    Column("time", String),
+    Column("quote", String),
+    Column("chan", String),
 )
 
 grab_cache = {}
@@ -48,9 +48,12 @@ def load_cache(db):
 
 @hook.command("moregrab", autohelp=False)
 def moregrab(text, chan, conn):
-    """[page] - if a grab search has lots of results the results are pagintated. If the most recent search is paginated
-    the pages are stored for retreival. If no argument is given the next page will be returned else a page number can
-    be specified."""
+    """
+    [page] - if a grab search has lots of results the results are pagintated.
+    If the most recent search is paginated the pages are stored for retreival.
+    If no argument is given the next page will be returned else a page number
+    can be specified.
+    """
     pages = search_pages[conn.name].get(chan)
     if not pages:
         return "There are no grabsearch pages to show."
@@ -70,7 +73,9 @@ def check_grabs(name, quote, chan):
 
 def grab_add(nick, time, msg, chan, db):
     # Adds a quote to the grab table
-    db.execute(table.insert().values(name=nick, time=time, quote=msg, chan=chan))
+    db.execute(
+        table.insert().values(name=nick, time=time, quote=msg, chan=chan)
+    )
     db.commit()
     load_cache(db)
 
@@ -85,25 +90,36 @@ def get_latest_line(conn, chan, nick):
 
 @hook.command()
 def grab(text, nick, chan, db, conn):
-    """<nick> - grabs the last message from the specified nick and adds it to the quote database"""
+    """
+    <nick> - grabs the last message from the specified nick and adds
+    it to the quote database
+    """
     if text.lower() == nick.lower():
         return "Didn't your mother teach you not to grab yourself?"
 
     with grab_locks_lock:
-        grab_lock = grab_locks[conn.name.casefold()].setdefault(chan.casefold(), RLock())
+        grab_lock = grab_locks[conn.name.casefold()].setdefault(
+            chan.casefold(), RLock()
+        )
 
     with grab_lock:
         name, timestamp, msg = get_latest_line(conn, chan, text)
         if not msg:
-            return "I couldn't find anything from {} in recent history.".format(text)
+            return "I couldn't find anything from {} in recent history.".format(
+                text
+            )
 
         if check_grabs(text.casefold(), msg, chan):
-            return "I already have that quote from {} in the database".format(text)
+            return "I already have that quote from {} in the database".format(
+                text
+            )
 
         try:
             grab_add(name.casefold(), timestamp, msg, chan, db)
         except SQLAlchemyError:
-            logger.exception("Error occurred when grabbing %s in %s", name, chan)
+            logger.exception(
+                "Error occurred when grabbing %s in %s", name, chan
+            )
             return "Error occurred."
 
         if check_grabs(name.casefold(), msg, chan):
@@ -113,8 +129,9 @@ def grab(text, nick, chan, db, conn):
 
 
 def format_grab(name, quote):
-    # add nonbreaking space to nicks to avoid highlighting people with printed grabs
-    name = "{}{}{}".format(name[0], u"\u200B", name[1:])
+    # add nonbreaking space to nicks to avoid highlighting people with
+    # printed grabs
+    name = "{}{}{}".format(name[0], "\u200B", name[1:])
     if quote.startswith("\x01ACTION") or quote.startswith("*"):
         quote = quote.replace("\x01ACTION", "").replace("\x01", "")
         out = "* {}{}".format(name, quote)
@@ -158,7 +175,9 @@ def grabrandom(text, chan, message):
                     matching_quotes.extend((nick, quote) for quote in quotes)
         else:
             matching_quotes.extend(
-                (name, quote) for name, quotes in chan_grabs.items() for quote in quotes
+                (name, quote)
+                for name, quotes in chan_grabs.items()
+                for quote in quotes
             )
 
     if not matching_quotes:
@@ -189,7 +208,11 @@ def grabsearch(text, chan, conn):
 
         for name, quotes in chan_grabs.items():
             if name != lower_text:
-                result.extend((name, quote) for quote in quotes if lower_text in quote.lower())
+                result.extend(
+                    (name, quote)
+                    for quote in quotes
+                    if lower_text in quote.lower()
+                )
 
     if not result:
         return "I couldn't find any matches for {}.".format(text)

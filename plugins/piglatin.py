@@ -1,7 +1,8 @@
 """
 piglatin.py
 
-Translates text into pig latin. Use the NLTK module to provide correct translation.
+Translates text into pig latin. Use the NLTK module to provide correct
+translation.
 
 Created By:
     - Luke Rogers <https://github.com/lukeroge>
@@ -26,6 +27,7 @@ pronunciations = {}
 # Translate functions by J.F. Sebastian
 # <https://stackoverflow.com/questions/22773826/pig-latin-translator>
 
+
 def translate(word):
     word = word.lower()  # NOTE: ignore Unicode casefold
     i = 0
@@ -37,7 +39,7 @@ def translate(word):
             if is_vowel:
                 break
         else:  # no vowels
-            assert 0
+            break
 
         if i == 0:  # starts with a vowel
             return word + "way"
@@ -63,7 +65,7 @@ def translate_basic(word, vowels="aeiou", start=0):
 
 @hook.on_start()
 def load_nltk():
-    nltk.download('cmudict')
+    nltk.download("cmudict")
 
     pronunciations.clear()
     pronunciations.update(nltk.corpus.cmudict.dict())

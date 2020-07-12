@@ -10,16 +10,17 @@ from cloudbot.event import CommandEvent, Event
 from cloudbot.util.func_utils import call_with_args
 from plugins.attacks import ATTACKS, RespType
 from plugins.foods import BASIC_FOOD
+from tests.util import test_data_dir
 
 
-def _call(func, event):
+async def _call(func, event):
     if asyncio.iscoroutinefunction(func):
-        return event.loop.run_until_complete(call_with_args(func, event))
+        return await call_with_args(func, event)
 
     return call_with_args(func, event)
 
 
-def _do_test(
+async def _do_test(
     plugin_name,
     loader,
     data_name,
@@ -31,15 +32,18 @@ def _do_test(
 ):
     plugin = importlib.import_module("plugins." + plugin_name)
     bot = MagicMock()
-    bot.data_dir = "data"
+    bot.data_dir = str(test_data_dir / ".." / ".." / "data")
     bot.loop = asyncio.get_event_loop()
+    conn = MagicMock()
+    conn.loop = bot.loop
     event = Event(
         hook=MagicMock(),
         bot=bot,
-        conn=MagicMock(),
+        conn=conn,
         channel="#foo",
         nick=nick or "foobar",
     )
+
     if bot_nick:
         event.conn.nick = bot_nick
     else:
@@ -49,7 +53,7 @@ def _do_test(
         event.is_nick_valid = is_nick_valid
 
     if loader:
-        _call(getattr(plugin, loader), event)
+        await _call(getattr(plugin, loader), event)
 
     if data_name:
         assert getattr(plugin, data_name)
@@ -65,7 +69,7 @@ def _do_test(
     if is_nick_valid:
         cmd_event.is_nick_valid = is_nick_valid
 
-    return _call(cmd_func, cmd_event), cmd_event
+    return (await _call(cmd_func, cmd_event)), cmd_event
 
 
 @pytest.mark.parametrize(
@@ -84,10 +88,11 @@ def _do_test(
         ("reactions", "load_macros", "reaction_macros", "my_fetish"),
     ],
 )
-def test_message_reply(plugin_name, loader, data_name, cmd):
-    _, event = _do_test(plugin_name, loader, data_name, cmd, None)
+@pytest.mark.asyncio()
+async def test_message_reply(plugin_name, loader, data_name, cmd):
+    _, event = await _do_test(plugin_name, loader, data_name, cmd, None)
     assert event.conn.message.called
-    _, event = _do_test(plugin_name, loader, data_name, cmd)
+    _, event = await _do_test(plugin_name, loader, data_name, cmd)
     assert event.conn.message.called
 
 
@@ -98,15 +103,19 @@ def test_message_reply(plugin_name, loader, data_name, cmd):
         ("foods", "load_foods", "basic_food_data", "potato"),
     ],
 )
-def test_action_reply(plugin_name, loader, data_name, cmd):
-    _, event = _do_test(plugin_name, loader, data_name, cmd)
+@pytest.mark.asyncio()
+async def test_action_reply(plugin_name, loader, data_name, cmd):
+    _, event = await _do_test(plugin_name, loader, data_name, cmd)
     assert event.conn.action.called
 
 
 @pytest.mark.parametrize("seed", list(range(0, 100, 5)))
-def test_drinks(seed):
+@pytest.mark.asyncio()
+async def test_drinks(seed):
     random.seed(seed)
-    _, event = _do_test("drinks", "load_drinks", "drink_data", "drink_cmd")
+    _, event = await _do_test(
+        "drinks", "load_drinks", "drink_data", "drink_cmd"
+    )
     assert event.conn.action.called
 
 
@@ -119,18 +128,22 @@ def test_drinks(seed):
         ("gnomeagainsthumanity", "shuffle_deck", "gnomecards", "CAHblackcard"),
     ],
 )
-def test_text_return(plugin_name, loader, data_name, cmd):
-    res, _ = _do_test(plugin_name, loader, data_name, cmd)
+@pytest.mark.asyncio()
+async def test_text_return(plugin_name, loader, data_name, cmd):
+    res, _ = await _do_test(plugin_name, loader, data_name, cmd)
     assert res
 
 
 @pytest.mark.parametrize("food", [food.name for food in BASIC_FOOD])
-def test_foods(food):
-    _, event = _do_test("foods", "load_foods", "basic_food_data", food)
+@pytest.mark.asyncio()
+async def test_foods(food):
+    _, event = await _do_test("foods", "load_foods", "basic_food_data", food)
     assert event.conn.action.called
-    _, event = _do_test("foods", "load_foods", "basic_food_data", food, None)
+    _, event = await _do_test(
+        "foods", "load_foods", "basic_food_data", food, None
+    )
     assert event.conn.action.called
-    res, event = _do_test(
+    res, event = await _do_test(
         "foods",
         "load_foods",
         "basic_food_data",
@@ -142,22 +155,27 @@ def test_foods(food):
 
 
 @pytest.mark.parametrize("attack", [attack for attack in ATTACKS])
-def test_attacks(attack):
-    _, event = _do_test("attacks", "load_attacks", "attack_data", attack.name)
+@pytest.mark.asyncio()
+async def test_attacks(attack):
+    _, event = await _do_test(
+        "attacks", "load_attacks", "attack_data", attack.name
+    )
 
     if attack.response == RespType.ACTION:
         assert event.conn.action.called
     else:
         assert event.conn.message.called
 
-    _, event = _do_test("attacks", "load_attacks", "attack_data", attack.name)
+    _, event = await _do_test(
+        "attacks", "load_attacks", "attack_data", attack.name
+    )
 
     if attack.response == RespType.ACTION:
         assert event.conn.action.called
     else:
         assert event.conn.message.called
 
-    _, event = _do_test(
+    _, event = await _do_test(
         "attacks",
         "load_attacks",
         "attack_data",
@@ -172,14 +190,16 @@ def test_attacks(attack):
         assert event.conn.message.called
 
     if not attack.require_target:
-        _, event = _do_test("attacks", "load_attacks", "attack_data", attack.name, None)
+        _, event = await _do_test(
+            "attacks", "load_attacks", "attack_data", attack.name, None
+        )
 
         if attack.response is RespType.ACTION:  # pragma: no cover
             assert event.conn.action.called
         else:
             assert event.conn.message.called
 
-    res, event = _do_test(
+    res, event = await _do_test(
         "attacks",
         "load_attacks",
         "attack_data",

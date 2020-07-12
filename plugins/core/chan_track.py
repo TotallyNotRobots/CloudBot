@@ -31,7 +31,9 @@ logger = logging.getLogger("cloudbot")
 
 class MemberNotFoundException(KeyError):
     def __init__(self, name, chan):
-        super().__init__("No such member '{}' in channel '{}'".format(name, chan.name))
+        super().__init__(
+            "No such member '{}' in channel '{}'".format(name, chan.name)
+        )
         self.name = name
         self.chan = chan
         self.members = list(chan.users.values())
@@ -253,7 +255,9 @@ class User(MappingAttributeAdapter):
         """
         :type channel: Channel
         """
-        self.channels[channel.name] = memb = channel.get_member(self, create=True)
+        self.channels[channel.name] = memb = channel.get_member(
+            self, create=True
+        )
         return memb
 
     @property
@@ -564,7 +568,9 @@ class MappingSerializer:
 
             self._seen_objects.append(id(obj))
 
-            return {self._serialize(k): self._serialize(v) for k, v in obj.items()}
+            return {
+                self._serialize(k): self._serialize(v) for k, v in obj.items()
+            }
 
         if isinstance(obj, Iterable):
             if id(obj) in self._seen_objects:

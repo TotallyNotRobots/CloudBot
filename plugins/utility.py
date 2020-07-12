@@ -25,31 +25,33 @@ import re
 import urllib.parse
 
 from cloudbot import hook
-from cloudbot.util import formatting, web, colors
+from cloudbot.util import colors, formatting, web
 
-COLORS = collections.OrderedDict([
-    ('red', '\x0304'),
-    ('orange', '\x0307'),
-    ('yellow', '\x0308'),
-    ('green', '\x0309'),
-    ('cyan', '\x0303'),
-    ('ltblue', '\x0310'),
-    ('rylblue', '\x0312'),
-    ('blue', '\x0302'),
-    ('magenta', '\x0306'),
-    ('pink', '\x0313'),
-    ('maroon', '\x0305')
-])
+COLORS = collections.OrderedDict(
+    [
+        ("red", "\x0304"),
+        ("orange", "\x0307"),
+        ("yellow", "\x0308"),
+        ("green", "\x0309"),
+        ("cyan", "\x0303"),
+        ("ltblue", "\x0310"),
+        ("rylblue", "\x0312"),
+        ("blue", "\x0302"),
+        ("magenta", "\x0306"),
+        ("pink", "\x0313"),
+        ("maroon", "\x0305"),
+    ]
+)
 
 leet_text = {}
 
 # helper functions
 
-strip_re = re.compile(r'[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?')
+strip_re = re.compile(r"[\u0003\u0002\u001F\u000F](?:,?\d{1,2}(?:,\d{1,2})?)?")
 
 
 def strip(string):
-    return strip_re.sub('', string)
+    return strip_re.sub("", string)
 
 
 def translate(text, dic):
@@ -60,17 +62,21 @@ def translate(text, dic):
 
 # on_start
 
+
 @hook.on_start()
 def load_text(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
     leet_text.clear()
-    with codecs.open(os.path.join(bot.data_dir, "leet.json"), encoding="utf-8") as f:
+    with codecs.open(
+        os.path.join(bot.data_dir, "leet.json"), encoding="utf-8"
+    ) as f:
         leet_text.update(json.load(f))
 
 
 # misc
+
 
 @hook.command("qrcode", "qr")
 def qrcode(text):
@@ -79,7 +85,7 @@ def qrcode(text):
     args = {
         "cht": "qr",  # chart type (QR)
         "chs": "200x200",  # dimensions
-        "chl": text  # data
+        "chl": text,  # data
     }
 
     argstring = urllib.parse.urlencode(args)
@@ -89,6 +95,7 @@ def qrcode(text):
 
 
 # basic text tools
+
 
 @hook.command("capitalize", "capitalise")
 def capitalize(text):
@@ -123,17 +130,23 @@ def swapcase(text):
     return text.swapcase()
 
 
+HALFWIDTH_TO_FULLWIDTH = str.maketrans(
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    '!"#$%&()*+,-./:;<=>?@[]^_`{|}~',
+    "０１２３４５６７８９ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩ"
+    "ＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ！゛＃＄％＆（）＊＋、ー。／：；〈＝〉？＠［］＾＿‘"
+    "｛｜｝～",
+)
+
+
 @hook.command("aesthetic", "vapor", "fw")
 def fullwidth(text):
     """<string> - Converts <string> to full width characters."""
-    HALFWIDTH_TO_FULLWIDTH = str.maketrans(
-        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&()*+,-./:;<=>?@[]^_`{|}~',
-        '０１２３４５６７８９ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ！゛＃＄％＆（）＊＋、ー。／：；〈＝〉？＠［］＾＿‘｛｜｝～'
-    )
     return text.translate(HALFWIDTH_TO_FULLWIDTH)
 
 
 # encoding
+
 
 @hook.command("rot13")
 def rot13_encode(text):
@@ -152,14 +165,16 @@ def base64_encode(text):
 def base64_decode(text, notice):
     """<string> - Decode <string> with base64."""
     try:
-        decoded = base64.b64decode(text.encode()).decode(errors='ignore')
+        decoded = base64.b64decode(text.encode()).decode(errors="ignore")
     except binascii.Error:
         notice("Invalid base64 string '{}'".format(text))
         return
 
     if repr(decoded)[1:-1] != decoded:
-        return "Non printable characters detected in output, " \
-               "escaped output: {!r}".format(decoded)
+        return (
+            "Non printable characters detected in output, "
+            "escaped output: {!r}".format(decoded)
+        )
 
     return decoded
 
@@ -213,8 +228,10 @@ def reverse(text):
 @hook.command("hash")
 def hash_command(text):
     """<string> - Returns hashes of <string>."""
-    return ', '.join(x + ": " + getattr(hashlib, x)(text.encode("utf-8")).hexdigest()
-                     for x in ['md5', 'sha1', 'sha256'])
+    return ", ".join(
+        x + ": " + getattr(hashlib, x)(text.encode("utf-8")).hexdigest()
+        for x in ["md5", "sha1", "sha256"]
+    )
 
 
 # novelty
@@ -229,7 +246,10 @@ def munge(text):
 @hook.command
 def leet(text):
     """<text> - Makes <text> more 1337h4x0rz."""
-    output = ''.join(random.choice(leet_text[ch]) if ch.isalpha() else ch for ch in text.lower())
+    output = "".join(
+        random.choice(leet_text[ch]) if ch.isalpha() else ch
+        for ch in text.lower()
+    )
     return output
 
 
@@ -241,15 +261,46 @@ def derpify(text):
     pick_the = random.choice(["TEH", "DA"])
     pick_e = random.choice(["E", "3", "A"])
     pick_qt = random.choice(["?!?!??", "???!!!!??", "?!??!?", "?!?!?!???"])
-    pick_ex = random.choice(["1111!11", "1!11", "!!1!", "1!!!!111", "!1!111!1", "!11!111"])
+    pick_ex = random.choice(
+        ["1111!11", "1!11", "!!1!", "1!!!!111", "!1!111!1", "!11!111"]
+    )
     pick_end = random.choice(["", "OMG", "LOL", "WTF", "WTF LOL", "OMG LOL"])
-    rules = {"YOU'RE": "UR", "YOUR": "UR", "YOU": "U", "WHAT THE HECK": "WTH", "WHAT THE HELL": "WTH",
-             "WHAT THE FUCK": "WTF",
-             "WHAT THE": "WT", "WHAT": "WUT", "ARE": "R", "WHY": "Y", "BE RIGHT BACK": "BRB", "BECAUSE": "B/C",
-             "OH MY GOD": "OMG", "O": "OH", "THE": pick_the, "TOO": "2", "TO": "2", "BE": "B", "CK": "K", "ING": "NG",
-             "PLEASE": "PLS", "SEE YOU": "CYA", "SEE YA": "CYA", "SCHOOL": "SKOOL", "AM": "M",
-             "AM GOING TO": "IAM GOING TO", "THAT": "DAT", "ICK": "IK",
-             "LIKE": "LIEK", "HELP": "HALP", "KE": "EK", "E": pick_e, "!": pick_ex, "?": pick_qt}
+    rules = {
+        "YOU'RE": "UR",
+        "YOUR": "UR",
+        "YOU": "U",
+        "WHAT THE HECK": "WTH",
+        "WHAT THE HELL": "WTH",
+        "WHAT THE FUCK": "WTF",
+        "WHAT THE": "WT",
+        "WHAT": "WUT",
+        "ARE": "R",
+        "WHY": "Y",
+        "BE RIGHT BACK": "BRB",
+        "BECAUSE": "B/C",
+        "OH MY GOD": "OMG",
+        "O": "OH",
+        "THE": pick_the,
+        "TOO": "2",
+        "TO": "2",
+        "BE": "B",
+        "CK": "K",
+        "ING": "NG",
+        "PLEASE": "PLS",
+        "SEE YOU": "CYA",
+        "SEE YA": "CYA",
+        "SCHOOL": "SKOOL",
+        "AM": "M",
+        "AM GOING TO": "IAM GOING TO",
+        "THAT": "DAT",
+        "ICK": "IK",
+        "LIKE": "LIEK",
+        "HELP": "HALP",
+        "KE": "EK",
+        "E": pick_e,
+        "!": pick_ex,
+        "?": pick_qt,
+    }
     output = translate(string, rules) + " " + pick_end
 
     return output
@@ -284,21 +335,21 @@ def wrainbow(text):
     """<text> - Gives each word in <text> rainbow colors."""
     text = str(text)
     col = list(COLORS.items())
-    text = strip(text).split(' ')
+    text = strip(text).split(" ")
     out = []
     l = len(COLORS)
     for i, t in enumerate(text):
         out.append(col[i % l][1] + t)
-    return ' '.join(out)
+    return " ".join(out)
 
 
 @hook.command
 def usa(text):
     """<text> - Makes <text> more patriotic."""
     text = strip(text)
-    c = [COLORS['red'], '\x0300', COLORS['blue']]
+    c = [COLORS["red"], "\x0300", COLORS["blue"]]
     l = len(c)
-    out = ''
+    out = ""
     for i, t in enumerate(text):
         out += c[i % l] + t
     return out

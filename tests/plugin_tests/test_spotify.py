@@ -1,18 +1,19 @@
 import importlib
-from unittest.mock import MagicMock
+from datetime import datetime
+from unittest.mock import MagicMock, call
 
 import pytest
+from requests import HTTPError
 
-from tests.util.mock_bot import MockBot
+from plugins import spotify
 
 
 @pytest.mark.parametrize(
-    "text,item_type,item_id", [("open.spotify.com/user/foobar", "user", "foobar")]
+    "text,item_type,item_id",
+    [("open.spotify.com/user/foobar", "user", "foobar"),],
 )
 def test_http_re(text, item_type, item_id):
-    from plugins.spotify import http_re
-
-    match = http_re.search(text)
+    match = spotify.http_re.search(text)
     assert match and match.group(2) == item_type and match.group(3) == item_id
 
 
@@ -20,9 +21,7 @@ def test_http_re(text, item_type, item_id):
     "text,item_type,item_id", [("spotify:user:foobar", "user", "foobar")]
 )
 def test_spotify_re(text, item_type, item_id):
-    from plugins.spotify import spotify_re
-
-    match = spotify_re.search(text)
+    match = spotify.spotify_re.search(text)
     assert match and match.group(2) == item_type and match.group(3) == item_id
 
 
@@ -32,7 +31,9 @@ def test_spotify_re(text, item_type, item_id):
         [
             {
                 "display_name": "linuxdaemon",
-                "external_urls": {"spotify": "https://open.spotify.com/user/7777"},
+                "external_urls": {
+                    "spotify": "https://open.spotify.com/user/7777"
+                },
                 "followers": {"total": 2500},
                 "uri": "spotify:user:7777",
             },
@@ -51,53 +52,56 @@ def test_spotify_re(text, item_type, item_id):
     ],
 )
 def test_format_response(data, item_type, output):
-    from plugins.spotify import _format_response
-
-    assert _format_response(data, item_type) == output
+    assert spotify._format_response(data, item_type) == output
 
 
 @pytest.fixture()
-def setup_api(unset_bot, mock_requests):
-    from cloudbot.bot import bot
-
-    bot.set(
-        MockBot(
-            {
-                "api_keys": {
-                    "spotify_client_id": "APIKEY",
-                    "spotify_client_secret": "APIKEY",
-                }
-            }
-        )
-    )
+def setup_api(mock_api_keys, mock_requests):
     mock_requests.add(
         "POST",
         "https://accounts.spotify.com/api/token",
         json={"access_token": "foo", "expires_in": 3600},
     )
-    from plugins import spotify
     importlib.reload(spotify)
     spotify.set_keys()
 
-    yield
+    yield mock_requests
+
+
+def test_spotify_url(setup_api):
+    match = spotify.http_re.search("open.spotify.com/user/foobar")
+    setup_api.add(
+        "GET",
+        "https://api.spotify.com/v1/users/foobar",
+        json={"name": "foo", "followers": {"total": 0},},
+    )
+    res = spotify.spotify_url(match)
+    assert res == "Spotify User: \x02foo\x02, Followers: \x020\x02"
+
+
+def test_spotify_refresh_token(setup_api):
+    spotify.api._token_expires = datetime.min
+    match = spotify.http_re.search("open.spotify.com/user/foobar")
+    setup_api.add(
+        "GET",
+        "https://api.spotify.com/v1/users/foobar",
+        json={"name": "foo", "followers": {"total": 0},},
+    )
+    res = spotify.spotify_url(match)
+    assert res == "Spotify User: \x02foo\x02, Followers: \x020\x02"
 
 
 def test_api_active(setup_api):
-    from plugins import spotify
-
     assert spotify.api
 
 
 def test_api_inactive():
-    from plugins import spotify
     importlib.reload(spotify)
 
     assert not spotify.api
 
 
 def test_search_no_results(mock_requests, setup_api):
-    from plugins import spotify
-
     mock_requests.add(
         mock_requests.GET,
         "https://api.spotify.com/v1/search",
@@ -117,9 +121,10 @@ def test_search_no_results(mock_requests, setup_api):
 
 
 @pytest.mark.parametrize(
-    "data,output",
+    "func,data,output",
     [
-        [
+        (
+            spotify.spotify,
             {
                 "tracks": {
                     "items": [
@@ -127,7 +132,9 @@ def test_search_no_results(mock_requests, setup_api):
                             "name": "foobar",
                             "artists": [{"name": "FooBar"}],
                             "album": {"name": "Baz"},
-                            "external_urls": {"spotify": "https://example.com/foo"},
+                            "external_urls": {
+                                "spotify": "https://example.com/foo"
+                            },
                             "uri": "spotify:track:6rqhFgbbKwnb9MLmUQDhG6",
                             "genres": ["Testing", "Bots", "Foo"],
                         }
@@ -136,15 +143,72 @@ def test_search_no_results(mock_requests, setup_api):
             },
             "\x02foobar\x02 by \x02FooBar\x02 from the album \x02Baz\x02 - "
             "https://example.com/foo [spotify:track:6rqhFgbbKwnb9MLmUQDhG6]",
-        ]
+        ),
+        (
+            spotify.spalbum,
+            {
+                "albums": {
+                    "items": [
+                        {
+                            "uri": "foouri",
+                            "external_urls": {"spotify": "foourl"},
+                            "name": "foo",
+                            "main_artist": {"name": "foobar"},
+                        }
+                    ]
+                }
+            },
+            "\x02foobar\x02 - \x02foo\x02 - foourl [foouri]",
+        ),
+        (
+            spotify.spartist,
+            {
+                "artists": {
+                    "items": [
+                        {
+                            "uri": "foouri",
+                            "external_urls": {"spotify": "foourl"},
+                            "genre_str": "foogenre",
+                            "name": "foo",
+                            "followers": {"total": 5},
+                        }
+                    ]
+                }
+            },
+            "\x02foo\x02, followers: \x025\x02, genres: \x02foogenre\x02 - "
+            "foourl [foouri]",
+        ),
     ],
 )
-def test_format_search_track(data, output, mock_requests, setup_api):
-    from plugins import spotify
+def test_format_search(func, data, output, mock_requests, setup_api):
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()
 
-    assert spotify.spotify("foo", reply) == output
+    assert func("foo", reply) == output
 
     reply.assert_not_called()
+
+
+def test_missing_format(setup_api):
+    setup_api.add(
+        "GET",
+        "https://api.spotify.com/v1/search?q=foo&offset=0&limit=1&type=bar",
+        match_querystring=True,
+        json={"baz": {"items": [{"name": "fooname"}]}},
+    )
+    reply = MagicMock()
+    spotify.TYPE_MAP["bar"] = "baz"
+    with pytest.raises(
+        ValueError, match="Attempt to format unknown Spotify API type: bar"
+    ):
+        spotify._format_search("foo", "bar", reply)
+
+
+def test_search_error(setup_api):
+    setup_api.add("GET", "https://api.spotify.com/v1/search", status=400)
+    reply = MagicMock()
+    with pytest.raises(HTTPError):
+        spotify._format_search("foo", "artist", reply)
+
+    assert reply.mock_calls == [call("Could not get information: 400")]

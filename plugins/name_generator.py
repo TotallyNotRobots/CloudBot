@@ -20,14 +20,18 @@ from cloudbot.util import formatting, textgen
 
 def get_generator(_json):
     data = json.loads(_json)
-    return textgen.TextGenerator(data["templates"],
-                                 data["parts"], default_templates=data["default_templates"])
+    return textgen.TextGenerator(
+        data["templates"],
+        data["parts"],
+        default_templates=data["default_templates"],
+    )
 
 
 @hook.command(autohelp=False)
 def namegen(text, bot, notice):
-    """[generator|list] - generates some names using the chosen generator, or lists all generators
-    if 'list' is specified
+    """
+    [generator|list] - generates some names using the chosen generator,
+    or lists all generators if 'list' is specified
 
     :type bot: cloudbot.bot.CloudBot
     """
@@ -37,13 +41,17 @@ def namegen(text, bot, notice):
 
     # get a list of available name generators
     files = os.listdir(os.path.join(bot.data_dir, "name_files"))
-    all_modules = [os.path.splitext(i)[0] for i in files if os.path.splitext(i)[1] == ".json"]
+    all_modules = [
+        os.path.splitext(i)[0]
+        for i in files
+        if os.path.splitext(i)[1] == ".json"
+    ]
     all_modules.sort()
 
     # command to return a list of all available generators
     if inp == "list":
         message = "Available generators: "
-        message += formatting.get_text_list(all_modules, 'and')
+        message += formatting.get_text_list(all_modules, "and")
         notice(message)
         return
 
@@ -58,7 +66,9 @@ def namegen(text, bot, notice):
         return "{} is not a valid name generator.".format(inp)
 
     # load the name generator
-    path = os.path.join(bot.data_dir, "name_files", "{}.json".format(selected_module))
+    path = os.path.join(
+        bot.data_dir, "name_files", "{}.json".format(selected_module)
+    )
 
     with codecs.open(path, encoding="utf-8") as f:
         try:
@@ -70,4 +80,6 @@ def namegen(text, bot, notice):
     name_list = generator.generate_strings(10)
 
     # and finally return the final message :D
-    return "Some names to ponder: {}.".format(formatting.get_text_list(name_list, 'and'))
+    return "Some names to ponder: {}.".format(
+        formatting.get_text_list(name_list, "and")
+    )

@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 from bs4 import BeautifulSoup
-from responses import RequestsMock
 
 from plugins.link_announcer import (
     MAX_TITLE,
@@ -79,7 +78,7 @@ SEARCH = (
     ("(https://foo.bar)", "https://foo.bar"),
     ("[https://example.com]", "https://example.com"),
     (
-        "<a hreh=\"https://example.com/test.page?#test\">",
+        '<a hreh="https://example.com/test.page?#test">',
         "https://example.com/test.page?#test",
     ),
     (
@@ -105,11 +104,11 @@ def test_search():
 
 
 ENCODINGS = (
-    (b'<meta charset="utf8">', codecs.lookup('utf8')),
-    (b'', None),
+    (b'<meta charset="utf8">', codecs.lookup("utf8")),
+    (b"", None),
     (
         b'<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
-        codecs.lookup('utf8'),
+        codecs.lookup("utf8"),
     ),
 )
 
@@ -119,9 +118,8 @@ def test_encoding_parse():
         soup = BeautifulSoup(text, "lxml")
         encoding = get_encoding(soup)
         if encoding is None:
-            assert enc is None, "Got empty encoding from {!r} expected {!r}".format(
-                text, enc
-            )
+            msg = "Got empty encoding from {!r} expected {!r}".format(text, enc)
+            assert enc is None, msg
             continue
 
         enc_obj = codecs.lookup(encoding)
@@ -137,7 +135,10 @@ TESTS = {
     ),
     "http://www.talos.principle": (STD_HTML, "In the beginning were the words"),
     "http://www.nonexistent.lol": ("", False),
-    "http://www.much-newlines.backslashn": (("\n" * 500) + STD_HTML, "new lines!"),
+    "http://www.much-newlines.backslashn": (
+        ("\n" * 500) + STD_HTML,
+        "new lines!",
+    ),
     "http://completely.invalid": ("\x01\x01\x02\x03\x05\x08\x13", False),
     "http://large.amounts.of.text": (
         STD_HTML + ("42" * 512 * 4096) + "</body>",
@@ -151,10 +152,10 @@ TESTS = {
 @pytest.mark.parametrize(
     "match,test_str,res",
     [(url_re.search(a), b.format(c), c) for a, (b, c) in TESTS.items()],
-    ids=lambda case: str(getattr(case, 'string', case))[:100],
+    ids=lambda case: str(getattr(case, "string", case))[:100],
 )
 def test_link_announce(match, test_str, res, mock_requests):
-    mock_requests.add(RequestsMock.GET, match.string, body=test_str, stream=True)
+    mock_requests.add("GET", match.string, body=test_str, stream=True)
     mck = MagicMock()
     logger = MagicMock()
 
@@ -169,7 +170,7 @@ def test_link_announce(match, test_str, res, mock_requests):
 
 
 def test_link_announce_404(mock_requests):
-    url = 'http://example.com'
+    url = "http://example.com"
     mock_requests.add(mock_requests.GET, url, status=404)
 
     match = url_re.search(url)
@@ -188,7 +189,7 @@ def test_read_timeout(mock_requests):
     def callback(resp):
         raise requests.ReadTimeout()
 
-    mock_requests.add_callback('GET', url, callback)
+    mock_requests.add_callback("GET", url, callback)
 
     match = url_re.search(url)
     assert match
@@ -197,11 +198,11 @@ def test_read_timeout(mock_requests):
 
     assert print_url_title(match=match, message=mck, logger=logger) is None
 
-    logger.debug.assert_called_with('Read timeout reached for %r', url)
+    logger.debug.assert_called_with("Read timeout reached for %r", url)
 
 
 @pytest.mark.parametrize(
-    'body,encoding',
+    "body,encoding",
     [
         (
             b"""\
@@ -209,7 +210,7 @@ def test_read_timeout(mock_requests):
 <meta charset="utf8">
 <title>foobar</title>
 </head>""",
-            'utf8',
+            "utf8",
         ),
         (
             b"""\
@@ -217,7 +218,7 @@ def test_read_timeout(mock_requests):
 <meta http-equiv="content-type", content="text/plain; charset=utf8">
 <title>foobar</title>
 </head>""",
-            'utf8',
+            "utf8",
         ),
         (
             b"""\
@@ -225,20 +226,20 @@ def test_read_timeout(mock_requests):
 <meta http-equiv="content-type", content="text/plain">
 <title>foobar</title>
 </head>""",
-            'ISO-8859-1',
+            "ISO-8859-1",
         ),
         (
             b"""\
 <head>
 <title>foobar</title>
 </head>""",
-            'ISO-8859-1',
+            "ISO-8859-1",
         ),
     ],
 )
 def test_change_encoding(body, encoding):
     # ISO-8859-1 is the default encoding requests would return if none is found
-    assert parse_content(body, 'ISO-8859-1').original_encoding == encoding
+    assert parse_content(body, "ISO-8859-1").original_encoding == encoding
 
 
 def test_connection_error(mock_requests):

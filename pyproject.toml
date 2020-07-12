@@ -1,12 +1,13 @@
 [tool.isort]
-line_length=88
+line_length=80
 multi_line_output=3
 include_trailing_comma=true
 use_parentheses=true
+known_first_party=["cloudbot", "plugins"]
 known_third_party=["attr", "bs4", "cleverwrap", "feedparser", "forecastiopy", "freezegun", "geoip2", "googlemaps", "imgurpython", "irclib", "isodate", "lxml", "mcstatus", "multidict", "nltk", "pytest", "requests", "responses", "sqlalchemy", "tweepy", "venusian", "watchdog", "yarl"]
 
 [tool.black]
-line-length = 88
+line-length = 80
 target-version = ['py35']
 include = '\.pyi?$'
 exclude = '''

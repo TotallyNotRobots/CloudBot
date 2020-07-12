@@ -13,7 +13,8 @@ logger = logging.getLogger("cloudbot")
 class EventType(enum.Enum):
     message = 0
     action = 1
-    # TODO: Do we actually want to have a 'notice' event type? Should the NOTICE command be a 'message' type?
+    # TODO: Do we actually want to have a 'notice' event type?
+    #  Should the NOTICE command be a 'message' type?
     notice = 2
     join = 3
     part = 4
@@ -34,7 +35,7 @@ class Event(Mapping[str, Any]):
     :type user: str
     :type host: str
     :type mask: str
-    :type db: sqlalchemy.orm.Session
+    :type db: sqlalchemy.orm.Session | None
     :type db_executor: concurrent.futures.ThreadPoolExecutor
     :type irc_raw: str
     :type irc_prefix: str
@@ -71,26 +72,32 @@ class Event(Mapping[str, Any]):
         All of these parameters except for `bot` and `hook` are optional.
         The irc_* parameters should only be specified for IRC events.
 
-        Note that the `bot` argument may be left out if you specify a `base_event`.
+        Note that the `bot` argument may be left out if you specify a
+        `base_event`.
 
         :param bot: The CloudBot instance this event was triggered from
         :param conn: The Client instance this event was triggered from
         :param hook: The hook this event will be passed to
-        :param base_event: The base event that this event is based on. If this parameter is not None, then nick, user,
-                            host, mask, and irc_* arguments are ignored
+        :param base_event: The base event that this event is based on.
+            If this parameter is not None, then nick, user, host, mask,
+            and irc_* arguments are ignored
         :param event_type: The type of the event
-        :param content: The content of the message, or the reason for an join or part
-        :param target: The target of the action, for example the user being kicked, or invited
+        :param content: The content of the message, or the reason for an
+            join or part
+        :param target: The target of the action, for example the user being
+            kicked, or invited
         :param channel: The channel that this action took place in
         :param nick: The nickname of the sender that triggered this event
         :param user: The user of the sender that triggered this event
         :param host: The host of the sender that triggered this event
-        :param mask: The mask of the sender that triggered this event (nick!user@host)
+        :param mask: The mask of the sender that triggered this event
+            (nick!user@host)
         :param irc_raw: The raw IRC line
         :param irc_prefix: The raw IRC prefix
         :param irc_command: The IRC command
-        :param irc_paramlist: The list of params for the IRC command. If the last param is a content param, the ':'
-                                should be removed from the front.
+        :param irc_paramlist: The list of params for the IRC command.
+            If the last param is a content param, the ':' should be
+            removed from the front.
         :param irc_ctcp_text: CTCP text if this message is a CTCP command
         :type bot: cloudbot.bot.CloudBot
         :type conn: cloudbot.client.Client
@@ -124,7 +131,8 @@ class Event(Mapping[str, Any]):
             if self.hook is None and base_event.hook is not None:
                 self.hook = base_event.hook
 
-            # If base_event is provided, don't check these parameters, just inherit
+            # If base_event is provided, don't check these parameters,
+            # just inherit
             self.type = base_event.type
             self.content = base_event.content
             self.content_raw = base_event.content_raw
@@ -176,39 +184,41 @@ class Event(Mapping[str, Any]):
         """
         Initializes this event to be run through it's hook
 
-        Mainly, initializes a database object on this event, if the hook requires it.
+        Mainly, initializes a database object on this event,
+        if the hook requires it.
 
-        This method is for when the hook is *not* threaded (event.hook.threaded is False).
-        If you need to add a db to a threaded hook, use prepare_threaded.
+        This method is for when the hook is *not* threaded
+        (event.hook.threaded is False). If you need to add a db to a threaded
+        hook, use prepare_threaded.
         """
 
         if self.hook is None:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            # logger.debug("Opening database session for {}:threaded=False".format(self.hook.description))
-
-            # we're running a coroutine hook with a db, so initialise an executor pool
+            # we're running a coroutine hook with a db,
+            # so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
-            # be sure to initialize the db in the database executor, so it will be accessible in that thread.
+            # be sure to initialize the db in the database executor,
+            # so it will be accessible in that thread.
             self.db = await self.async_call(self.bot.db_session)
 
     def prepare_threaded(self):
         """
         Initializes this event to be run through it's hook
 
-        Mainly, initializes the database object on this event, if the hook requires it.
+        Mainly, initializes the database object on this event,
+        if the hook requires it.
 
-        This method is for when the hook is threaded (event.hook.threaded is True).
-        If you need to add a db to a coroutine hook, use prepare.
+        This method is for when the hook is threaded
+        (event.hook.threaded is True). If you need to add a db to a
+        coroutine hook, use prepare.
         """
 
         if self.hook is None:
             raise ValueError("event.hook is required to prepare an event")
 
         if "db" in self.hook.required_args:
-            # logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
-
             self.db = self.bot.db_session()
 
     async def close(self):
@@ -217,15 +227,16 @@ class Event(Mapping[str, Any]):
 
         Mainly, closes the database connection attached to this event (if any).
 
-        This method is for when the hook is *not* threaded (event.hook.threaded is False).
-        If you need to add a db to a threaded hook, use close_threaded.
+        This method is for when the hook is *not* threaded
+        (event.hook.threaded is False). If you need to add a db to a threaded
+        hook, use close_threaded.
         """
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
 
         if self.db is not None:
-            # logger.debug("Closing database session for {}:threaded=False".format(self.hook.description))
-            # be sure the close the database in the database executor, as it is only accessable in that one thread
+            # be sure the close the database in the database executor,
+            # as it is only accessable in that one thread
             await self.async_call(self.db.close)
             self.db = None
 
@@ -235,14 +246,14 @@ class Event(Mapping[str, Any]):
 
         Mainly, closes the database connection attached to this event (if any).
 
-        This method is for when the hook is threaded (event.hook.threaded is True).
-        If you need to add a db to a coroutine hook, use close.
+        This method is for when the hook is threaded
+        (event.hook.threaded is True). If you need to add a db to a coroutine
+        hook, use close.
         """
         if self.hook is None:
             raise ValueError("event.hook is required to close an event")
 
         if self.db is not None:
-            # logger.debug("Closing database session for {}:threaded=True".format(self.hook.description))
             self.db.close()
             self.db = None
 
@@ -268,7 +279,9 @@ class Event(Mapping[str, Any]):
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -295,11 +308,14 @@ class Event(Mapping[str, Any]):
         reply_ping = self.conn.config.get("reply_ping", True)
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
-        if not messages:  # if there are no messages specified, don't do anything
+        if not messages:
+            # if there are no messages specified, don't do anything
             return
 
         if target == self.nick or not reply_ping:
@@ -312,12 +328,15 @@ class Event(Mapping[str, Any]):
     def action(self, message, target=None):
         """sends an action to the current channel/user
         or a specific channel/user
+
         :type message: str
         :type target: str
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -325,13 +344,16 @@ class Event(Mapping[str, Any]):
 
     def ctcp(self, message, ctcp_type, target=None):
         """sends an ctcp to the current channel/user or a specific channel/user
+
         :type message: str
         :type ctcp_type: str
         :type target: str
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -343,17 +365,21 @@ class Event(Mapping[str, Any]):
 
     def notice(self, message, target=None):
         """sends a notice to the current channel/user or a specific channel/user
+
         :type message: str
         :type target: str
         """
         avoid_notices = self.conn.config.get("avoid_notices", False)
         if target is None:
             if self.nick is None:
-                raise ValueError("Target must be specified when nick is not assigned")
+                raise ValueError(
+                    "Target must be specified when nick is not assigned"
+                )
 
             target = self.nick
 
-        # we have a config option to avoid noticing user and PM them instead, so we use it here
+        # we have a config option to avoid noticing user and PM them instead,
+        # so we use it here
         if avoid_notices:
             self.conn.message(target, message)
         else:
@@ -367,7 +393,9 @@ class Event(Mapping[str, Any]):
         if not self.mask:
             raise ValueError("has_permission requires mask is not assigned")
 
-        return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
+        return self.conn.permissions.has_perm_mask(
+            self.mask, permission, notice=notice
+        )
 
     async def check_permission(self, permission, notice=True):
         """ returns whether or not the current user has a given permission
@@ -379,7 +407,9 @@ class Event(Mapping[str, Any]):
             return True
 
         for perm_hook in self.bot.plugin_manager.perm_hooks[permission]:
-            ok, res = await self.bot.plugin_manager.internal_launch(perm_hook, self)
+            ok, res = await self.bot.plugin_manager.internal_launch(
+                perm_hook, self
+            )
             if ok and res:
                 return True
 
@@ -567,7 +597,9 @@ class IrcOutEvent(Event):
             try:
                 self.parsed_line = Message.parse(self.line)
             except Exception:
-                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                logger.exception(
+                    "Unable to parse line requested by hook %s", self.hook
+                )
                 self.parsed_line = None
 
     def prepare_threaded(self):
@@ -577,7 +609,9 @@ class IrcOutEvent(Event):
             try:
                 self.parsed_line = Message.parse(self.line)
             except Exception:
-                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                logger.exception(
+                    "Unable to parse line requested by hook %s", self.hook
+                )
                 self.parsed_line = None
 
     @property

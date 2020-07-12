@@ -10,19 +10,19 @@ from cloudbot import hook
 from cloudbot.bot import bot
 from cloudbot.util import colors, web
 
-logger = logging.getLogger('cloudbot')
+logger = logging.getLogger("cloudbot")
 
-API_URL = 'http://api.wordnik.com/v4/'
-WEB_URL = 'https://www.wordnik.com/words/{}'
+API_URL = "http://api.wordnik.com/v4/"
+WEB_URL = "https://www.wordnik.com/words/{}"
 
 ATTRIB_NAMES = {
-    'ahd-legacy': 'AHD/Wordnik',
-    'ahd': 'AHD/Wordnik',
-    'ahd-5': 'AHD/Wordnik',
-    'century': 'Century/Wordnik',
-    'wiktionary': 'Wiktionary/Wordnik',
-    'gcide': 'GCIDE/Wordnik',
-    'wordnet': 'Wordnet/Wordnik',
+    "ahd-legacy": "AHD/Wordnik",
+    "ahd": "AHD/Wordnik",
+    "ahd-5": "AHD/Wordnik",
+    "century": "Century/Wordnik",
+    "wiktionary": "Wiktionary/Wordnik",
+    "gcide": "GCIDE/Wordnik",
+    "wordnet": "Wordnet/Wordnik",
 }
 
 # Strings
@@ -58,12 +58,12 @@ class NoValidResults(WordnikAPIError):
         self.results = results
 
 
-ERROR_MAP = {'Not Found': WordNotFound}
+ERROR_MAP = {"Not Found": WordNotFound}
 
 
 def raise_error(data):
     try:
-        error = data['error']
+        error = data["error"]
     except KeyError:
         raise WordnikAPIError("Unknown error, unable to retrieve error data")
 
@@ -78,13 +78,13 @@ def raise_error(data):
 def api_request(endpoint, params=(), **kwargs):
     kwargs.update(params)
 
-    api_key = bot.config.get_api_key('wordnik')
+    api_key = bot.config.get_api_key("wordnik")
     if not api_key:
         raise NoAPIKey()
 
     url = API_URL + endpoint
 
-    kwargs['api_key'] = api_key
+    kwargs["api_key"] = api_key
     with requests.get(url, params=kwargs) as response:
         try:
             data = response.json()
@@ -112,7 +112,9 @@ class WordLookupRequest:
 
     @staticmethod
     def sanitize(text):
-        return urllib.parse.quote(text.translate({ord('\\'): None, ord('/'): None}))
+        return urllib.parse.quote(
+            text.translate({ord("\\"): None, ord("/"): None})
+        )
 
     @property
     def endpoint(self):
@@ -121,7 +123,7 @@ class WordLookupRequest:
     def get_params(self):
         params = dict(self.extra_params)
         if self.result_limit:
-            params['limit'] = self.result_limit
+            params["limit"] = self.result_limit
 
         return params
 
@@ -143,7 +145,7 @@ class WordLookupRequest:
         results = []
         while tries < self.max_tries:
             tries += 1
-            for result in self.get_results():
+            for result in self.get_results()[count:]:
                 results.append(result)
                 if self.is_result_valid(result):
                     count += 1
@@ -176,7 +178,7 @@ class WordLookupRequest:
 
 class DefinitionsLookupRequest(WordLookupRequest):
     def __init__(self, word):
-        super().__init__(word, "definitions", required_fields=('text',))
+        super().__init__(word, "definitions", required_fields=("text",))
 
 
 class ExamplesLookupRequest(WordLookupRequest):
@@ -186,29 +188,29 @@ class ExamplesLookupRequest(WordLookupRequest):
 
     def get_results(self):
         results = super().get_results()
-        return results['examples']
+        return results["examples"]
 
 
 class PronounciationLookupRequest(WordLookupRequest):
     def __init__(self, word):
-        super().__init__(word, "pronunciations", required_fields=('raw',))
+        super().__init__(word, "pronunciations", required_fields=("raw",))
 
 
 class AudioLookupRequest(WordLookupRequest):
     def __init__(self, word):
-        super().__init__(word, "audio", required_fields=('fileUrl',))
+        super().__init__(word, "audio", required_fields=("fileUrl",))
 
 
 class RelatedLookupRequest(WordLookupRequest):
     def __init__(self, word, rel_type):
-        super().__init__(word, "relatedWords", required_fields=('words',))
-        self.extra_params['relationshipTypes'] = rel_type
+        super().__init__(word, "relatedWords", required_fields=("words",))
+        self.extra_params["relationshipTypes"] = rel_type
 
     def get_params(self):
         params = super().get_params()
-        params.pop('limit', None)
+        params.pop("limit", None)
 
-        params['limitPerRelationshipType'] = self.result_limit
+        params["limitPerRelationshipType"] = self.result_limit
 
         return params
 
@@ -217,7 +219,7 @@ def format_attrib(attr_id):
     try:
         return ATTRIB_NAMES[attr_id]
     except KeyError:
-        return attr_id.title() + '/Wordnik'
+        return attr_id.title() + "/Wordnik"
 
 
 @hook.command("define", "dictionary")
@@ -227,17 +229,19 @@ def define(text, event):
     try:
         data = lookup.first()
     except WordNotFound:
-        return colors.parse("I could not find a definition for $(b){}$(b).").format(
-            text
-        )
+        return colors.parse(
+            "I could not find a definition for $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    data['url'] = web.try_shorten(WEB_URL.format(data['word']))
-    data['attrib'] = format_attrib(data['sourceDictionary'])
+    data["url"] = web.try_shorten(WEB_URL.format(data["word"]))
+    data["attrib"] = format_attrib(data["sourceDictionary"])
 
-    return colors.parse("$(b){word}$(b): {text} - {url} ({attrib})").format_map(data)
+    return colors.parse("$(b){word}$(b): {text} - {url} ({attrib})").format_map(
+        data
+    )
 
 
 @hook.command("wordusage", "wordexample", "usage")
@@ -254,7 +258,8 @@ def word_usage(text, event):
         event.reply(e.user_msg())
         raise
 
-    out = colors.parse("$(b){word}$(b): {text}").format(word=text, text=example['text'])
+    parsed_fmt = colors.parse("$(b){word}$(b): {text}")
+    out = parsed_fmt.format(word=text, text=example["text"])
     return out
 
 
@@ -266,15 +271,15 @@ def pronounce(text, event):
     try:
         audio_response = list(lookup.get_filtered_results())[:5]
     except WordNotFound:
-        return colors.parse("Sorry, I don't know how to pronounce $(b){}$(b).").format(
-            text
-        )
+        return colors.parse(
+            "Sorry, I don't know how to pronounce $(b){}$(b)."
+        ).format(text)
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join([i['raw'] for i in audio_response])
+    out += " • ".join([i["raw"] for i in audio_response])
 
     audio_lookup = AudioLookupRequest(text)
     try:
@@ -285,7 +290,7 @@ def pronounce(text, event):
         event.reply(e.user_msg())
         raise
     else:
-        url = web.try_shorten(audio_response['fileUrl'])
+        url = web.try_shorten(audio_response["fileUrl"])
         out += " - {}".format(url)
 
     return out
@@ -294,7 +299,7 @@ def pronounce(text, event):
 @hook.command()
 def synonym(text, event):
     """<word> - Returns a list of synonyms for <word>."""
-    lookup = RelatedLookupRequest(text, 'synonym')
+    lookup = RelatedLookupRequest(text, "synonym")
     try:
         data = lookup.first()
     except WordNotFound:
@@ -306,7 +311,7 @@ def synonym(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join(data['words'])
+    out += " • ".join(data["words"])
 
     return out
 
@@ -314,8 +319,8 @@ def synonym(text, event):
 @hook.command()
 def antonym(text, event):
     """<word> - Returns a list of antonyms for <word>."""
-    lookup = RelatedLookupRequest(text, 'antonym')
-    lookup.extra_params['useCanonical'] = 'false'
+    lookup = RelatedLookupRequest(text, "antonym")
+    lookup.extra_params["useCanonical"] = "false"
     try:
         data = lookup.first()
     except WordNotFound:
@@ -327,7 +332,7 @@ def antonym(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join(data['words'])
+    out += " • ".join(data["words"])
 
     return out
 
@@ -338,13 +343,13 @@ def wordoftheday(text, event):
     """[date] - returns the word of the day. To see past word of the day
     enter use the format yyyy-MM-dd. The specified date must be after
     2009-08-10."""
-    match = re.search(r'(\d\d\d\d-\d\d-\d\d)', text)
+    match = re.search(r"(\d\d\d\d-\d\d-\d\d)", text)
     date = ""
     if match:
         date = match.group(1)
 
     if date:
-        params = {'date': date}
+        params = {"date": date}
         day = date
     else:
         params = {}
@@ -358,10 +363,10 @@ def wordoftheday(text, event):
         event.reply(e.user_msg())
         raise
 
-    word = json['word']
-    note = json['note']
-    pos = json['definitions'][0]['partOfSpeech']
-    definition = json['definitions'][0]['text']
+    word = json["word"]
+    note = json["note"]
+    pos = json["definitions"][0]["partOfSpeech"]
+    definition = json["definitions"][0]["text"]
     out = (
         "The word for $(bold){day}$(bold) is $(bold){word}$(bold): "
         "$(dred)({pos})$(dred) $(cyan){note}$(cyan) "
@@ -379,11 +384,12 @@ def random_word(event):
     """- Grabs a random word from wordnik.com"""
     try:
         json = api_request(
-            "words.json/randomWord", {'hasDictionarydef': 'true', 'vulgar': 'true'}
+            "words.json/randomWord",
+            {"hasDictionarydef": "true", "vulgar": "true"},
         )
     except WordnikAPIError as e:
         event.reply(e.user_msg())
         raise
 
-    word = json['word']
+    word = json["word"]
     return colors.parse("Your random word is $(b){}$(b).").format(word)

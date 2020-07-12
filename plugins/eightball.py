@@ -14,14 +14,15 @@ def load_responses(bot):
     responses.clear()
     with codecs.open(path, encoding="utf-8") as f:
         responses.extend(
-            line.strip() for line in f.readlines()
-            if not line.startswith("//")
+            line.strip() for line in f.readlines() if not line.startswith("//")
         )
 
 
 @hook.command("8ball", "8", "eightball")
 async def eightball(action):
-    """<question> - asks the all knowing magic electronic eight ball <question>"""
+    """
+    <question> - asks the all knowing magic electronic eight ball <question>
+    """
     magic = random.choice(responses)
     message = colors.parse("shakes the magic 8 ball... {}".format(magic))
 

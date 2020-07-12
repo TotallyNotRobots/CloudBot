@@ -15,17 +15,17 @@ def down(text):
     """
 
     if "://" not in text:
-        text = 'http://' + text
+        text = "http://" + text
 
-    text = 'http://' + urllib.parse.urlparse(text).netloc
+    text = "http://" + urllib.parse.urlparse(text).netloc
 
     try:
         r = requests.get(text)
         r.raise_for_status()
     except requests.exceptions.ConnectionError:
-        return '{} seems to be down'.format(text)
+        return "{} seems to be down".format(text)
     else:
-        return '{} seems to be up'.format(text)
+        return "{} seems to be up".format(text)
 
 
 @hook.command()
@@ -42,7 +42,7 @@ def isup(text):
     domain = auth or path
 
     try:
-        response = requests.get('http://isup.me/' + domain)
+        response = requests.get("http://isup.me/" + domain)
         response.raise_for_status()
     except requests.exceptions.ConnectionError:
         return "Failed to get status."
@@ -51,10 +51,11 @@ def isup(text):
 
     soup = parse_soup(response.text)
 
-    content = soup.find('div', id="domain-main-content").text.strip()
+    content = soup.find("div", id="domain-main-content").text.strip()
 
     if "not just you" in content:
-        return "It's not just you. {} looks \x02\x034down\x02\x0f from here!".format(url)
+        fmt = "It's not just you. {} looks \x02\x034down\x02\x0f from here!"
+        return fmt.format(url)
 
     if "is up" in content:
         return "It's just you. {} is \x02\x033up\x02\x0f.".format(url)

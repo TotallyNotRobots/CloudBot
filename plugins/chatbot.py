@@ -2,6 +2,11 @@ from cleverwrap import CleverWrap
 
 from cloudbot import hook
 
+no_key = (
+    "Please add an API key from http://www.cleverbot.com/api to "
+    "enable this feature."
+)
+
 
 class APIContainer:
     api = None
@@ -19,6 +24,6 @@ def make_api(bot):
 def chitchat(text):
     """<text> - chat with cleverbot.com"""
     if not container.api:
-        return "Please add an API key from http://www.cleverbot.com/api to enable this feature."
+        return no_key
 
     return container.api.say(text)

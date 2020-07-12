@@ -1,5 +1,3 @@
-import json
-
 import requests
 
 from cloudbot import hook
@@ -12,12 +10,12 @@ def mcstatus(reply):
     try:
         request = requests.get("http://status.mojang.com/check")
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (requests.exceptions.RequestException) as e:
         reply("Unable to get Minecraft server status: {}".format(e))
         raise
 
     # lets just reformat this data to get in a nice format
-    data = json.loads(request.text.replace("}", "").replace("{", "").replace("]", "}").replace("[", "{"))
+    data = {k: v for item in request.json() for k, v in item.items()}
     out = []
 
     # use a loop so we don't have to update it if they add more servers
@@ -44,5 +42,6 @@ def mcstatus(reply):
 
     out = " ".join(out)
 
-    return "\x0f" + out.replace(".mojang.com", ".mj") \
-        .replace(".minecraft.net", ".mc")
+    return "\x0f" + out.replace(".mojang.com", ".mj").replace(
+        ".minecraft.net", ".mc"
+    )

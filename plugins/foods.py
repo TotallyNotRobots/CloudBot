@@ -84,9 +84,9 @@ def load_foods(bot):
 
 def basic_format(nick, text, data, **kwargs):
     user = text
-    kwargs['user'] = user
-    kwargs['target'] = user
-    kwargs['nick'] = nick
+    kwargs["user"] = user
+    kwargs["target"] = user
+    kwargs["nick"] = nick
 
     if text:
         try:

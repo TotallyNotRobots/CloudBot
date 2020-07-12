@@ -8,34 +8,31 @@ max_length = 100
 
 def goog_trans(text, source, target):
     api_key = bot.config.get_api_key("google_dev_key")
-    url = 'https://www.googleapis.com/language/translate/v2'
+    url = "https://www.googleapis.com/language/translate/v2"
 
     if len(text) > max_length:
         return "This command only supports input of less then 100 characters."
 
-    params = {
-        'q': text,
-        'key': api_key,
-        'target': target,
-        'format': 'text'
-    }
+    params = {"q": text, "key": api_key, "target": target, "format": "text"}
 
     if source:
-        params['source'] = source
+        params["source"] = source
 
-    request = requests.get(url, params=params)
+    request = requests.post(url, json=params)
     parsed = request.json()
 
-    if parsed.get('error'):
-        if parsed['error']['code'] == 403:
+    if parsed.get("error"):
+        if parsed["error"]["code"] == 403:
             return "The Translate API is off in the Google Developers Console."
 
         return "Google API error."
 
     if not source:
-        return '(%(detectedSourceLanguage)s) %(translatedText)s' % (parsed['data']['translations'][0])
+        return "({detectedSourceLanguage}) {translatedText}".format_map(
+            parsed["data"]["translations"][0]
+        )
 
-    return '%(translatedText)s' % parsed['data']['translations'][0]
+    return "{translatedText}".format_map(parsed["data"]["translations"][0])
 
 
 def match_language(fragment):
@@ -52,32 +49,36 @@ def match_language(fragment):
 
 
 @hook.command("google_translate")
-def translate(text):
-    """[source language [target language]] <sentence> - translates <sentence> from source language (default autodetect)
-     to target language (default English) using Google Translate"""
+def translate(text, reply):
+    """
+    [source language [target language]] <sentence> - translates <sentence>
+    from source language (default autodetect) to target language
+    (default English) using Google Translate
+    """
     api_key = bot.config.get_api_key("google_dev_key")
     if not api_key:
         return "This command requires a Google Developers Console API key."
 
-    args = text.split(' ', 2)
+    args = text.split(" ", 2)
 
     try:
         if len(args) >= 2:
             sl = match_language(args[0])
             if not sl:
-                return goog_trans(text, '', 'en')
+                return goog_trans(text, "", "en")
             if len(args) == 2:
-                return goog_trans(args[1], sl, 'en')
+                return goog_trans(args[1], sl, "en")
             if len(args) >= 3:
                 tl = match_language(args[1])
                 if not tl:
-                    if sl == 'en':
-                        return 'unable to determine desired target language'
-                    return goog_trans(args[1] + ' ' + args[2], sl, 'en')
+                    if sl == "en":
+                        return "unable to determine desired target language"
+                    return goog_trans(args[1] + " " + args[2], sl, "en")
                 return goog_trans(args[2], sl, tl)
-        return goog_trans(text, '', 'en')
+        return goog_trans(text, "", "en")
     except IOError as e:
-        return e
+        reply(str(e))
+        raise
 
 
 lang_pairs = [
@@ -140,5 +141,5 @@ lang_pairs = [
     ("ur", "Urdu"),
     ("vi", "Vietnamese"),
     ("cy", "Welsh"),
-    ("yi", "Yiddish")
+    ("yi", "Yiddish"),
 ]

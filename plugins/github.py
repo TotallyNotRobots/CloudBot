@@ -6,7 +6,9 @@ from cloudbot import hook
 from cloudbot.util import formatting, web
 
 shortcuts = {}
-url_re = re.compile(r"(?:https?://github\.com/)?(?P<owner>[^/]+)/(?P<repo>[^/]+)")
+url_re = re.compile(
+    r"(?:https?://github\.com/)?(?P<owner>[^/]+)/(?P<repo>[^/]+)"
+)
 
 
 def parse_url(url):
@@ -29,14 +31,22 @@ def load_shortcuts(bot):
 
 @hook.command("ghissue", "issue")
 def issue_cmd(text):
-    """<username|repo> [number] - gets issue [number]'s summary, or the open issue count if no issue is specified"""
+    """
+    <username|repo> [number] - gets issue [number]'s summary, or the open
+    issue count if no issue is specified
+    """
     args = text.split()
-    owner, repo = parse_url(args[0] if args[0] not in shortcuts else shortcuts[args[0]])
+    owner, repo = (
+        parse_url(args[0]) if args[0] not in shortcuts else shortcuts[args[0]]
+    )
+
     issue = args[1] if len(args) > 1 else None
 
     if issue:
         r = requests.get(
-            "https://api.github.com/repos/{}/{}/issues/{}".format(owner, repo, issue)
+            "https://api.github.com/repos/{}/{}/issues/{}".format(
+                owner, repo, issue
+            )
         )
         r.raise_for_status()
         j = r.json()
@@ -48,10 +58,17 @@ def issue_cmd(text):
         if j["state"] == "open":
             state = "\x033\x02Opened\x02\x0f by {}".format(j["user"]["login"])
         else:
-            state = "\x034\x02Closed\x02\x0f by {}".format(j["closed_by"]["login"])
+            state = "\x034\x02Closed\x02\x0f by {}".format(
+                j["closed_by"]["login"]
+            )
 
-        return "Issue #{} ({}): {} | {}: {}".format(number, state, url, title, summary)
-    r = requests.get("https://api.github.com/repos/{}/{}/issues".format(owner, repo))
+        return "Issue #{} ({}): {} | {}: {}".format(
+            number, state, url, title, summary
+        )
+
+    r = requests.get(
+        "https://api.github.com/repos/{}/{}/issues".format(owner, repo)
+    )
     r.raise_for_status()
     j = r.json()
 

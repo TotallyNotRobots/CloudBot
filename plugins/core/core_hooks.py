@@ -4,7 +4,10 @@ from cloudbot.hook import Priority
 
 @hook.sieve(priority=Priority.LOWEST)
 def cmd_autohelp(bot, event, _hook):
-    if _hook.type == "command" and _hook.auto_help and not event.text and _hook.doc is not None:
+    if _hook.type != "command":
+        return event
+
+    if _hook.auto_help and not event.text and _hook.doc is not None:
         event.notice_doc()
         return None
 
@@ -18,7 +21,8 @@ def do_reply(result, error, launched_event, launched_hook):
 
     if error is None and result is not None:
         if isinstance(result, (list, tuple)):
-            # if there are multiple items in the response, return them on multiple lines
+            # if there are multiple items in the response,
+            # return them on multiple lines
             launched_event.reply(*result)
         else:
             launched_event.reply(result)

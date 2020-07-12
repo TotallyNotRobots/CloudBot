@@ -124,11 +124,11 @@ def test_page_error(mock_requests, mock_db):
     with pytest.raises(requests.RequestException):
         horoscope.horoscope("aries", sess, bot, "some_user", event)
 
-    event.reply.assert_called_once_with(
-        "Could not get horoscope: 404 Client Error: Not Found for url: {}. URL Error".format(
-            URL.format(sign=1)
-        )
+    fmt = (
+        "Could not get horoscope: 404 Client Error: Not Found for url: {}. "
+        "URL Error"
     )
+    event.reply.assert_called_once_with(fmt.format(URL.format(sign=1)))
 
 
 def test_bad_sign(mock_requests):

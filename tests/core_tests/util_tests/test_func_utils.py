@@ -9,7 +9,8 @@ def test_call_with_args():
         args = [arg1, arg2, _arg3]
 
     from cloudbot.util.func_utils import call_with_args, ParameterError
-    call_with_args(func, {'arg1': 1, 'arg2': 3})
+
+    call_with_args(func, {"arg1": 1, "arg2": 3})
     assert args == [1, 3, None]
 
     with pytest.raises(ParameterError):

@@ -54,7 +54,9 @@ async def test_invalid_reminder(mock_db, freeze_time, refresh_mods, setup_db):
     assert mock_db.get_data(remind.table) == []
 
 
-async def test_invalid_reminder_time(mock_db, freeze_time, refresh_mods, setup_db):
+async def test_invalid_reminder_time(
+    mock_db, freeze_time, refresh_mods, setup_db
+) -> None:
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -63,22 +65,30 @@ async def test_invalid_reminder_time(mock_db, freeze_time, refresh_mods, setup_d
         "0 days: some reminder", "user", "#chan", mock_db, mock_conn, mock_event
     )
 
-    assert result == 'Invalid input.'
+    assert result == "Invalid input."
 
     assert mock_db.get_data(remind.table) == []
 
 
-async def test_invalid_reminder_overtime(mock_db, freeze_time, refresh_mods, setup_db):
+async def test_invalid_reminder_overtime(
+    mock_db, freeze_time, refresh_mods, setup_db
+) -> None:
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
 
     result = await make_reminder(
-        "6 weeks: some reminder", "user", "#chan", mock_db, mock_conn, mock_event
+        "6 weeks: some reminder",
+        "user",
+        "#chan",
+        mock_db,
+        mock_conn,
+        mock_event,
     )
 
     expected = (
-        'Sorry, remind input must be more than a minute, and less than one month.'
+        "Sorry, remind input must be more than a minute, "
+        "and less than one month."
     )
 
     assert result == expected
@@ -103,17 +113,20 @@ async def test_add_reminder(mock_db, freeze_time, refresh_mods, setup_db):
     )
 
     expected = (
-        "Alright, I'll remind you \"some reminder\" in \x022 hours and 30 minutes\x0F!"
+        'Alright, I\'ll remind you "some reminder" in \x022 hours and '
+        "30 minutes\x0F!"
     )
 
     assert result == expected
 
     assert mock_db.get_data(remind.table) == [
-        ('test', 'user', now, '#chan', 'some reminder', remind_time)
+        ("test", "user", now, "#chan", "some reminder", remind_time)
     ]
 
 
-async def test_add_reminder_fail_count(mock_db, freeze_time, refresh_mods, setup_db):
+async def test_add_reminder_fail_count(
+    mock_db, freeze_time, refresh_mods, setup_db
+) -> None:
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -123,11 +136,11 @@ async def test_add_reminder_fail_count(mock_db, freeze_time, refresh_mods, setup
 
     data = [
         (
-            'test',
-            'user',
+            "test",
+            "user",
             now + ((i + 1) * 2 * second),
-            '#chan',
-            'a reminder',
+            "#chan",
+            "a reminder",
             remind_time,
         )
         for i in range(11)
@@ -156,8 +169,8 @@ async def test_add_reminder_fail_count(mock_db, freeze_time, refresh_mods, setup
     )
 
     expected = (
-        'Sorry, you already have too many reminders queued (10), '
-        'you will need to wait or clear your reminders to add any more.'
+        "Sorry, you already have too many reminders queued (10), "
+        "you will need to wait or clear your reminders to add any more."
     )
 
     assert result == expected
@@ -192,11 +205,11 @@ class TestCheckReminders:
     async def check_reminders(self, mock_db, bot):
         mock_db.add_row(
             remind.table,
-            network='test',
-            added_user='user',
+            network="test",
+            added_user="user",
             added_time=self.set_time,
-            added_chan='#chan',
-            message='a reminder',
+            added_chan="#chan",
+            message="a reminder",
             remind_time=self.remind_time,
         )
         await remind.load_cache(async_call, mock_db.session())
@@ -214,10 +227,19 @@ class TestCheckReminders:
         assert mock_conn.message.mock_calls == []
 
         assert mock_db.get_data(remind.table) == [
-            ('test', 'user', self.set_time, '#chan', 'a reminder', self.remind_time)
+            (
+                "test",
+                "user",
+                self.set_time,
+                "#chan",
+                "a reminder",
+                self.remind_time,
+            )
         ]
 
-    async def test_conn_not_ready(self, mock_db, setup_db, refresh_mods, freeze_time):
+    async def test_conn_not_ready(
+        self, mock_db, setup_db, refresh_mods, freeze_time
+    ) -> None:
         bot = MockBot({})
         mock_conn = MagicMock()
         mock_conn.name = "test"
@@ -229,7 +251,14 @@ class TestCheckReminders:
         assert mock_conn.message.mock_calls == []
 
         assert mock_db.get_data(remind.table) == [
-            ('test', 'user', self.set_time, '#chan', 'a reminder', self.remind_time)
+            (
+                "test",
+                "user",
+                self.set_time,
+                "#chan",
+                "a reminder",
+                self.remind_time,
+            )
         ]
 
     async def test_late(self, mock_db, setup_db, refresh_mods, freeze_time):
@@ -243,12 +272,15 @@ class TestCheckReminders:
             await self.check_reminders(mock_db, bot)
 
         assert mock_conn.message.mock_calls == [
-            call('user', 'user, you have a reminder from \x0260 minutes\x0f ago!'),
-            call('user', '"a reminder"'),
             call(
-                'user',
-                "(I'm sorry for delivering this message \x0245 minutes\x0f late, "
-                "it seems I was unable to deliver it on time)",
+                "user", "user, you have a reminder from \x0260 minutes\x0f ago!"
+            ),
+            call("user", '"a reminder"'),
+            call(
+                "user",
+                "(I'm sorry for delivering this message "
+                "\x0245 minutes\x0f late, it seems I was unable to deliver "
+                "it on time)",
             ),
         ]
 
@@ -264,8 +296,10 @@ class TestCheckReminders:
         await self.check_reminders(mock_db, bot)
 
         assert mock_conn.message.mock_calls == [
-            call('user', 'user, you have a reminder from \x0260 minutes\x0f ago!'),
-            call('user', '"a reminder"'),
+            call(
+                "user", "user, you have a reminder from \x0260 minutes\x0f ago!"
+            ),
+            call("user", '"a reminder"'),
         ]
 
         assert mock_db.get_data(remind.table) == []
@@ -276,11 +310,11 @@ async def test_clear_reminders(mock_db, setup_db, refresh_mods):
 
     mock_db.add_row(
         remind.table,
-        network='test',
-        added_user='user',
+        network="test",
+        added_user="user",
         added_time=now,
-        added_chan='#chan',
-        message='a reminder',
+        added_chan="#chan",
+        message="a reminder",
         remind_time=now + (2 * hour),
     )
 
@@ -294,10 +328,16 @@ async def test_clear_reminders(mock_db, setup_db, refresh_mods):
     mock_event = MagicMock()
 
     result = await remind.remind(
-        "clear", "user", "#chan", mock_db.session(), mock_conn, mock_event, async_call
+        "clear",
+        "user",
+        "#chan",
+        mock_db.session(),
+        mock_conn,
+        mock_event,
+        async_call,
     )
 
-    assert result == 'Deleted all (1) reminders for user!'
+    assert result == "Deleted all (1) reminders for user!"
 
     assert mock_db.get_data(remind.table) == []
 
@@ -314,9 +354,15 @@ async def test_clear_reminders_empty(mock_db, refresh_mods):
     mock_event = MagicMock()
 
     result = await remind.remind(
-        "clear", "user", "#chan", mock_db.session(), mock_conn, mock_event, async_call
+        "clear",
+        "user",
+        "#chan",
+        mock_db.session(),
+        mock_conn,
+        mock_event,
+        async_call,
     )
 
-    assert result == 'You have no reminders to delete.'
+    assert result == "You have no reminders to delete."
 
     assert mock_db.get_data(remind.table) == []

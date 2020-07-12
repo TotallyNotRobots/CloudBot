@@ -39,14 +39,20 @@ def test_api(unset_bot):
         with pytest.raises(requests.ConnectionError):
             api_request("track.getTopTags")
 
-        reqs.add(reqs.GET, "http://ws.audioscrobbler.com/2.0/", json={"data": "thing"})
+        reqs.add(
+            reqs.GET,
+            "http://ws.audioscrobbler.com/2.0/",
+            json={"data": "thing"},
+        )
 
         res, _ = api_request("track.getTopTags")
 
         assert res["data"] == "thing"
 
     with RequestsMock() as reqs:
-        reqs.add(reqs.GET, "http://ws.audioscrobbler.com/2.0/", body="<html></html>")
+        reqs.add(
+            reqs.GET, "http://ws.audioscrobbler.com/2.0/", body="<html></html>"
+        )
 
         with pytest.raises(JSONDecodeError):
             api_request("track.getTopTags")
@@ -76,7 +82,10 @@ def test_api_error_message(mock_requests, mock_api_keys):
 
 
 def test_getartisttags(mock_requests, mock_api_keys):
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    url = (
+        "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar"
+        "&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    )
     mock_requests.add(
         "GET", url, json={"toptags": {},}, match_querystring=True,
     )
@@ -85,7 +94,10 @@ def test_getartisttags(mock_requests, mock_api_keys):
 
 
 class TestGetArtistTags:
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    url = (
+        "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar"
+        "&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    )
 
     def get_tags(self):
         return lastfm.getartisttags("foobar")
@@ -99,7 +111,10 @@ class TestGetArtistTags:
 
     def test_no_tags(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            "GET", self.url, json={"toptags": {"tags": []},}, match_querystring=True,
+            "GET",
+            self.url,
+            json={"toptags": {"tags": []},},
+            match_querystring=True,
         )
         res = self.get_tags()
         assert res == "no tags"
@@ -141,7 +156,10 @@ class TestGetArtistTags:
 
 
 def test_gettracktags(mock_requests, mock_api_keys):
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&track=foobaz&method=track.getTopTags&api_key=APIKEY"
+    url = (
+        "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar"
+        "&autocorrect=1&track=foobaz&method=track.getTopTags&api_key=APIKEY"
+    )
     mock_requests.add(
         "GET", url, json={"toptags": {}}, match_querystring=True,
     )
@@ -175,8 +193,7 @@ class TestCheckKeyAndUser:
 
         res, err = lastfm.check_key_and_user("foo1", "")
         assert res is None
-        expected = "No last.fm username specified and no last.fm username is set in the database."
-        assert err == expected
+        assert err == lastfm.NO_USERNAME
 
     def test_no_key(self, mock_api_keys, mock_requests, mock_db):
         bot.config.get_api_key.return_value = None
@@ -191,9 +208,13 @@ class TestTopArtists:
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
 
+        ta_url = (
+            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar"
+            "&limit=10&period=7day&method=user.gettopartists&api_key=APIKEY"
+        )
         mock_requests.add(
             "GET",
-            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar&limit=10&period=7day&method=user.gettopartists&api_key=APIKEY",
+            ta_url,
             match_querystring=True,
             json={
                 "topartists": {
@@ -216,9 +237,13 @@ class TestTopTrack:
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
 
+        tt_url = (
+            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar"
+            "&limit=5&method=user.gettoptracks&api_key=APIKEY"
+        )
         mock_requests.add(
             "GET",
-            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar&limit=5&method=user.gettoptracks&api_key=APIKEY",
+            tt_url,
             match_querystring=True,
             json={
                 "toptracks": {
@@ -235,6 +260,9 @@ class TestTopTrack:
 
         out = lastfm.toptrack("", "foo")
 
-        expected = "b\u200bar's favorite songs: some song by some artist listened to 10 times. "
+        expected = (
+            "b\u200bar's favorite songs: some song by some artist "
+            "listened to 10 times. "
+        )
 
         assert out == expected

@@ -28,7 +28,10 @@ class ChannelMode:
     type = attr.ib(type=ModeType)
 
     def has_param(self, adding: bool) -> bool:
-        return self.type in PARAM_MODE_TYPES or (self.type is ModeType.C and adding)
+        if self.type in PARAM_MODE_TYPES:
+            return True
+
+        return self.type is ModeType.C and adding
 
 
 @attr.s(hash=True)
@@ -58,7 +61,9 @@ class StatusMode(ChannelMode):
 
     @classmethod
     def make(cls, prefix: str, char: str, level: int) -> "StatusMode":
-        return cls(prefix=prefix, level=level, character=char, type=ModeType.Status)
+        return cls(
+            prefix=prefix, level=level, character=char, type=ModeType.Status
+        )
 
 
 def parse_mode_string(

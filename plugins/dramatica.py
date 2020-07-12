@@ -14,9 +14,14 @@ ed_url = "http://encyclopediadramatica.se/"
 
 @hook.command()
 def drama(text, reply):
-    """<phrase> - gets the first paragraph of the Encyclopedia Dramatica article on <phrase>"""
+    """
+    <phrase> - gets the first paragraph of the Encyclopedia Dramatica
+    article on <phrase>
+    """
 
-    search_response = requests.get(api_url, params={"action": "opensearch", "search": text})
+    search_response = requests.get(
+        api_url, params={"action": "opensearch", "search": text}
+    )
 
     try:
         search_response.raise_for_status()
@@ -31,9 +36,10 @@ def drama(text, reply):
 
     if not data[1]:
         return "No results found."
-    article_name = data[1][0].replace(' ', '_')
 
-    url = ed_url + parse.quote(article_name, '')
+    article_name = data[1][0].replace(" ", "_")
+
+    url = ed_url + parse.quote(article_name, "")
 
     page_response = requests.get(url)
 
@@ -51,7 +57,7 @@ def drama(text, reply):
     for p in page.xpath('//div[@id="bodyContent"]/p'):
         if p.text_content():
             summary = " ".join(p.text_content().splitlines())
-            summary = re.sub(r'\[\d+\]', '', summary)
+            summary = re.sub(r"\[\d+\]", "", summary)
             summary = formatting.truncate(summary, 220)
             return "{} - {}".format(summary, url)
 

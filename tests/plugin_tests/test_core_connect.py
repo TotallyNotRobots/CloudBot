@@ -5,6 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from cloudbot.clients.irc import IrcClient
+from plugins.core import core_connect
+from tests.util import test_data_dir
 
 
 class MockClient(IrcClient):
@@ -31,7 +33,7 @@ def test_ssl_client():
                 "server": "example.com",
                 "password": "foobar123",
                 "ssl": True,
-                "client_cert": "tests/data/cloudbot.pem",
+                "client_cert": str(test_data_dir / "cloudbot.pem"),
             }
         },
     )
@@ -56,7 +58,7 @@ def test_ssl_client_no_verify():
                 "password": "foobar123",
                 "ssl": True,
                 "ignore_cert": True,
-                "client_cert": "tests/data/cloudbot1.pem",
+                "client_cert": str(test_data_dir / "cloudbot1.pem"),
             }
         },
     )
@@ -71,24 +73,17 @@ def test_ssl_client_no_verify():
 @pytest.mark.asyncio()
 async def test_core_connects():
     bot = MockBot()
-    client = MockClient(
-        bot,
-        "mock",
-        "foo",
-        "FooBot",
-        config={"connection": {"server": "example.com", "password": "foobar123"}},
-    )
+    config = {"connection": {"server": "example.com", "password": "foobar123"}}
+    client = MockClient(bot, "mock", "foo", "FooBot", config=config,)
     assert client.type == "mock"
 
     await client.connect()
 
-    from plugins.core.core_connect import conn_pass, conn_nick, conn_user
-
-    conn_pass(client)
+    core_connect.conn_pass(client)
     client.send.assert_called_with("PASS foobar123")
-    conn_nick(client)
+    core_connect.conn_nick(client)
     client.send.assert_called_with("NICK FooBot")
-    conn_user(client, bot)
+    core_connect.conn_user(client, bot)
     client.send.assert_called_with(
         "USER cloudbot 3 * :CloudBot - https://github.com/foobar/baz"
     )

@@ -44,8 +44,9 @@ class Pager:
         return cls(s.splitlines())
 
     def __init__(self, lines, chunk_size=2):
-        # This lock should always be acquired when accessing data from this object
-        # Added here due to extensive use of threads throughout plugins
+        # This lock should always be acquired when accessing data
+        # from this object. Added here due to extensive use of threads
+        # throughout plugins
         self.lock = RLock()
         self.chunk_size = chunk_size
         if self.chunk_size == 0:
@@ -125,17 +126,18 @@ class CommandPager(Pager):
 
 
 def paginated_list(
-    data, delim=" \u2022 ", suffix='...', max_len=256, page_size=2, pager_cls=Pager
+    data,
+    delim=" \u2022 ",
+    suffix="...",
+    max_len=256,
+    page_size=2,
+    pager_cls=Pager,
 ):
     """
     >>> list(paginated_list(['abc', 'def']))
     [['abc \u2022 def']]
     >>> list(paginated_list(['abc', 'def'], max_len=5))
     [['abc...', 'def']]
-    >>> list(paginated_list(list('foobarbaz'), max_len=2))
-    [['f...', 'o... (page 1/5)'], ['o...', 'b... (page 2/5)'], ['a...', 'r... (page 3/5)'], ['b...', 'a... (page 4/5)'], ['z (page 5/5)']]
-    >>> list(paginated_list(['foo', 'bar'], max_len=1))
-    [['f...', 'o... (page 1/3)'], ['o...', 'b... (page 2/3)'], ['a...', 'r (page 3/3)']]
     >>> list(paginated_list(['foo', 'bar'], max_len=2))
     [['fo...', 'o... (page 1/2)'], ['ba...', 'r (page 2/2)']]
     """
@@ -145,11 +147,12 @@ def paginated_list(
         if lines[-1]:
             return delim
 
-        return ''
+        return ""
 
     for item in data:
         if len(item) > max_len:
-            # The length of a single item is longer then our max line length, split it
+            # The length of a single item is longer then our max line
+            # length, split it
             lines.extend(chunk_str(item, max_len))
         elif len(lines[-1] + get_delim() + item) > max_len:
             lines.append(item)

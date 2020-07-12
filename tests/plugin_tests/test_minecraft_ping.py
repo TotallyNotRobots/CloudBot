@@ -22,10 +22,11 @@ def test_mcping(mock_mcserver):
     status.players.max = 10
     status.description = {"text": "A description"}
     res = minecraft_ping.mcping("host.invalid")
-    assert (
-        res
-        == "A description\x0f - \x021.12.2\x0f - \x0212.3ms\x0f - \x022/10\x0f players"
+    expected = (
+        "A description\x0f - \x021.12.2\x0f - \x0212.3ms\x0f - "
+        "\x022/10\x0f players"
     )
+    assert res == expected
 
 
 def test_mcping_text(mock_mcserver):
@@ -37,10 +38,11 @@ def test_mcping_text(mock_mcserver):
     status.players.max = 10
     status.description = "A description"
     res = minecraft_ping.mcping("host.invalid")
-    assert (
-        res
-        == "A description\x0f - \x021.12.2\x0f - \x0212.3ms\x0f - \x022/10\x0f players"
+    expected = (
+        "A description\x0f - \x021.12.2\x0f - \x0212.3ms\x0f - "
+        "\x022/10\x0f players"
     )
+    assert res == expected
 
 
 @pytest.mark.parametrize(

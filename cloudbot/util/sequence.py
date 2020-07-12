@@ -1,5 +1,6 @@
 """
-Sequence utilities - Various util functions for working with lists, sets, tuples, etc
+Sequence utilities - Various util functions for working with lists,
+sets, tuples, etc
 """
 
 
@@ -11,4 +12,4 @@ def chunk_iter(data, chunk_size):
     :return: An iterable of all the chunks of the sequence
     """
     for i in range(0, len(data), chunk_size):
-        yield data[i:i + chunk_size]
+        yield data[i : i + chunk_size]

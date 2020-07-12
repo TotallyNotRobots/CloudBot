@@ -1,11 +1,13 @@
 """
 timeformat.py
 
-Contains functions to format time periods. Based on code from the Django project and CloudBot contributors.
+Contains functions to format time periods. Based on code from the Django
+project and CloudBot contributors.
 
-The licensing for this module isn't solid, because I started working on this module before I had a proper
-system for tracking code licences. If your code is in this file and you have any queries, contact me by
-email at <lukeroge@gmail.com>!
+The licensing for this module isn't solid, because I started working on this
+module before I had a proper system for tracking code licences. If your code
+is in this file and you have any queries, contact me by email at
+<lukeroge@gmail.com>!
 
 Maintainer:
     - Luke Rogers <https://github.com/lukeroge>
@@ -16,30 +18,31 @@ License:
     Copyright (c) Django Software Foundation and individual contributors.
     All rights reserved.
 
-    Redistribution and use in source and binary forms, with or without modification,
-    are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-        1. Redistributions of source code must retain the above copyright notice,
-           this list of conditions and the following disclaimer.
+        1. Redistributions of source code must retain the above copyright
+           notice, this list of conditions and the following disclaimer.
 
         2. Redistributions in binary form must reproduce the above copyright
            notice, this list of conditions and the following disclaimer in the
            documentation and/or other materials provided with the distribution.
 
-        3. Neither the name of Django nor the names of its contributors may be used
-           to endorse or promote products derived from this software without
-           specific prior written permission.
+        3. Neither the name of Django nor the names of its contributors may be
+           used to endorse or promote products derived from this software
+           without specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+    THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import datetime
@@ -94,7 +97,7 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
 
     if since <= 0:
         # d is in the future compared to now, stop processing.
-        return '0 ' + 'minutes'
+        return "0 " + "minutes"
 
     # pass the number in seconds on to format_time to make the output string
     return format_time(since, count, accuracy, simple)
@@ -170,14 +173,14 @@ class TimeInterval:
 
 
 class TimeUnits:
-    SECOND = TimeUnit(1, 's', 'second', 'seconds')
-    MINUTE = TimeUnit(60 * SECOND, 'm', 'minute', 'minutes')
-    HOUR = TimeUnit(60 * MINUTE, 'h', 'hour', 'hours')
-    DAY = TimeUnit(24 * HOUR, 'd', 'day', 'days')
-    MONTH = TimeUnit(30 * DAY, 'M', 'month', 'months')
-    YEAR = TimeUnit(365 * DAY, 'y', 'year', 'years')
-    DECADE = TimeUnit(10 * YEAR, 'D', 'decade', 'decades')
-    CENTURY = TimeUnit(10 * DECADE, 'c', 'century', 'centuries')
+    SECOND = TimeUnit(1, "s", "second", "seconds")
+    MINUTE = TimeUnit(60 * SECOND, "m", "minute", "minutes")
+    HOUR = TimeUnit(60 * MINUTE, "h", "hour", "hours")
+    DAY = TimeUnit(24 * HOUR, "d", "day", "days")
+    MONTH = TimeUnit(30 * DAY, "M", "month", "months")
+    YEAR = TimeUnit(365 * DAY, "y", "year", "years")
+    DECADE = TimeUnit(10 * YEAR, "D", "decade", "decades")
+    CENTURY = TimeUnit(10 * DECADE, "c", "century", "centuries")
 
     units = (CENTURY, DECADE, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
 
@@ -197,11 +200,13 @@ class TimeUnits:
 
 def format_time(seconds, count=3, accuracy=6, simple=False):
     """
-    Takes a length of time in seconds and returns a string describing that length of time.
-    This function has a number of optional arguments that can be combined:
+    Takes a length of time in seconds and returns a string describing that
+    length of time. This function has a number of optional arguments that can
+    be combined:
 
     SIMPLE: displays the time in a simple format
-    >>> SECONDS = int(datetime.timedelta(hours=1, minutes=2, seconds=34).total_seconds())
+    >>> dt = datetime.timedelta(hours=1, minutes=2, seconds=34)
+    >>> SECONDS = int(dt.total_seconds())
     >>> format_time(SECONDS)
     '1 hour, 2 minutes and 34 seconds'
     >>> format_time(SECONDS, simple=True)

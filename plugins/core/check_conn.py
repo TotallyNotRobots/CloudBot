@@ -31,7 +31,10 @@ async def do_reconnect(conn, auto=True):
 
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
 async def reconnect(conn, text, bot):
-    """[connection] - Reconnects to [connection] or the current connection if not specified"""
+    """
+    [connection] - Reconnects to [connection] or the current connection if
+    not specified
+    """
     if not text:
         to_reconnect = conn
     else:
@@ -68,17 +71,17 @@ def format_conn(conn):
     else:
         out = "$(red){name}$(clear)"
 
-    return colors.parse(out.format(
-        name=conn.name, activity=round(lag * 1000, 3)
-    ))
+    return colors.parse(
+        out.format(name=conn.name, activity=round(lag * 1000, 3))
+    )
 
 
-@hook.command("connlist", "listconns", autohelp=False, permissions=["botcontrol"])
+@hook.command(
+    "connlist", "listconns", autohelp=False, permissions=["botcontrol"]
+)
 def list_conns(bot):
     """- Lists all current connections and their status"""
-    conns = ', '.join(
-        map(format_conn, bot.connections.values())
-    )
+    conns = ", ".join(map(format_conn, bot.connections.values()))
     return "Current connections: {}".format(conns)
 
 
@@ -90,7 +93,7 @@ def on_connect(conn):
     conn.memory["last_activity"] = now
     conn.memory["lag"] = 0
     conn.memory["needs_reconnect"] = False
-    conn.memory['last_ping_rpl'] = now
+    conn.memory["last_ping_rpl"] = now
 
 
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
@@ -113,11 +116,11 @@ def lag_check(bot, admin_log):
             lag = conn.memory.get("lag", 0)
             last_act = now - conn.memory.get("last_activity", 0)
             if lag > warning or last_act > warning:
-                admin_log(
-                    "[{}] Lag detected. {:.2f}s since last ping, {:.2f}s since last activity".format(
-                        conn.name, lag, last_act
-                    )
+                lag_msg = (
+                    "[{}] Lag detected. {:.2f}s since last ping, "
+                    "{:.2f}s since last activity"
                 )
+                admin_log(lag_msg.format(conn.name, lag, last_act))
 
             if lag > timeout and last_act > timeout:
                 conn.memory["needs_reconnect"] = True
@@ -134,13 +137,13 @@ async def reconnect_loop(bot):
             await do_reconnect(conn)
 
 
-@hook.irc_raw('PONG')
+@hook.irc_raw("PONG")
 def on_pong(conn, irc_paramlist):
     now = time.time()
     conn.memory["ping_recv"] = now
     timestamp = irc_paramlist[-1]
     is_lag = False
-    if timestamp.startswith('LAGCHECK'):
+    if timestamp.startswith("LAGCHECK"):
         timestamp = timestamp[8:]
         is_lag = True
 
@@ -153,7 +156,7 @@ def on_pong(conn, irc_paramlist):
         conn.memory["last_ping_rpl"] = now
 
 
-@hook.irc_raw('*')
-async def on_act(conn):
+@hook.irc_raw("*")
+def on_act(conn):
     now = time.time()
-    conn.memory['last_activity'] = now
+    conn.memory["last_activity"] = now

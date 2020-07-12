@@ -17,14 +17,14 @@ class UnbalancedBrackets(ValueError):
 class BrainfuckProgram:
     def __init__(self, text):
         self.op_map = {
-            '+': self.inc,
-            '-': self.dec,
-            '>': self.next_cell,
-            '<': self.prev_cell,
-            '.': self.print,
-            ',': self.set_random,
-            '[': self.loop_enter,
-            ']': self.loop_exit,
+            "+": self.inc,
+            "-": self.dec,
+            ">": self.next_cell,
+            "<": self.prev_cell,
+            ".": self.print,
+            ",": self.set_random,
+            "[": self.loop_enter,
+            "]": self.loop_exit,
         }
 
         self.ip = 0  # instruction pointer
@@ -41,9 +41,9 @@ class BrainfuckProgram:
         open_brackets = []
         bracket_map = {}
         for pos, c in enumerate(self.text):
-            if c == '[':
+            if c == "[":
                 open_brackets.append(pos)
-            elif c == ']':
+            elif c == "]":
                 if not open_brackets:
                     raise UnbalancedBrackets()
 
@@ -111,7 +111,7 @@ def bf(text):
     :type text: str
     """
 
-    program_text = re.sub(r'[^][<>+\-.,]', '', text)
+    program_text = re.sub(r"[^][<>+\-.,]", "", text)
 
     try:
         program = BrainfuckProgram(program_text)
@@ -131,7 +131,7 @@ def bf(text):
             program.output += "(exceeded {} iterations)".format(MAX_STEPS)
             break
 
-    stripped_output = re.sub(r'[\x00-\x1F]', '', program.output)
+    stripped_output = re.sub(r"[\x00-\x1F]", "", program.output)
 
     if not stripped_output:
         if program.output:

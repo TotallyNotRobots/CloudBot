@@ -1,12 +1,25 @@
 from collections.abc import Mapping
-from unittest.mock import patch
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+from cloudbot import hook, plugin_hooks
+from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 
 __all__ = (
     "HookResult",
     "wrap_hook_response",
+    "run_cmd",
+    "test_data_dir",
+    "get_test_data",
 )
+
+test_data_dir = Path(__file__).parent.parent / "data"
+
+
+def get_test_data(file):
+    with (test_data_dir / file).open() as f:
+        return f.read()
 
 
 class HookResult:
@@ -74,3 +87,21 @@ def wrap_hook_response(func, event, results=None):
             add_result("return", res)
 
     return results
+
+
+def run_cmd(func, cmd, text, results=None):
+    func_hook = hook.get_hooks(func)["command"]
+    plugin = MagicMock()
+    cmd_hook = plugin_hooks.hook_name_to_plugin(func_hook.type)(
+        plugin, func_hook
+    )
+    event = CommandEvent(
+        channel="#foo",
+        text=text,
+        triggered_command=cmd,
+        cmd_prefix=".",
+        hook=cmd_hook,
+        nick="foonick",
+        conn=MagicMock(),
+    )
+    return wrap_hook_response(func, event, results=results)

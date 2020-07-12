@@ -48,7 +48,6 @@ class MatchAPIKey(Response):
 
 def init_response(
     mock_requests,
-    crypto_map=True,
     fiat_map=True,
     quote=True,
     error_msg=None,
@@ -63,55 +62,61 @@ def init_response(
 
     iso_fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
 
-    if crypto_map:
-        mock_requests.add(
-            MatchAPIKey(
-                "GET",
-                "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map",
-                api_key="APIKEY" if check_api_key else None,
-                json={
-                    "status": {
-                        "timestamp": now.strftime(iso_fmt),
-                        "error_code": 200,
-                        "elapsed": 1,
-                        "credit_count": 1,
-                    },
-                    "data": [
-                        {
-                            "id": 1,
-                            "name": "bitcoin",
-                            "symbol": "BTC",
-                            "slug": "bitcoin",
-                            "is_active": 1,
-                        },
-                    ],
+    mock_requests.add(
+        MatchAPIKey(
+            "GET",
+            "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map",
+            api_key="APIKEY" if check_api_key else None,
+            json={
+                "status": {
+                    "timestamp": now.strftime(iso_fmt),
+                    "error_code": 200,
+                    "elapsed": 1,
+                    "credit_count": 1,
                 },
-            )
+                "data": [
+                    {
+                        "id": 1,
+                        "name": "bitcoin",
+                        "symbol": "BTC",
+                        "slug": "bitcoin",
+                        "is_active": 1,
+                    },
+                ],
+            },
         )
+    )
 
     if fiat_map:
-        mock_requests.add(
-            MatchAPIKey(
-                "GET",
-                "https://pro-api.coinmarketcap.com/v1/fiat/map",
-                api_key="APIKEY" if check_api_key else None,
-                json={
-                    "status": {
-                        "timestamp": now.strftime(iso_fmt),
-                        "error_code": 200,
-                        "elapsed": 1,
-                        "credit_count": 1,
-                    },
-                    "data": [{"id": 1, "name": "Dollar", "sign": "$", "symbol": "USD"}],
+        diat_response = MatchAPIKey(
+            "GET",
+            "https://pro-api.coinmarketcap.com/v1/fiat/map",
+            api_key="APIKEY" if check_api_key else None,
+            json={
+                "status": {
+                    "timestamp": now.strftime(iso_fmt),
+                    "error_code": 200,
+                    "elapsed": 1,
+                    "credit_count": 1,
                 },
-            )
+                "data": [
+                    {"id": 1, "name": "Dollar", "sign": "$", "symbol": "USD"}
+                ],
+            },
         )
+        mock_requests.add(diat_response)
 
     if quote:
+        quote_url = (
+            "https://pro-api.coinmarketcap.com/v1/cryptocurrency/"
+            "quotes/latest?symbol=BTC&convert=USD%2CBTC"
+        )
+        added_date = now - timedelta(days=5)
+        updated_date = now - timedelta(hours=1)
         mock_requests.add(
             MatchAPIKey(
                 "GET",
-                "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=USD%2CBTC",
+                quote_url,
                 api_key="APIKEY" if check_api_key else None,
                 json={
                     "status": {
@@ -129,12 +134,10 @@ def init_response(
                             "symbol": "BTC",
                             "circulating_supply": 100,
                             "total_supply": 1000,
-                            "date_added": (now - timedelta(days=5)).strftime(iso_fmt),
+                            "date_added": added_date.strftime(iso_fmt),
                             "num_market_pairs": 1,
                             "cmc_rank": 1,
-                            "last_updated": (now - timedelta(hours=1)).strftime(
-                                iso_fmt
-                            ),
+                            "last_updated": updated_date.strftime(iso_fmt),
                             "tags": [],
                             "quote": {
                                 "BTC": {
@@ -209,9 +212,8 @@ def test_complex_schema():
 
 
 def test_invalid_schema_type():
-    with pytest.raises(
-        TypeError, match="field 'a' expected type <class 'str'>, got type <class 'int'>"
-    ):
+    match = "field 'a' expected type <class 'str'>, got type <class 'int'>"
+    with pytest.raises(TypeError, match=match):
         cryptocurrency.read_data({"a": 1, "b": "world"}, OtherConcreteSchema)
 
 
@@ -233,14 +235,18 @@ def test_schema_nested_exceptions():
         cryptocurrency.read_data({"a": {"b": "hello"}}, NestedSchema)
 
     assert isinstance(exc.value.__cause__, cryptocurrency.ParseError)
-    assert isinstance(exc.value.__cause__.__cause__, cryptocurrency.MissingSchemaField)
+    assert isinstance(
+        exc.value.__cause__.__cause__, cryptocurrency.MissingSchemaField
+    )
 
 
 def test_schema_unknown_fields():
     input_data = {"a": {"a": "hello", "b": "world"}, "c": 1}
+    match = re.escape(
+        "Unknown fields: ['c'] while parsing schema 'NestedSchema'"
+    )
     with pytest.warns(
-        UserWarning,
-        match=re.escape("Unknown fields: ['c'] while parsing schema 'NestedSchema'"),
+        UserWarning, match=match,
     ):
         obj = cryptocurrency.read_data(input_data, NestedSchema)
 
@@ -278,12 +284,11 @@ def test_crypto_cmd(mock_requests):
     )
     res = wrap_hook_response(cryptocurrency.crypto_command, event)
 
-    assert res == [
-        HookResult(
-            return_type="return",
-            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // \x0303+18.9%\x0f change",
-        )
-    ]
+    expected = (
+        "BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - "
+        "2.0000000 BTC // \x0303+18.9%\x0f change"
+    )
+    assert res == [HookResult(return_type="return", value=expected,)]
 
 
 def _run_alias():
@@ -312,7 +317,8 @@ def test_btc_alias(mock_requests):
     assert res == [
         HookResult(
             return_type="return",
-            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // \x0303+18.9%\x0f change",
+            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - "
+            "2.0000000 BTC // \x0303+18.9%\x0f change",
         )
     ]
 
@@ -325,7 +331,8 @@ def test_btc_alias_neg_change(mock_requests):
     assert res == [
         HookResult(
             return_type="return",
-            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // \x0305-14.5%\x0f change",
+            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - "
+            "2.0000000 BTC // \x0305-14.5%\x0f change",
         )
     ]
 
@@ -338,7 +345,8 @@ def test_btc_alias_no_change(mock_requests):
     assert res == [
         HookResult(
             return_type="return",
-            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // 0% change",
+            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - "
+            "2.0000000 BTC // 0% change",
         )
     ]
 
@@ -407,7 +415,7 @@ def test_cmd_api_error(mock_requests):
     with pytest.raises(cryptocurrency.APIError, match="FooBar"):
         wrap_hook_response(cryptocurrency.crypto_command, event, res)
 
-    assert res == [HookResult("message", ("#foo", "(foobaruser) Unknown API error"))]
+    assert res == [("message", ("#foo", "(foobaruser) Unknown API error"))]
 
 
 def test_list_currencies(patch_paste, mock_requests):

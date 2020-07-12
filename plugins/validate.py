@@ -1,11 +1,12 @@
 import urllib.parse
 
 import requests
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import web
 
-api_url = "https://validator.w3.org/check"
+api_url = "https://validator.w3.org/nu/"
 
 
 @hook.command("validate", "w3c")
@@ -19,10 +20,9 @@ def validate(text):
     if not urllib.parse.urlparse(text).scheme:
         text = "http://" + text
 
-    url = api_url + '?uri=' + text
-    url = web.try_shorten(url)
+    url = web.try_shorten(URL(api_url).with_query(doc=text))
 
-    params = {'uri': text, 'output': 'json'}
+    params = {"doc": text, "out": "json"}
     request = requests.get(api_url, params=params)
     request.raise_for_status()
 
@@ -30,17 +30,19 @@ def validate(text):
         return "Failed to fetch info: {}".format(request.status_code)
 
     response = request.json()
-    response = response['messages']
+    response = response["messages"]
 
     for mess in response:
-        if mess.get('subType', None) == 'warning':
+        if mess.get("subType", None) == "warning":
             warning_count += 1
-        if mess.get('type', None) == 'error':
+        if mess.get("type", None) == "error":
             error_count += 1
 
     out_warning = "warnings" if warning_count > 1 else "warning"
     out_error = "errors" if error_count > 1 else "error"
 
-    out = "{} has {} {} and {} {} ({})".format(text, warning_count, out_warning, error_count, out_error, url)
+    out = "{} has {} {} and {} {} ({})".format(
+        text, warning_count, out_warning, error_count, out_error, url
+    )
 
     return out

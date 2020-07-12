@@ -2,7 +2,8 @@
 tokenbucket.py
 
 A python implementation of the token bucket algorithm.
-Adapted from <http://code.activestate.com/recipes/511490-implementation-of-the-token-bucket-algorithm/>
+Adapted from <http://code.activestate.com/recipes/511490-implementation-of-the-
+token-bucket-algorithm/>
 
 Maintainer:
     - Luke Rogers <https://github.com/lukeroge>
@@ -26,7 +27,8 @@ class TokenBucket(object):
     def __init__(self, _capacity, fill_rate):
         """
         :param _capacity: The total amount of token the bucket can contain
-        :param fill_rate: The rate at which tokens regenerate. (fill_rate per second)
+        :param fill_rate: The rate at which tokens regenerate.
+            (fill_rate per second)
         """
         self.capacity = float(_capacity)
         self._tokens = float(_capacity)

@@ -47,32 +47,41 @@ def convert_id3(id_64):
 
 def get_data(user):
     """
-    Takes a Steam Community ID of a Steam user and returns a dict of data about that user
+    Takes a Steam Community ID of a Steam user and returns a dict of data
+    about that user.
+
     :type user: str
     :return: dict
     """
     data = {}
 
     # form the request
-    params = {'xml': 1}
+    params = {"xml": 1}
 
     # get the page
     try:
-        request = requests.get(API_URL.format(user), params=params, headers=headers)
+        request = requests.get(
+            API_URL.format(user), params=params, headers=headers
+        )
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         raise SteamError("Could not get user info: {}".format(e))
 
     profile = parse_xml(request.content)
 
     try:
-        data["name"] = profile.find('steamID').text
-        data["id_64"] = int(profile.find('steamID64').text)
-        online_state = profile.find('stateMessage').text
+        data["name"] = profile.find("steamID").text
+        data["id_64"] = int(profile.find("steamID64").text)
+        online_state = profile.find("stateMessage").text
     except AttributeError:
         raise SteamError("Could not get data for this user.")
 
-    online_state = online_state.replace("<br/>", ": ")  # will make this pretty later
+    online_state = online_state.replace(
+        "<br/>", ": "
+    )  # will make this pretty later
     data["state"] = formatting.strip_html(online_state)
 
     data["id_32"] = convert_id32(data["id_64"])
@@ -83,13 +92,18 @@ def get_data(user):
 
 @hook.on_start
 def set_headers(bot):
-    """ Runs on initial plugin load and sets the HTTP headers for this plugin. """
-    headers['User-Agent'] = bot.user_agent
+    """
+    Runs on initial plugin load and sets the HTTP headers for this plugin.
+    """
+    headers["User-Agent"] = bot.user_agent
 
 
 @hook.command("steamid", "sid", "steamuser", "su")
 def steamid(text, reply):
-    """<username> - gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>. """
+    """
+    <username> - gets the steam ID of <username>.
+    Uses steamcommunity.com/id/<nickname>.
+    """
 
     try:
         data = get_data(text)
@@ -97,4 +111,8 @@ def steamid(text, reply):
         reply("{}".format(e))
         raise
 
-    return "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, \x02ID3:\x02 {id_3}".format(**data)
+    fmt = (
+        "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, "
+        "\x02ID3:\x02 {id_3}"
+    )
+    return fmt.format_map(data)

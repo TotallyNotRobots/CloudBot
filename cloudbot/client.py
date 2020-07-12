@@ -16,7 +16,7 @@ def client(_type):
         def callback_cb(context, name, obj):
             context.bot.register_client(_type, cls)
 
-        venusian.attach(cls, callback_cb, category='cloudbot.client')
+        venusian.attach(cls, callback_cb, category="cloudbot.client")
         return cls
 
     return _decorate
@@ -24,7 +24,11 @@ def client(_type):
 
 class ClientConnectError(Exception):
     def __init__(self, client_name, server):
-        super().__init__("Unable to connect to client {} with server {}".format(client_name, server))
+        super().__init__(
+            "Unable to connect to client {} with server {}".format(
+                client_name, server
+            )
+        )
         self.client_name = client_name
         self.server = server
 
@@ -68,6 +72,7 @@ class Client:
             self.config = {}
         else:
             self.config = config
+
         self.vars = {}
         self.history = {}
 
@@ -83,6 +88,15 @@ class Client:
         self._active = False
 
         self.cancelled_future = async_util.create_future(self.loop)
+        self._timeout = 30
+
+    @property
+    def timeout(self):
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        self._timeout = value
 
     def describe_server(self):
         raise NotImplementedError
@@ -94,16 +108,21 @@ class Client:
         await self.try_connect()
 
     async def try_connect(self):
-        timeout = 30
         while self.active and not self.connected:
             try:
-                await self.connect(timeout)
-            except Exception:
-                logger.exception("[%s] Error occurred while connecting.", self.name)
-            else:
+                await self.connect(self.timeout)
+            except Exception as e:
+                self.handle_connect_exc(e)
+
+            if self.connected:
                 break
 
-            await asyncio.sleep(random.randrange(timeout))
+            sleep_time = random.randrange(self.timeout)
+            canceller = asyncio.shield(self.cancelled_future)
+            try:
+                await asyncio.wait_for(canceller, timeout=sleep_time)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
 
     async def connect(self, timeout=None):
         """
@@ -113,13 +132,15 @@ class Client:
 
     def quit(self, reason=None, set_inactive=True):
         """
-        Gracefully disconnects from the server with reason <reason>, close() should be called shortly after.
+        Gracefully disconnects from the server with reason <reason>, close()
+        should be called shortly after.
         """
         raise NotImplementedError
 
     def close(self):
         """
-        Disconnects from the server, only for use when this Client object will *not* ever be connected again
+        Disconnects from the server, only for use when this Client object will
+        *not* ever be connected again
         """
         raise NotImplementedError
 
@@ -200,3 +221,6 @@ class Client:
     @active.setter
     def active(self, value):
         self._active = value
+
+    def handle_connect_exc(self, exc):
+        raise ClientConnectError(self.name, self.describe_server()) from exc

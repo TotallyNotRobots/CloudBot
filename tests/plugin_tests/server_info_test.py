@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from cloudbot.util.irc import ChannelMode, ModeType, StatusMode
 from plugins.core import server_info
@@ -9,7 +9,7 @@ def test_parse_isupport():
     server_info.clear_isupport(conn)
     tokens = [
         "PREFIX=(ohv)@%+",
-        "CHANMODES=a,b,c,d",
+        "CHANMODES=a,b,c,d,e",
         "EXTBAN=$,abcd",
     ]
     params = ["foo"] + list(tokens) + ["blah"]
@@ -35,10 +35,26 @@ def test_parse_isupport():
             "extban_prefix": "$",
             "extbans": "abcd",
             "isupport_tokens": {
-                "CHANMODES": "a,b,c,d",
+                "CHANMODES": "a,b,c,d,e",
                 "EXTBAN": "$,abcd",
                 "PREFIX": "(ohv)@%+",
             },
-            "statuses": {"%": hop, "+": voice, "@": op, "h": hop, "o": op, "v": voice},
+            "statuses": {
+                "%": hop,
+                "+": voice,
+                "@": op,
+                "h": hop,
+                "o": op,
+                "v": voice,
+            },
         }
     }
+
+
+def test_do_isupport():
+    bot = MagicMock()
+    conn = MagicMock()
+    bot.connections = {"client": conn}
+    conn.connected = True
+    server_info.do_isupport(bot)
+    assert conn.send.mock_calls == [call("VERSION")]

@@ -58,10 +58,8 @@ class TvdbApi:
         return self.jwt_token is not None
 
     def set_api_key(self, bot: CloudBot) -> None:
-        res = cast(
-            Dict[str, str],
-            self._post("/login", json={"apikey": bot.config.get_api_key("tvdb")}),
-        )
+        data = {"apikey": bot.config.get_api_key("tvdb")}
+        res = cast(Dict[str, str], self._post("/login", json=data),)
         self.set_token(res["token"])
 
     def refresh_token(self, bot: CloudBot) -> None:
@@ -93,7 +91,10 @@ class TvdbApi:
             return cast(JsonObject, response.json())
 
     def _get_paged(
-        self, path: str, params: Optional[GetParams] = None, reverse: bool = False
+        self,
+        path: str,
+        params: Optional[GetParams] = None,
+        reverse: bool = False,
     ) -> Iterable[JsonObject]:
         params = params or {}
         params["page"] = 1
@@ -160,7 +161,9 @@ class TvdbApi:
 
             raise
 
-    def get_episodes(self, series_id: str, reverse=True) -> Iterable[JsonObject]:
+    def get_episodes(
+        self, series_id: str, reverse: bool = True
+    ) -> Iterable[JsonObject]:
         try:
             for page in self._get_paged(
                 "/series/{id}/episodes".format(id=series_id), reverse=reverse
@@ -243,6 +246,18 @@ class Holder(Generic[T]):
 
 class LazyCollection(Sized, Iterable[T], Container[T]):
     """
+    >>> col = LazyCollection([1, 2, 3, 4])
+    >>> col._get_next().exists()
+    True
+    >>> col._get_next().exists()
+    True
+    >>> col._get_next().exists()
+    True
+    >>> col._get_next().exists()
+    True
+    >>> col._get_next().exists()
+    False
+
     >>> col = LazyCollection([1])
     >>> col[0:5]
     [1]
@@ -275,22 +290,23 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
         return len(self._data)
 
     def _get_next(self) -> Holder[T]:
-        try:
-            item = next(self._it)
-        except StopIteration:
+        default = object()
+        item = next(self._it, default)
+
+        if item is default:
             self._complete = True
             return Holder.empty()
-        else:
-            self._data.append(item)
-            return Holder.of(item)
+
+        self._data.append(item)
+        return Holder.of(item)
 
     def __iter__(self) -> Iterator[T]:
         yield from self._data
         while True:
             holder = self._get_next()
-            if holder.exists():
+            try:
                 yield holder.get()
-            else:
+            except MissingItem:
                 break
 
     def __contains__(self, needle: object) -> bool:
@@ -364,7 +380,8 @@ class EpisodeInfo:
         if not first_aired:
             air_date = None
         else:
-            air_date = datetime.datetime.strptime(first_aired, "%Y-%m-%d").date()
+            air_dt = datetime.datetime.strptime(first_aired, "%Y-%m-%d")
+            air_date = air_dt.date()
 
         episode_number = json["airedEpisodeNumber"]
         season = json["airedSeason"]
@@ -515,9 +532,11 @@ def tv_last(text: str) -> str:
             break
 
     if not prev_ep:
-        return "There are no previously aired episodes for {}.".format(series.name)
+        fmt = "There are no previously aired episodes for {}."
+        return fmt.format(series.name)
 
     if series.ended:
-        return "{} ended. The last episode aired {}.".format(series.name, prev_ep)
+        fmt = "{} ended. The last episode aired {}."
+        return fmt.format(series.name, prev_ep)
 
     return "The last episode of {} aired {}.".format(series.name, prev_ep)

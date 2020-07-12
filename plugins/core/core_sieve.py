@@ -52,7 +52,9 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
 
 # noinspection PyUnusedLocal
 @hook.sieve()
-async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
+async def perm_sieve(
+    bot: CloudBot, event: Event, _hook: Hook
+) -> Optional[Event]:
     """check permissions"""
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -71,7 +73,9 @@ async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event
 
 # noinspection PyUnusedLocal
 @hook.sieve()
-def check_disabled(bot: CloudBot, event: CommandEvent, _hook: Hook) -> Optional[Event]:
+def check_disabled(
+    bot: CloudBot, event: CommandEvent, _hook: Hook
+) -> Optional[Event]:
     """
     check disabled_commands
     """
@@ -108,7 +112,8 @@ def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
 
         if not bucket.consume(message_cost):
             logger.info(
-                "[%s|sieve] Refused command from %s. Entity had %s tokens, needed %s.",
+                "[%s|sieve] Refused command from %s. "
+                "Entity had %s tokens, needed %s.",
                 conn.name,
                 uid,
                 bucket.tokens,

@@ -58,7 +58,7 @@ repos:
   hooks:
   - id: pylint
     name: pylint
-    entry: pylint
+    entry: pylint -s no
     language: system
     types: [python]
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt

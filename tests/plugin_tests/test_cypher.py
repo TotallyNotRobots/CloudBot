@@ -6,13 +6,13 @@ from plugins import cypher
 
 
 @pytest.mark.parametrize(
-    'plaintext,key,ciphertext',
+    "plaintext,key,ciphertext",
     [
-        ('some input', 'supersecretkey', 'w6bDpMOdw4rCksOcw5PDk8Onw5k='),
+        ("some input", "supersecretkey", "w6bDpMOdw4rCksOcw5PDk8Onw5k="),
         (
-            'other input and stuff',
-            'supersecretkey234',
-            'w6LDqcOYw4rDpMKTw47DkcOiw5rDqMKLw4bDp8KWU8Knw6fDqsOWw4s=',
+            "other input and stuff",
+            "supersecretkey234",
+            "w6LDqcOYw4rDpMKTw47DkcOiw5rDqMKLw4bDp8KWU8Knw6fDqsOWw4s=",
         ),
     ],
 )
@@ -22,13 +22,13 @@ def test_encipher(plaintext, key, ciphertext):
 
 
 @pytest.mark.parametrize(
-    'ciphertext,key,plaintext',
+    "ciphertext,key,plaintext",
     [
-        ('w6bDpMOdw4rCksOcw5PDk8Onw5k=', 'supersecretkey', 'some input'),
+        ("w6bDpMOdw4rCksOcw5PDk8Onw5k=", "supersecretkey", "some input"),
         (
-            'w6LDqcOYw4rDpMKTw47DkcOiw5rDqMKLw4bDp8KWU8Knw6fDqsOWw4s=',
-            'supersecretkey234',
-            'other input and stuff',
+            "w6LDqcOYw4rDpMKTw47DkcOiw5rDqMKLw4bDp8KWU8Knw6fDqsOWw4s=",
+            "supersecretkey234",
+            "other input and stuff",
         ),
     ],
 )

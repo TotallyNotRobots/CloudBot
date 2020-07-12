@@ -1,17 +1,17 @@
 import asyncio
 import logging
-import random
 import re
 import socket
 import ssl
 import traceback
 from functools import partial
+from itertools import chain
 from pathlib import Path
 from typing import Mapping, Optional
 
 from irclib.parser import Message
 
-from cloudbot.client import Client, ClientConnectError, client
+from cloudbot.client import Client, client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import async_util
 
@@ -20,7 +20,7 @@ logger = logging.getLogger("cloudbot")
 irc_nick_re = re.compile(r"[A-Za-z0-9^{\}\[\]\-`_|\\]+")
 
 irc_bad_chars = "".join(
-    [chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))]
+    [chr(x) for x in chain(range(0, 1), range(4, 32), range(127, 160))]
 )
 irc_clean_re = re.compile("[{}]".format(re.escape(irc_bad_chars)))
 
@@ -119,13 +119,15 @@ class IrcClient(Client):
         :type channels: list[str]
         :type config: dict[str, unknown]
         """
-        super().__init__(bot, _type, name, nick, channels=channels, config=config)
+        super().__init__(
+            bot, _type, name, nick, channels=channels, config=config
+        )
 
         self.target_nick = nick
         conn_config = config["connection"]
         self.use_ssl = conn_config.get("ssl", False)
         self._ignore_cert_errors = conn_config.get("ignore_cert", False)
-        self._timeout = conn_config.get("timeout", 300)
+        self.timeout = conn_config.get("timeout", 300)
         self.server = conn_config["server"]
         self.port = conn_config.get("port", 6667)
 
@@ -148,7 +150,9 @@ class IrcClient(Client):
 
         self._channel_keys = {}
 
-    def set_channel_key(self, channel: str, key: str, *, override: bool = True) -> None:
+    def set_channel_key(
+        self, channel: str, key: str, *, override: bool = True
+    ) -> None:
         if override or channel not in self._channel_keys:
             self._channel_keys[channel] = key
 
@@ -163,7 +167,11 @@ class IrcClient(Client):
         return False
 
     def get_channel_key(
-        self, channel: str, default: Optional[str] = None, *, set_key: bool = True
+        self,
+        channel: str,
+        default: Optional[str] = None,
+        *,
+        set_key: bool = True
     ) -> Optional[str]:
         if channel in self._channel_keys:
             key = self._channel_keys[channel]
@@ -184,7 +192,9 @@ class IrcClient(Client):
                 if path.exists():
                     ssl_context.load_cert_chain(str(path.resolve()))
                 else:
-                    logger.warning("[%s] Unable to load client cert", self.name)
+                    logger.warning(
+                        "[%s] Unable to load client certificate", self.name
+                    )
 
             if self._ignore_cert_errors:
                 ssl_context.check_hostname = False
@@ -197,52 +207,43 @@ class IrcClient(Client):
         return ssl_context
 
     def describe_server(self):
-        if self.use_ssl:
-            return "+{}:{}".format(self.server, self.port)
-
-        return "{}:{}".format(self.server, self.port)
+        return "{}:{}{}".format(
+            self.server, "+" if self.use_ssl else "", self.port,
+        )
 
     async def auto_reconnect(self):
         """
-        This method should be called by code that attempts to automatically reconnect to a server
+        This method should be called by code that attempts to automatically
+        reconnect to a server.
 
-        This differs from self.try_connect() as it checks whether or not it should automatically reconnect
-        before doing so. This is useful for instances where the socket has been closed, an EOF received,
-        or a ping timeout occurred.
+        This differs from self.try_connect() as it checks whether or not it
+        should automatically reconnect before doing so. This is useful for
+        instances where the socket has been closed, an EOF received, or
+        a ping timeout occurred.
         """
         if not self._active:
             return
 
         await self.try_connect()
 
-    async def try_connect(self):
-        while self.active and not self.connected:
-            try:
-                await self.connect(self._timeout)
-            except (TimeoutError, asyncio.TimeoutError):
-                logger.error(
-                    "[%s] Timeout occurred while connecting to %s",
-                    self.name,
-                    self.describe_server(),
-                )
-            except (socket.error, socket.gaierror, OSError, ssl.SSLError):
-                logger.error(
-                    "[%s] Error occurred while connecting to %s (%s)",
-                    self.name,
-                    self.describe_server(),
-                    traceback.format_exc().splitlines()[-1],
-                )
-            except Exception as e:
-                raise ClientConnectError(self.name, self.describe_server()) from e
-            else:
-                break
-
-            sleep_time = random.randrange(self._timeout)
-            canceller = asyncio.shield(self.cancelled_future)
-            try:
-                await asyncio.wait_for(canceller, timeout=sleep_time)
-            except (asyncio.CancelledError, asyncio.TimeoutError):
-                pass
+    def handle_connect_exc(self, exc):
+        if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
+            logger.error(
+                "[%s] Timeout occurred while connecting to %s",
+                self.name,
+                self.describe_server(),
+            )
+        elif isinstance(
+            exc, (socket.error, socket.gaierror, OSError, ssl.SSLError)
+        ):
+            logger.error(
+                "[%s] Error occurred while connecting to %s (%s)",
+                self.name,
+                self.describe_server(),
+                traceback.format_exc().splitlines()[-1],
+            )
+        else:
+            super().handle_connect_exc(exc)
 
     async def connect(self, timeout=None):
         """
@@ -250,7 +251,8 @@ class IrcClient(Client):
         """
         if self._connecting:
             raise ValueError(
-                "Attempted to connect while another connect attempt is happening"
+                "Attempted to connect while another connect "
+                "attempt is happening"
             )
 
         self._connecting = True
@@ -370,7 +372,8 @@ class IrcClient(Client):
         :type command: str
         :type params: (str)
         """
-        params = list(map(str, params))  # turn the tuple of parameters into a list
+        # turn the tuple of parameters into a list
+        params = list(map(str, params))
         self.send(str(Message(None, None, command, params)))
 
     def send(self, line, log=True):
@@ -380,16 +383,23 @@ class IrcClient(Client):
         :type log: bool
         """
         if not self.connected:
-            raise ValueError("Client must be connected to irc server to use send")
+            raise ValueError(
+                "Client must be connected to irc server to use send"
+            )
+
         self.loop.call_soon_threadsafe(self._send, line, log)
 
     def _send(self, line, log=True):
         """
-        Sends a raw IRC line unchecked. Doesn't do connected check, and is *not* threadsafe
+        Sends a raw IRC line unchecked. Doesn't do connected check,
+        and is *not* threadsafe.
+
         :type line: str
         :type log: bool
         """
-        async_util.wrap_future(self._protocol.send(line, log=log), loop=self.loop)
+        async_util.wrap_future(
+            self._protocol.send(line, log=log), loop=self.loop
+        )
 
     @property
     def connected(self):
@@ -436,7 +446,8 @@ class _IrcProtocol(asyncio.Protocol):
         self._connecting = False
         self._connected = True
         self._connected_future.set_result(None)
-        # we don't need the _connected_future, everything uses it will check _connected first.
+        # we don't need the _connected_future, everything uses it
+        # will check _connected first.
         del self._connected_future
 
     def connection_lost(self, exc):
@@ -466,7 +477,9 @@ class _IrcProtocol(asyncio.Protocol):
             if self._connecting:
                 await self._connected_future
             else:
-                raise ValueError("Attempted to send data to a closed connection")
+                raise ValueError(
+                    "Attempted to send data to a closed connection"
+                )
 
         old_line = line
         filtered = bool(self.bot.plugin_manager.out_sieves)
@@ -481,7 +494,8 @@ class _IrcProtocol(asyncio.Protocol):
             )
             if not ok:
                 logger.warning(
-                    "Error occurred in outgoing sieve, falling back to old behavior"
+                    "Error occurred in outgoing sieve, "
+                    "falling back to old behavior"
                 )
                 logger.debug("Line was: %s", line)
                 filtered = False
@@ -495,12 +509,14 @@ class _IrcProtocol(asyncio.Protocol):
                 return
 
         if not filtered:
-            # No outgoing sieves loaded or one of the sieves errored, fall back to old behavior
+            # No outgoing sieves loaded or one of the sieves errored,
+            # fall back to old behavior
             line = old_line[:510] + "\r\n"
             line = line.encode("utf-8", "replace")
 
         if not isinstance(line, bytes):
-            # the line must be encoded before we send it, one of the sieves didn't encode it, fall back to the default
+            # the line must be encoded before we send it,
+            # one of the sieves didn't encode it, fall back to the default
             line = line.encode("utf-8", "replace")
 
         if log:
@@ -508,11 +524,20 @@ class _IrcProtocol(asyncio.Protocol):
 
         self._transport.write(line)
 
+    def pop_line(self) -> bytes:
+        """
+        Split and remove the oldest line from the buffer.
+
+        :return: The oldest line
+        """
+        line, self._input_buffer = self._input_buffer.split(b"\r\n", 1)
+        return line
+
     def data_received(self, data):
         self._input_buffer += data
 
         while b"\r\n" in self._input_buffer:
-            line_data, self._input_buffer = self._input_buffer.split(b"\r\n", 1)
+            line_data = self.pop_line()
             line = decode(line_data)
 
             try:
@@ -566,7 +591,8 @@ class _IrcProtocol(asyncio.Protocol):
                 ctcp_text = possible_ctcp
                 ctcp_text_split = ctcp_text.split(None, 1)
                 if ctcp_text_split[0] == "ACTION":
-                    # this is a CTCP ACTION, set event_type and content accordingly
+                    # this is a CTCP ACTION, set event_type and content
+                    # accordingly
                     event_type = EventType.action
                     content = irc_clean(ctcp_text_split[1])
                 else:
@@ -604,7 +630,8 @@ class _IrcProtocol(asyncio.Protocol):
             channel = nick.lower() if nick else nick
 
         # Set up parsed message
-        # TODO: Do we really want to send the raw `prefix` and `command_params` here?
+        # TODO: Do we really want to send the raw `prefix`
+        #  and `command_params` here?
         event = Event(
             bot=self.bot,
             conn=self.conn,
