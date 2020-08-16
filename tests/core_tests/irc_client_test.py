@@ -32,7 +32,7 @@ def filter_logs(caplog):
     for record in caplog.record_tuples:
         name = record[0]
         if name == "asyncio" or name.startswith("asyncio."):
-            continue
+            continue  # pragma: no cover
 
         out.append(record)
 
@@ -50,7 +50,7 @@ class TestLineParsing:
             conn.loop.run_until_complete(asyncio.gather(*tasks))
         except CancelledError:
             if not cancel:
-                raise
+                raise  # pragma: no cover
 
     @staticmethod
     def _filter_event(event: Event) -> Dict[str, Any]:

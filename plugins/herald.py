@@ -1,15 +1,12 @@
+import datetime
 import random
 import re
-import time
 from collections import defaultdict
 
 from sqlalchemy import Table, Column, String, PrimaryKeyConstraint
 
 from cloudbot import hook
 from cloudbot.util import database
-
-delay = 10
-floodcheck = {}
 
 table = Table(
     'herald',
@@ -20,6 +17,28 @@ table = Table(
     PrimaryKeyConstraint('name', 'chan')
 )
 
+
+class ChannelData:
+    def __init__(self, chan_interval=datetime.timedelta(seconds=10), user_interval=datetime.timedelta(minutes=5)):
+        self.user_interval = user_interval
+        self.chan_interval = chan_interval
+        self.next_send = datetime.datetime.min
+        self.user_times = defaultdict(lambda: datetime.datetime.min)
+
+    def can_send(self, nick: str, join_time: datetime.datetime) -> bool:
+        if join_time < self.next_send:
+            return False
+
+        nick_lower = nick.lower()
+        if join_time < self.user_times[nick_lower]:
+            return False
+
+        self.user_times[nick_lower] = join_time + self.user_interval
+        self.next_send = join_time + self.chan_interval
+        return True
+
+
+user_join = defaultdict(lambda: defaultdict(ChannelData))
 herald_cache = defaultdict(dict)
 
 
@@ -89,8 +108,13 @@ def deleteherald(text, chan, db, reply):
     load_cache(db)
 
 
+def should_send(conn, chan, nick, join_time) -> bool:
+    chan_data = user_join[conn.lower()][chan.lower()]
+    return chan_data.can_send(nick, join_time)
+
+
 @hook.irc_raw("JOIN", singlethread=True)
-def welcome(nick, message, bot, chan):
+def welcome(nick, message, bot, chan, conn):
     decoy = re.compile('[Òo○O0öøóȯôőŏᴏōο][<>＜]')
     colors_re = re.compile(r'\x02|\x03(?:\d{1,2}(?:,\d{1,2})?)?', re.UNICODE)
     bino_re = re.compile('b+i+n+o+', re.IGNORECASE)
@@ -98,35 +122,33 @@ def welcome(nick, message, bot, chan):
 
     grab = bot.plugin_manager.find_plugin("grab")
 
-    if chan in floodcheck:
-        if time.time() - floodcheck[chan] <= delay:
-            return
-    else:
-        floodcheck[chan] = time.time()
-
     greet = herald_cache[chan.casefold()].get(nick.casefold())
-    if greet:
-        stripped = greet.translate(dict.fromkeys(map(ord, ["\u200b", " ", "\u202f", "\x02"])))
-        stripped = colors_re.sub("", stripped)
-        greet = re.sub(bino_re, 'flenny', greet)
-        greet = re.sub(offensive_re, ' freespeech oppression ', greet)
+    if not greet:
+        return
 
-        words = greet.lower().split()
-        cmd = words.pop(0)
-        if cmd == ".grabrandom":
-            text = ""
-            if words:
-                text = random.choice(words)
+    if not should_send(conn.name, chan, nick, datetime.datetime.now()):
+        return
 
-            if grab is not None:
-                out = grab.code.grabrandom(text, chan, message)
-            else:
-                out = "grab.py not loaded, original herald: {}".format(greet)
+    stripped = greet.translate(dict.fromkeys(map(ord, ["\u200b", " ", "\u202f", "\x02"])))
+    stripped = colors_re.sub("", stripped)
+    greet = re.sub(bino_re, 'flenny', greet)
+    greet = re.sub(offensive_re, ' freespeech oppression ', greet)
 
-            if out:
-                message(out, chan)
-        elif decoy.search(stripped):
-            message("DECOY DUCK --> {}".format(greet), chan)
+    words = greet.lower().split()
+    cmd = words.pop(0)
+    if cmd == ".grabrandom":
+        text = ""
+        if words:
+            text = random.choice(words)
+
+        if grab is not None:
+            out = grab.code.grabrandom(text, chan, message)
         else:
-            message("\u200b {}".format(greet), chan)
-        floodcheck[chan] = time.time()
+            out = "grab.py not loaded, original herald: {}".format(greet)
+
+        if out:
+            message(out, chan)
+    elif decoy.search(stripped):
+        message("DECOY DUCK --> {}".format(greet), chan)
+    else:
+        message("\u200b {}".format(greet), chan)
