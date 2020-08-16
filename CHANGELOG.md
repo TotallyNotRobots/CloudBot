@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for channel keys (#95)
 - Officially support channel keys across the whole bot
 - Add missing default config keys
+- Add spam protection in herald.py
 ### Changed
 - Refactor tests to remove dependency on mock library
 - Change link_announcer.py to only warn on connection errors
