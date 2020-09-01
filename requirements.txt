@@ -18,4 +18,4 @@ tweepy==3.9.0
 venusian==3.0.0
 watchdog==0.10.3
 yarl==1.4.2
-attrs==19.3.0
+attrs==20.1.0
