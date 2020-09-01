@@ -11,7 +11,7 @@ lxml==4.5.2
 multidict==4.7.6
 nltk==3.5
 psutil==5.7.2
-py-irclib==0.2.1
+py-irclib==0.3.0
 requests==2.24.0
 SQLAlchemy==1.3.18
 tweepy==3.9.0
