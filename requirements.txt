@@ -10,7 +10,7 @@ isodate==0.6.0
 lxml==4.5.1
 multidict==4.7.6
 nltk==3.5
-psutil==5.7.0
+psutil==5.7.2
 py-irclib==0.2.1
 requests==2.24.0
 SQLAlchemy==1.3.18
