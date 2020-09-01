@@ -4,7 +4,7 @@ feedparser==5.2.1
 forecastiopy==0.22
 geoip2==3.0.0
 mcstatus==3.1.1
-googlemaps==4.4.1
+googlemaps==4.4.2
 imgurpython==1.1.7
 isodate==0.6.0
 lxml==4.5.2
