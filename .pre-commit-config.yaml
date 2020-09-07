@@ -34,7 +34,7 @@ repos:
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: 6a3cc7646d8f54ba0d1b90958e4107bfb1b31e76  # frozen: 5.5.1
+  rev: ec78bf395883bc396bf378a2290af6d8004ea6c3  # frozen: 5.5.3
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
@@ -50,7 +50,7 @@ repos:
     language: system
     types: [python]
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-  rev: 8155a744442d15f9126a680b7055f758b29956ab  # frozen: 0.0.12
+  rev: a27ba454fd1cfd7ce20b60f5a1aee310fd66df82  # frozen: 0.1.0
   hooks:
   - id: yamlfmt
     args:
