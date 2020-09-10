@@ -135,7 +135,7 @@ class APIRequestResponse(Schema):
 
 
 class UntypedResponse(APIRequestResponse):
-    def __init__(self, data: Any, status: ResponseStatus):
+    def __init__(self, status: ResponseStatus, data: Any = None):
         super().__init__(status)
         self.data = data
 
@@ -370,9 +370,9 @@ def read_data(data: Dict, schema_cls: Type[T]) -> T:
             field_names.append(name)
             try:
                 value = data[name]
-            except KeyError:
+            except KeyError as e:
                 if schema_field.default is schema_field.empty:
-                    raise MissingSchemaField(name)
+                    raise MissingSchemaField(name) from e
 
                 value = schema_field.default
 
