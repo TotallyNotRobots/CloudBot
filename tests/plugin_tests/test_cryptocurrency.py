@@ -108,61 +108,59 @@ def init_response(
         )
 
     if quote:
+        response_data = {
+            "1": {
+                "id": 1,
+                "name": "Bitcoin",
+                "slug": "bitcoin",
+                "symbol": "BTC",
+                "circulating_supply": 100,
+                "total_supply": 1000,
+                "date_added": (now - timedelta(days=5)).strftime(iso_fmt),
+                "num_market_pairs": 1,
+                "cmc_rank": 1,
+                "last_updated": (now - timedelta(hours=1)).strftime(iso_fmt),
+                "tags": [],
+                "quote": {
+                    "BTC": {
+                        "price": 2,
+                        "volume_24h": 5,
+                        "market_cap": 97,
+                        "percent_change_1h": 12.5,
+                        "percent_change_24h": 17.4,
+                        "percent_change_7d": 54.1,
+                        "last_updated": (now - timedelta(minutes=6)).strftime(iso_fmt),
+                    },
+                    "USD": {
+                        "price": 50000000000,
+                        "volume_24h": 20,
+                        "market_cap": 92,
+                        "percent_change_1h": 14.5,
+                        "percent_change_24h": pct_change,
+                        "percent_change_7d": 24.5,
+                        "last_updated": (now - timedelta(minutes=3)).strftime(iso_fmt),
+                    },
+                },
+            },
+        }
+        data = {
+            "status": {
+                "timestamp": now.strftime(iso_fmt),
+                "error_code": 400 if error_msg else 200,
+                "error_message": error_msg,
+                "elapsed": 1,
+                "credit_count": 1,
+            },
+        }
+        if not error_msg:
+            data["data"] = response_data
+
         mock_requests.add(
             MatchAPIKey(
                 "GET",
                 "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=USD%2CBTC",
                 api_key="APIKEY" if check_api_key else None,
-                json={
-                    "status": {
-                        "timestamp": now.strftime(iso_fmt),
-                        "error_code": 400 if error_msg else 200,
-                        "error_message": error_msg,
-                        "elapsed": 1,
-                        "credit_count": 1,
-                    },
-                    "data": {
-                        "1": {
-                            "id": 1,
-                            "name": "Bitcoin",
-                            "slug": "bitcoin",
-                            "symbol": "BTC",
-                            "circulating_supply": 100,
-                            "total_supply": 1000,
-                            "date_added": (now - timedelta(days=5)).strftime(iso_fmt),
-                            "num_market_pairs": 1,
-                            "cmc_rank": 1,
-                            "last_updated": (now - timedelta(hours=1)).strftime(
-                                iso_fmt
-                            ),
-                            "tags": [],
-                            "quote": {
-                                "BTC": {
-                                    "price": 2,
-                                    "volume_24h": 5,
-                                    "market_cap": 97,
-                                    "percent_change_1h": 12.5,
-                                    "percent_change_24h": 17.4,
-                                    "percent_change_7d": 54.1,
-                                    "last_updated": (
-                                        now - timedelta(minutes=6)
-                                    ).strftime(iso_fmt),
-                                },
-                                "USD": {
-                                    "price": 50000000000,
-                                    "volume_24h": 20,
-                                    "market_cap": 92,
-                                    "percent_change_1h": 14.5,
-                                    "percent_change_24h": pct_change,
-                                    "percent_change_7d": 24.5,
-                                    "last_updated": (
-                                        now - timedelta(minutes=3)
-                                    ).strftime(iso_fmt),
-                                },
-                            },
-                        },
-                    },
-                },
+                json=data,
             )
         )
 
