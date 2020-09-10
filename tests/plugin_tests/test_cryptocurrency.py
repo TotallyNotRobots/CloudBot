@@ -54,11 +54,13 @@ def init_response(
     error_msg=None,
     check_api_key=False,
     pct_change=18.9,
+    show_btc=True,
 ):
     if check_api_key:
         cryptocurrency.init_api(bot.get())
 
     cryptocurrency.api.cache.clear()
+    cryptocurrency.api.show_btc = show_btc
     now = datetime.now()
 
     iso_fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -122,15 +124,6 @@ def init_response(
                 "last_updated": (now - timedelta(hours=1)).strftime(iso_fmt),
                 "tags": [],
                 "quote": {
-                    "BTC": {
-                        "price": 2,
-                        "volume_24h": 5,
-                        "market_cap": 97,
-                        "percent_change_1h": 12.5,
-                        "percent_change_24h": 17.4,
-                        "percent_change_7d": 54.1,
-                        "last_updated": (now - timedelta(minutes=6)).strftime(iso_fmt),
-                    },
                     "USD": {
                         "price": 50000000000,
                         "volume_24h": 20,
@@ -143,6 +136,17 @@ def init_response(
                 },
             },
         }
+        if show_btc:
+            response_data["1"]["quote"]["BTC"] = {
+                "price": 2,
+                "volume_24h": 5,
+                "market_cap": 97,
+                "percent_change_1h": 12.5,
+                "percent_change_24h": 17.4,
+                "percent_change_7d": 54.1,
+                "last_updated": (now - timedelta(minutes=6)).strftime(iso_fmt),
+            }
+
         data = {
             "status": {
                 "timestamp": now.strftime(iso_fmt),
@@ -158,7 +162,8 @@ def init_response(
         mock_requests.add(
             MatchAPIKey(
                 "GET",
-                "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=USD%2CBTC",
+                "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC&convert=USD"
+                + ("%2CBTC" if show_btc else ""),
                 api_key="APIKEY" if check_api_key else None,
                 json=data,
             )
@@ -166,6 +171,7 @@ def init_response(
 
 
 def test_api(mock_requests, mock_api_keys):
+    bot.config["plugins"] = {}
     init_response(mock_requests, check_api_key=True)
 
     result = cryptocurrency.api.get_quote("BTC", "USD")
@@ -334,9 +340,23 @@ def test_btc_alias_no_change(mock_requests):
     res = _run_alias()
 
     assert res == [
-        HookResult(
-            return_type="return",
-            value="BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // 0% change",
+        (
+            "return",
+            "BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD - 2.0000000 BTC // 0% change",
+        )
+    ]
+
+
+def test_no_show_btc(mock_requests):
+    show_btc = cryptocurrency.get_plugin_config({}, "show_btc", False)
+    init_response(mock_requests, show_btc=show_btc)
+
+    res = _run_alias()
+
+    assert res == [
+        (
+            "return",
+            "BTC (bitcoin) // \x0307$50,000,000,000.00\x0f USD // \x0303+18.9%\x0f change",
         )
     ]
 
