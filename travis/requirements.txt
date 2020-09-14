@@ -1,4 +1,4 @@
-coverage==5.2.1
+coverage==5.3
 freezegun==1.0.0
 pylint==2.6.0
 pytest==6.0.1
