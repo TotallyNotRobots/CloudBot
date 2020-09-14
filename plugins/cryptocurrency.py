@@ -470,6 +470,7 @@ class CoinMarketCapAPI:
         api_url: str = "https://pro-api.coinmarketcap.com/v1/",
     ) -> None:
         self.api_key = api_key
+        self.show_btc = False
         self.api_url = URL(api_url)
         self.cache = Cache()
 
@@ -491,10 +492,13 @@ class CoinMarketCapAPI:
         if currency not in self.get_fiat_currency_map().symbols:
             raise UnknownFiatCurrencyError(currency)
 
+        if self.show_btc:
+            convert = "{},BTC".format(currency)
+        else:
+            convert = currency
+
         data = self.request(
-            "cryptocurrency/quotes/latest",
-            symbol=symbol.upper(),
-            convert="{},BTC".format(currency),
+            "cryptocurrency/quotes/latest", symbol=symbol.upper(), convert=convert,
         ).data.cast_to(QuoteRequestResponse)
         _, out = data.data.popitem()
         return out
@@ -534,9 +538,19 @@ class CoinMarketCapAPI:
 api = CoinMarketCapAPI()
 
 
+def get_plugin_config(conf, name, default):
+    try:
+        return conf["plugins"]["cryptocurrency"][name]
+    except LookupError:
+        return default
+
+
 @hook.onload
 def init_api(bot):
     api.api_key = bot.config.get_api_key("coinmarketcap")
+
+    # Enabling this requires a paid CoinMarketCap API plan
+    api.show_btc = get_plugin_config(bot.config, "show_btc", False)
 
 
 class Alias:
@@ -597,7 +611,6 @@ def crypto_command(text, event):
         raise
 
     quote = data.quote[currency]
-    btc_quote = data.quote["BTC"]
     change = quote.percent_change_24h
     if change > 0:
         change_str = "$(dark_green)+{}%$(clear)".format(change)
@@ -608,15 +621,15 @@ def crypto_command(text, event):
 
     currency_sign = api.get_currency_sign(currency)
 
+    if api.show_btc:
+        btc_quote = data.quote["BTC"]
+        btc = "- {:,.7f} BTC ".format(btc_quote.price)
+    else:
+        btc = ""
+
     return colors.parse(
-        "{} ({}) // $(orange){}{:,.2f}$(clear) {} - {:,.7f} BTC // {} change".format(
-            data.symbol,
-            data.slug,
-            currency_sign,
-            quote.price,
-            currency,
-            btc_quote.price,
-            change_str,
+        ("{} ({}) // $(orange){}{:,.2f}$(clear) {} " + btc + "// {} change").format(
+            data.symbol, data.slug, currency_sign, quote.price, currency, change_str,
         )
     )
 
