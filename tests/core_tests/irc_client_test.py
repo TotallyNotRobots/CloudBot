@@ -16,9 +16,8 @@ def map_calls(calls):
     return [tuple(c) for c in calls]
 
 
-def make_mock_conn(name="testconn", loop=None):
-    if loop is None:
-        loop = asyncio.get_event_loop()
+def make_mock_conn(name="testconn"):
+    loop = asyncio.get_event_loop()
 
     conn = MagicMock()
     conn.name = name

@@ -15,7 +15,11 @@ from tests.util import HookResult, wrap_hook_response
 def test_parse():
     assert cryptocurrency.ResponseStatus._fields != cryptocurrency.Quote._fields
     cryptocurrency.Platform(  # nosec
-        id=1, name="name", symbol="symbol", slug="slug", token_address="foobar",
+        id=1,
+        name="name",
+        symbol="symbol",
+        slug="slug",
+        token_address="foobar",
     )
     assert len(cryptocurrency.Platform._fields) == 5
     data = {
@@ -48,7 +52,6 @@ class MatchAPIKey(Response):
 
 def init_response(
     mock_requests,
-    crypto_map=True,
     fiat_map=True,
     quote=True,
     error_msg=None,
@@ -65,31 +68,30 @@ def init_response(
 
     iso_fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
 
-    if crypto_map:
-        mock_requests.add(
-            MatchAPIKey(
-                "GET",
-                "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map",
-                api_key="APIKEY" if check_api_key else None,
-                json={
-                    "status": {
-                        "timestamp": now.strftime(iso_fmt),
-                        "error_code": 200,
-                        "elapsed": 1,
-                        "credit_count": 1,
-                    },
-                    "data": [
-                        {
-                            "id": 1,
-                            "name": "bitcoin",
-                            "symbol": "BTC",
-                            "slug": "bitcoin",
-                            "is_active": 1,
-                        },
-                    ],
+    mock_requests.add(
+        MatchAPIKey(
+            "GET",
+            "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map",
+            api_key="APIKEY" if check_api_key else None,
+            json={
+                "status": {
+                    "timestamp": now.strftime(iso_fmt),
+                    "error_code": 200,
+                    "elapsed": 1,
+                    "credit_count": 1,
                 },
-            )
+                "data": [
+                    {
+                        "id": 1,
+                        "name": "bitcoin",
+                        "symbol": "BTC",
+                        "slug": "bitcoin",
+                        "is_active": 1,
+                    },
+                ],
+            },
         )
+    )
 
     if fiat_map:
         mock_requests.add(
@@ -429,6 +431,6 @@ def test_cmd_api_error(mock_requests):
 
 
 def test_list_currencies(patch_paste, mock_requests):
-    init_response(mock_requests, quote=False, fiat_map=False)
+    init_response(mock_requests, fiat_map=False, quote=False)
     cryptocurrency.currency_list()
     patch_paste.assert_called_with("Symbol     Name\nBTC        bitcoin")
