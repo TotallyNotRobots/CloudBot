@@ -1,44 +1,50 @@
 import asyncio
 from unittest.mock import MagicMock
 
-from irclib.parser import Message, Prefix, TagList
+from irclib.parser import Prefix, TagList
 
 from cloudbot.util.func_utils import call_with_args
-from plugins.core import chan_track
+from plugins.core import chan_track, server_info
 
 
 class MockConn:
     def __init__(self, bot=None):
         self.name = "foo"
         self.memory = {
-            "server_info": {"statuses": {},},
-            "server_caps": {"userhost-in-names": True, "multi-prefix": True,},
+            "server_info": {
+                "statuses": {},
+            },
+            "server_caps": {
+                "userhost-in-names": True,
+                "multi-prefix": True,
+            },
         }
         self.nick = "BotFoo"
         self.bot = bot
+        if self.bot:
+            self.loop = self.bot.loop
+        else:
+            self.loop = asyncio.get_event_loop()
 
     def get_statuses(self, chars):
         return [self.memory["server_info"]["statuses"][c] for c in chars]
 
 
 def test_replace_user_data():
-    from plugins.core.chan_track import UsersDict, replace_user_data, Channel
-    from plugins.core.server_info import handle_prefixes
-
     conn = MockConn()
     serv_info = conn.memory["server_info"]
-    handle_prefixes("(YohvV)!@%+-", serv_info)
-    users = UsersDict(conn)
+    server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
+    users = chan_track.UsersDict(conn)
     conn.memory["users"] = users
 
-    chan = Channel("#test", conn)
+    chan = chan_track.Channel("#test", conn)
     chan.data["new_users"] = [
         "@+foo!bar@baz",
         "@ExampleUser!bar@baz",
         "ExampleUser2!bar@baz",
         "!@%+-foo1!bar@baz",
     ]
-    replace_user_data(conn, chan)
+    chan_track.replace_user_data(conn, chan)
 
     assert chan.users["foo"].user.mask == Prefix("foo", "bar", "baz")
     assert chan.users["foo1"].user.mask == Prefix("foo1", "bar", "baz")
@@ -52,25 +58,14 @@ def test_replace_user_data():
 
 
 def test_channel_members():
-    from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.core.chan_track import (
-        get_users,
-        get_chans,
-        replace_user_data,
-        on_nick,
-        on_join,
-        on_mode,
-        on_part,
-        on_kick,
-        on_quit,
-    )
-
     conn = MockConn()
     serv_info = conn.memory["server_info"]
-    handle_prefixes("(YohvV)!@%+-", serv_info)
-    handle_chan_modes("IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info)
-    users = get_users(conn)
-    chans = get_chans(conn)
+    server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
+    server_info.handle_chan_modes(
+        "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
+    )
+    users = chan_track.get_users(conn)
+    chans = chan_track.get_chans(conn)
 
     chan = chans.getchan("#foo")
     assert chan.name == "#foo"
@@ -81,12 +76,12 @@ def test_channel_members():
         "-ExampleUser2!bar@baz",
         "!@%+-foo1!bar@baz",
     ]
-    replace_user_data(conn, chan)
+    chan_track.replace_user_data(conn, chan)
 
     assert users["exampleuser"].host == "baz"
 
     test_user = users["exampleuser2"]
-    on_nick("exampleuser2", ["ExampleUserFoo"], conn)
+    chan_track.on_nick("exampleuser2", ["ExampleUserFoo"], conn)
 
     assert test_user.nick == "ExampleUserFoo"
     assert "exampleuserfoo" in chan.users
@@ -95,26 +90,26 @@ def test_channel_members():
 
     assert chan.get_member(user).status == conn.get_statuses("-")
 
-    on_join("nick1", "user", "host", conn, ["#bar"])
+    chan_track.on_join("nick1", "user", "host", conn, ["#bar"])
 
     assert users["Nick1"].host == "host"
 
     assert chans["#Bar"].users["Nick1"].status == conn.get_statuses("")
 
-    on_mode(chan.name, [chan.name, "+sop", test_user.nick], conn)
+    chan_track.on_mode(chan.name, [chan.name, "+sop", test_user.nick], conn)
 
     assert chan.get_member(test_user).status == conn.get_statuses("@-")
 
-    on_part(chan.name, test_user.nick, conn)
+    chan_track.on_part(chan.name, test_user.nick, conn)
 
     assert test_user.nick not in chan.users
 
     assert "foo" in chan.users
-    on_kick(chan.name, "foo", conn)
+    chan_track.on_kick(chan.name, "foo", conn)
     assert "foo" not in chan.users
 
     assert "foo1" in chan.users
-    on_quit("foo1", conn)
+    chan_track.on_quit("foo1", conn)
     assert "foo1" not in chan.users
 
 
@@ -132,24 +127,13 @@ NAMES_MOCK_TRAFFIC = [
 
 
 def test_names_handling():
-    from plugins.core.server_info import handle_prefixes, handle_chan_modes
-    from plugins.core.chan_track import on_join, on_part, on_kick, on_quit, on_names
-
     handlers = {
-        "JOIN": on_join,
-        "PART": on_part,
-        "QUIT": on_quit,
-        "KICK": on_kick,
-        "353": on_names,
-        "366": on_names,
-    }
-
-    chan_pos = {
-        "JOIN": 0,
-        "PART": 0,
-        "KICK": 0,
-        "353": 2,
-        "366": 1,
+        "JOIN": chan_track.on_join,
+        "PART": chan_track.on_part,
+        "QUIT": chan_track.on_quit,
+        "KICK": chan_track.on_kick,
+        "353": chan_track.on_names,
+        "366": chan_track.on_names,
     }
 
     bot = MagicMock()
@@ -157,29 +141,16 @@ def test_names_handling():
 
     conn = MockConn(bot)
     serv_info = conn.memory["server_info"]
-    handle_prefixes("(YohvV)!@%+-", serv_info)
-    handle_chan_modes("IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info)
+    server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
+    server_info.handle_chan_modes(
+        "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
+    )
 
     for line in NAMES_MOCK_TRAFFIC:
-        line = Message.parse(line)
-        data = {
-            "nick": line.prefix.nick,
-            "user": line.prefix.ident,
-            "host": line.prefix.host,
-            "conn": conn,
-            "irc_paramlist": line.parameters,
-            "irc_command": line.command,
-            "chan": None,
-            "target": None,
-        }
+        from cloudbot.clients.irc import _IrcProtocol
 
-        if line.command in chan_pos:
-            data["chan"] = line.parameters[chan_pos[line.command]]
-
-        if line.command == "KICK":
-            data["target"] = line.parameters[1]
-
-        call_with_args(handlers[line.command], data)
+        event = _IrcProtocol(conn=conn).parse_line(line)
+        call_with_args(handlers[event.irc_command], event)
 
 
 def test_account_tag():
