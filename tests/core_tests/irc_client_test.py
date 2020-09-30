@@ -22,6 +22,7 @@ def make_mock_conn(name="testconn"):
     conn = MagicMock()
     conn.name = name
     conn.loop = loop
+    conn.describe_server.return_value = "server.name:port"
 
     return conn
 
@@ -38,8 +39,34 @@ def filter_logs(caplog):
     return out
 
 
+def test_send_not_connected():
+    bot = MagicMock()
+    client = irc.IrcClient(
+        bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
+    )
+    with pytest.raises(ValueError):
+        client.send("foobar")
+
+    assert map_calls(bot.mock_calls) == [("loop.create_future", (), {})]
+
+
+def test_send_closed():
+    bot = MagicMock(loop=asyncio.get_event_loop_policy().new_event_loop())
+    client = irc.IrcClient(
+        bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
+    )
+    proto = irc._IrcProtocol(client)
+    client._protocol = proto
+    proto._connected = False
+    proto._connecting = False
+    client._send("foobar")
+    with pytest.raises(ValueError):
+        TestLineParsing.wait_tasks(client)
+
+
 class TestLineParsing:
-    def wait_tasks(self, conn, cancel=False):
+    @staticmethod
+    def wait_tasks(conn, cancel=False):
         tasks = async_util.get_all_tasks(conn.loop)
         if cancel:
             for task in tasks:
@@ -65,7 +92,7 @@ class TestLineParsing:
             out.append(self._filter_event(e))
 
         conn.bot.process = func
-        conn.describe_server.return_value = "server.name:port"
+
         proto = irc._IrcProtocol(conn)
         return conn, out, proto
 
@@ -286,7 +313,9 @@ class TestLineParsing:
     def test_parse_privmsg_ctcp_version(self, caplog):
         caplog.set_level(0)
         conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG #channel :\1VERSION\1")
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG #channel :\1VERSION\1"
+        )
 
         assert self._filter_event(event) == {
             "irc_tags": None,
@@ -314,7 +343,9 @@ class TestLineParsing:
     def test_parse_privmsg_bad_ctcp(self, caplog):
         caplog.set_level(0)
         conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG #channel :\1VERSION\1aa")
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG #channel :\1VERSION\1aa"
+        )
 
         assert self._filter_event(event) == {
             "chan": "#channel",
@@ -343,6 +374,36 @@ class TestLineParsing:
                 "[testconn] Invalid CTCP message received, treating it as a mornal message",
             )
         ]
+        assert map_calls(conn.mock_calls) == []
+
+    def test_parse_privmsg_format_reset(self, caplog):
+        caplog.set_level(0)
+        conn, _, proto = self.make_proto()
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG #channel :\x02some text\x0faa"
+        )
+
+        assert self._filter_event(event) == {
+            "chan": "#channel",
+            "content": "\x02some text\x0faa",
+            "content_raw": "\x02some text\x0faa",
+            "db": None,
+            "db_executor": None,
+            "hook": None,
+            "host": "host",
+            "irc_command": "PRIVMSG",
+            "irc_ctcp_text": None,
+            "irc_paramlist": ["#channel", "\x02some text\x0faa"],
+            "irc_prefix": "sender!user@host",
+            "irc_raw": ":sender!user@host PRIVMSG #channel :\x02some text\x0faa",
+            "irc_tags": None,
+            "mask": "sender!user@host",
+            "nick": "sender",
+            "target": None,
+            "type": EventType.message,
+            "user": "user",
+        }
+        assert filter_logs(caplog) == []
         assert map_calls(conn.mock_calls) == []
 
     def test_parse_no_prefix(self, caplog):
@@ -376,7 +437,9 @@ class TestLineParsing:
     def test_parse_pm_privmsg(self, caplog):
         caplog.set_level(0)
         conn, _, proto = self.make_proto()
-        event = proto.parse_line(":sender!user@host PRIVMSG me :this is a message")
+        event = proto.parse_line(
+            ":sender!user@host PRIVMSG me :this is a message"
+        )
 
         assert self._filter_event(event) == {
             "irc_tags": None,
@@ -413,7 +476,9 @@ class TestConnect:
                 "bind_port": 0,
             }
         }
-        client = irc.IrcClient(bot, "irc", "testconn", "foo", config=conn_config)
+        client = irc.IrcClient(
+            bot, "irc", "testconn", "foo", config=conn_config
+        )
         client.active = True
         return client
 

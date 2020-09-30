@@ -6,6 +6,7 @@ import socket
 import ssl
 import traceback
 from functools import partial
+from itertools import chain
 from pathlib import Path
 from typing import Mapping, Optional
 
@@ -13,19 +14,24 @@ from irclib.parser import Message
 
 from cloudbot.client import Client, ClientConnectError, client
 from cloudbot.event import Event, EventType, IrcOutEvent
-from cloudbot.util import async_util
+from cloudbot.util import async_util, colors
 
 logger = logging.getLogger("cloudbot")
 
-irc_nick_re = re.compile(r"[A-Za-z0-9^{\}\[\]\-`_|\\]+")
+irc_nick_re = re.compile(r"[A-Za-z0-9^{}\[\]\-`_|\\]+")
 
 irc_bad_chars = "".join(
-    [chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))]
+    (
+        c
+        for c in (chr(x) for x in chain(range(0, 32), range(127, 160)))
+        if c not in colors.IRC_FORMATTING_DICT.values() and c != "\1"
+    )
 )
+
 irc_clean_re = re.compile("[{}]".format(re.escape(irc_bad_chars)))
 
 
-def irc_clean(dirty):
+def irc_clean(dirty: str) -> str:
     return irc_clean_re.sub("", dirty)
 
 
@@ -119,7 +125,9 @@ class IrcClient(Client):
         :type channels: list[str]
         :type config: dict[str, unknown]
         """
-        super().__init__(bot, _type, name, nick, channels=channels, config=config)
+        super().__init__(
+            bot, _type, name, nick, channels=channels, config=config
+        )
 
         self.target_nick = nick
         conn_config = config["connection"]
@@ -148,7 +156,9 @@ class IrcClient(Client):
 
         self._channel_keys = {}
 
-    def set_channel_key(self, channel: str, key: str, *, override: bool = True) -> None:
+    def set_channel_key(
+        self, channel: str, key: str, *, override: bool = True
+    ) -> None:
         if override or channel not in self._channel_keys:
             self._channel_keys[channel] = key
 
@@ -163,7 +173,11 @@ class IrcClient(Client):
         return False
 
     def get_channel_key(
-        self, channel: str, default: Optional[str] = None, *, set_key: bool = True
+        self,
+        channel: str,
+        default: Optional[str] = None,
+        *,
+        set_key: bool = True
     ) -> Optional[str]:
         if channel in self._channel_keys:
             key = self._channel_keys[channel]
@@ -233,7 +247,9 @@ class IrcClient(Client):
                     traceback.format_exc().splitlines()[-1],
                 )
             except Exception as e:
-                raise ClientConnectError(self.name, self.describe_server()) from e
+                raise ClientConnectError(
+                    self.name, self.describe_server()
+                ) from e
             else:
                 break
 
@@ -370,7 +386,9 @@ class IrcClient(Client):
         :type command: str
         :type params: (str)
         """
-        params = list(map(str, params))  # turn the tuple of parameters into a list
+        params = list(
+            map(str, params)
+        )  # turn the tuple of parameters into a list
         self.send(str(Message(None, None, command, params)))
 
     def send(self, line, log=True):
@@ -380,7 +398,10 @@ class IrcClient(Client):
         :type log: bool
         """
         if not self.connected:
-            raise ValueError("Client must be connected to irc server to use send")
+            raise ValueError(
+                "Client must be connected to irc server to use send"
+            )
+
         self.loop.call_soon_threadsafe(self._send, line, log)
 
     def _send(self, line, log=True):
@@ -389,7 +410,9 @@ class IrcClient(Client):
         :type line: str
         :type log: bool
         """
-        async_util.wrap_future(self._protocol.send(line, log=log), loop=self.loop)
+        async_util.wrap_future(
+            self._protocol.send(line, log=log), loop=self.loop
+        )
 
     @property
     def connected(self):
@@ -466,7 +489,9 @@ class _IrcProtocol(asyncio.Protocol):
             if self._connecting:
                 await self._connected_future
             else:
-                raise ValueError("Attempted to send data to a closed connection")
+                raise ValueError(
+                    "Attempted to send data to a closed connection"
+                )
 
         old_line = line
         filtered = bool(self.bot.plugin_manager.out_sieves)
