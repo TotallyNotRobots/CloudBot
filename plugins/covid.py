@@ -43,6 +43,8 @@ def getcountry(country):
 @hook.command("covid", autohelp=False)
 def covid(text, reply):
     r"""<country> - returns covid numbers"""
+    if len(slugs) <= 0 and len(isos) <= 0:
+        getcountries()
     country = text.split(" ")[0]
     if (
         not country in slugs
