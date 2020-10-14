@@ -46,10 +46,12 @@ def covid(text, reply):
     if len(slugs) <= 0 and len(isos) <= 0:
         getcountries()
     country = text.split(" ")[0]
+    if country == "":
+        country = "global"
     if (
-        not country in slugs
-        and not country.upper() in isos
-        and not country == "global"
+        country not in slugs
+        and country.upper() not in isos
+        and country != "global"
     ):
         return "Error, %s is not a valid country" % country
     if country == "global":
