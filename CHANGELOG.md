@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - amazon.py removed due to broken scraper and no maintainer
 - newegg.py removed due to broken scraper and no maintainer
 - Removed path patching in main module
-
+- rua.py removed due to website no longer existing that it's based off
 ## [1.3.0] 2020-03-17
 ### Added
 - Added `do_sieve` keyword to hooks
