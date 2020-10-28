@@ -52,26 +52,11 @@ or without activating the virtual environment, use
 ```
 
 ## Quick Install
-### Ubuntu
+### Ubuntu (latest LTS)
 To quickly get the bot up and running without much customization
-1. `sudo apt install git`
-1. Install [pyenv prerequisites](https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites)
-1. Install [pyenv](https://github.com/pyenv/pyenv-installer) by running `curl https://pyenv.run | bash` and follow the instructions.
-    1. Make sure to add 
-       ```bash
-       export PATH="$HOME/.pyenv/bin:$PATH"
-       eval "$(pyenv init -)"
-       eval "$(pyenv virtualenv-init -)"
-       ```
-       to your `.bashrc` or `.bash_profile`
-1. `exec $SHELL`
-1. `PYTHON_VERSION=3.7.6` or whatever version of Python you prefer (That the bot supports).
-1. `pyenv install $PYENV_VERSION`
 1. Run `git clone https://github.com/TotallyNotRobots/CloudBot.git`
 1. `cd CloudBot`
-1. `pyenv local $PYTHON_VERSION`
 1. `python3 -m venv venv --clear`
-1. `venv/bin/python -m pip install -U pip setuptools`
 1. `venv/bin/python -m pip install -Ur requirements.txt`
 1. Copy `config.default.json` to `config.json`, change settings as needed and validate it with [jsonlint](https://jsonlint.com/).
 1. Run the bot while in the `CloudBot` directory
