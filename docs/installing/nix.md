@@ -1,5 +1,7 @@
 ### Downloading
 
+[Quick Install](#quick-install)
+
 #### Archive
 Download CloudBot from [https://github.com/TotallyNotRobots/CloudBot/archive/master.zip](https://github.com/TotallyNotRobots/CloudBot/archive/master.zip) and unzip, or execute the following commands:
 ```bash
@@ -48,3 +50,14 @@ or without activating the virtual environment, use
 ```bash
 <VENV_DIR>/bin/python -m cloudbot
 ```
+
+## Quick Install
+### Ubuntu (latest LTS)
+To quickly get the bot up and running without much customization
+1. Run `git clone https://github.com/TotallyNotRobots/CloudBot.git`
+1. `cd CloudBot`
+1. `python3 -m venv venv --clear`
+1. `venv/bin/python -m pip install -Ur requirements.txt`
+1. Copy `config.default.json` to `config.json`, change settings as needed and validate it with [jsonlint](https://jsonlint.com/).
+1. Run the bot while in the `CloudBot` directory
+    1. `venv/bin/python -m cloudbot`
