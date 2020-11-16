@@ -19,9 +19,6 @@ Firstly, CloudBot will only run on **Python 3.5.4 or higher**
 
 To install CloudBot on *nix (linux, etc), see [here](docs/installing/nix.md)
 
-To install CloudBot on Windows, see [here](docs/installing/win.md)
-
-
 ### Running CloudBot
 
 Before you run the bot, rename `config.default.json` to `config.json` and edit it with your preferred settings. You can check if your JSON is valid using [jsonlint.com](http://jsonlint.com/)!
