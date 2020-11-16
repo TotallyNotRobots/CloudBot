@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         python-ver:
-#        - "3.5.4"
         - "3.5"
         - "3.6"
         - "3.7"
@@ -38,14 +37,11 @@ jobs:
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libenchant-dev libxml2-dev libxslt1-dev
     - name: Install dependencies
-      run: |
-        pip install -U pip setuptools cython wheel
-        pip install -Ur requirements-dev.txt
-    - name: Test with pytest
-      run: pytest
+      run: pipenv install --deploy --dev
+    - name: Run tests
+      run: pipenv run test
       env:
         PYTHONASYNCIODEBUG: 1
-        PYTHONPATH: .
     - uses: codecov/codecov-action@v1.0.14
       with:
         name: build-${{ matrix.python-ver }}
