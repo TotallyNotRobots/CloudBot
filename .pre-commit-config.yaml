@@ -1,7 +1,7 @@
 ---
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: e1668fe86af3810fbca72b8653fe478e66a0afdc  # frozen: v3.2.0
+  rev: 9136088a246768144165fcc3ecc3d31bb686920a  # frozen: v3.3.0
   hooks:
   - id: trailing-whitespace
     args: ['--markdown-linebreak-ext=md,markdown']
@@ -13,7 +13,7 @@ repos:
   - id: check-merge-conflict
   - id: debug-statements
   - id: detect-private-key
-    exclude: 'tests/data/.*'
+    exclude: tests/data/.*
   - id: check-builtin-literals
   - id: check-case-conflict
   - id: check-docstring-first
@@ -21,24 +21,24 @@ repos:
   - id: check-json
   - id: pretty-format-json
     args:
-    - '--indent'
+    - --indent
     - '4'
-    - '--autofix'
-    - '--no-sort-keys'
+    - --autofix
+    - --no-sort-keys
   - id: check-toml
   - id: fix-encoding-pragma
     args:
-    - '--remove'
+    - --remove
 - repo: https://github.com/psf/black
   rev: e66be67b9b6811913470f70c28b4d50f94d05b22  # frozen: 20.8b1
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: ec78bf395883bc396bf378a2290af6d8004ea6c3  # frozen: 5.5.3
+  rev: 6bb47b7acc1554ecb59d2855e9110c447162f674  # frozen: 5.6.4
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
-  rev: eae6397e4c259ed3d057511f6dd5330b92867e62  # frozen: v1.6.0
+  rev: 4f4c0a4cda27980be153cca2cb7710c9fec57ba3  # frozen: v1.7.0
   hooks:
   - id: python-no-eval
   - id: python-no-log-warn
@@ -54,12 +54,11 @@ repos:
   hooks:
   - id: yamlfmt
     args:
-    - '--mapping'
+    - --mapping
     - '2'
-    - '--sequence'
+    - --sequence
     - '2'
-    - '--offset'
+    - --offset
     - '0'
-    - '--width'
+    - --width
     - '120'
-    - '-p'
