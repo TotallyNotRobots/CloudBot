@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add Python 3.8 to testing matrix
+- Add Python 3.8, 3.9 to testing matrix
 - Add support for channel keys (#95)
 - Officially support channel keys across the whole bot
 - Add missing default config keys
@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - newegg.py removed due to broken scraper and no maintainer
 - Removed path patching in main module
 - rua.py removed due to website no longer existing that it's based off
+- Python 3.5 support dropped
 
 ## [1.3.0] 2020-03-17
 ### Added
