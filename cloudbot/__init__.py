@@ -5,8 +5,8 @@ import os
 import sys
 
 # check python version
-if sys.version_info < (3, 5, 4):
-    print("CloudBot requires Python 3.5.4 or newer.")
+if sys.version_info < (3, 6):
+    print("CloudBot requires Python 3.6 or newer.")
     sys.exit(1)
 
 
@@ -86,7 +86,8 @@ def _setup():
             }
         },
         "loggers": {
-            name: {"level": "DEBUG", "handlers": ["console"]} for name in logger_names
+            name: {"level": "DEBUG", "handlers": ["console"]}
+            for name in logger_names
         },
     }
 
@@ -106,7 +107,10 @@ def _setup():
 
     if logging_config.get("console_debug", False):
         dict_config["handlers"]["console"]["level"] = "DEBUG"
-        dict_config["loggers"]["asyncio"] = {"level": "DEBUG", "handlers": ["console"]}
+        dict_config["loggers"]["asyncio"] = {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        }
         if file_log:
             dict_config["loggers"]["asyncio"]["handlers"].append("file")
 
