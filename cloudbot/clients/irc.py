@@ -138,10 +138,11 @@ class IrcClient(Client):
         self.port = conn_config.get("port", 6667)
 
         local_bind = (
-            conn_config.get("bind_addr", False),
-            conn_config.get("bind_port", 0),
+            conn_config.get("bind_addr"),
+            conn_config.get("bind_port"),
         )
-        if local_bind[0] is False:
+
+        if not (local_bind[0] or local_bind[1]):
             local_bind = False
 
         self.local_bind = local_bind
