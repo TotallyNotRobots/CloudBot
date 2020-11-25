@@ -39,6 +39,30 @@ def test_invite_join_disabled():
         ({"log_channel": "#foo"}, [call("JOIN #foo")]),
         ({"log_channel": "#foo bar"}, [call("JOIN #foo bar")]),
         ({"log_channel": "#foo bar baz"}, [call("JOIN #foo :bar baz")]),
+        (
+            {"nickserv": {"nickserv_password": "foobar"}},
+            [call("PRIVMSG nickserv :IDENTIFY foobar")],
+        ),
+        (
+            {
+                "nickserv": {
+                    "nickserv_password": "foobar",
+                    "nickserv_user": "foo",
+                }
+            },
+            [call("PRIVMSG nickserv :IDENTIFY foo foobar")],
+        ),
+        (
+            {
+                "nickserv": {
+                    "enabled": False,
+                    "nickserv_password": "foobar",
+                    "nickserv_user": "foo",
+                }
+            },
+            [],
+        ),
+        ({"mode": "+I"}, [call("MODE foobot +I")]),
     ],
 )
 async def test_on_connect(config, calls):
