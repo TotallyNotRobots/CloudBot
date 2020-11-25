@@ -52,7 +52,6 @@
                 "nickserv_name": "nickserv",
                 "nickserv_command": "IDENTIFY"
             },
-            "keep_alive": false,
             "strip_newlines": true,
             "max_line_length": 510,
             "encoding": "utf-8",
