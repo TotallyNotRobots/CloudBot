@@ -70,7 +70,9 @@ class Hook:
         if func_hook.kwargs:
             # we should have popped all the args, so warn if there are any left
             logger.warning(
-                "Ignoring extra args %s from %s", func_hook.kwargs, self.description
+                "Ignoring extra args %s from %s",
+                func_hook.kwargs,
+                self.description,
             )
 
     @property
@@ -150,11 +152,14 @@ class RegexHook(Hook):
 
     def __repr__(self):
         return "Regex[regexes: [{}], {}]".format(
-            ", ".join(regex.pattern for regex in self.regexes), Hook.__repr__(self)
+            ", ".join(regex.pattern for regex in self.regexes),
+            Hook.__repr__(self),
         )
 
     def __str__(self):
-        return "regex {} from {}".format(self.function_name, self.plugin.file_name)
+        return "regex {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 class PeriodicHook(Hook):
@@ -169,7 +174,9 @@ class PeriodicHook(Hook):
         """
 
         interval = periodic_hook.interval
-        initial_interval = periodic_hook.kwargs.pop("initial_interval", interval)
+        initial_interval = periodic_hook.kwargs.pop(
+            "initial_interval", interval
+        )
 
         super().__init__("periodic", plugin, periodic_hook)
 
@@ -177,7 +184,9 @@ class PeriodicHook(Hook):
         self.initial_interval = initial_interval
 
     def __repr__(self):
-        return "Periodic[interval: [{}], {}]".format(self.interval, Hook.__repr__(self))
+        return "Periodic[interval: [{}], {}]".format(
+            self.interval, Hook.__repr__(self)
+        )
 
     def __str__(self):
         return "periodic hook ({} seconds) {} from {}".format(
@@ -203,7 +212,9 @@ class RawHook(Hook):
         return "*" in self.triggers
 
     def __repr__(self):
-        return "Raw[triggers: {}, {}]".format(list(self.triggers), Hook.__repr__(self))
+        return "Raw[triggers: {}, {}]".format(
+            list(self.triggers), Hook.__repr__(self)
+        )
 
     def __str__(self):
         return "irc raw {} ({}) from {}".format(
@@ -223,7 +234,9 @@ class SieveHook(Hook):
         return "Sieve[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "sieve {} from {}".format(self.function_name, self.plugin.file_name)
+        return "sieve {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 class EventHook(Hook):
@@ -241,7 +254,9 @@ class EventHook(Hook):
         self.types = event_hook.types
 
     def __repr__(self):
-        return "Event[types: {}, {}]".format(list(self.types), Hook.__repr__(self))
+        return "Event[types: {}, {}]".format(
+            list(self.types), Hook.__repr__(self)
+        )
 
     def __str__(self):
         return "event {} ({}) from {}".format(
@@ -263,7 +278,9 @@ class OnStartHook(Hook):
         return "On_start[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "on_start {} from {}".format(self.function_name, self.plugin.file_name)
+        return "on_start {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 class OnStopHook(Hook):
@@ -274,7 +291,9 @@ class OnStopHook(Hook):
         return "On_stop[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "on_stop {} from {}".format(self.function_name, self.plugin.file_name)
+        return "on_stop {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 class CapHook(Hook):
@@ -329,7 +348,9 @@ class IrcOutHook(Hook):
         return "Irc_Out[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "irc_out {} from {}".format(self.function_name, self.plugin.file_name)
+        return "irc_out {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 class PostHookHook(Hook):
@@ -340,7 +361,20 @@ class PostHookHook(Hook):
         return "Post_hook[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "post_hook {} from {}".format(self.function_name, self.plugin.file_name)
+        return "post_hook {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
+
+
+class ConfigHook(Hook):
+    def __init__(self, plugin, out_hook):
+        super().__init__("config", plugin, out_hook)
+
+    def __repr__(self):
+        return f"ConfigHook[{Hook.__repr__(self)}]"
+
+    def __str__(self):
+        return f"Config hook {self.function_name} from {self.plugin.file_name}"
 
 
 class PermHook(Hook):
@@ -353,7 +387,9 @@ class PermHook(Hook):
         return "PermHook[{}]".format(Hook.__repr__(self))
 
     def __str__(self):
-        return "perm hook {} from {}".format(self.function_name, self.plugin.file_name)
+        return "perm hook {} from {}".format(
+            self.function_name, self.plugin.file_name
+        )
 
 
 _hook_name_to_plugin = {
@@ -371,6 +407,7 @@ _hook_name_to_plugin = {
     "irc_out": IrcOutHook,
     "post_hook": PostHookHook,
     "perm_check": PermHook,
+    "config": ConfigHook,
 }
 
 hook_name_to_plugin = _hook_name_to_plugin.__getitem__

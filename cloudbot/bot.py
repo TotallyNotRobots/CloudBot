@@ -143,8 +143,12 @@ class CloudBot:
 
         # set values for reloading
         reloading_conf = self.config.get("reloading", {})
-        self.plugin_reloading_enabled = reloading_conf.get("plugin_reloading", False)
-        self.config_reloading_enabled = reloading_conf.get("config_reloading", True)
+        self.plugin_reloading_enabled = reloading_conf.get(
+            "plugin_reloading", False
+        )
+        self.config_reloading_enabled = reloading_conf.get(
+            "config_reloading", True
+        )
 
         # this doesn't REALLY need to be here but it's nice
         self.repo_link = self.config.get(
@@ -160,7 +164,9 @@ class CloudBot:
         self.db_factory = sessionmaker(bind=self.db_engine)
         self.db_session = scoped_session(self.db_factory)
         self.db_metadata = database.metadata
-        self.db_base = declarative_base(metadata=self.db_metadata, bind=self.db_engine)
+        self.db_base = declarative_base(
+            metadata=self.db_metadata, bind=self.db_engine
+        )
 
         # set botvars so plugins can access when loading
         database.base = self.db_base
@@ -218,7 +224,12 @@ class CloudBot:
             _type = config.get("type", "irc")
 
             self.connections[name] = self.get_client(_type)(
-                self, _type, name, nick, config=config, channels=config["channels"]
+                self,
+                _type,
+                name,
+                nick,
+                config=config,
+                channels=config["channels"],
             )
             logger.debug("[%s] Created connection.", name)
 
@@ -293,7 +304,8 @@ class CloudBot:
 
         # Connect to servers
         await asyncio.gather(
-            *[conn.try_connect() for conn in self.connections.values()], loop=self.loop
+            *[conn.try_connect() for conn in self.connections.values()],
+            loop=self.loop,
         )
         logger.debug("Connections created.")
 
@@ -343,21 +355,27 @@ class CloudBot:
             # run catch-all coroutine hooks before all others - TODO: Make this a plugin argument
             run_before = not raw_hook.threaded
             if not add_hook(
-                raw_hook, Event(hook=raw_hook, base_event=event), _run_before=run_before
+                raw_hook,
+                Event(hook=raw_hook, base_event=event),
+                _run_before=run_before,
             ):
                 # The hook has an action of Action.HALT* so stop adding new tasks
                 break
 
         if event.irc_command in self.plugin_manager.raw_triggers:
             for raw_hook in self.plugin_manager.raw_triggers[event.irc_command]:
-                if not add_hook(raw_hook, Event(hook=raw_hook, base_event=event)):
+                if not add_hook(
+                    raw_hook, Event(hook=raw_hook, base_event=event)
+                ):
                     # The hook has an action of Action.HALT* so stop adding new tasks
                     break
 
         # Event hooks
         if event.type in self.plugin_manager.event_type_hooks:
             for event_hook in self.plugin_manager.event_type_hooks[event.type]:
-                if not add_hook(event_hook, Event(hook=event_hook, base_event=event)):
+                if not add_hook(
+                    event_hook, Event(hook=event_hook, base_event=event)
+                ):
                     # The hook has an action of Action.HALT* so stop adding new tasks
                     break
 
@@ -386,7 +404,10 @@ class CloudBot:
                     matched_command = True
                 else:
                     potential_matches = []
-                    for potential_match, plugin in self.plugin_manager.commands.items():
+                    for (
+                        potential_match,
+                        plugin,
+                    ) in self.plugin_manager.commands.items():
                         if potential_match.startswith(command):
                             potential_matches.append((potential_match, plugin))
 
@@ -401,7 +422,9 @@ class CloudBot:
                                 command for command, plugin in potential_matches
                             )
                             txt_list = formatting.get_text_list(commands)
-                            event.notice("Possible matches: {}".format(txt_list))
+                            event.notice(
+                                "Possible matches: {}".format(txt_list)
+                            )
 
         if event.type in (EventType.message, EventType.action):
             # Regex hooks
@@ -426,3 +449,19 @@ class CloudBot:
         # Run the tasks
         await asyncio.gather(*run_before_tasks, loop=self.loop)
         await asyncio.gather(*tasks, loop=self.loop)
+
+    async def reload_config(self):
+        self.config.load_config()
+
+        # reload permissions
+        for connection in self.connections.values():
+            connection.reload()
+
+        event = Event(bot=self)
+
+        tasks = [
+            self.plugin_manager.launch(hook, event)
+            for hook in self.plugin_manager.config_hooks
+        ]
+
+        await asyncio.gather(*tasks)

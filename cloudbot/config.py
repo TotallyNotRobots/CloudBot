@@ -59,11 +59,6 @@ class Config(OrderedDict):
         self.update(data)
         logger.debug("Config loaded from file.")
 
-        # reload permissions
-        if self.bot.connections:
-            for connection in self.bot.connections.values():
-                connection.permissions.reload()
-
     def save_config(self):
         """saves the contents of the config dict to the config file"""
         with self.path.open("w", encoding="utf-8") as f:
