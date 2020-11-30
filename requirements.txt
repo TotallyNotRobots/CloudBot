@@ -9,7 +9,7 @@ geoip2==4.1.0
 googlemaps==4.4.2
 imgurpython==1.1.7
 isodate==0.6.0
-lxml==4.6.1
+lxml==4.6.2
 mcstatus==4.1.0
 multidict==5.0.2
 nltk==3.5
