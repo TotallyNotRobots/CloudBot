@@ -408,9 +408,6 @@ def config(param=None, **kwargs):
         hook._add_hook(kwargs)
         return func
 
-    if callable(param):
-        return _config_hook(param)
-
     return _config_hook
 
 
