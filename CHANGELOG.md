@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Upated Wine.json
+- Upated Wine.json (Vault108)
 - Add Python 3.8, 3.9 to testing matrix
 - Add support for channel keys (#95)
 - Officially support channel keys across the whole bot
