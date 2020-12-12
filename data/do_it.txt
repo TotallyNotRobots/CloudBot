@@ -274,7 +274,7 @@ C++ PROGRAMMERS do it with "OOP, there it is!"
 C++ PROGRAMMERS do it with class
 C++ PROGRAMMERS do it with private members and public objects
 C++ PROGRAMMERS do it with their friends, in private
-CADAVERS do it six feet under 
+CADAVERS do it six feet under
 CADAVERS do it stiffly
 CADAVERS do it under wraps
 CADAVERS do it with their eyes closed
@@ -980,7 +980,7 @@ JUGGLERS do it with more balls
 JUGGLERS do it with their balls in the air
 JURORS do it at her majesties pleasure (UK)
 JURORS hand down their verdict
-KAYAKERS do it rapidly, then roll over and do it again 
+KAYAKERS do it rapidly, then roll over and do it again
 KEYBOARDISTS use all their fingers
 KEYBOARDISTS use both their hands on one organ
 KORFBALL PLAYERS do it with the other sex
@@ -1591,7 +1591,7 @@ SHUBERT didn't finish it
 SHIPPERS do it overnight
 SIGNALLERS do it with frequency til it Hertz
 SIMULATION HACKERS do it with models
-SIMULATORS do it continously & discretely 
+SIMULATORS do it continously & discretely
 SINGERS do it with microphones
 SKATERS do it on ice
 SKEET SHOOTERS do it 25 times in 9 different positions
