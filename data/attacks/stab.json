@@ -1,6 +1,6 @@
 {
     "templates": [
-        "{target} was stabbed in the {body_parts} with a {descriptors} {weapons}!"
+        "stabs {target} was stabbed in the {body_parts} with a {descriptors} {weapons}!"
     ],
     "parts": {
         "body_parts": [
