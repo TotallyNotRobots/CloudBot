@@ -4,11 +4,11 @@
     ],
     "parts": {
         "size": [
-            "Bottle",
-            "Glass",
-            "Box",
-            "Can",
-            "Growler"
+            "bottle",
+            "glass",
+            "box",
+            "can",
+            "growler"
         ],
         "wine": [
             "Adelsheim Caitlin\u2019s Reserve Willamette",

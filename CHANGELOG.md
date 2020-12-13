@@ -6,13 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Upated Wine.json (Vault108)
 - Add Python 3.8, 3.9 to testing matrix
 - Add support for channel keys (#95)
 - Officially support channel keys across the whole bot
 - Add missing default config keys
 - Add spam protection in herald.py
 ### Changed
+- Updated wine.json (Vault108)
 - Refactor tests to remove dependency on mock library
 - Change link_announcer.py to only warn on connection errors
 - Change user lookup logic in last.fm plugin
