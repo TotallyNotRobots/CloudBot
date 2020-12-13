@@ -73,6 +73,7 @@ ATTACKS = (
     BasicAttack("highfive", "<user> - highfives <user>", "high5", "hi5", "highfive", response=RespType.MESSAGE),
     BasicAttack("fight", "<user> - fights <user>", "fight", "fite", "spar", "challenge", response=RespType.MESSAGE),
     BasicAttack("pokemon", "<user> - uses a pokémon on <user>", response=RespType.MESSAGE),
+    BasicAttack("stab", "<user> - stabs <user> in a random body part with random weapon"),
 )
 
 
