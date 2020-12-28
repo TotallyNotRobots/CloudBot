@@ -1,10 +1,12 @@
 import asyncio
 from unittest.mock import MagicMock
 
+import pytest
 from irclib.parser import Prefix, TagList
 
 from cloudbot.util.func_utils import call_with_args
 from plugins.core import chan_track, server_info
+from plugins.core.chan_track import MappingSerializer
 
 
 class MockConn:
@@ -48,13 +50,26 @@ def test_replace_user_data():
 
     assert chan.users["foo"].user.mask == Prefix("foo", "bar", "baz")
     assert chan.users["foo1"].user.mask == Prefix("foo1", "bar", "baz")
-    assert chan.users["exampleuser"].user.mask == Prefix("ExampleUser", "bar", "baz")
-    assert chan.users["exampleuser2"].user.mask == Prefix("ExampleUser2", "bar", "baz")
+    assert chan.users["exampleuser"].user.mask == Prefix(
+        "ExampleUser", "bar", "baz"
+    )
+    assert chan.users["exampleuser2"].user.mask == Prefix(
+        "ExampleUser2", "bar", "baz"
+    )
 
     assert chan.users["foo"].status == conn.get_statuses("@+")
     assert chan.users["exampleuser"].status == conn.get_statuses("@")
     assert chan.users["Foo1"].status == conn.get_statuses("!@%+-")
     assert not chan.users["exampleuser2"].status
+
+
+def test_missing_on_nick():
+    conn = MockConn()
+    chans = chan_track.get_chans(conn)
+    chan = chans.getchan("#foo")
+
+    with pytest.raises(chan_track.MemberNotFoundException):
+        chan.users.pop("exampleuser3")
 
 
 def test_channel_members():
@@ -179,3 +194,20 @@ def test_account_tag():
     assert res is None
     assert dict(chan_track.get_users(conn)) == {"bar": user}
     assert user.account is None
+
+
+class TestSerializer:
+    def test_simple(self):
+        assert MappingSerializer().serialize("a") == '"a"'
+        assert MappingSerializer().serialize(1) == "1"
+        assert MappingSerializer().serialize(None) == "null"
+        assert MappingSerializer().serialize(True) == "true"
+
+    def test_dict(self):
+        assert (
+            MappingSerializer().serialize({"a": 1, "b": True})
+            == '{"a": 1, "b": true}'
+        )
+
+    def test_int_list(self):
+        assert MappingSerializer().serialize([1, 2, 3]) == "[1, 2, 3]"
