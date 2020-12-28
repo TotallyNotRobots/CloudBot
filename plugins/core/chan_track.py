@@ -24,14 +24,16 @@ from cloudbot.clients.irc import IrcClient
 from cloudbot.hook import Priority
 from cloudbot.util import web
 from cloudbot.util.irc import ChannelMode, StatusMode, parse_mode_string
-from cloudbot.util.mapping import KeyFoldDict, KeyFoldMixin
+from cloudbot.util.mapping import KeyFoldDict, KeyFoldWeakValueDict
 
 logger = logging.getLogger("cloudbot")
 
 
 class MemberNotFoundException(KeyError):
     def __init__(self, name, chan):
-        super().__init__("No such member '{}' in channel '{}'".format(name, chan.name))
+        super().__init__(
+            "No such member '{}' in channel '{}'".format(name, chan.name)
+        )
         self.name = name
         self.chan = chan
         self.members = list(chan.users.values())
@@ -61,12 +63,6 @@ class ChannelMembersDict(KeyFoldDict):
             return super().pop(key, *args, **kwargs)
         except KeyError as e:
             raise MemberNotFoundException(key, self.chan()) from e
-
-
-class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
-    """
-    KeyFolded WeakValueDictionary
-    """
 
 
 class ChanDict(KeyFoldDict):
@@ -253,7 +249,9 @@ class User(MappingAttributeAdapter):
         """
         :type channel: Channel
         """
-        self.channels[channel.name] = memb = channel.get_member(self, create=True)
+        self.channels[channel.name] = memb = channel.get_member(
+            self, create=True
+        )
         return memb
 
     @property
@@ -564,7 +562,9 @@ class MappingSerializer:
 
             self._seen_objects.append(id(obj))
 
-            return {self._serialize(k): self._serialize(v) for k, v in obj.items()}
+            return {
+                self._serialize(k): self._serialize(v) for k, v in obj.items()
+            }
 
         if isinstance(obj, Iterable):
             if id(obj) in self._seen_objects:

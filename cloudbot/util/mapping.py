@@ -1,8 +1,11 @@
+import weakref
 from collections import defaultdict
 
 __all__ = (
-    'KeyFoldDict',
-    'KeyFoldMixin',
+    "KeyFoldDict",
+    "KeyFoldMixin",
+    "KeyFoldWeakValueDict",
+    "DefaultKeyFoldDict",
 )
 
 
@@ -48,7 +51,7 @@ class KeyFoldMixin:
         """
         if args:
             mapping = args[0]
-            if hasattr(mapping, 'keys'):
+            if hasattr(mapping, "keys"):
                 for k in mapping.keys():
                     self[k] = mapping[k]
             else:
@@ -68,4 +71,10 @@ class KeyFoldDict(KeyFoldMixin, dict):
 class DefaultKeyFoldDict(KeyFoldMixin, defaultdict):
     """
     KeyFolded defaultdict
+    """
+
+
+class KeyFoldWeakValueDict(KeyFoldMixin, weakref.WeakValueDictionary):
+    """
+    KeyFolded WeakValueDictionary
     """
