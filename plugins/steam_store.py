@@ -27,10 +27,7 @@ def format_game(app_id, show_url=True):
     try:
         request = requests.get(API_URL, params=params, timeout=15)
         request.raise_for_status()
-    except (
-        requests.exceptions.HTTPError,
-        requests.exceptions.ConnectionError,
-    ) as e:
+    except requests.RequestException as e:
         return "Could not get game info: {}".format(e)
 
     data = request.json()
@@ -96,10 +93,7 @@ def steam(text, reply):
             "http://store.steampowered.com/search/", params=params
         )
         request.raise_for_status()
-    except (
-        requests.exceptions.HTTPError,
-        requests.exceptions.ConnectionError,
-    ) as e:
+    except requests.RequestException as e:
         reply("Could not get game info: {}".format(e))
         raise
 

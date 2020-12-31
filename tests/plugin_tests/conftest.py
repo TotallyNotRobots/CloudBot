@@ -1,20 +1,13 @@
 from unittest.mock import patch
 
 import pytest
-from responses import RequestsMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-@pytest.fixture()
-def mock_requests():
-    with RequestsMock() as reqs:
-        yield reqs
-
-
 class MockDB:
     def __init__(self):
-        self.engine = create_engine('sqlite:///:memory:')
+        self.engine = create_engine("sqlite:///:memory:")
         self.session = scoped_session(sessionmaker(self.engine))
 
     def get_data(self, table):
@@ -33,13 +26,13 @@ def mock_db():
 
 @pytest.fixture
 def patch_paste():
-    with patch('cloudbot.util.web.paste') as mock:
+    with patch("cloudbot.util.web.paste") as mock:
         yield mock
 
 
 @pytest.fixture()
 def patch_try_shorten():
-    with patch('cloudbot.util.web.try_shorten', new=lambda x: x):
+    with patch("cloudbot.util.web.try_shorten", new=lambda x: x):
         yield
 
 

@@ -3,8 +3,15 @@ from unittest.mock import MagicMock
 
 import freezegun
 import pytest
+from responses import RequestsMock
 
 from cloudbot.bot import bot
+
+
+@pytest.fixture()
+def mock_requests():
+    with RequestsMock() as reqs:
+        yield reqs
 
 
 @pytest.fixture()
