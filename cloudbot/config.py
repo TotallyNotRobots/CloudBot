@@ -16,8 +16,6 @@ class Config(OrderedDict):
     def __init__(self, bot, *, filename="config.json"):
         """
         :type bot: cloudbot.bot.CloudBot
-        :type args: list
-        :type kwargs: dict
         """
         super().__init__()
         self.filename = filename

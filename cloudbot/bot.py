@@ -283,7 +283,7 @@ class CloudBot:
 
     async def _init_routine(self):
         # Load plugins
-        await self.plugin_manager.load_all(os.path.abspath("plugins"))
+        await self.plugin_manager.load_all(str(self.base_dir / "plugins"))
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -447,8 +447,8 @@ class CloudBot:
                         break
 
         # Run the tasks
-        await asyncio.gather(*run_before_tasks, loop=self.loop)
-        await asyncio.gather(*tasks, loop=self.loop)
+        await asyncio.gather(*run_before_tasks)
+        await asyncio.gather(*tasks)
 
     async def reload_config(self):
         self.config.load_config()
@@ -457,10 +457,8 @@ class CloudBot:
         for connection in self.connections.values():
             connection.reload()
 
-        event = Event(bot=self)
-
         tasks = [
-            self.plugin_manager.launch(hook, event)
+            self.plugin_manager.launch(hook, Event(bot=self, hook=hook))
             for hook in self.plugin_manager.config_hooks
         ]
 

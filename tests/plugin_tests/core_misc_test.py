@@ -9,7 +9,7 @@ from tests.util.mock_irc_client import MockIrcClient
 
 
 def test_invite_join():
-    bot = MockBot({})
+    bot = MockBot()
     conn = MockIrcClient(
         bot, "fooconn", "foo", {"connection": {"server": "host.invalid"}}
     )
@@ -19,7 +19,7 @@ def test_invite_join():
 
 
 def test_invite_join_disabled():
-    bot = MockBot({})
+    bot = MockBot()
     conn = MockIrcClient(
         bot,
         "fooconn",

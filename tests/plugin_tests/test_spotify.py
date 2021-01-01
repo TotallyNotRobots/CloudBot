@@ -7,7 +7,8 @@ from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.parametrize(
-    "text,item_type,item_id", [("open.spotify.com/user/foobar", "user", "foobar")]
+    "text,item_type,item_id",
+    [("open.spotify.com/user/foobar", "user", "foobar")],
 )
 def test_http_re(text, item_type, item_id):
     from plugins.spotify import http_re
@@ -32,7 +33,9 @@ def test_spotify_re(text, item_type, item_id):
         [
             {
                 "display_name": "linuxdaemon",
-                "external_urls": {"spotify": "https://open.spotify.com/user/7777"},
+                "external_urls": {
+                    "spotify": "https://open.spotify.com/user/7777"
+                },
                 "followers": {"total": 2500},
                 "uri": "spotify:user:7777",
             },
@@ -62,7 +65,7 @@ def setup_api(unset_bot, mock_requests):
 
     bot.set(
         MockBot(
-            {
+            config={
                 "api_keys": {
                     "spotify_client_id": "APIKEY",
                     "spotify_client_secret": "APIKEY",
@@ -76,6 +79,7 @@ def setup_api(unset_bot, mock_requests):
         json={"access_token": "foo", "expires_in": 3600},
     )
     from plugins import spotify
+
     importlib.reload(spotify)
     spotify.set_keys()
 
@@ -90,6 +94,7 @@ def test_api_active(setup_api):
 
 def test_api_inactive():
     from plugins import spotify
+
     importlib.reload(spotify)
 
     assert not spotify.api
@@ -127,7 +132,9 @@ def test_search_no_results(mock_requests, setup_api):
                             "name": "foobar",
                             "artists": [{"name": "FooBar"}],
                             "album": {"name": "Baz"},
-                            "external_urls": {"spotify": "https://example.com/foo"},
+                            "external_urls": {
+                                "spotify": "https://example.com/foo"
+                            },
                             "uri": "spotify:track:6rqhFgbbKwnb9MLmUQDhG6",
                             "genres": ["Testing", "Bots", "Foo"],
                         }
@@ -141,6 +148,7 @@ def test_search_no_results(mock_requests, setup_api):
 )
 def test_format_search_track(data, output, mock_requests, setup_api):
     from plugins import spotify
+
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()

@@ -38,7 +38,7 @@ class PluginReloader(Reloader):
         super().__init__(bot, PluginEventHandler, "[!_]*.py", recursive=True)
         self.reloading = set()
 
-    def reload(self, path):
+    def reload(self, path: str) -> None:
         """
         Loads or reloads a module, given its file path. Thread safe.
         """
@@ -48,7 +48,7 @@ class PluginReloader(Reloader):
                 self._reload(path), self.bot.loop
             ).result()
 
-    def unload(self, path):
+    def unload(self, path: str) -> None:
         """
         Unloads a module, given its file path. Thread safe.
         """

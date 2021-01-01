@@ -2,6 +2,8 @@ import re
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
+from cloudbot.clients.irc import IrcClient
+from cloudbot.event import CommandEvent
 from cloudbot.util import formatting
 
 
@@ -339,7 +341,7 @@ async def raw(text, conn, notice):
 def get_chan(chan, text):
     stripped_text = text.strip()
     if stripped_text.startswith("#") and " " in stripped_text:
-        return stripped_text.split(None, 1)
+        return tuple(stripped_text.split(None, 1))
 
     return chan, stripped_text
 
@@ -376,15 +378,14 @@ async def send_message(text, conn, nick, admin_log):
 
 
 @hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
-async def me(text, conn, chan, nick, admin_log):
-    """[#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
-
-    :type text: str
-    :type conn: cloudbot.client.Client
-    :type chan: str
+async def me(
+    text: str, conn: IrcClient, chan: str, nick: str, event: CommandEvent
+) -> None:
+    """
+    [#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
     """
     channel, text = get_chan(chan, text)
-    admin_log(
+    event.admin_log(
         '{} used ME to make me ACT "{}" in {}.'.format(nick, text, channel)
     )
     conn.ctcp(channel, "ACTION", text)

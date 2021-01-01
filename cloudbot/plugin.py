@@ -7,13 +7,20 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, MutableMapping, Optional
 from weakref import WeakValueDictionary
 
 import sqlalchemy
+from sqlalchemy import Table
 
-from cloudbot.event import Event, PostHookEvent
-from cloudbot.plugin_hooks import ConfigHook, hook_name_to_plugin
+from cloudbot.event import Event, EventType, PostHookEvent
+from cloudbot.plugin_hooks import (
+    CommandHook,
+    ConfigHook,
+    EventHook,
+    RawHook,
+    hook_name_to_plugin,
+)
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
 from cloudbot.util.func_utils import call_with_args
 
@@ -92,12 +99,16 @@ class PluginManager:
         """
         self.bot = bot
 
-        self.plugins = {}
-        self._plugin_name_map = WeakValueDictionary()
-        self.commands = {}
-        self.raw_triggers = {}
-        self.catch_all_triggers = []
-        self.event_type_hooks = {}
+        self.plugins: Dict[str, Plugin] = {}
+        self._plugin_name_map: MutableMapping[
+            str, Plugin
+        ] = WeakValueDictionary()
+        self.commands: Dict[str, CommandHook] = {}
+        self.raw_triggers: Dict[str, List[RawHook]] = defaultdict(list)
+        self.catch_all_triggers: List[RawHook] = []
+        self.event_type_hooks: Dict[EventType, List[EventHook]] = defaultdict(
+            list
+        )
         self.regex_hooks = []
         self.sieves = []
         self.cap_hooks = {
@@ -431,25 +442,21 @@ class PluginManager:
                 self.catch_all_triggers.remove(raw_hook)
             else:
                 for trigger in raw_hook.triggers:
-                    assert (
-                        trigger in self.raw_triggers
-                    )  # this can't be not true
+                    # this can't be not true
+                    assert trigger in self.raw_triggers
                     self.raw_triggers[trigger].remove(raw_hook)
-                    if not self.raw_triggers[
-                        trigger
-                    ]:  # if that was the last hook for this trigger
+                    # if that was the last hook for this trigger
+                    if not self.raw_triggers[trigger]:
                         del self.raw_triggers[trigger]
 
         # unregister events
         for event_hook in plugin.hooks["event"]:
             for event_type in event_hook.types:
-                assert (
-                    event_type in self.event_type_hooks
-                )  # this can't be not true
+                # this can't be not true
+                assert event_type in self.event_type_hooks
                 self.event_type_hooks[event_type].remove(event_hook)
-                if not self.event_type_hooks[
-                    event_type
-                ]:  # if that was the last hook for this event type
+                # if that was the last hook for this event type
+                if not self.event_type_hooks[event_type]:
                     del self.event_type_hooks[event_type]
 
         # unregister regexps
@@ -689,6 +696,10 @@ class PluginManager:
         return await self._launch(hook, event)
 
 
+def _create_table(table: Table, bot):
+    table.create(bot.db_engine, checkfirst=True)
+
+
 class Plugin:
     """
     Each Plugin represents a plugin file, and contains loaded hooks.
@@ -729,14 +740,7 @@ class Plugin:
             logger.info("Registering tables for %s", self.title)
 
             for table in self.tables:
-                if not (
-                    await bot.loop.run_in_executor(
-                        None, table.exists, bot.db_engine
-                    )
-                ):
-                    await bot.loop.run_in_executor(
-                        None, table.create, bot.db_engine
-                    )
+                await bot.loop.run_in_executor(None, _create_table, table, bot)
 
     def unregister_tables(self, bot):
         """
