@@ -10,9 +10,9 @@ In this guide, we will cover the setup and configuration procedures in the follo
 
 ## 1 - Getting CloudBot
 
-Setting up CloudBot on a new server instance is simple. To begin, you need a compatible server that supports **Python 3.4**. Earlier versions of Python are not compatible due to the use of *asyncIO*.
+Setting up CloudBot on a new server instance is simple. To begin, you need a compatible server that supports **Python 3.6**. Earlier versions of Python are not compatible.
 
-We recommend using the stable releases of CloudBot that can be found [on the releases page](https://github.com/CloudBotIRC/CloudBot/releases), or from the `master` branch on GitHub.
+We recommend using the stable releases of CloudBot that can be found [on the releases page](https://github.com/TotallyNotRobots/CloudBot/releases), or from the `main` branch on GitHub.
 
 #### Using HTTP
 
@@ -20,22 +20,22 @@ If you only have command-line access, run the following in your terminal:
 
   **On Linux:**
   ```
-  wget https://github.com/CloudBotIRC/CloudBot/archive/master.zip
+  wget https://github.com/TotallyNotRobots/CloudBot/archive/main.zip
   ```
 
   **On OS X:**
   ```
-  curl -O https://github.com/CloudBotIRC/CloudBot/archive/master.zip
+  curl -O https://github.com/TotallyNotRobots/CloudBot/archive/main.zip
   ```
 
-  Followed by `unzip master.zip` on both OSs.
+  Followed by `unzip main.zip` on both OSs.
 
 #### Using Git
 
   You can also use Git to pull a new version of CloudBot, (which is useful for making upgrades easier). This can be accomplished with
 
   ```
-  git clone https://github.com/CloudBotIRC/CloudBot.git
+  git clone https://github.com/TotallyNotRobots/CloudBot.git
   cd CloudBot
   ```
 

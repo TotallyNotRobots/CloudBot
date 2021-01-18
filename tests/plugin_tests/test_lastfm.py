@@ -18,7 +18,8 @@ class MockConfig(Config):
 
 class MockBot:
     def __init__(self, config):
-        self.config = MockConfig(self, config)
+        self.config = MockConfig(self)
+        self.config.update(config)
 
 
 def test_get_account(mock_db):
@@ -39,14 +40,20 @@ def test_api(unset_bot):
         with pytest.raises(requests.ConnectionError):
             api_request("track.getTopTags")
 
-        reqs.add(reqs.GET, "http://ws.audioscrobbler.com/2.0/", json={"data": "thing"})
+        reqs.add(
+            reqs.GET,
+            "http://ws.audioscrobbler.com/2.0/",
+            json={"data": "thing"},
+        )
 
         res, _ = api_request("track.getTopTags")
 
         assert res["data"] == "thing"
 
     with RequestsMock() as reqs:
-        reqs.add(reqs.GET, "http://ws.audioscrobbler.com/2.0/", body="<html></html>")
+        reqs.add(
+            reqs.GET, "http://ws.audioscrobbler.com/2.0/", body="<html></html>"
+        )
 
         with pytest.raises(JSONDecodeError):
             api_request("track.getTopTags")
@@ -67,7 +74,10 @@ def test_api_error_message(mock_requests, mock_api_keys):
     mock_requests.add(
         "GET",
         "http://ws.audioscrobbler.com/2.0/",
-        json={"error": 10, "message": "Invalid API Key",},
+        json={
+            "error": 10,
+            "message": "Invalid API Key",
+        },
     )
 
     _, error = api_request("track.getTopTags")
@@ -78,7 +88,12 @@ def test_api_error_message(mock_requests, mock_api_keys):
 def test_getartisttags(mock_requests, mock_api_keys):
     url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
     mock_requests.add(
-        "GET", url, json={"toptags": {},}, match_querystring=True,
+        "GET",
+        url,
+        json={
+            "toptags": {},
+        },
+        match_querystring=True,
     )
     res = lastfm.getartisttags("foobar")
     assert res == "no tags"
@@ -92,14 +107,24 @@ class TestGetArtistTags:
 
     def test_missing_tags(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            "GET", self.url, json={"toptags": {},}, match_querystring=True,
+            "GET",
+            self.url,
+            json={
+                "toptags": {},
+            },
+            match_querystring=True,
         )
         res = self.get_tags()
         assert res == "no tags"
 
     def test_no_tags(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            "GET", self.url, json={"toptags": {"tags": []},}, match_querystring=True,
+            "GET",
+            self.url,
+            json={
+                "toptags": {"tags": []},
+            },
+            match_querystring=True,
         )
         res = self.get_tags()
         assert res == "no tags"
@@ -143,7 +168,10 @@ class TestGetArtistTags:
 def test_gettracktags(mock_requests, mock_api_keys):
     url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&track=foobaz&method=track.getTopTags&api_key=APIKEY"
     mock_requests.add(
-        "GET", url, json={"toptags": {}}, match_querystring=True,
+        "GET",
+        url,
+        json={"toptags": {}},
+        match_querystring=True,
     )
     res = lastfm.gettracktags("foobar", "foobaz")
     assert res == "no tags"

@@ -1,31 +1,28 @@
 import json
 import logging
-import os
 import sys
 import time
 from collections import OrderedDict
+from pathlib import Path
 
 logger = logging.getLogger("cloudbot")
 
 
 class Config(OrderedDict):
     """
-    :type filename: str
-    :type path: str
     :type bot: cloudbot.bot.CloudBot
     """
 
-    def __init__(self, bot, *args, **kwargs):
+    def __init__(self, bot, *, filename="config.json"):
         """
         :type bot: cloudbot.bot.CloudBot
         :type args: list
         :type kwargs: dict
         """
-        super().__init__(*args, **kwargs)
-        self.filename = "config.json"
-        self.path = os.path.abspath(self.filename)
+        super().__init__()
+        self.filename = filename
+        self.path = Path(self.filename).resolve()
         self.bot = bot
-        self.update(*args, **kwargs)
 
         self._api_keys = {}
 
@@ -36,22 +33,27 @@ class Config(OrderedDict):
         try:
             return self._api_keys[name]
         except LookupError:
-            self._api_keys[name] = value = self.get('api_keys', {}).get(name, default)
+            self._api_keys[name] = value = self.get("api_keys", {}).get(
+                name, default
+            )
             return value
 
     def load_config(self):
         """(re)loads the bot config from the config file"""
         self._api_keys.clear()
-        if not os.path.exists(self.path):
+        if not self.path.exists():
             # if there is no config, show an error and die
             logger.critical("No config file found, bot shutting down!")
             print("No config file found! Bot shutting down in five seconds.")
             print("Copy 'config.default.json' to 'config.json' for defaults.")
-            print("For help, see http://git.io/cloudbotirc. Thank you for using CloudBot!")
+            print(
+                "For help, see htps://github.com/TotallyNotRobots/CloudBot. "
+                "Thank you for using CloudBot!"
+            )
             time.sleep(5)
             sys.exit()
 
-        with open(self.path) as f:
+        with self.path.open(encoding="utf-8") as f:
             data = json.load(f, object_pairs_hook=OrderedDict)
 
         self.update(data)
@@ -64,7 +66,7 @@ class Config(OrderedDict):
 
     def save_config(self):
         """saves the contents of the config dict to the config file"""
-        with open(self.path, 'w') as f:
+        with self.path.open("w", encoding="utf-8") as f:
             json.dump(self, f, indent=4)
 
         logger.info("Config saved to file.")
