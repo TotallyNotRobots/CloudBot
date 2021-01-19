@@ -3,11 +3,11 @@
 [Quick Install](#quick-install)
 
 #### Archive
-Download CloudBot from [https://github.com/TotallyNotRobots/CloudBot/archive/master.zip](https://github.com/TotallyNotRobots/CloudBot/archive/master.zip) and unzip, or execute the following commands:
+Download CloudBot from [https://github.com/TotallyNotRobots/CloudBot/archive/main.zip](https://github.com/TotallyNotRobots/CloudBot/archive/main.zip) and unzip, or execute the following commands:
 ```bash
-curl -Ls https://github.com/TotallyNotRobots/CloudBot/archive/master.zip > CloudBot.zip
+curl -Ls https://github.com/TotallyNotRobots/CloudBot/archive/main.zip > CloudBot.zip
 unzip CloudBot.zip
-cd CloudBot-master
+cd CloudBot-main
 ```
 
 #### Git

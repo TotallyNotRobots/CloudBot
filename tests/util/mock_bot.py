@@ -14,4 +14,5 @@ class MockBot:
             loop = asyncio.get_event_loop()
 
         self.loop = loop
-        self.config = MockConfig(self, config)
+        self.config = MockConfig(self)
+        self.config.update(config)

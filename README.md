@@ -1,15 +1,15 @@
 # CloudBot
 ![Python application](https://github.com/TotallyNotRobots/CloudBot/workflows/Python%20application/badge.svg)
-[![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/master)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/master)
-[![codebeat badge](https://codebeat.co/badges/80316f30-26c0-44ec-b228-9158815d1995)](https://codebeat.co/projects/github-com-totallynotrobots-cloudbot-master)
-[![codecov](https://codecov.io/gh/TotallyNotRobots/CloudBot/branch/master/graph/badge.svg)](https://codecov.io/gh/TotallyNotRobots/CloudBot)
+[![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/main)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/main)
+[![codebeat badge](https://codebeat.co/badges/80316f30-26c0-44ec-b228-9158815d1995)](https://codebeat.co/projects/github-com-totallynotrobots-cloudbot-main)
+[![codecov](https://codecov.io/gh/TotallyNotRobots/CloudBot/branch/main/graph/badge.svg)](https://codecov.io/gh/TotallyNotRobots/CloudBot)
 
 CloudBot is a simple, fast, expandable open-source Python IRC Bot!
 
 ## Getting CloudBot
 
 You have a few options for getting the bot, you can:
-* Clone the `master` branch of this repository, using `git pull` to update
+* Clone the `main` branch of this repository, using `git pull` to update
 * Download the [latest source]
 * Download the [latest release]
 
@@ -90,6 +90,6 @@ Translations are Powered by [Yandex.Translate](https://translate.yandex.com)
 
 This product uses data from <a href="http://wordnik.com">http://wordnik.com</a> in accordance with the wordnik.com API <a href="http://developer.wordnik.com/#!/terms">terms of service</a>.
 
-[latest source]: https://github.com/TotallyNotRobots/CloudBot/archive/master.zip
+[latest source]: https://github.com/TotallyNotRobots/CloudBot/archive/main.zip
 [latest release]: https://github.com/TotallyNotRobots/CloudBot/releases/latest
 [TheTVDB.com]: https://thetvdb.com/

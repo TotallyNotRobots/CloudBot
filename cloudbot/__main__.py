@@ -41,7 +41,8 @@ def main():
             stopped_while_restarting = True
         else:
             async_util.run_coroutine_threadsafe(
-                _bot.stop("Killed (Received SIGINT {})".format(signum)), _bot.loop
+                _bot.stop("Killed (Received SIGINT {})".format(signum)),
+                _bot.loop,
             )
 
         logger.warning("Bot received Signal Interrupt (%s)", signum)
@@ -51,7 +52,7 @@ def main():
 
     signal.signal(signal.SIGINT, exit_gracefully)
 
-    # start the bot master
+    # start the bot
 
     # CloudBot.run() will return True if it should restart, False otherwise
     restart = _bot.run()
