@@ -10,7 +10,7 @@ googlemaps==4.4.2
 imgurpython==1.1.7
 isodate==0.6.0
 lxml==4.6.2
-mcstatus==4.1.0
+mcstatus==5.1.1
 multidict==5.1.0
 nltk==3.5
 psutil==5.8.0
