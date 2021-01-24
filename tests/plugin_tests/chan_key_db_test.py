@@ -8,9 +8,16 @@ from tests.util.mock_irc_client import MockIrcClient
 
 
 def make_conn():
-    bot = MockBot({})
+    bot = MockBot()
     conn = MockIrcClient(
-        bot, "conn", "foobot", config={"connection": {"server": "host.invalid",},}
+        bot,
+        "conn",
+        "foobot",
+        config={
+            "connection": {
+                "server": "host.invalid",
+            },
+        },
     )
     return conn
 
@@ -20,7 +27,10 @@ def test_load_keys(mock_db):
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(
-        chan_key_db.table, conn=conn.name.lower(), chan="#foo", key="foobar",
+        chan_key_db.table,
+        conn=conn.name.lower(),
+        chan="#foo",
+        key="foobar",
     )
     assert chan_key_db.load_keys(conn, db) is None
     assert conn.get_channel_key("#foo") == "foobar"
@@ -40,22 +50,32 @@ def test_handle_modes(mock_db):
     server_info.handle_chan_modes(
         "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
     )
-    assert chan_key_db.handle_modes(["#foo", "+o", "foo"], conn, db, "#foo") is None
+    assert (
+        chan_key_db.handle_modes(["#foo", "+o", "foo"], conn, db, "#foo")
+        is None
+    )
     assert conn.get_channel_key("#foo") is None
 
     assert (
-        chan_key_db.handle_modes(["#foo", "+ok", "foo", "beep"], conn, db, "#foo")
+        chan_key_db.handle_modes(
+            ["#foo", "+ok", "foo", "beep"], conn, db, "#foo"
+        )
         is None
     )
     assert conn.get_channel_key("#foo") == "beep"
 
     assert (
-        chan_key_db.handle_modes(["#foo", "-ok", "foo", "beep"], conn, db, "#foo")
+        chan_key_db.handle_modes(
+            ["#foo", "-ok", "foo", "beep"], conn, db, "#foo"
+        )
         is None
     )
     assert conn.get_channel_key("#foo") is None
 
-    assert chan_key_db.handle_modes([conn.nick, "-ok"], conn, db, "server.host") is None
+    assert (
+        chan_key_db.handle_modes([conn.nick, "-ok"], conn, db, "server.host")
+        is None
+    )
     assert conn.get_channel_key("#foo") is None
 
 
@@ -80,7 +100,10 @@ def test_key_use(mock_db):
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(
-        chan_key_db.table, conn=conn.name.lower(), chan="#foo", key="foobar",
+        chan_key_db.table,
+        conn=conn.name.lower(),
+        chan="#foo",
+        key="foobar",
     )
     chan_key_db.load_keys(conn, db)
     conn.join("#foo")

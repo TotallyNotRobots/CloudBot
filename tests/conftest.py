@@ -6,6 +6,12 @@ import pytest
 from responses import RequestsMock
 
 from cloudbot.bot import bot
+from tests.util.mock_db import MockDB
+
+
+@pytest.fixture()
+def mock_db():
+    return MockDB()
 
 
 @pytest.fixture()

@@ -4,8 +4,6 @@ from pathlib import Path
 
 from watchdog.events import PatternMatchingEventHandler
 
-from cloudbot.util import async_util
-
 
 class Reloader(ABC):
     def __init__(self, bot, handler, pattern, recursive=False):
@@ -14,7 +12,7 @@ class Reloader(ABC):
         self.event_handler = handler(self, patterns=[pattern])
         self.watch = None
 
-    def start(self, path='.'):
+    def start(self, path="."):
         self.watch = self.observer.schedule(
             self.event_handler, path=path, recursive=self.recursive
         )
@@ -40,20 +38,24 @@ class PluginReloader(Reloader):
         super().__init__(bot, PluginEventHandler, "[!_]*.py", recursive=True)
         self.reloading = set()
 
-    def reload(self, path):
+    def reload(self, path: str) -> None:
         """
         Loads or reloads a module, given its file path. Thread safe.
         """
         path = Path(path).resolve()
         if path.exists():
-            async_util.run_coroutine_threadsafe(self._reload(path), self.bot.loop)
+            asyncio.run_coroutine_threadsafe(
+                self._reload(path), self.bot.loop
+            ).result()
 
-    def unload(self, path):
+    def unload(self, path: str) -> None:
         """
         Unloads a module, given its file path. Thread safe.
         """
         path = Path(path).resolve()
-        async_util.run_coroutine_threadsafe(self._unload(path), self.bot.loop)
+        asyncio.run_coroutine_threadsafe(
+            self._unload(path), self.bot.loop
+        ).result()
 
     async def _reload(self, path):
         if path in self.reloading:
@@ -72,12 +74,16 @@ class PluginReloader(Reloader):
 
 class ConfigReloader(Reloader):
     def __init__(self, bot):
-        super().__init__(bot, ConfigEventHandler, "*{}".format(bot.config.filename))
+        super().__init__(
+            bot, ConfigEventHandler, "*{}".format(bot.config.filename)
+        )
 
     def reload(self, path):
         if self.bot.running:
             self.bot.logger.info("Config changed, triggering reload.")
-            self.bot.config.load_config()
+            asyncio.run_coroutine_threadsafe(
+                self.bot.reload_config(), self.bot.loop
+            ).result()
 
 
 class ReloadHandler(PatternMatchingEventHandler):

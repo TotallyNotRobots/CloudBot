@@ -6,22 +6,10 @@ from unittest.mock import MagicMock
 import pytest
 from googlemaps.exceptions import ApiError
 
-from cloudbot.config import Config
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from tests.util import wrap_hook_response
-
-
-class MockConfig(Config):
-    def load_config(self):
-        self._api_keys.clear()
-
-
-class MockBot:
-    def __init__(self, config, db):
-        self.config = MockConfig(self)
-        self.config.update(config)
-        self.db_session = db.session
+from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.parametrize(
@@ -154,13 +142,13 @@ def setup_api(mock_requests, mock_db):
     from plugins import weather
 
     bot = MockBot(
-        {
+        config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
                 "darksky": "abc12345" * 4,
             }
         },
-        mock_db,
+        db=mock_db,
     )
 
     return_value = {
@@ -248,7 +236,7 @@ def test_rounding(mock_requests, patch_try_shorten, mock_db):
 def test_find_location(mock_requests, patch_try_shorten, mock_db):
     from plugins import weather
 
-    bot = MockBot({}, mock_db)
+    bot = MockBot(config={}, db=mock_db)
     weather.create_maps_api(bot)
     weather.location_cache.clear()
     assert weather.data.maps_api is None
@@ -442,13 +430,13 @@ def test_parse_no_results(mock_requests, patch_try_shorten, mock_db):
     weather.table.create(mock_db.engine, True)
 
     bot = MockBot(
-        {
+        config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
                 "darksky": "abc12345" * 4,
             }
         },
-        mock_db,
+        db=mock_db,
     )
 
     weather.create_maps_api(bot)

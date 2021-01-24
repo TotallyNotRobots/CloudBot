@@ -1,24 +1,13 @@
 from unittest.mock import MagicMock
 
-from cloudbot.config import Config
-
-
-class MockConfig(Config):
-    def load_config(self):
-        self._api_keys.clear()
-
-
-class MockBot:
-    def __init__(self, config):
-        self.config = MockConfig(self)
-        self.config.update(config)
+from tests.util.mock_bot import MockBot
 
 
 def test_make_api():
     from plugins import chatbot
     from plugins.chatbot import make_api
 
-    bot = MockBot({"api_keys": {"cleverbot": "testapikey"}})
+    bot = MockBot(config={"api_keys": {"cleverbot": "testapikey"}})
     make_api(bot)
     assert chatbot.container.api.key == "testapikey"
 

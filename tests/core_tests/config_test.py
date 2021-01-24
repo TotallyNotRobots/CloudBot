@@ -1,15 +1,22 @@
-from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
 from cloudbot.config import Config
+from tests.util.mock_bot import MockBot
 
 
-def test_config_load_no_file(tmp_path, capsys):
-    bot = MagicMock()
+@pytest.fixture()
+def mock_sleep():
+    with patch("time.sleep"):
+        yield
+
+
+def test_missing_config(tmp_path, capsys, mock_sleep):
     config_file = tmp_path / "config.json"
+    bot = MockBot()
     with pytest.raises(SystemExit):
-        Config(bot, filename=config_file)
+        Config(bot, filename=str(config_file))
 
     data = capsys.readouterr()
     assert data.out == (
@@ -26,10 +33,10 @@ def test_config_load_no_file(tmp_path, capsys):
 
 def test_save(tmp_path):
     config_file = tmp_path / "config.json"
-    config_file.write_text("{}")
-    bot = MagicMock()
-    cfg = Config(bot, filename=config_file)
-    cfg["foo"] = "bar"
-    cfg.save_config()
+    config_file.write_text("{}", encoding="utf-8")
+    bot = MockBot()
+    config = Config(bot, filename=str(config_file))
+    config["foo"] = "bar"
+    config.save_config()
 
-    assert config_file.read_text() == '{\n    "foo": "bar"\n}'
+    assert config_file.read_text(encoding="utf-8") == '{\n    "foo": "bar"\n}'
