@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Officially support channel keys across the whole bot
 - Add missing default config keys
 - Add spam protection in herald.py
+- Add config reload hooks
 ### Changed
 - Updated wine.json (Vault108)
 - Refactor tests to remove dependency on mock library
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handle 'a' vs 'an' in drinks plugin
 - Apply rate limiting to regex hooks
 ### Fixed
+- Fixed config reloading
 - Fix matching exception in horoscope test
 - Fix youtube.py ISO time parse
 - Fix grammatical error in food sentence (beer)
