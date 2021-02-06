@@ -6,7 +6,6 @@ from datetime import datetime
 import tweepy
 
 from cloudbot import hook
-from cloudbot.bot import bot
 from cloudbot.util import timeformat
 
 TWITTER_RE = re.compile(
@@ -38,7 +37,7 @@ def get_tweet_mode(conn, default="extended"):
     return get_config(conn, "tweet_mode", default)
 
 
-def make_api():
+def make_api(bot):
     consumer_key = bot.config.get_api_key("twitter_consumer_key")
     consumer_secret = bot.config.get_api_key("twitter_consumer_secret")
 
@@ -73,8 +72,8 @@ IGNORE_ERRORS = [
 
 
 @hook.on_start
-def set_api():
-    container.api = make_api()
+def set_api(bot):
+    container.api = make_api(bot)
 
 
 @hook.regex(TWITTER_RE)
