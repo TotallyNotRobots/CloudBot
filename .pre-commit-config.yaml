@@ -43,9 +43,17 @@ repos:
   - id: python-no-log-warn
 - repo: local
   hooks:
+  - id: mypy
+    name: mypy
+    entry: mypy
+    language: system
+    types: [python]
   - id: pylint
     name: pylint
-    entry: pylint -s no
+    entry: pylint
+    args:
+    - '-s'
+    - 'no'
     language: system
     types: [python]
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
@@ -62,3 +70,4 @@ repos:
     - --width
     - '120'
     - -e
+    - -p
