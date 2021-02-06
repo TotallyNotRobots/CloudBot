@@ -19,7 +19,6 @@ jobs:
         - '3.7'
         - '3.8'
         - '3.9'
-        - pypy3
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -38,9 +37,7 @@ jobs:
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libenchant-dev libxml2-dev libxslt1-dev
     - name: Install dependencies
-      run: |
-        pip install -U pip setuptools cython wheel
-        pip install -Ur requirements-dev.txt
+      run: pip install -Ur requirements-dev.txt
     - name: Test with pytest
       run: pytest
       env:
