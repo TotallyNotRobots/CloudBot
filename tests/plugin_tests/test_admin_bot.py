@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -52,7 +51,7 @@ async def test_reload_config(event_loop):
         ("channel", "#channel", None),
     ],
 )
-async def test_join(input_text, chan, key):
+async def test_join(input_text, chan, key, event_loop):
     conn = MagicMock()
     conn.config = {}
     conn.bot = None
@@ -68,9 +67,7 @@ async def test_join(input_text, chan, key):
         nick="foobaruser",
     )
 
-    await async_util.run_func_with_args(
-        asyncio.get_event_loop(), admin_bot.join, event
-    )
+    await async_util.run_func_with_args(event_loop, admin_bot.join, event)
 
     event.conn.join.assert_called_with(chan, key)
 

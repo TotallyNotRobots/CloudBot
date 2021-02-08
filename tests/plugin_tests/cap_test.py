@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -20,7 +19,7 @@ def patch_import_module():
 
 
 @pytest.mark.asyncio()
-async def test_cap_req(patch_import_module):
+async def test_cap_req(patch_import_module, event_loop):
     caps = [
         "some-cap",
         "another-cap",
@@ -31,8 +30,12 @@ async def test_cap_req(patch_import_module):
     cap_names = [s.split("=")[0] for s in caps]
 
     params = ParamList.parse("* LS :" + " ".join(caps))
-    event = Event(irc_paramlist=params, bot=MagicMock(), conn=MagicMock(),)
-    event.conn.loop = event.bot.loop = asyncio.get_event_loop()
+    event = Event(
+        irc_paramlist=params,
+        bot=MagicMock(),
+        conn=MagicMock(),
+    )
+    event.conn.loop = event.bot.loop = event_loop
     event.bot.config = {}
     event.conn.type = "irc"
     event.bot.base_dir = Path(".").resolve()
@@ -63,7 +66,11 @@ async def test_cap_req(patch_import_module):
     def cmd(cmd, subcmd, *args):
         calls.append((cmd, subcmd) + args)
         p = ParamList.parse("* ACK :" + " ".join(args))
-        cmd_event = Event(irc_paramlist=p, bot=event.bot, conn=event.conn,)
+        cmd_event = Event(
+            irc_paramlist=p,
+            bot=event.bot,
+            conn=event.conn,
+        )
         async_util.wrap_future(cap.on_cap(p, cmd_event), loop=event.loop)
 
     with patch.object(event.conn, "cmd", new=cmd):

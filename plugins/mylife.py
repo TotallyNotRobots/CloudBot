@@ -1,4 +1,3 @@
-import functools
 import re
 
 import requests
@@ -9,13 +8,18 @@ from cloudbot.util.http import parse_soup
 fml_cache = []
 
 
+def get_soup(url):
+    with requests.get(url, timeout=6) as response:
+        text = response.text
+
+    return parse_soup(text)
+
+
 @hook.on_start()
 async def refresh_fml_cache(loop):
     """ gets a page of random FMLs and puts them into a dictionary """
     url = "http://www.fmylife.com/random"
-    _func = functools.partial(requests.get, url, timeout=6)
-    request = await loop.run_in_executor(None, _func)
-    soup = parse_soup(request.text)
+    soup = await loop.run_in_executor(None, get_soup, url)
 
     # the /today bit is there to exclude fml news etc.
     articles = soup.find_all(
@@ -29,6 +33,7 @@ async def refresh_fml_cache(loop):
         # exclude lengthy submissions and FML photos
         if len(text) > 375 or text[-3:].lower() != "fml":
             continue
+
         fml_cache.append((fml_id, text))
 
 

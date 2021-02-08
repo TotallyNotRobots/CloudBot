@@ -9,8 +9,6 @@ from cloudbot.bot import bot
 from plugins import lastfm
 from plugins.lastfm import api_request
 
-from tests.util.mock_bot import MockBot
-
 
 def test_get_account(mock_db):
     lastfm.table.create(mock_db.engine)
@@ -23,8 +21,12 @@ def test_get_account(mock_db):
     assert lastfm.get_account("foo1", "baa") == "baa"
 
 
-def test_api(unset_bot):
-    bot.set(MockBot(config={"api_keys": {"lastfm": "hunter20"}}))
+def test_api(mock_bot_factory, unset_bot, event_loop):
+    bot.set(
+        mock_bot_factory(
+            loop=event_loop, config={"api_keys": {"lastfm": "hunter20"}}
+        )
+    )
 
     with RequestsMock() as reqs:
         with pytest.raises(requests.ConnectionError):

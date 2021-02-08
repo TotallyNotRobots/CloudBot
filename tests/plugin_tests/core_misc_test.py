@@ -4,12 +4,11 @@ import pytest
 from irclib.parser import ParamList
 
 from plugins.core import core_misc
-from tests.util.mock_bot import MockBot
 from tests.util.mock_irc_client import MockIrcClient
 
 
-def test_invite_join():
-    bot = MockBot()
+def test_invite_join(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(loop=event_loop)
     conn = MockIrcClient(
         bot, "fooconn", "foo", {"connection": {"server": "host.invalid"}}
     )
@@ -18,8 +17,8 @@ def test_invite_join():
     assert conn.send.mock_calls == [call("JOIN #bar")]
 
 
-def test_invite_join_disabled():
-    bot = MockBot()
+def test_invite_join_disabled(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(loop=event_loop)
     conn = MockIrcClient(
         bot,
         "fooconn",

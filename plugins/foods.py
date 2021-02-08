@@ -2,6 +2,7 @@ import codecs
 import json
 import os
 from collections import defaultdict
+from typing import Any, Dict
 
 from cloudbot import hook
 from cloudbot.util import textgen
@@ -61,7 +62,7 @@ BASIC_FOOD = (
     BasicFood("birthday", "birthday cake"),
 )
 
-basic_food_data = defaultdict(dict)
+basic_food_data: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
 
 def load_template_data(bot, filename, data_dict):
@@ -84,9 +85,9 @@ def load_foods(bot):
 
 def basic_format(nick, text, data, **kwargs):
     user = text
-    kwargs['user'] = user
-    kwargs['target'] = user
-    kwargs['nick'] = nick
+    kwargs["user"] = user
+    kwargs["target"] = user
+    kwargs["nick"] = nick
 
     if text:
         try:

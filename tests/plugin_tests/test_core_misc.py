@@ -1,15 +1,9 @@
-import asyncio
 from unittest.mock import MagicMock, call
 
 import pytest
 
 from cloudbot.client import Client
-
-pytestmark = pytest.mark.asyncio
-
-
-class Bot(MagicMock):
-    loop = asyncio.get_event_loop()
+from plugins.core import core_misc
 
 
 class MockClient(Client):  # pylint: disable=abstract-method
@@ -19,9 +13,10 @@ class MockClient(Client):  # pylint: disable=abstract-method
         self.join = MagicMock()
 
 
-async def test_do_joins():
+@pytest.mark.asyncio
+async def test_do_joins(mock_bot_factory, event_loop):
     client = MockClient(
-        Bot(),
+        mock_bot_factory(loop=event_loop),
         "foo",
         "foobot",
         channels=[
@@ -32,7 +27,6 @@ async def test_do_joins():
             {"name": "#chan1", "key": "key2"},
         ],
     )
-    from plugins.core import core_misc
 
     client.ready = True
     client.config["join_throttle"] = 0

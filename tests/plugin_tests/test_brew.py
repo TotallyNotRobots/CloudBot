@@ -1,12 +1,14 @@
 from unittest.mock import MagicMock
 
-from tests.util.mock_bot import MockBot
 
-
-def test_no_results(mock_requests, unset_bot):
+def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
     from cloudbot.bot import bot
 
-    bot.set(MockBot(config={"api_keys": {"brewerydb": "APIKEY"}}))
+    bot.set(
+        mock_bot_factory(
+            loop=event_loop, config={"api_keys": {"brewerydb": "APIKEY"}}
+        )
+    )
     mock_requests.add(
         "GET",
         "http://api.brewerydb.com/v2/search"

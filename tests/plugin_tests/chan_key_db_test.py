@@ -3,12 +3,11 @@ from unittest.mock import call
 from irclib.parser import Message
 
 from plugins.core import chan_key_db, server_info
-from tests.util.mock_bot import MockBot
 from tests.util.mock_irc_client import MockIrcClient
 
 
-def make_conn():
-    bot = MockBot()
+def make_conn(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(loop=event_loop)
     conn = MockIrcClient(
         bot,
         "conn",
@@ -22,8 +21,8 @@ def make_conn():
     return conn
 
 
-def test_load_keys(mock_db):
-    conn = make_conn()
+def test_load_keys(mock_bot_factory, mock_db, event_loop):
+    conn = make_conn(mock_bot_factory, event_loop)
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(
@@ -40,8 +39,8 @@ def test_load_keys(mock_db):
     assert conn.get_channel_key("#foo") is None
 
 
-def test_handle_modes(mock_db):
-    conn = make_conn()
+def test_handle_modes(mock_bot_factory, mock_db, event_loop):
+    conn = make_conn(mock_bot_factory, event_loop)
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     server_info.clear_isupport(conn)
@@ -79,8 +78,8 @@ def test_handle_modes(mock_db):
     assert conn.get_channel_key("#foo") is None
 
 
-def test_check_send_key(mock_db):
-    conn = make_conn()
+def test_check_send_key(mock_bot_factory, mock_db, event_loop):
+    conn = make_conn(mock_bot_factory, event_loop)
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     msg = Message(None, None, "JOIN", ["#foo,#bar", "bing"])
@@ -95,8 +94,8 @@ def test_check_send_key(mock_db):
     assert conn.get_channel_key("#foo") == "bing"
 
 
-def test_key_use(mock_db):
-    conn = make_conn()
+def test_key_use(mock_bot_factory, mock_db, event_loop):
+    conn = make_conn(mock_bot_factory, event_loop)
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(

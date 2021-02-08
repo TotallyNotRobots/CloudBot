@@ -3,7 +3,6 @@ from unittest.mock import patch
 import pytest
 
 from cloudbot.config import Config
-from tests.util.mock_bot import MockBot
 
 
 @pytest.fixture()
@@ -12,9 +11,15 @@ def mock_sleep():
         yield
 
 
-def test_missing_config(tmp_path, capsys, mock_sleep):
+def test_missing_config(
+    tmp_path,
+    capsys,
+    mock_sleep,
+    event_loop,
+    mock_bot_factory,
+):
     config_file = tmp_path / "config.json"
-    bot = MockBot()
+    bot = mock_bot_factory(loop=event_loop)
     with pytest.raises(SystemExit):
         Config(bot, filename=str(config_file))
 
@@ -31,10 +36,10 @@ def test_missing_config(tmp_path, capsys, mock_sleep):
     )
 
 
-def test_save(tmp_path):
+def test_save(mock_bot_factory, tmp_path, event_loop):
     config_file = tmp_path / "config.json"
     config_file.write_text("{}", encoding="utf-8")
-    bot = MockBot()
+    bot = mock_bot_factory(loop=event_loop)
     config = Config(bot, filename=str(config_file))
     config["foo"] = "bar"
     config.save_config()

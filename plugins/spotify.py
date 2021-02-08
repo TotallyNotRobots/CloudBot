@@ -10,12 +10,19 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.bot import bot
 
-spotify_re = re.compile(r"(spotify:(track|album|artist|user):([a-zA-Z0-9]+))", re.I)
+spotify_re = re.compile(
+    r"(spotify:(track|album|artist|user):([a-zA-Z0-9]+))", re.I
+)
 http_re = re.compile(
     r"(open\.spotify\.com/(track|album|artist|user)/([a-zA-Z0-9]+))", re.I
 )
 
-TYPE_MAP = {"artist": "artists", "album": "albums", "track": "tracks", "user": "users"}
+TYPE_MAP = {
+    "artist": "artists",
+    "album": "albums",
+    "track": "tracks",
+    "user": "users",
+}
 
 NO_RESULTS = "Unable to find matching {type}"
 
@@ -46,12 +53,12 @@ class SpotifyAPI:
             if datetime.now() >= self._token_expires:
                 self._refresh_token()
 
-            r = requests.get(
+            with requests.get(
                 self.api_url / endpoint,
                 params=params,
                 headers={"Authorization": "Bearer " + self._access_token},
-            )
-            r.raise_for_status()
+            ) as r:
+                r.raise_for_status()
 
             return r
 
@@ -62,11 +69,15 @@ class SpotifyAPI:
         with self._lock:
             basic_auth = HTTPBasicAuth(self._client_id, self._client_secret)
             gtcc = {"grant_type": "client_credentials"}
-            r = requests.post(self.token_refresh_url, data=gtcc, auth=basic_auth)
+            r = requests.post(
+                self.token_refresh_url, data=gtcc, auth=basic_auth
+            )
             r.raise_for_status()
             auth = r.json()
             self._access_token = auth["access_token"]
-            self._token_expires = datetime.now() + timedelta(seconds=auth["expires_in"])
+            self._token_expires = datetime.now() + timedelta(
+                seconds=auth["expires_in"]
+            )
 
 
 api = SpotifyAPI()
@@ -78,7 +89,9 @@ def _search(text, _type, reply):
     try:
         request = api.search(params)
     except HTTPError as e:
-        reply("Could not get track information: {}".format(e.response.status_code))
+        reply(
+            "Could not get track information: {}".format(e.response.status_code)
+        )
         raise
 
     results = request.json()[TYPE_MAP[_type]]["items"]
@@ -120,7 +133,9 @@ def _do_format(data, _type):
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
 
-def _format_response(data, _type, show_pre=False, show_url=False, show_uri=False):
+def _format_response(
+    data, _type, show_pre=False, show_url=False, show_uri=False
+):
     pre, text = _do_format(data, _type)
     if show_pre:
         out = pre + ": "

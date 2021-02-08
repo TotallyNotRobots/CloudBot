@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +6,7 @@ from plugins import mylife
 
 
 @pytest.mark.asyncio()
-async def test_mylife(mock_requests):
+async def test_mylife(mock_requests, event_loop):
     mock_requests.add(
         "GET",
         "http://www.fmylife.com/random",
@@ -84,7 +83,6 @@ some news
 </html>""",
     )
     reply = MagicMock()
-    loop = asyncio.get_event_loop()
-    res = await mylife.fml(reply, loop)
+    res = await mylife.fml(reply, event_loop)
     assert res is None
     reply.assert_called_with("(#132473) Today, bar fml")
