@@ -3,7 +3,7 @@ import logging
 import socket
 from asyncio import CancelledError
 from typing import Any, Dict
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -11,6 +11,7 @@ import cloudbot.clients.irc as irc
 from cloudbot.client import ClientConnectError
 from cloudbot.event import Event, EventType
 from cloudbot.util import async_util
+from tests.util.async_mock import AsyncMock
 
 
 @pytest.fixture()
