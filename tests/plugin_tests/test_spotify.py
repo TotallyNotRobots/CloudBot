@@ -1,9 +1,9 @@
-import importlib
 from unittest.mock import MagicMock
 
 import pytest
 
-from tests.util.mock_bot import MockBot
+from cloudbot import bot
+from plugins import spotify
 
 
 @pytest.mark.parametrize(
@@ -11,9 +11,7 @@ from tests.util.mock_bot import MockBot
     [("open.spotify.com/user/foobar", "user", "foobar")],
 )
 def test_http_re(text, item_type, item_id):
-    from plugins.spotify import http_re
-
-    match = http_re.search(text)
+    match = spotify.http_re.search(text)
     assert match and match.group(2) == item_type and match.group(3) == item_id
 
 
@@ -21,9 +19,7 @@ def test_http_re(text, item_type, item_id):
     "text,item_type,item_id", [("spotify:user:foobar", "user", "foobar")]
 )
 def test_spotify_re(text, item_type, item_id):
-    from plugins.spotify import spotify_re
-
-    match = spotify_re.search(text)
+    match = spotify.spotify_re.search(text)
     assert match and match.group(2) == item_type and match.group(3) == item_id
 
 
@@ -54,55 +50,46 @@ def test_spotify_re(text, item_type, item_id):
     ],
 )
 def test_format_response(data, item_type, output):
-    from plugins.spotify import _format_response
-
-    assert _format_response(data, item_type) == output
+    assert spotify._format_response(data, item_type) == output
 
 
 @pytest.fixture()
-def setup_api(unset_bot, mock_requests):
-    from cloudbot.bot import bot
-
-    bot.set(
-        MockBot(
+def setup_api(mock_bot_factory, unset_bot, mock_requests, event_loop):
+    bot.bot.set(
+        mock_bot_factory(
+            loop=event_loop,
             config={
                 "api_keys": {
                     "spotify_client_id": "APIKEY",
                     "spotify_client_secret": "APIKEY",
                 }
-            }
+            },
         )
     )
+
     mock_requests.add(
         "POST",
         "https://accounts.spotify.com/api/token",
         json={"access_token": "foo", "expires_in": 3600},
     )
-    from plugins import spotify
 
-    importlib.reload(spotify)
+    spotify.api = spotify.SpotifyAPI()
     spotify.set_keys()
 
     yield
 
 
 def test_api_active(setup_api):
-    from plugins import spotify
-
     assert spotify.api
 
 
 def test_api_inactive():
-    from plugins import spotify
-
-    importlib.reload(spotify)
+    spotify.api = spotify.SpotifyAPI()
 
     assert not spotify.api
 
 
 def test_search_no_results(mock_requests, setup_api):
-    from plugins import spotify
-
     mock_requests.add(
         mock_requests.GET,
         "https://api.spotify.com/v1/search",
@@ -147,8 +134,6 @@ def test_search_no_results(mock_requests, setup_api):
     ],
 )
 def test_format_search_track(data, output, mock_requests, setup_api):
-    from plugins import spotify
-
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()

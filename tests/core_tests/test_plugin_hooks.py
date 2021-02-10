@@ -5,9 +5,10 @@ import asyncio
 import importlib
 import inspect
 import re
-from collections import OrderedDict
+from functools import wraps
 from numbers import Number
 from pathlib import Path
+from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -25,34 +26,25 @@ from cloudbot.event import (
 from cloudbot.hook import Action
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import Hook
-
-Hook.original_init = Hook.__init__
+from tests.util.mock_bot import MockBot
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
-PLUGINS = []
+PLUGINS: List[Plugin] = []
 
 
-class MockConfig(OrderedDict):
-    def get_api_key(
-        self, name, default=None
-    ):  # pylint: disable=locally-disabled, no-self-use, unused-argument
-        return default  # pragma: no cover
+def patch_hook(wrapped):
+    @wraps(wrapped)
+    def _func(*args, **kwargs):
+        _original_init = Hook.__init__
 
+        def patch_hook_init(self, _type, plugin, func_hook):
+            _original_init(self, _type, plugin, func_hook)
+            self.func_hook = func_hook
 
-class MockBot:
-    loop = None
-    user_agent = None
+        with patch.object(Hook, "__init__", new=patch_hook_init):
+            return wrapped(*args, **kwargs)
 
-    def __init__(self):
-        self.config = MockConfig()
-
-
-def patch_hook_init(self, _type, plugin, func_hook):
-    self.original_init(_type, plugin, func_hook)
-    self.func_hook = func_hook
-
-
-Hook.__init__ = patch_hook_init
+    return _func
 
 
 def gather_plugins():
@@ -61,6 +53,7 @@ def gather_plugins():
     return path_list
 
 
+@patch_hook
 def load_plugin(plugin_path):
     path = Path(plugin_path)
     file_path = path.resolve()
@@ -78,9 +71,11 @@ def load_plugin(plugin_path):
 
 def get_plugins():
     if not PLUGINS:
-        cloudbot.bot.bot.set(MockBot())
+        bot = MockBot()
+        cloudbot.bot.bot.set(bot)
         PLUGINS.extend(map(load_plugin, gather_plugins()))
         cloudbot.bot.bot.set(None)
+        bot.close()
 
     return PLUGINS
 
@@ -185,8 +180,8 @@ def test_hook_doc(hook):
                 found_blank = True
 
 
-def test_hook_args(hook):
-    bot = MockBot()
+def test_hook_args(hook, mock_bot):
+    bot = mock_bot
     if hook.type in (
         "irc_raw",
         "perm_check",

@@ -1,4 +1,3 @@
-import importlib
 import re
 from copy import deepcopy
 from unittest.mock import MagicMock
@@ -8,8 +7,8 @@ from googlemaps.exceptions import ApiError
 
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
+from plugins import weather
 from tests.util import wrap_hook_response
-from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.parametrize(
@@ -35,16 +34,12 @@ from tests.util.mock_bot import MockBot
     ],
 )
 def test_wind_direction(bearing, direction):
-    from plugins.weather import bearing_to_card
-
-    assert bearing_to_card(bearing) == direction
+    assert weather.bearing_to_card(bearing) == direction
 
 
 def test_wind_dir_error():
     with pytest.raises(ValueError):
-        from plugins.weather import bearing_to_card
-
-        bearing_to_card(400)
+        weather.bearing_to_card(400)
 
 
 @pytest.mark.parametrize(
@@ -56,9 +51,7 @@ def test_wind_dir_error():
     ],
 )
 def test_temp_convert(temp_f, temp_c):
-    from plugins.weather import convert_f2c
-
-    assert convert_f2c(temp_f) == temp_c
+    assert weather.convert_f2c(temp_f) == temp_c
 
 
 @pytest.mark.parametrize(
@@ -70,9 +63,7 @@ def test_temp_convert(temp_f, temp_c):
     ],
 )
 def test_mph_to_kph(mph, kph):
-    from plugins.weather import mph_to_kph
-
-    assert mph_to_kph(mph) == kph
+    assert weather.mph_to_kph(mph) == kph
 
 
 FIO_DATA = {
@@ -138,10 +129,14 @@ FIO_DATA = {
 }
 
 
-def setup_api(mock_requests, mock_db):
-    from plugins import weather
-
-    bot = MockBot(
+def setup_api(
+    mock_requests,
+    mock_db,
+    event_loop,
+    mock_bot_factory,
+):
+    bot = mock_bot_factory(
+        loop=event_loop,
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
@@ -171,16 +166,15 @@ def setup_api(mock_requests, mock_db):
         json=return_value,
     )
     weather.create_maps_api(bot)
-    weather.create_maps_api(bot)
     weather.location_cache.clear()
 
     return bot
 
 
-def test_rounding(mock_requests, patch_try_shorten, mock_db):
-    from plugins import weather
-
-    bot = setup_api(mock_requests, mock_db)
+def test_rounding(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+):
+    bot = setup_api(mock_requests, mock_db, event_loop, mock_bot_factory)
 
     conn = MagicMock()
     conn.config = {}
@@ -233,15 +227,20 @@ def test_rounding(mock_requests, patch_try_shorten, mock_db):
     assert wrap_hook_response(weather.weather, cmd_event) == calls
 
 
-def test_find_location(mock_requests, patch_try_shorten, mock_db):
-    from plugins import weather
-
-    bot = MockBot(config={}, db=mock_db)
+def test_find_location(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+):
+    bot = mock_bot_factory(config={}, db=mock_db, loop=event_loop)
     weather.create_maps_api(bot)
     weather.location_cache.clear()
     assert weather.data.maps_api is None
 
-    bot = setup_api(mock_requests, mock_db)
+    bot = setup_api(
+        mock_requests,
+        mock_db,
+        event_loop,
+        mock_bot_factory,
+    )
 
     assert weather.find_location("Foo Bar") == {
         "lat": 30.123,
@@ -363,7 +362,12 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
 
     weather.load_cache(mock_db.session())
     mock_requests.reset()
-    setup_api(mock_requests, mock_db)
+    setup_api(
+        mock_requests,
+        mock_db,
+        event_loop,
+        mock_bot_factory,
+    )
     mock_requests.add(
         mock_requests.GET,
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
@@ -387,13 +391,6 @@ def test_find_location(mock_requests, patch_try_shorten, mock_db):
 
 
 def test_update_location(mock_db):
-    from cloudbot.util import database
-
-    importlib.reload(database)
-    from plugins import weather
-
-    importlib.reload(weather)
-
     weather.table.create(mock_db.engine, checkfirst=True)
 
     db = mock_db.session()
@@ -415,7 +412,9 @@ def test_update_location(mock_db):
     assert table_data == [[nick, "newloc"]]
 
 
-def test_parse_no_results(mock_requests, patch_try_shorten, mock_db):
+def test_parse_no_results(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+):
     mock_requests.add(
         "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
@@ -425,11 +424,10 @@ def test_parse_no_results(mock_requests, patch_try_shorten, mock_db):
         },
     )
 
-    from plugins import weather
-
     weather.table.create(mock_db.engine, True)
 
-    bot = MockBot(
+    bot = mock_bot_factory(
+        loop=event_loop,
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",

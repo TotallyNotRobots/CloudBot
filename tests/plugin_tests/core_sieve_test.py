@@ -1,5 +1,5 @@
-from typing import Optional
-from unittest.mock import MagicMock
+from typing import Iterator, Optional
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -10,7 +10,7 @@ from plugins.core import core_sieve
 
 # noinspection PyUnusedFunction
 @pytest.fixture(autouse=True)
-def reset_buckets() -> None:
+def reset_buckets() -> Iterator[None]:
     """
     Clear bucket data after a test
     """
@@ -106,17 +106,17 @@ def test_check_acls_no_chan() -> None:
 
 
 @pytest.mark.asyncio()
-async def test_permissions() -> None:
+async def test_permissions(event_loop) -> None:
     event = make_command_event()
     event.hook.permissions = ["admin"]
 
-    event.has_permission = perm = MagicMock()
-    res = await core_sieve.perm_sieve(event.bot, event, event.hook)
-    assert res is event
+    with patch.object(event, "has_permission") as perm:
+        res = await core_sieve.perm_sieve(event.bot, event, event.hook)
+        assert res is event
 
-    perm.return_value = False
-    res = await core_sieve.perm_sieve(event.bot, event, event.hook)
-    assert res is None
+        perm.return_value = False
+        res = await core_sieve.perm_sieve(event.bot, event, event.hook)
+        assert res is None
 
 
 def make_command_event(chan: Optional[str] = "#foo") -> CommandEvent:

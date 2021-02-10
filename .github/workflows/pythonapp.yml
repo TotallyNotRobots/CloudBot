@@ -41,7 +41,7 @@ jobs:
     - name: Test with pytest
       run: pytest
       env:
-        PYTHONASYNCIODEBUG: 1
+        PYTHONDEVMODE: 1
         PYTHONPATH: .
     - uses: codecov/codecov-action@v1.2.1
       with:

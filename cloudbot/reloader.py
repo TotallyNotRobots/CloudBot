@@ -42,19 +42,19 @@ class PluginReloader(Reloader):
         """
         Loads or reloads a module, given its file path. Thread safe.
         """
-        path = Path(path).resolve()
-        if path.exists():
+        path_obj = Path(path).resolve()
+        if path_obj.exists():
             asyncio.run_coroutine_threadsafe(
-                self._reload(path), self.bot.loop
+                self._reload(path_obj), self.bot.loop
             ).result()
 
     def unload(self, path: str) -> None:
         """
         Unloads a module, given its file path. Thread safe.
         """
-        path = Path(path).resolve()
+        path_obj = Path(path).resolve()
         asyncio.run_coroutine_threadsafe(
-            self._unload(path), self.bot.loop
+            self._unload(path_obj), self.bot.loop
         ).result()
 
     async def _reload(self, path):

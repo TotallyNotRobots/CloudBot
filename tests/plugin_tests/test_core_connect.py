@@ -1,4 +1,3 @@
-import asyncio
 import ssl
 from unittest.mock import MagicMock
 
@@ -14,13 +13,8 @@ class MockClient(IrcClient):
         pass
 
 
-class MockBot:
-    loop = asyncio.get_event_loop()
-    repo_link = "https://github.com/foobar/baz"
-
-
-def test_ssl_client():
-    bot = MockBot()
+def test_ssl_client(event_loop, mock_bot_factory):
+    bot = mock_bot_factory(loop=event_loop)
     client = MockClient(
         bot,
         "mock",
@@ -43,8 +37,8 @@ def test_ssl_client():
     assert client.ssl_context.verify_mode is ssl.CERT_REQUIRED
 
 
-def test_ssl_client_no_verify():
-    bot = MockBot()
+def test_ssl_client_no_verify(event_loop, mock_bot_factory):
+    bot = mock_bot_factory(loop=event_loop)
     client = MockClient(
         bot,
         "mock",
@@ -69,20 +63,22 @@ def test_ssl_client_no_verify():
 
 
 @pytest.mark.asyncio()
-async def test_core_connects():
-    bot = MockBot()
+async def test_core_connects(event_loop, mock_bot_factory):
+    bot = mock_bot_factory(loop=event_loop)
     client = MockClient(
         bot,
         "mock",
         "foo",
         "FooBot",
-        config={"connection": {"server": "example.com", "password": "foobar123"}},
+        config={
+            "connection": {"server": "example.com", "password": "foobar123"}
+        },
     )
     assert client.type == "mock"
 
     await client.connect()
 
-    from plugins.core.core_connect import conn_pass, conn_nick, conn_user
+    from plugins.core.core_connect import conn_nick, conn_pass, conn_user
 
     conn_pass(client)
     client.send.assert_called_with("PASS foobar123")

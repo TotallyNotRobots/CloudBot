@@ -28,7 +28,7 @@ def mock_conn():
     yield mock_conn
 
 
-def test_twitter_cmd_id(mock_requests, mock_conn):
+def test_twitter_cmd_id(mock_requests, mock_conn, freeze_time):
     bot = mock_conn.bot
 
     twitter.set_api(bot)
@@ -39,11 +39,12 @@ def test_twitter_cmd_id(mock_requests, mock_conn):
     event.text = f"{tweet_id}"
     user_name = "TwitterAPI"
     user_display = "Twitter API"
+    tweet_text = "To make room for more expression, we will now count all emojis as equal—including those with gender and skin t… https://t.co/MkGjXf9aXm"
     response = {
         "created_at": "Wed Oct 10 20:19:24 +0000 2018",
         "id": tweet_id,
         "id_str": "1050118621198921728",
-        "text": "To make room for more expression, we will now count all emojis as equal—including those with gender‍‍‍ and skin t… https://t.co/MkGjXf9aXm",
+        "text": tweet_text,
         "truncated": True,
         "entities": {
             "hashtags": [],
@@ -142,16 +143,9 @@ def test_twitter_cmd_id(mock_requests, mock_conn):
 
     res = twitter.twitter(event.text, event.reply, event.conn)
 
-    assert res == (
-        "✓@\x02"
-        + user_name
-        + "\x02 ("
-        + user_display
-        + "): To make room for more expression, we "
-        "will now count all emojis as equal—including those with "
-        "gender\u200d\u200d\u200d and skin t… https://t.co/MkGjXf9aXm (2 years and 3 "
-        "months ago)"
-    )
+    time_ago = "10 months and 15 days ago"
+    expected = f"✓@\2{user_name}\2 ({user_display}): {tweet_text} ({time_ago})"
+    assert res == expected
     assert event.mock_calls == []
 
 

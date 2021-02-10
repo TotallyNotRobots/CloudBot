@@ -8,12 +8,11 @@ from cloudbot.bot import CloudBot, clean_name, get_cmd_regex
 from cloudbot.event import Event, EventType
 from cloudbot.hook import Action, Priority
 from cloudbot.plugin_hooks import CommandHook, ConfigHook, EventHook, RawHook
-from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.asyncio()
-async def test_connect_clients():
-    bot = MockBot()
+async def test_connect_clients(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(loop=event_loop)
     conn = MockConn()
     bot.connections = {"foo": conn}
     future = bot.loop.create_future()
@@ -32,12 +31,13 @@ class MockConn:
         self.config = {}
         self.reload = MagicMock()
         self.try_connect = MagicMock()
+        self.notice = MagicMock()
 
 
 class TestProcessing:
     @pytest.mark.asyncio()
-    async def test_irc_catch_all(self) -> None:
-        bot = MockBot()
+    async def test_irc_catch_all(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -47,7 +47,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -68,8 +67,10 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_catch_all_block(self) -> None:
-        bot = MockBot()
+    async def test_irc_catch_all_block(
+        self, mock_bot_factory, event_loop
+    ) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -79,7 +80,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -106,8 +106,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_command(self) -> None:
-        bot = MockBot()
+    async def test_command(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -117,7 +117,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -140,8 +139,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_command_partial(self) -> None:
-        bot = MockBot()
+    async def test_command_partial(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -151,7 +150,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -171,11 +169,13 @@ class TestProcessing:
             key=id,
         )
 
-        event.notice.assert_called_once_with("Possible matches: foob or fooc")
+        assert conn.notice.mock_calls == [
+            call("bar", "Possible matches: foob or fooc")
+        ]
 
     @pytest.mark.asyncio()
-    async def test_event(self) -> None:
-        bot = MockBot()
+    async def test_event(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -185,7 +185,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -209,8 +208,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_event_block(self) -> None:
-        bot = MockBot()
+    async def test_event_block(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -220,7 +219,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -256,8 +254,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_raw(self) -> None:
-        bot = MockBot()
+    async def test_irc_raw(self, mock_bot_factory, event_loop) -> None:
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -267,7 +265,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -287,8 +284,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_raw_block(self):
-        bot = MockBot()
+    async def test_irc_raw_block(self, mock_bot_factory, event_loop):
+        bot = mock_bot_factory(loop=event_loop)
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -298,7 +295,6 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
-        event.notice = MagicMock()
         plugin = MagicMock()
 
         run_hooks = []
@@ -326,8 +322,8 @@ class TestProcessing:
 
 
 @pytest.mark.asyncio()
-async def test_reload_config():
-    bot = MockBot()
+async def test_reload_config(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(loop=event_loop)
     conn = MockConn()
     bot.connections = {"foo": conn}
     bot.config.load_config = MagicMock()
@@ -404,3 +400,4 @@ def test_load_clients():
         conn = bot.connections["foobar"]
         assert conn.nick == "TestBot"
         assert conn.type == "irc"
+        bot.observer.stop()

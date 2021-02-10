@@ -1,31 +1,27 @@
 from unittest.mock import MagicMock
 
-from tests.util.mock_bot import MockBot
+from plugins import chatbot
 
 
-def test_make_api():
-    from plugins import chatbot
-    from plugins.chatbot import make_api
-
-    bot = MockBot(config={"api_keys": {"cleverbot": "testapikey"}})
-    make_api(bot)
+def test_make_api(mock_bot_factory, event_loop):
+    bot = mock_bot_factory(
+        config={"api_keys": {"cleverbot": "testapikey"}}, loop=event_loop
+    )
+    chatbot.make_api(bot)
     assert chatbot.container.api.key == "testapikey"
 
 
 def test_chitchat():
-    from plugins import chatbot
-    from plugins.chatbot import chitchat
-
     chatbot.container.api = None
 
     assert (
-        chitchat("foobar")
+        chatbot.chitchat("foobar")
         == "Please add an API key from http://www.cleverbot.com/api to enable this feature."
     )
 
     mock_api = MagicMock()
     chatbot.container.api = mock_api
 
-    chitchat("foobar123")
+    chatbot.chitchat("foobar123")
 
     mock_api.say.assert_called_with("foobar123")

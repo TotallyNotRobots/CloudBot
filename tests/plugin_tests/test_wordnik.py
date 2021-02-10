@@ -19,12 +19,12 @@ def mock_api_keys():
 
 
 @pytest.mark.parametrize(
-    'source,name',
+    "source,name",
     [
-        ('ahd', 'AHD/Wordnik'),
-        ('ahd-5', 'AHD/Wordnik'),
-        ('ahd-6', 'Ahd-6/Wordnik'),
-        ('foobar', 'Foobar/Wordnik'),
+        ("ahd", "AHD/Wordnik"),
+        ("ahd-5", "AHD/Wordnik"),
+        ("ahd-6", "Ahd-6/Wordnik"),
+        ("foobar", "Foobar/Wordnik"),
     ],
 )
 def test_attr_name(source, name):
@@ -46,20 +46,22 @@ class WordTestBase:
 
     @classmethod
     def build_url(cls, word, op=None, paramstring=None):
-        base = 'http://api.wordnik.com/v4/word.json'
-        url = base + '/' + word + '/' + (op or cls.get_op())
+        base = "http://api.wordnik.com/v4/word.json"
+        url = base + "/" + word + "/" + (op or cls.get_op())
         if cls.get_result_limit():
-            param_trail = 'limit={}&api_key=APIKEY'.format(cls.get_result_limit())
+            param_trail = "limit={}&api_key=APIKEY".format(
+                cls.get_result_limit()
+            )
         else:
-            param_trail = 'api_key=APIKEY'
+            param_trail = "api_key=APIKEY"
 
         params = paramstring or cls.get_paramstring()
         if params:
-            params += '&' + param_trail
+            params += "&" + param_trail
         else:
             params = param_trail
 
-        return url + '?' + params
+        return url + "?" + params
 
     @classmethod
     def get_func(cls):
@@ -78,28 +80,28 @@ class WordTestBase:
 
     def test_not_found(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             status=404,
-            json={'error': "Not Found"},
+            json={"error": "Not Found"},
         )
 
-        out, _ = self.call('word')
-        assert out == self.get_not_found_msg('word')
+        out, _ = self.call("word")
+        assert out == self.get_not_found_msg("word")
 
     def test_unknown(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             status=512,
-            json={'error': "FooBar"},
+            json={"error": "FooBar"},
         )
 
         event = MagicMock()
         with pytest.raises(wordnik.WordnikAPIError):
-            self.call('word', event)
+            self.call("word", event)
 
         event.reply.assert_called_with(
             "There was a problem contacting the Wordnik API (Unknown error 'FooBar')"
@@ -107,22 +109,26 @@ class WordTestBase:
 
     def test_invalid_error(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET', self.build_url('word'), match_querystring=True, status=512, json={}
+            "GET",
+            self.build_url("word"),
+            match_querystring=True,
+            status=512,
+            json={},
         )
 
         event = MagicMock()
         with pytest.raises(wordnik.WordnikAPIError):
-            self.call('word', event)
+            self.call("word", event)
 
         event.reply.assert_called_with(
-            'There was a problem contacting the Wordnik API '
-            '(Unknown error, unable to retrieve error data)'
+            "There was a problem contacting the Wordnik API "
+            "(Unknown error, unable to retrieve error data)"
         )
 
     def test_json_http_error(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             status=512,
             body="Some data",
@@ -130,16 +136,19 @@ class WordTestBase:
 
         event = MagicMock()
         with pytest.raises(requests.HTTPError):
-            self.call('word', event)
+            self.call("word", event)
 
     def test_json_no_http_error(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET', self.build_url('word'), match_querystring=True, body="Some data"
+            "GET",
+            self.build_url("word"),
+            match_querystring=True,
+            body="Some data",
         )
 
         event = MagicMock()
         with pytest.raises(json.JSONDecodeError):
-            self.call('word', event)
+            self.call("word", event)
 
     def test_no_key(self, mock_requests, mock_api_keys):
         mock_api_keys.return_value = None
@@ -147,11 +156,11 @@ class WordTestBase:
         mock_event = MagicMock()
 
         with pytest.raises(wordnik.NoAPIKey):
-            self.call('word', mock_event)
+            self.call("word", mock_event)
 
         mock_event.reply.assert_called_with(
-            'There was a problem contacting the Wordnik API '
-            '(This command requires an API key from wordnik.com.)'
+            "There was a problem contacting the Wordnik API "
+            "(This command requires an API key from wordnik.com.)"
         )
 
 
@@ -162,7 +171,7 @@ class TestDefine(WordTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'definitions'
+        return "definitions"
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -170,8 +179,8 @@ class TestDefine(WordTestBase):
 
     def test_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             json=[
                 {
@@ -211,7 +220,7 @@ class TestDefine(WordTestBase):
             "- https://www.wordnik.com/words/word (AHD/Wordnik)"
         )
 
-        out, _ = self.call('word')
+        out, _ = self.call("word")
         assert out == expected
 
 
@@ -222,7 +231,7 @@ class TestUsage(WordTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'examples'
+        return "examples"
 
     @classmethod
     def get_result_limit(cls):
@@ -230,12 +239,14 @@ class TestUsage(WordTestBase):
 
     @classmethod
     def get_not_found_msg(cls, word):
-        return "I could not find any usage examples for \x02{}\x02.".format(word)
+        return "I could not find any usage examples for \x02{}\x02.".format(
+            word
+        )
 
     def test_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             json={
                 "examples": [
@@ -268,7 +279,7 @@ class TestUsage(WordTestBase):
             "of us use frequently."
         )
 
-        out, _ = self.call('word')
+        out, _ = self.call("word")
         assert out == expected
 
 
@@ -279,7 +290,7 @@ class TestPronounce(WordTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'pronunciations'
+        return "pronunciations"
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -287,8 +298,8 @@ class TestPronounce(WordTestBase):
 
     def _init_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             json=[
                 {
@@ -339,10 +350,10 @@ class TestPronounce(WordTestBase):
         self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
-            'GET',
-            self.build_url('word', 'audio'),
+            "GET",
+            self.build_url("word", "audio"),
             match_querystring=True,
-            json=[{'fileUrl': 'https://example.com/word.ogg'}],
+            json=[{"fileUrl": "https://example.com/word.ogg"}],
         )
 
         expected = (
@@ -350,39 +361,39 @@ class TestPronounce(WordTestBase):
             "https://example.com/word.ogg"
         )
 
-        out, _ = self.call('word')
+        out, _ = self.call("word")
         assert out == expected
 
     def test_search_no_audio(self, mock_requests, mock_api_keys):
         self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
-            'GET',
-            self.build_url('word', 'audio'),
+            "GET",
+            self.build_url("word", "audio"),
             match_querystring=True,
             status=404,
-            json={'error': 'Not Found'},
+            json={"error": "Not Found"},
         )
 
         expected = "\x02word\x02: wûrd • W ER1 D • /wɜː(ɹ)d/ • /wɝd/"
 
-        out, _ = self.call('word')
+        out, _ = self.call("word")
         assert out == expected
 
     def test_search_audio_error(self, mock_requests, mock_api_keys):
         self._init_search(mock_requests, mock_api_keys)
 
         mock_requests.add(
-            'GET',
-            self.build_url('word', 'audio'),
+            "GET",
+            self.build_url("word", "audio"),
             match_querystring=True,
             status=500,
-            json={'error': 'FooBar'},
+            json={"error": "FooBar"},
         )
 
         event = MagicMock()
         with pytest.raises(wordnik.WordnikAPIError):
-            self.call('word', event)
+            self.call("word", event)
 
         event.reply.assert_called_with(
             "There was a problem contacting the Wordnik API (Unknown error 'FooBar')"
@@ -396,7 +407,7 @@ class TestSynonym(WordTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'relatedWords'
+        return "relatedWords"
 
     @classmethod
     def get_result_limit(cls):
@@ -404,28 +415,38 @@ class TestSynonym(WordTestBase):
 
     @classmethod
     def get_paramstring(cls):
-        return 'relationshipTypes=synonym&limitPerRelationshipType=5'
+        return "relationshipTypes=synonym&limitPerRelationshipType=5"
 
     @classmethod
     def get_not_found_msg(cls, word):
-        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(word)
+        return "Sorry, I couldn't find any synonyms for \x02{}\x02.".format(
+            word
+        )
 
     def test_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('word'),
+            "GET",
+            self.build_url("word"),
             match_querystring=True,
             json=[
                 {
                     "relationshipType": "synonym",
-                    "words": ["Bible", "Bible oath", "God", "Logos", "Parthian shot"],
+                    "words": [
+                        "Bible",
+                        "Bible oath",
+                        "God",
+                        "Logos",
+                        "Parthian shot",
+                    ],
                 }
             ],
         )
 
-        expected = "\x02word\x02: Bible • Bible oath • God • Logos • Parthian shot"
+        expected = (
+            "\x02word\x02: Bible • Bible oath • God • Logos • Parthian shot"
+        )
 
-        out, _ = self.call('word')
+        out, _ = self.call("word")
         assert out == expected
 
 
@@ -436,7 +457,7 @@ class TestAntonym(WordTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'relatedWords'
+        return "relatedWords"
 
     @classmethod
     def get_result_limit(cls):
@@ -444,25 +465,30 @@ class TestAntonym(WordTestBase):
 
     @classmethod
     def get_paramstring(cls):
-        return 'relationshipTypes=antonym&limitPerRelationshipType=5&useCanonical=false'
+        return "relationshipTypes=antonym&limitPerRelationshipType=5&useCanonical=false"
 
     @classmethod
     def get_not_found_msg(cls, word):
-        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(word)
+        return "Sorry, I couldn't find any antonyms for \x02{}\x02.".format(
+            word
+        )
 
     def test_search(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
-            self.build_url('clear'),
+            "GET",
+            self.build_url("clear"),
             match_querystring=True,
             json=[
-                {"relationshipType": "antonym", "words": ["cloudy", "obscure", "thick"]}
+                {
+                    "relationshipType": "antonym",
+                    "words": ["cloudy", "obscure", "thick"],
+                }
             ],
         )
 
         expected = "\x02clear\x02: cloudy • obscure • thick"
 
-        out, _ = self.call('clear')
+        out, _ = self.call("clear")
         assert out == expected
 
 
@@ -481,13 +507,16 @@ class WordsTestBase(WordTestBase):
 
     @classmethod
     def build_url(cls, word=None, op=None, paramstring=None):
-        base = 'http://api.wordnik.com/v4/words.json'
-        url = base + '/' + (op or cls.get_op())
+        base = "http://api.wordnik.com/v4/words.json"
+        url = base + "/" + (op or cls.get_op())
         return (
             url
-            + '?'
-            + '&'.join(
-                filter(None, ((paramstring or cls.get_paramstring()), 'api_key=APIKEY'))
+            + "?"
+            + "&".join(
+                filter(
+                    None,
+                    ((paramstring or cls.get_paramstring()), "api_key=APIKEY"),
+                )
             )
         )
 
@@ -499,7 +528,7 @@ class TestWOTD(WordsTestBase):
 
     @classmethod
     def get_op(cls):
-        return 'wordOfTheDay'
+        return "wordOfTheDay"
 
     @classmethod
     def get_func(cls):
@@ -536,7 +565,7 @@ class TestWOTD(WordsTestBase):
             "'suffering'."
         )
         mock_requests.add(
-            'GET',
+            "GET",
             self.build_url(),
             match_querystring=True,
             json={
@@ -552,7 +581,7 @@ class TestWOTD(WordsTestBase):
             },
         )
 
-        out, _ = self.call('')
+        out, _ = self.call("")
 
         expected = (
             "The word for \x02today\x02 is \x02technopathy\x02: \x0305(noun)\x0305 "
@@ -617,7 +646,8 @@ class TestWOTD(WordsTestBase):
                     "of pineapple, Madam, -- the which he had concocted during "
                     "our slumber."
                 ),
-                "title": "The Atlantic Monthly, Volume 15, " "No. 87, January, 1865",
+                "title": "The Atlantic Monthly, Volume 15, "
+                "No. 87, January, 1865",
                 "id": 1087980293,
             },
             {
@@ -655,7 +685,7 @@ class TestWOTD(WordsTestBase):
         ]
 
         mock_requests.add(
-            'GET',
+            "GET",
             self.build_url(paramstring="date=2018-11-21"),
             match_querystring=True,
             json={
@@ -671,7 +701,7 @@ class TestWOTD(WordsTestBase):
             },
         )
 
-        out, _ = self.call('2018-11-21')
+        out, _ = self.call("2018-11-21")
 
         expected = (
             "The word for \x022018-11-21\x02 is \x02sangaree\x02: \x0305(verb)\x0305 "
@@ -686,15 +716,15 @@ class TestWOTD(WordsTestBase):
 class TestRandomWord(WordsTestBase):
     @classmethod
     def get_op(cls):
-        return 'randomWord'
+        return "randomWord"
 
     @classmethod
     def get_paramstring(cls):
-        return 'hasDictionarydef=true&vulgar=true'
+        return "hasDictionarydef=true&vulgar=true"
 
     @classmethod
     def get_not_found_msg(cls, word):
-        return 'There was a problem contacting the Wordnik API (Word not found)'
+        return "There was a problem contacting the Wordnik API (Word not found)"
 
     @classmethod
     def get_func(cls):
@@ -709,22 +739,22 @@ class TestRandomWord(WordsTestBase):
 
     def test_not_found(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
+            "GET",
             self.build_url(),
             match_querystring=True,
             status=404,
-            json={'error': "Not Found"},
+            json={"error": "Not Found"},
         )
 
         event = MagicMock()
         with pytest.raises(wordnik.WordNotFound):
-            self.call('word', event)
+            self.call("word", event)
 
-        event.reply.assert_called_with(self.get_not_found_msg('word'))
+        event.reply.assert_called_with(self.get_not_found_msg("word"))
 
     def test_random(self, mock_requests, mock_api_keys):
         mock_requests.add(
-            'GET',
+            "GET",
             self.build_url(),
             match_querystring=True,
             json={"id": 0, "word": "commendation"},
@@ -732,6 +762,6 @@ class TestRandomWord(WordsTestBase):
 
         out, _ = self.call()
 
-        expected = 'Your random word is \x02commendation\x02.'
+        expected = "Your random word is \x02commendation\x02."
 
         assert out == expected

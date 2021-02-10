@@ -1,4 +1,5 @@
 import itertools
+import logging
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -9,17 +10,15 @@ from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.plugin import Plugin
 from cloudbot.util import database
-from tests.util.mock_bot import MockBot
-from tests.util.mock_db import MockDB
 from tests.util.mock_module import MockModule
 
 
 @pytest.fixture()
-def mock_bot():
-    tmp_base = Path().resolve()
+def mock_bot(mock_bot_factory, event_loop, tmp_path):
+    tmp_base = tmp_path / "tmp"
     tmp_base.mkdir(exist_ok=True)
 
-    yield MockBot(base_dir=tmp_base)
+    yield mock_bot_factory(base_dir=tmp_base, loop=event_loop)
 
 
 @pytest.fixture()
@@ -350,6 +349,7 @@ async def test_load_on_start_error(
     patch_import_reload,
     caplog,
 ):
+    caplog.set_level(logging.INFO)
     mod = MockModule()
 
     @hook.on_start()
@@ -530,6 +530,7 @@ async def test_launch(
     sieve_error,
     caplog,
 ):
+    caplog.set_level(logging.INFO)
     called = False
     sieve_called = False
     post_called = 0
@@ -603,11 +604,11 @@ async def test_launch(
 
 
 @pytest.mark.asyncio
-async def test_create_tables(caplog, tmp_path):
-    db = MockDB("sqlite:///" + str(tmp_path / "database.db"))
-    bot = MockBot(db=db)
-    assert database.metadata is not None
-    database.metadata.bind = bot.db_engine
+async def test_create_tables(
+    mock_bot_factory, caplog, tmp_path, event_loop, mock_db
+):
+    db = mock_db
+    bot = mock_bot_factory(db=db, loop=event_loop)
     table = Table(
         "test",
         database.metadata,

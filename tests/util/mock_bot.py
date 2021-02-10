@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from pathlib import Path
 from typing import Optional
@@ -24,8 +23,7 @@ class MockBot:
         else:
             self.base_dir = Path().resolve()
 
-        if loop is None:
-            loop = asyncio.get_event_loop()
+        self.data_dir = str(self.base_dir / "data")
 
         if db:
             self.db_session = db.session
@@ -47,3 +45,7 @@ class MockBot:
         self.plugin_reloading_enabled = False
         self.config_reloading_enabled = False
         self.observer = Observer()
+        self.repo_link = "https://github.com/foobar/baz"
+
+    def close(self):
+        self.observer.stop()
