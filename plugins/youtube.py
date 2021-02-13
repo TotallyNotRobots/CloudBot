@@ -10,10 +10,12 @@ from cloudbot.util import colors, timeformat
 from cloudbot.util.formatting import pluralize_suffix
 
 youtube_re = re.compile(
-    r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)", re.I
+    r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)",
+    re.I,
 )
 ytpl_re = re.compile(
-    r"(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)", re.I
+    r"(.*:)//(www.youtube.com/playlist|youtube.com/playlist)(:[0-9]+)?(.*)",
+    re.I,
 )
 
 
@@ -44,7 +46,7 @@ def raise_api_errors(response: requests.Response) -> None:
         try:
             data = response.json()
         except ValueError:
-            raise e
+            raise e from None
 
         errors = data.get("errors")
         if not errors:
@@ -69,7 +71,10 @@ Parts = Iterable[str]
 
 
 def do_request(
-    method: str, parts: Parts, params: Optional[ParamMap] = None, **kwargs: ParamValues
+    method: str,
+    parts: Parts,
+    params: Optional[ParamMap] = None,
+    **kwargs: ParamValues,
 ) -> requests.Response:
     api_key = bot.config.get_api_key("google_dev_key")
     if not api_key:
@@ -88,12 +93,16 @@ def get_video(video_id: str, parts: Parts) -> requests.Response:
 
 
 def get_playlist(playlist_id: str, parts: Parts) -> requests.Response:
-    return do_request("playlists", parts, params={"maxResults": 1, "id": playlist_id})
+    return do_request(
+        "playlists", parts, params={"maxResults": 1, "id": playlist_id}
+    )
 
 
 def do_search(term: str, result_type: str = "video") -> requests.Response:
     return do_request(
-        "search", ["snippet"], params={"maxResults": 1, "q": term, "type": result_type}
+        "search",
+        ["snippet"],
+        params={"maxResults": 1, "q": term, "type": result_type},
     )
 
 
@@ -123,7 +132,9 @@ def get_video_description(video_id: str) -> str:
         timeformat.format_time(int(length.total_seconds()), simple=True)
     )
     try:
-        total_votes = float(statistics["likeCount"]) + float(statistics["dislikeCount"])
+        total_votes = float(statistics["likeCount"]) + float(
+            statistics["dislikeCount"]
+        )
     except (LookupError, ValueError):
         total_votes = 0
 
@@ -183,7 +194,9 @@ def youtube(text: str, reply) -> str:
     """<query> - Returns the first YouTube search result for <query>."""
     try:
         video_id = get_video_id(text)
-        return get_video_description(video_id) + " - " + make_short_url(video_id)
+        return (
+            get_video_description(video_id) + " - " + make_short_url(video_id)
+        )
     except NoResultsError as e:
         return e.message
     except APIError as e:
@@ -252,5 +265,7 @@ def ytplaylist_url(match: Match[str]) -> str:
     title = snippet["title"]
     author = snippet["channelTitle"]
     num_videos = int(content_details["itemCount"])
-    count_videos = " - \x02{:,}\x02 video{}".format(num_videos, "s"[num_videos == 1 :])
+    count_videos = " - \x02{:,}\x02 video{}".format(
+        num_videos, "s"[num_videos == 1 :]
+    )
     return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)

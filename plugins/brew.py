@@ -7,14 +7,14 @@ from cloudbot.bot import bot
 api_url = "http://api.brewerydb.com/v2/search?format=json"
 
 
-@hook.command('brew')
+@hook.command("brew")
 def brew(text, reply):
     """<query> - returns the first brewerydb search result for <query>"""
-    api_key = bot.config.get_api_key('brewerydb')
+    api_key = bot.config.get_api_key("brewerydb")
     if not api_key:
         return "No brewerydb API key set."
 
-    params = {'key': api_key, 'type': 'beer', 'withBreweries': 'Y', 'q': text}
+    params = {"key": api_key, "type": "beer", "withBreweries": "Y", "q": text}
     request = requests.get(api_url, params=params)
 
     try:
@@ -28,35 +28,36 @@ def brew(text, reply):
     output = "No results found."
 
     try:
-        if 'totalResults' in response:
-            if response['totalResults'] == 0:
+        if "totalResults" in response:
+            if response["totalResults"] == 0:
                 return output
 
-            beer = response['data'][0]
-            brewery = beer['breweries'][0]
+            beer = response["data"][0]
+            brewery = beer["breweries"][0]
 
-            style = 'unknown style'
-            if 'style' in beer:
-                style = beer['style']['shortName']
+            style = "unknown style"
+            if "style" in beer:
+                style = beer["style"]["shortName"]
 
-            abv = '?.?'
-            if 'abv' in beer:
-                abv = beer['abv']
+            abv = "?.?"
+            if "abv" in beer:
+                abv = beer["abv"]
 
-            url = '[no website found]'
-            if 'website' in brewery:
-                url = brewery['website']
+            url = "[no website found]"
+            if "website" in brewery:
+                url = brewery["website"]
 
             content = {
-                'name': beer['nameDisplay'],
-                'style': style,
-                'abv': abv,
-                'brewer': brewery['name'],
-                'url': url
+                "name": beer["nameDisplay"],
+                "style": style,
+                "abv": abv,
+                "brewer": brewery["name"],
+                "url": url,
             }
 
-            output = "{name} by {brewer} ({style}, {abv}% ABV) - {url}" \
-                .format(**content)
+            output = "{name} by {brewer} ({style}, {abv}% ABV) - {url}".format(
+                **content
+            )
 
     except Exception:
         reply("Error parsing results.")

@@ -15,20 +15,24 @@ def statuscheck(status, item):
     return out
 
 
-def smart_truncate(content, length=425, suffix='...\n'):
+def smart_truncate(content, length=425, suffix="...\n"):
     if len(content) <= length:
         return content
 
-    return content[:length].rsplit(' ', 1)[0] + suffix + content[:length].rsplit(' ', 1)[1] + smart_truncate(
-        content[length:])
+    return (
+        content[:length].rsplit(" ", 1)[0]
+        + suffix
+        + content[:length].rsplit(" ", 1)[1]
+        + smart_truncate(content[length:])
+    )
 
 
 @hook.command("quran", "verse", singlethread=True)
 def quran(text, message, reply):
     """<verse> - Prints the specified Qur'anic verse(s) and its/their translation(s)"""
     api_url = "http://quranapi.azurewebsites.net/api/verse/"
-    chapter = text.split(':')[0]
-    verse = text.split(':')[1]
+    chapter = text.split(":")[0]
+    verse = text.split(":")[1]
     params = {"chapter": chapter, "number": verse, "lang": "ar"}
     r = requests.get(api_url, params=params)
     try:
@@ -51,8 +55,8 @@ def quran(text, message, reply):
     data = r.json()
     data2 = r2.json()
     out = "\x02{}\x02: ".format(text)
-    verse = data['Text']
+    verse = data["Text"]
     out += verse
     message(out)
-    translation = smart_truncate(data2['Text'])
+    translation = smart_truncate(data2["Text"])
     return translation

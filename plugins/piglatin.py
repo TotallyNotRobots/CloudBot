@@ -15,18 +15,20 @@ License:
 """
 
 import string
+from typing import Dict, List
 
 import nltk
 
 from cloudbot import hook
 
-pronunciations = {}
+pronunciations: Dict[str, List[List[str]]] = {}
 
 
 # Translate functions by J.F. Sebastian
 # <https://stackoverflow.com/questions/22773826/pig-latin-translator>
 
-def translate(word):
+
+def translate(word: str):
     word = word.lower()  # NOTE: ignore Unicode casefold
     i = 0
     # find out whether the word start with a vowel sound using
@@ -63,7 +65,7 @@ def translate_basic(word, vowels="aeiou", start=0):
 
 @hook.on_start()
 def load_nltk():
-    nltk.download('cmudict')
+    nltk.download("cmudict")
 
     pronunciations.clear()
     pronunciations.update(nltk.corpus.cmudict.dict())

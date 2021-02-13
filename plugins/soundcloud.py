@@ -4,10 +4,10 @@ import requests
 
 from cloudbot import hook
 from cloudbot.bot import bot
-from cloudbot.util import web, formatting, timeformat
+from cloudbot.util import formatting, timeformat, web
 
-SC_RE = re.compile(r'(.*:)//(www.)?(soundcloud.com|snd.sc)(.*)', re.I)
-API_BASE = 'http://api.soundcloud.com/{}/'
+SC_RE = re.compile(r"(.*:)//(www.)?(soundcloud.com|snd.sc)(.*)", re.I)
+API_BASE = "http://api.soundcloud.com/{}/"
 
 
 class APIError(Exception):
@@ -24,11 +24,14 @@ def get_with_search(endpoint, term):
     """
     api_key = bot.config.get_api_key("soundcloud")
     try:
-        params = {'q': term, 'client_id': api_key}
+        params = {"q": term, "client_id": api_key}
         request = requests.get(API_BASE.format(endpoint), params=params)
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        raise APIError("Could not find {}: {}".format(endpoint, e))
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
+        raise APIError("Could not find {}: {}".format(endpoint, e)) from e
 
     json = request.json()
 
@@ -46,11 +49,14 @@ def get_with_url(url):
     """
     api_key = bot.config.get_api_key("soundcloud")
     try:
-        params = {'url': url, 'client_id': api_key}
-        request = requests.get(API_BASE.format('resolve'), params=params)
+        params = {"url": url, "client_id": api_key}
+        request = requests.get(API_BASE.format("resolve"), params=params)
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        raise APIError("{}".format(e))
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
+        raise APIError("{}".format(e)) from e
 
     json = request.json()
 
@@ -65,19 +71,21 @@ def format_track(track, show_url=True):
     """
     Takes a SoundCloud track item and returns a formatted string.
     """
-    out = track['title']
+    out = track["title"]
 
-    out += " by \x02{}\x02".format(track['user']['username'])
+    out += " by \x02{}\x02".format(track["user"]["username"])
 
-    if track['genre']:
-        out += " - \x02{}\x02".format(track['genre'])
+    if track["genre"]:
+        out += " - \x02{}\x02".format(track["genre"])
 
-    out += " - \x02{:,}\x02 plays, \x02{:,}\x02 favorites, \x02{:,}\x02 comments".format(track['playback_count'],
-                                                                                         track['favoritings_count'],
-                                                                                         track['comment_count'])
+    out += " - \x02{:,}\x02 plays, \x02{:,}\x02 favorites, \x02{:,}\x02 comments".format(
+        track["playback_count"],
+        track["favoritings_count"],
+        track["comment_count"],
+    )
 
     if show_url:
-        out += " - {}".format(web.try_shorten(track['permalink_url']))
+        out += " - {}".format(web.try_shorten(track["permalink_url"]))
     return out
 
 
@@ -85,22 +93,24 @@ def format_user(user, show_url=True):
     """
     Takes a SoundCloud user item and returns a formatted string.
     """
-    out = "\x02{}\x02".format(user['username'])
+    out = "\x02{}\x02".format(user["username"])
 
-    if user['description']:
-        out += ': "{}"'.format(formatting.truncate(user['description']))
+    if user["description"]:
+        out += ': "{}"'.format(formatting.truncate(user["description"]))
 
-    if user['city']:
-        out += ': {}'.format(user['city'])
+    if user["city"]:
+        out += ": {}".format(user["city"])
 
-    if user['country']:
-        out += ", {}".format(formatting.truncate(user['country']))
+    if user["country"]:
+        out += ", {}".format(formatting.truncate(user["country"]))
 
-    out += " - \x02{track_count:,}\x02 tracks, \x02{playlist_count:,}\x02 playlists, \x02{followers_count:,}\x02 " \
-           "followers, \x02{followings_count:,}\x02 followed".format(**user)
+    out += (
+        " - \x02{track_count:,}\x02 tracks, \x02{playlist_count:,}\x02 playlists, \x02{followers_count:,}\x02 "
+        "followers, \x02{followings_count:,}\x02 followed".format(**user)
+    )
 
     if show_url:
-        out += " - {}".format(web.try_shorten(user['permalink_url']))
+        out += " - {}".format(web.try_shorten(user["permalink_url"]))
     return out
 
 
@@ -108,26 +118,26 @@ def format_playlist(playlist, show_url=True):
     """
     Takes a SoundCloud playlist item and returns a formatted string.
     """
-    out = "\x02{}\x02".format(playlist['title'])
+    out = "\x02{}\x02".format(playlist["title"])
 
-    if playlist['description']:
-        out += ': "{}"'.format(formatting.truncate(playlist['description']))
+    if playlist["description"]:
+        out += ': "{}"'.format(formatting.truncate(playlist["description"]))
 
-    if playlist['genre']:
-        out += " - \x02{}\x02".format(playlist['genre'])
+    if playlist["genre"]:
+        out += " - \x02{}\x02".format(playlist["genre"])
 
-    out += " - by \x02{}\x02".format(playlist['user']['username'])
+    out += " - by \x02{}\x02".format(playlist["user"]["username"])
 
-    if not playlist['tracks']:
+    if not playlist["tracks"]:
         out += " - No items"
     else:
-        out += " - {} items,".format(len(playlist['tracks']))
+        out += " - {} items,".format(len(playlist["tracks"]))
 
-        seconds = round(int(playlist['duration']) / 1000)
+        seconds = round(int(playlist["duration"]) / 1000)
         out += " {}".format(timeformat.format_time(seconds, simple=True))
 
     if show_url:
-        out += " - {}".format(web.try_shorten(playlist['permalink_url']))
+        out += " - {}".format(web.try_shorten(playlist["permalink_url"]))
     return out
 
 
@@ -135,15 +145,15 @@ def format_group(group, show_url=True):
     """
     Takes a SoundCloud group and returns a formatting string.
     """
-    out = "\x02{}\x02".format(group['name'])
+    out = "\x02{}\x02".format(group["name"])
 
-    if group['description']:
-        out += ': "{}"'.format(formatting.truncate(group['description']))
+    if group["description"]:
+        out += ': "{}"'.format(formatting.truncate(group["description"]))
 
-    out += " - Owned by \x02{}\x02.".format(group['creator']['username'])
+    out += " - Owned by \x02{}\x02.".format(group["creator"]["username"])
 
     if show_url:
-        out += " - {}".format(web.try_shorten(group['permalink_url']))
+        out += " - {}".format(web.try_shorten(group["permalink_url"]))
     return out
 
 
@@ -155,7 +165,7 @@ def soundcloud(text):
     if not api_key:
         return "This command requires a SoundCloud API key."
     try:
-        track = get_with_search('tracks', text)
+        track = get_with_search("tracks", text)
     except APIError as ae:
         return ae
 
@@ -175,7 +185,7 @@ def soundcloud_user(text):
     if not api_key:
         return "This command requires a SoundCloud API key."
     try:
-        user = get_with_search('users', text)
+        user = get_with_search("users", text)
     except APIError as ae:
         return ae
 
@@ -194,21 +204,26 @@ def soundcloud_url(match):
     if not api_key:
         return
 
-    url = match.group(1).split(' ')[-1] + "//" + (match.group(2) if match.group(2) else "") + match.group(3) + \
-          match.group(4).split(' ')[0]
+    url = (
+        match.group(1).split(" ")[-1]
+        + "//"
+        + (match.group(2) if match.group(2) else "")
+        + match.group(3)
+        + match.group(4).split(" ")[0]
+    )
 
     item = get_with_url(url)
     if not item:
         return
 
-    if item['kind'] == 'track':
+    if item["kind"] == "track":
         return format_track(item, show_url=False)
 
-    if item['kind'] == 'user':
+    if item["kind"] == "user":
         return format_user(item, show_url=False)
 
-    if item['kind'] == 'playlist':
+    if item["kind"] == "playlist":
         return format_playlist(item, show_url=False)
 
-    if item['kind'] == 'group':
+    if item["kind"] == "group":
         return format_group(item, show_url=False)

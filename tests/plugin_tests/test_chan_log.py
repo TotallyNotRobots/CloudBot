@@ -8,7 +8,7 @@ def test_format_exception_chain():
         yield repr(exc)
         yield "  args = {!r}".format(exc.args)
         yield "  with_traceback = {!r}".format(exc.with_traceback)
-        yield ''
+        yield ""
 
     err = ValueError("Test")
     err1 = ValueError("Test 2")
@@ -20,10 +20,12 @@ def test_format_exception_chain():
             except ValueError as e:
                 raise err1 from e
         except ValueError:
-            raise err2
+            raise err2 from None
     except ValueError as e:
-        assert list(format_error_chain(e)) == list(chain(
-            _get_data(err2),
-            _get_data(err1),
-            _get_data(err),
-        ))
+        assert list(format_error_chain(e)) == list(
+            chain(
+                _get_data(err2),
+                _get_data(err1),
+                _get_data(err),
+            )
+        )

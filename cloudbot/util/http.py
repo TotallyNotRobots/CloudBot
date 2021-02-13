@@ -17,15 +17,20 @@ from yarl import URL
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)
 
-ua_cloudbot = 'Cloudbot/DEV http://github.com/CloudDev/CloudBot'
+ua_cloudbot = "Cloudbot/DEV http://github.com/CloudDev/CloudBot"
 
-ua_firefox = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0' \
-             ' Firefox/17.0'
-ua_old_firefox = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; ' \
-                 'rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6'
-ua_internetexplorer = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-ua_chrome = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, ' \
-            'like Gecko) Chrome/22.0.1229.79 Safari/537.4'
+ua_firefox = (
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0" " Firefox/17.0"
+)
+ua_old_firefox = (
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; "
+    "rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"
+)
+ua_internetexplorer = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)"
+ua_chrome = (
+    "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.4 (KHTML, "
+    "like Gecko) Chrome/22.0.1229.79 Safari/537.4"
+)
 
 jar = http.cookiejar.CookieJar()
 
@@ -54,7 +59,7 @@ def parse_soup(text, features=None, **kwargs):
     'test'
     """
     if features is None:
-        features = 'lxml'
+        features = "lxml"
 
     return BeautifulSoup(text, features=features, **kwargs)
 
@@ -83,8 +88,18 @@ def get_json(*args, **kwargs):
     return json.loads(get(*args, **kwargs))
 
 
-def open_request(url, query_params=None, user_agent=None, post_data=None, referer=None, get_method=None, cookies=False,
-                 timeout=None, headers=None, **kwargs):
+def open_request(
+    url,
+    query_params=None,
+    user_agent=None,
+    post_data=None,
+    referer=None,
+    get_method=None,
+    cookies=False,
+    timeout=None,
+    headers=None,
+    **kwargs,
+):
     if query_params is None:
         query_params = {}
 
@@ -104,13 +119,15 @@ def open_request(url, query_params=None, user_agent=None, post_data=None, refere
         for header_key, header_value in headers.items():
             request.add_header(header_key, header_value)
 
-    request.add_header('User-Agent', user_agent)
+    request.add_header("User-Agent", user_agent)
 
     if referer is not None:
-        request.add_header('Referer', referer)
+        request.add_header("Referer", referer)
 
     if cookies:
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(jar)
+        )
     else:
         opener = urllib.request.build_opener()
 
@@ -121,17 +138,34 @@ def open_request(url, query_params=None, user_agent=None, post_data=None, refere
 
 
 # noinspection PyShadowingBuiltins
-def open(url, query_params=None, user_agent=None, post_data=None,
-         referer=None, get_method=None, cookies=False, timeout=None, headers=None,
-         **kwargs):  # pylint: disable=locally-disabled, redefined-builtin  # pragma: no cover
+def open(
+    url,
+    query_params=None,
+    user_agent=None,
+    post_data=None,
+    referer=None,
+    get_method=None,
+    cookies=False,
+    timeout=None,
+    headers=None,
+    **kwargs,
+):  # pylint: disable=locally-disabled, redefined-builtin  # pragma: no cover
     warnings.warn(
         "http.open() is deprecated, use http.open_request() instead.",
-        DeprecationWarning
+        DeprecationWarning,
     )
 
     return open_request(
-        url, query_params=query_params, user_agent=user_agent, post_data=post_data, referer=referer,
-        get_method=get_method, cookies=cookies, timeout=timeout, headers=headers, **kwargs
+        url,
+        query_params=query_params,
+        user_agent=user_agent,
+        post_data=post_data,
+        referer=referer,
+        get_method=get_method,
+        cookies=cookies,
+        timeout=timeout,
+        headers=headers,
+        **kwargs,
     )
 
 
@@ -145,8 +179,9 @@ def prepare_url(url, queries):
 
         query = dict(urllib.parse.parse_qsl(query))
         query.update(queries)
-        query = urllib.parse.urlencode(dict((to_utf8(key), to_utf8(value))
-                                            for key, value in query.items()))
+        query = urllib.parse.urlencode(
+            dict((to_utf8(key), to_utf8(value)) for key, value in query.items())
+        )
 
         url = urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
 
@@ -163,7 +198,7 @@ def to_utf8(s):
     b'1'
     """
     if isinstance(s, str):
-        return s.encode('utf8', 'ignore')
+        return s.encode("utf8", "ignore")
 
     if isinstance(s, bytes):
         return bytes(s)

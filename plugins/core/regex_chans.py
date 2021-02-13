@@ -1,6 +1,7 @@
 import logging
+from typing import Dict, Tuple
 
-from sqlalchemy import Table, Column, UniqueConstraint, String
+from sqlalchemy import Column, String, Table, UniqueConstraint
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -11,14 +12,14 @@ table = Table(
     Column("connection", String),
     Column("channel", String),
     Column("status", String),
-    UniqueConstraint("connection", "channel")
+    UniqueConstraint("connection", "channel"),
 )
 
 # Default value.
 # If True, all channels without a setting will have regex enabled
 # If False, all channels without a setting will have regex disabled
 default_enabled = True
-status_cache = {}
+status_cache: Dict[Tuple[str, str], str] = {}
 logger = logging.getLogger("cloudbot")
 
 
@@ -48,26 +49,52 @@ def set_status(db, conn, chan, status):
     if (conn, chan) in status_cache:
         # if we have a set value, update
         db.execute(
-            table.update().values(status=status).where(table.c.connection == conn).where(table.c.channel == chan))
+            table.update()
+            .values(status=status)
+            .where(table.c.connection == conn)
+            .where(table.c.channel == chan)
+        )
     else:
         # otherwise, insert
-        db.execute(table.insert().values(connection=conn, channel=chan, status=status))
+        db.execute(
+            table.insert().values(connection=conn, channel=chan, status=status)
+        )
     db.commit()
 
 
 def delete_status(db, conn, chan):
-    db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan))
+    db.execute(
+        table.delete()
+        .where(table.c.connection == conn)
+        .where(table.c.channel == chan)
+    )
     db.commit()
 
 
 @hook.sieve()
 def sieve_regex(bot, event, _hook):
-    if _hook.type == "regex" and event.chan.startswith("#") and _hook.plugin.title != "factoids":
+    if (
+        _hook.type == "regex"
+        and event.chan.startswith("#")
+        and _hook.plugin.title != "factoids"
+    ):
         status = status_cache.get((event.conn.name, event.chan))
-        if status != "ENABLED" and (status == "DISABLED" or not default_enabled):
-            logger.info("[%s] Denying %s from %s", event.conn.name, _hook.function_name, event.chan)
+        if status != "ENABLED" and (
+            status == "DISABLED" or not default_enabled
+        ):
+            logger.info(
+                "[%s] Denying %s from %s",
+                event.conn.name,
+                _hook.function_name,
+                event.chan,
+            )
             return None
-        logger.info("[%s] Allowing %s to %s", event.conn.name, _hook.function_name, event.chan)
+        logger.info(
+            "[%s] Allowing %s to %s",
+            event.conn.name,
+            _hook.function_name,
+            event.chan,
+        )
 
     return event
 
@@ -83,13 +110,17 @@ def change_status(db, event, status):
 
     action = "Enabling" if status else "Disabling"
     event.message(
-        "{} regex matching (youtube, etc) (issued by {})".format(action, event.nick),
-        target=channel
+        "{} regex matching (youtube, etc) (issued by {})".format(
+            action, event.nick
+        ),
+        target=channel,
     )
-    event.notice("{} regex matching (youtube, etc) in channel {}".format(
-        action, channel
-    ))
-    set_status(db, event.conn.name, channel, "ENABLED" if status else "DISABLED")
+    event.notice(
+        "{} regex matching (youtube, etc) in channel {}".format(action, channel)
+    )
+    set_status(
+        db, event.conn.name, channel, "ENABLED" if status else "DISABLED"
+    )
     load_cache(db)
 
 
@@ -116,8 +147,17 @@ def resetregex(text, db, conn, chan, nick, message, notice):
     else:
         channel = "#{}".format(text)
 
-    message("Resetting regex matching setting (youtube, etc) (issued by {})".format(nick), target=channel)
-    notice("Resetting regex matching setting (youtube, etc) in channel {}".format(channel))
+    message(
+        "Resetting regex matching setting (youtube, etc) (issued by {})".format(
+            nick
+        ),
+        target=channel,
+    )
+    notice(
+        "Resetting regex matching setting (youtube, etc) in channel {}".format(
+            channel
+        )
+    )
     delete_status(db, conn.name, channel)
     load_cache(db)
 

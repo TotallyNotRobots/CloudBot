@@ -1,11 +1,12 @@
 import codecs
 import os
 import random
+from typing import List
 
 from cloudbot import hook
 from cloudbot.util import colors
 
-responses = []
+responses: List[str] = []
 
 
 @hook.on_start()
@@ -14,8 +15,7 @@ def load_responses(bot):
     responses.clear()
     with codecs.open(path, encoding="utf-8") as f:
         responses.extend(
-            line.strip() for line in f.readlines()
-            if not line.startswith("//")
+            line.strip() for line in f.readlines() if not line.startswith("//")
         )
 
 

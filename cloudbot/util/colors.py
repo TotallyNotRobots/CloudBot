@@ -65,28 +65,23 @@ IRC_COLOUR_DICT = {
     "dark_gray": "14",
     "grey": "15",
     "gray": "15",
-    "random": ""  # Special keyword, generate a random number.
+    "random": "",  # Special keyword, generate a random number.
 }
 
 IRC_FORMATTING_DICT = {
     "colour": "\x03",
     "color": "\x03",
-
     "bold": "\x02",
     "b": "\x02",
-
     "underlined": "\x1F",
     "underline": "\x1F",
     "ul": "\x1F",
-
     "italics": "\x1D",
     "italic": "\x1D",
     "i": "\x1D",
-
     "reverse": "\x16",
-
     "reset": "\x0F",
-    "clear": "\x0F"
+    "clear": "\x0F",
 }
 
 COLOR_RE = re.compile(r"\$\(.*?\)", re.I)
@@ -102,11 +97,17 @@ def get_color(colour, return_formatted=True):
     colour = colour.lower()
 
     if colour not in IRC_COLOUR_DICT:
-        raise KeyError("The colour '{}' is not in the list of available colours.".format(colour))
+        raise KeyError(
+            "The colour '{}' is not in the list of available colours.".format(
+                colour
+            )
+        )
 
     if colour == "random":  # Special keyword for a random colour
         rand = randint(0, 15)
-        if rand < 10:  # Prepend '0' before colour so it always is double digits.
+        if (
+            rand < 10
+        ):  # Prepend '0' before colour so it always is double digits.
             rand = "0" + str(rand)
         rand = str(rand)
 
@@ -126,7 +127,11 @@ def get_format(formatting):
     """
 
     if formatting.lower() not in IRC_FORMATTING_DICT:
-        raise KeyError("The formatting '{}' is not found in the list of available formats.".format(formatting))
+        raise KeyError(
+            "The formatting '{}' is not found in the list of available formats.".format(
+                formatting
+            )
+        )
 
     return IRC_FORMATTING_DICT[formatting.lower()]
 
@@ -169,6 +174,7 @@ def parse(string):
 
 # Formatting stripping.
 
+
 def strip(string):
     """
     Removes all $() syntax formatting codes from the input string and returns it.
@@ -190,7 +196,7 @@ def strip_irc(string):
     :rtype str
     """
 
-    return IRC_COLOR_RE.sub('', string)
+    return IRC_COLOR_RE.sub("", string)
 
 
 def strip_all(string):
@@ -204,6 +210,7 @@ def strip_all(string):
 
 
 # Internal use
+
 
 def _convert(string):
     if not string.startswith("$(") and not string.endswith(")"):

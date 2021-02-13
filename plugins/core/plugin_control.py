@@ -11,7 +11,10 @@ def pluginlist(bot):
     """- List all currently loaded plugins"""
     manager = bot.plugin_manager
     plugins = [
-        (plugin.title, str(Path(plugin.file_path).resolve().relative_to(bot.base_dir)))
+        (
+            plugin.title,
+            str(Path(plugin.file_path).resolve().relative_to(bot.base_dir)),
+        )
         for plugin in manager.plugins.values()
     ]
     plugins.sort(key=itemgetter(0))
@@ -33,7 +36,9 @@ async def pluginload(bot, text, reply):
         reply("Plugin failed to load.")
         raise
     else:
-        return "Plugin {}loaded successfully.".format("re" if was_loaded else "")
+        return "Plugin {}loaded successfully.".format(
+            "re" if was_loaded else ""
+        )
 
 
 @hook.command(permissions=["botcontrol"])
