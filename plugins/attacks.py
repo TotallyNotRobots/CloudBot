@@ -2,7 +2,6 @@ import json
 import re
 from collections import defaultdict
 from enum import Enum, unique
-from pathlib import Path
 from typing import Any, Dict
 
 from cloudbot import hook
@@ -155,7 +154,7 @@ def load_attacks(bot):
     :type bot: cloudbot.bot.CloudBot
     """
     attack_data.clear()
-    data_dir = Path(bot.data_dir) / "attacks"
+    data_dir = bot.data_path / "attacks"
     for data_file in ATTACKS:
         load_data(data_dir / data_file.file, attack_data[data_file.name])
 

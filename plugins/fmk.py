@@ -1,22 +1,16 @@
-import codecs
-import os
 import random
 from typing import List
 
 from cloudbot import hook
+from cloudbot.bot import CloudBot
 
 fmklist: List[str] = []
 
 
 @hook.on_start()
-def load_fmk(bot):
-    """
-    :type bot: cloudbot.bot.Cloudbot
-    """
+def load_fmk(bot: CloudBot) -> None:
     fmklist.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "fmk.txt"), encoding="utf-8"
-    ) as f:
+    with open(bot.data_path / "fmk.txt", encoding="utf-8") as f:
         fmklist.extend(
             line.strip() for line in f.readlines() if not line.startswith("//")
         )

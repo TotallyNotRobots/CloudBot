@@ -1,6 +1,5 @@
 import json
 import random
-from pathlib import Path
 from typing import Dict, List
 
 import requests
@@ -35,7 +34,7 @@ def get_fuck_off(fucker, fuckee):
 @hook.on_start()
 def load_fuck_offs(bot):
     fuck_offs.clear()
-    data_file = Path(bot.data_dir) / "foaas.json"
+    data_file = bot.data_path / "foaas.json"
     with data_file.open(encoding="utf-8") as f:
         fuck_offs.update(json.load(f))
 

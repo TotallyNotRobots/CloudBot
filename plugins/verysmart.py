@@ -1,5 +1,3 @@
-import codecs
-import os
 import random
 from typing import List
 
@@ -12,9 +10,7 @@ vsquotes: List[str] = []
 def load_quotes(bot):
     """- Import quotes from data directory."""
     vsquotes.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "verysmart.txt"), encoding="utf-8"
-    ) as fp:
+    with open((bot.data_path / "verysmart.txt"), encoding="utf-8") as fp:
         vsquotes.extend(quote.strip() for quote in fp.readlines())
 
 

@@ -1,6 +1,4 @@
-import codecs
 import json
-import os
 import random
 from typing import Dict, List
 
@@ -18,8 +16,8 @@ reaction_macros: Dict[str, List[str]] = {}
 @hook.on_start()
 def load_macros(bot):
     reaction_macros.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "reaction_macros.json"), encoding="utf-8"
+    with open(
+        (bot.data_path / "reaction_macros.json"), encoding="utf-8"
     ) as macros:
         reaction_macros.update(json.load(macros))
 

@@ -1,6 +1,4 @@
-import codecs
 import json
-import os
 import random
 import re
 from typing import Dict, List
@@ -13,9 +11,7 @@ gnomecards: Dict[str, List[str]] = {}
 @hook.on_start()
 def shuffle_deck(bot):
     gnomecards.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "gnomecards.json"), encoding="utf-8"
-    ) as f:
+    with open((bot.data_path / "gnomecards.json"), encoding="utf-8") as f:
         gnomecards.update(json.load(f))
 
 

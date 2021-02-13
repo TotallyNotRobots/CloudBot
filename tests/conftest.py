@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Iterator, List
+from typing import List
 from unittest.mock import MagicMock
 
 import freezegun
@@ -25,7 +25,7 @@ def mock_db(tmp_path):
 
 
 @pytest.fixture()
-def mock_bot_factory() -> Iterator[Callable[..., MockBot]]:
+def mock_bot_factory():
     instances: List[MockBot] = []
 
     def _factory(*args, **kwargs):

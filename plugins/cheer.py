@@ -1,9 +1,9 @@
 import random
 import re
-from pathlib import Path
 from typing import List
 
 from cloudbot import hook
+from cloudbot.bot import CloudBot
 
 cheer_re = re.compile(r"\\o/", re.IGNORECASE)
 
@@ -11,9 +11,9 @@ cheers: List[str] = []
 
 
 @hook.on_start()
-def load_cheers(bot):
+def load_cheers(bot: CloudBot):
     cheers.clear()
-    data_file = Path(bot.data_dir) / "cheers.txt"
+    data_file = bot.data_path / "cheers.txt"
     with data_file.open(encoding="utf-8") as f:
         cheers.extend(line.strip() for line in f if not line.startswith("//"))
 

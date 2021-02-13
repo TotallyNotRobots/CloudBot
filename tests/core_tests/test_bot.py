@@ -21,7 +21,7 @@ async def test_connect_clients(mock_bot_factory, event_loop):
     bot.plugin_manager.load_all = load_mock = MagicMock()
     load_mock.return_value = future
     await CloudBot._init_routine(bot)
-    assert load_mock.mock_calls == [call(str(bot.base_dir / "plugins"))]
+    assert load_mock.mock_calls == [call(bot.base_dir / "plugins")]
     conn.try_connect.assert_called()
 
 

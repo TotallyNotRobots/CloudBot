@@ -23,7 +23,9 @@ class MockBot:
         else:
             self.base_dir = Path().resolve()
 
-        self.data_dir = str(self.base_dir / "data")
+        self.data_path = self.base_dir / "data"
+        self.data_dir = str(self.data_path)
+        self.plugin_dir = self.base_dir / "plugins"
 
         if db:
             self.db_session = db.session

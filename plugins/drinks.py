@@ -1,19 +1,19 @@
 import json
-import os
 import random
 from typing import Any, Dict, List
 
 from cloudbot import hook
+from cloudbot.bot import CloudBot
 from cloudbot.util import web
 
 drink_data: List[Dict[str, Any]] = []
 
 
 @hook.onload()
-def load_drinks(bot):
+def load_drinks(bot: CloudBot) -> None:
     """load the drink recipes"""
     drink_data.clear()
-    with open(os.path.join(bot.data_dir, "drinks.json")) as json_data:
+    with open(bot.data_path / "drinks.json", encoding="utf-8") as json_data:
         drink_data.extend(json.load(json_data))
 
 

@@ -15,7 +15,7 @@ def get_files():
 def load_data(xkcd_id):
     file = DATA_PATH / "{}.json".format(xkcd_id)
 
-    with file.open() as f:
+    with file.open(encoding="utf-8") as f:
         return json.load(f)
 
 

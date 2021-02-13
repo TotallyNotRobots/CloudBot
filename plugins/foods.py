@@ -1,6 +1,4 @@
-import codecs
 import json
-import os
 from collections import defaultdict
 from typing import Any, Dict
 
@@ -67,8 +65,8 @@ basic_food_data: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
 def load_template_data(bot, filename, data_dict):
     data_dict.clear()
-    food_dir = os.path.join(bot.data_dir, "food")
-    with codecs.open(os.path.join(food_dir, filename), encoding="utf-8") as f:
+    food_dir = bot.data_path / "food"
+    with open((food_dir / filename), encoding="utf-8") as f:
         data_dict.update(json.load(f))
 
 

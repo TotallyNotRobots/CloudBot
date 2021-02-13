@@ -19,7 +19,9 @@ def get_data(query_type):  # pragma: no cover
 
 
 def write_data(query_tyoe):  # pragma: no cover
-    with (SCRIPT_DIR / "dogpile-{}.html".format(query_tyoe)).open("wb") as file:
+    with (SCRIPT_DIR / "dogpile-{}.html".format(query_tyoe)).open(
+        "wb", encoding="utf-8"
+    ) as file:
         file.write(get_data(query_tyoe))
 
 

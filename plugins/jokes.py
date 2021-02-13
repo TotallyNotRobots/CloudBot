@@ -1,16 +1,14 @@
 import random
 from pathlib import Path
+from typing import List
 
 from cloudbot import hook
 
 joke_lines = {}
 
 
-def load_joke_file(path):
-    """Loads all the lines from a file, excluding blanks and lines that have been 'commented out'.
-    :type path: Path
-    :rtype: List[str]
-    """
+def load_joke_file(path: Path) -> List[str]:
+    """Loads all the lines from a file, excluding blanks and lines that have been 'commented out'."""
     with path.open(encoding="utf-8") as f:
         return [
             line.strip()
@@ -25,7 +23,6 @@ def load_jokes(bot):
     Put 'NAME.txt' in `file_list` to make those strings available as `joke_lines['NAME']`.
     :type bot: cloudbot.bot.Cloudbot
     """
-    data_directory = Path(bot.data_dir)
     file_list = [
         "yo_momma.txt",
         "do_it.txt",
@@ -38,7 +35,7 @@ def load_jokes(bot):
         "kero.txt",
     ]
     for file_name in file_list:
-        file_path = data_directory / file_name
+        file_path = bot.data_path / file_name
         joke_lines[file_path.stem] = load_joke_file(file_path)
 
 

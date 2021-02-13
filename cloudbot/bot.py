@@ -2,9 +2,9 @@ import asyncio
 import collections
 import gc
 import logging
-import os
 import re
 import time
+import warnings
 from functools import partial
 from pathlib import Path
 from typing import Type
@@ -95,7 +95,6 @@ class CloudBot:
     :type start_time: float
     :type running: bool
     :type connections: dict[str, Client]
-    :type data_dir: bytes
     :type config: core.config.Config
     :type plugin_manager: PluginManager
     :type plugin_reloader: PluginReloader
@@ -115,6 +114,7 @@ class CloudBot:
         bot.set(self)
         # basic variables
         self.base_dir = Path().resolve()
+        self.plugin_dir = self.base_dir / "plugins"
         self.loop = loop
         self.start_time = time.time()
         self.running = True
@@ -132,10 +132,11 @@ class CloudBot:
         self.memory = collections.defaultdict()
 
         # declare and create data folder
-        self.data_dir = os.path.abspath("data")
-        if not os.path.exists(self.data_dir):
+        self.data_path = self.base_dir / "data"
+
+        if not self.data_path.exists():
             logger.debug("Data folder not found, creating.")
-            os.mkdir(self.data_dir)
+            self.data_path.mkdir(parents=True)
 
         # set up config
         self.config = Config(self)
@@ -190,6 +191,13 @@ class CloudBot:
             self.config_reloader = ConfigReloader(self)
 
         self.plugin_manager = PluginManager(self)
+
+    @property
+    def data_dir(self) -> str:
+        warnings.warn(
+            "data_dir has been replaced by data_path", DeprecationWarning
+        )
+        return str(self.data_path)
 
     def run(self):
         """
@@ -283,7 +291,7 @@ class CloudBot:
 
     async def _init_routine(self):
         # Load plugins
-        await self.plugin_manager.load_all(str(self.base_dir / "plugins"))
+        await self.plugin_manager.load_all(self.plugin_dir)
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -292,7 +300,7 @@ class CloudBot:
 
         if self.plugin_reloading_enabled:
             # start plugin reloader
-            self.plugin_reloader.start(os.path.abspath("plugins"))
+            self.plugin_reloader.start(str(self.plugin_dir))
 
         if self.config_reloading_enabled:
             self.config_reloader.start()

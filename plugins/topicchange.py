@@ -1,5 +1,3 @@
-import codecs
-import os
 import random
 from typing import List
 
@@ -14,9 +12,7 @@ def load_topicchange(bot):
     :type bot: cloudbot.bot.Cloudbot
     """
     topicchange_data.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "topicchange.txt"), encoding="utf-8"
-    ) as f:
+    with open((bot.data_path / "topicchange.txt"), encoding="utf-8") as f:
         topicchange_data.extend(
             line.strip() for line in f.readlines() if not line.startswith("//")
         )

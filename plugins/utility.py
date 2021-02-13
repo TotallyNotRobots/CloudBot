@@ -19,7 +19,6 @@ import codecs
 import collections
 import hashlib
 import json
-import os
 import random
 import re
 import urllib.parse
@@ -70,9 +69,7 @@ def load_text(bot):
     :type bot: cloudbot.bot.CloudBot
     """
     leet_text.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "leet.json"), encoding="utf-8"
-    ) as f:
+    with open((bot.data_path / "leet.json"), encoding="utf-8") as f:
         leet_text.update(json.load(f))
 
 

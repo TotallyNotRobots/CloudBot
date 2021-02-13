@@ -1,6 +1,4 @@
-import codecs
 import json
-import os
 import random
 import time
 from typing import Any, Dict
@@ -26,9 +24,7 @@ seen_table = table(
 @hook.on_start()
 def load_data(bot):
     hookups.clear()
-    with codecs.open(
-        os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8"
-    ) as f:
+    with open((bot.data_path / "hookup.json"), encoding="utf-8") as f:
         hookups.update(json.load(f))
 
 

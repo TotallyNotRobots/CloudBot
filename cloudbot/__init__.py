@@ -1,14 +1,8 @@
 import json
 import logging
 import logging.config
-import os
 import sys
-
-# check python version
-if sys.version_info < (3, 6):
-    print("CloudBot requires Python 3.6 or newer.")
-    sys.exit(1)
-
+from pathlib import Path
 
 version = (1, 3, 0)
 __version__ = ".".join(str(i) for i in version)
@@ -31,22 +25,26 @@ __all__ = (
 
 
 class LoggingInfo:
-    dir = "logs"
+    dir = Path("logs")
 
     def make_dir(self):
-        if not os.path.exists(self.dir):
-            os.makedirs(self.dir)
+        self.dir.mkdir(exist_ok=True, parents=True)
 
-    def add_path(self, *paths):
-        return os.path.join(self.dir, *paths)
+    def add_path(self, *paths) -> str:
+        p = self.dir
+        for part in paths:
+            p = p / part
+
+        return str(p)
 
 
 logging_info = LoggingInfo()
 
 
 def _setup():
-    if os.path.exists(os.path.abspath("config.json")):
-        with open(os.path.abspath("config.json")) as config_file:
+    cfg_file = Path("config.json")
+    if cfg_file.exists():
+        with open(cfg_file, encoding="utf-8") as config_file:
             json_conf = json.load(config_file)
         logging_config = json_conf.get("logging", {})
     else:
@@ -57,7 +55,7 @@ def _setup():
         "INFO" if logging_config.get("console_log_info", True) else "WARNING"
     )
 
-    logging_info.dir = os.path.join(os.path.abspath(os.path.curdir), "logs")
+    logging_info.dir = Path("logs").resolve()
 
     logging_info.make_dir()
 
