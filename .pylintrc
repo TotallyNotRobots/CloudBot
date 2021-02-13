@@ -42,7 +42,7 @@ suggestion-mode=yes
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
-unsafe-load-any-extension=no
+unsafe-load-any-extension=yes
 
 
 [MESSAGES CONTROL]
@@ -69,12 +69,8 @@ disable=invalid-name,
         no-self-use,
         ungrouped-imports,
         wrong-import-position,
-        useless-object-inheritance,
-        superfluous-parens,
         arguments-differ,
         duplicate-string-formatting-argument,
-        simplifiable-if-expression,
-        implicit-str-concat-in-sequence,
         abstract-method,
         protected-access,
         duplicate-code,
@@ -340,7 +336,7 @@ dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore.
-ignored-argument-names=_.*|^ignored_|^unused_
+ignored-argument-names=^_.*|^ignored_|^unused_
 
 # Tells whether we should check for unused import in __init__ files.
 init-import=no

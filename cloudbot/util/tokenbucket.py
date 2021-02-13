@@ -14,7 +14,7 @@ License:
 from time import time
 
 
-class TokenBucket(object):
+class TokenBucket:
     """An implementation of the token bucket algorithm.
     >>> bucket = TokenBucket(80, 0.5)
     >>> bucket.consume(10)

@@ -9,7 +9,7 @@ logger = logging.getLogger("cloudbot")
 backdoor = None
 
 
-class PermissionManager(object):
+class PermissionManager:
     """
     :type name: str
     :type config: dict[str, ?]

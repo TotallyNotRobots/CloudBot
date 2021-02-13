@@ -48,7 +48,7 @@ import re
 TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
-class TextGenerator(object):
+class TextGenerator:
     def __init__(
         self, templates, parts, default_templates=None, variables=None
     ):

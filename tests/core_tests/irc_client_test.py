@@ -676,8 +676,7 @@ class TestSend:
     async def test_send_sieve_error(self, caplog_bot, event_loop):
         conn = make_mock_conn(event_loop=event_loop)
         proto = irc._IrcProtocol(conn)
-        proto._connected = True
-        proto._transport = MagicMock()
+        proto.connection_made(MagicMock())
         sieve = object()
         proto.bot.plugin_manager.out_sieves = [sieve]
         proto.bot.plugin_manager.internal_launch = launch = MagicMock()

@@ -106,7 +106,8 @@ def remember(text, nick, db, chan, notice, event):
         # remove + symbol
         new_data = data[1:]
         # append new_data to the old_data
-        if len(new_data) > 1 and new_data[1] in (string.punctuation + " "):
+        puncts = string.punctuation + " "
+        if len(new_data) > 1 and new_data[1] in puncts:
             data = old_data + new_data
         else:
             data = old_data + " " + new_data

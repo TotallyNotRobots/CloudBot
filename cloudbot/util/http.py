@@ -20,7 +20,7 @@ parser = etree.XMLParser(resolve_entities=False, no_network=True)
 ua_cloudbot = "Cloudbot/DEV http://github.com/CloudDev/CloudBot"
 
 ua_firefox = (
-    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0" " Firefox/17.0"
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0"
 )
 ua_old_firefox = (
     "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; "
