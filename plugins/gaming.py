@@ -118,7 +118,7 @@ def dice(text, notice):
     return "{} ({})".format(total, ", ".join(rolls))
 
 
-@hook.command
+@hook.command()
 def choose(text, event):
     """<choice1>, [choice2], [choice3], etc. - randomly picks one of the given choices
 

@@ -16,7 +16,7 @@ def shorten(text, reply):
         raise
 
 
-@hook.command
+@hook.command()
 def expand(text, reply):
     """<url> - unshortens <url>"""
     args = text.split()
@@ -47,7 +47,7 @@ def isgd(text, reply):
         raise
 
 
-@hook.command
+@hook.command()
 def googl(text, reply):
     """<url> [custom] - shorten <url> using goo.gl with [custom] as an option custom shortlink,
     or unshortens <url> if already short"""
@@ -65,7 +65,7 @@ def googl(text, reply):
         raise
 
 
-@hook.command
+@hook.command()
 def gitio(text, reply):
     """<url> [custom] - shortens a github URL <url> using git.io with [custom] as an optional custom shortlink,
     or unshortens <url> if already short"""

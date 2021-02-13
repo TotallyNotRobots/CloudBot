@@ -30,7 +30,7 @@ karma_table = Table(
 )
 
 
-@hook.on_start
+@hook.on_start()
 def remove_non_channel_points(db):
     """Temporary on_start hook to remove non-channel points"""
     db.execute(

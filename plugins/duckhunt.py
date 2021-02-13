@@ -153,7 +153,7 @@ def is_opt_out(network, chan):
     return chan.casefold() in opt_out[network]
 
 
-@hook.on_start
+@hook.on_start()
 def load_status(db):
     """
     :type db: sqlalchemy.orm.Session
@@ -206,7 +206,7 @@ def save_channel_state(db, network, chan, status=None):
     db.commit()
 
 
-@hook.on_unload
+@hook.on_unload()
 def save_on_exit(db):
     """
     :type db: sqlalchemy.orm.Session

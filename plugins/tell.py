@@ -60,7 +60,7 @@ ignore_cache: Dict[str, Dict[str, List[str]]] = defaultdict(
 tell_cache: List[Tuple[str, str]] = []
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session
@@ -75,7 +75,7 @@ def load_cache(db):
     tell_cache.extend(new_cache)
 
 
-@hook.on_start
+@hook.on_start()
 def load_disabled(db):
     """
     :type db: sqlalchemy.orm.Session
@@ -88,7 +88,7 @@ def load_disabled(db):
     disable_cache.update(new_cache)
 
 
-@hook.on_start
+@hook.on_start()
 def load_ignores(db):
     """
     :type db: sqlalchemy.orm.Session

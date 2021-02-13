@@ -8,7 +8,7 @@ from cloudbot import hook
 lenny_data: Dict[str, List[str]] = {}
 
 
-@hook.on_start
+@hook.on_start()
 def load_faces(bot):
     lenny_data.clear()
     data_file = Path(bot.data_dir) / "lenny.json"

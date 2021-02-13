@@ -28,7 +28,7 @@ def get_channels(db, conn):
     ).fetchall()
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
     new_cache = defaultdict(set)
     for row in db.execute(table.select()):

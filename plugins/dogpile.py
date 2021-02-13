@@ -17,7 +17,7 @@ HEADERS = {
 session = requests.Session()
 
 
-@hook.on_start
+@hook.on_start()
 def check_certs(bot):
     try:
         with requests.get(search_url):

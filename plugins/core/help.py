@@ -103,7 +103,7 @@ async def help_command(
         )
 
 
-@hook.command
+@hook.command()
 async def cmdinfo(text, bot, notice):
     """<command> - Gets various information about a command"""
     name = text.split()[0]

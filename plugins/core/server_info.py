@@ -12,7 +12,7 @@ DEFAULT_STATUS = (
 )
 
 
-@hook.on_start
+@hook.on_start()
 def do_isupport(bot):
     for conn in bot.connections.values():
         if conn.connected:
@@ -20,7 +20,7 @@ def do_isupport(bot):
             conn.send("VERSION")
 
 
-@hook.connect
+@hook.connect()
 def clear_isupport(conn):
     serv_info = conn.memory.setdefault("server_info", {})
     statuses = get_status_modes(serv_info, clear=True)

@@ -64,7 +64,7 @@ def test_hook_decorate():
     with pytest.raises(TypeError):
         hook.irc_raw(f)
 
-    @hook.sieve
+    @hook.sieve()
     def sieve_func(bot, event, _hook):
         pass  # pragma: no cover
 
@@ -76,25 +76,27 @@ def test_hook_decorate():
 
     assert "sieve" in sieve_func2._cloudbot_hook
 
-    @hook.on_connect
-    @hook.irc_out
-    @hook.post_hook
-    @hook.on_start
-    @hook.on_stop
+    @hook.on_connect()
+    @hook.irc_out()
+    @hook.post_hook()
+    @hook.on_start()
+    @hook.on_stop()
     def plain_dec(bot, event, _hook):
         pass  # pragma: no cover
 
-    assert "on_connect" in plain_dec._cloudbot_hook
-    assert "irc_out" in plain_dec._cloudbot_hook
-    assert "post_hook" in plain_dec._cloudbot_hook
-    assert "on_start" in plain_dec._cloudbot_hook
-    assert "on_stop" in plain_dec._cloudbot_hook
+    assert sorted(plain_dec._cloudbot_hook.keys()) == [
+        "irc_out",
+        "on_connect",
+        "on_start",
+        "on_stop",
+        "post_hook",
+    ]
 
 
 def test_command_hook_doc():
     from cloudbot import hook
 
-    @hook.command
+    @hook.command()
     def test(bot):
         """<arg> - foo
         bar
@@ -105,7 +107,7 @@ def test_command_hook_doc():
     cmd_hook = test._cloudbot_hook["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
-    @hook.command
+    @hook.command()
     def test1(bot):
         """<arg> - foo bar baz
 
@@ -114,14 +116,14 @@ def test_command_hook_doc():
     cmd_hook = test1._cloudbot_hook["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
-    @hook.command
+    @hook.command()
     def test2(bot):
         """<arg> - foo bar baz"""
 
     cmd_hook = test2._cloudbot_hook["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
-    @hook.command
+    @hook.command()
     def test3(bot):
         """
         <arg> - foo bar baz
@@ -130,7 +132,7 @@ def test_command_hook_doc():
     cmd_hook = test3._cloudbot_hook["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
-    @hook.command
+    @hook.command()
     def test4(bot):
         """<arg> - foo bar baz"""
 

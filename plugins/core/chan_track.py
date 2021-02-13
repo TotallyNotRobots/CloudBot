@@ -376,7 +376,7 @@ def is_cap_available(conn, cap):
     return bool(caps.get(cap, False))
 
 
-@hook.on_start
+@hook.on_start()
 def get_chan_data(bot: cloudbot.bot.CloudBot):
     """
     :type bot: cloudbot.bot.CloudBot
@@ -423,7 +423,7 @@ def clean_data(bot):
         clean_conn_data(conn)
 
 
-@hook.connect
+@hook.connect()
 def init_chan_data(conn, _clear=True):
     """
     :type conn: cloudbot.client.Client

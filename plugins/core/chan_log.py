@@ -172,7 +172,7 @@ def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
         yield "{} = {!r}".format(k, v)
 
 
-@hook.post_hook
+@hook.post_hook()
 def on_hook_end(error, launched_hook, launched_event, admin_log):
     if error is None:
         return

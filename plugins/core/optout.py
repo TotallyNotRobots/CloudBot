@@ -159,7 +159,7 @@ def clear_optout(db, conn, chan=None):
     return res.rowcount
 
 
-@hook.onload
+@hook.onload()
 def load_cache(db):
     new_cache = defaultdict(list)
     for row in db.execute(optout_table.select()):
@@ -202,7 +202,7 @@ def optout_sieve(bot, event, _hook):
     return event
 
 
-@hook.command
+@hook.command()
 async def optout(text, event, chan, db, conn):
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current
     channel if not specified
@@ -243,7 +243,7 @@ async def optout(text, event, chan, db, conn):
     )
 
 
-@hook.command
+@hook.command()
 async def deloptout(text, event, chan, db, conn):
     """[chan] <pattern> - Delete global optout hooks matching <pattern> in [chan], or the current channel if not
     specified"""

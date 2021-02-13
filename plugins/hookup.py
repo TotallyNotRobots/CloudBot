@@ -23,7 +23,7 @@ seen_table = table(
 )
 
 
-@hook.on_start
+@hook.on_start()
 def load_data(bot):
     hookups.clear()
     with codecs.open(

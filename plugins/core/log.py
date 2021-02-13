@@ -297,7 +297,7 @@ def flush_log():
         stream.flush()
 
 
-@hook.on_stop
+@hook.on_stop()
 def close_logs():
     for _, stream in stream_cache.values():
         stream.flush()

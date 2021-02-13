@@ -9,7 +9,7 @@ from cloudbot.util import formatting, web
 search_url = "http://search.atomz.com/search/?sp_a=00062d45-sp00000000"
 
 
-@hook.command
+@hook.command()
 def snopes(text):
     """<topic> - Searches snopes for an urban legend about <topic>."""
 

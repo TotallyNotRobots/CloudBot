@@ -107,25 +107,25 @@ def capitalize(text):
     return ". ".join([sentence.capitalize() for sentence in text.split(". ")])
 
 
-@hook.command
+@hook.command()
 def upper(text):
     """<string> - Convert string to uppercase."""
     return text.upper()
 
 
-@hook.command
+@hook.command()
 def lower(text):
     """<string> - Convert string to lowercase."""
     return text.lower()
 
 
-@hook.command
+@hook.command()
 def titlecase(text):
     """<string> - Convert string to title case."""
     return text.title()
 
 
-@hook.command
+@hook.command()
 def swapcase(text):
     """<string> - Swaps the capitalization of <string>."""
     return text.swapcase()
@@ -186,14 +186,14 @@ def base64_check(text):
         return "'{}' is a valid base64 encoded string".format(text)
 
 
-@hook.command
+@hook.command()
 def unescape(text):
     """<string> - Unicode unescapes <string>."""
     decoder = codecs.getdecoder("unicode_escape")
     return " ".join(decoder(text)[0].splitlines())
 
 
-@hook.command
+@hook.command()
 def escape(text):
     """<string> - Unicode escapes <string>."""
     encoder = codecs.getencoder("unicode_escape")
@@ -203,7 +203,7 @@ def escape(text):
 # length
 
 
-@hook.command
+@hook.command()
 def length(text):
     """<string> - Gets the length of <string>"""
     return "The length of that string is {} characters.".format(len(text))
@@ -212,7 +212,7 @@ def length(text):
 # reverse
 
 
-@hook.command
+@hook.command()
 def reverse(text):
     """<string> - Reverses <string>."""
     return text[::-1]
@@ -233,13 +233,13 @@ def hash_command(text):
 # novelty
 
 
-@hook.command
+@hook.command()
 def munge(text):
     """<text> - Munges up <text>."""
     return formatting.munge(text)
 
 
-@hook.command
+@hook.command()
 def leet(text):
     """<text> - Makes <text> more 1337h4x0rz."""
     output = "".join(
@@ -250,7 +250,7 @@ def leet(text):
 
 
 # Based on plugin by FurCode - <https://github.com/FurCode/RoboCop2>
-@hook.command
+@hook.command()
 def derpify(text):
     """<text> - returns some amusing responses from your input."""
     string = text.upper()
@@ -303,14 +303,14 @@ def derpify(text):
 
 
 # colors
-@hook.command
+@hook.command()
 def color_parse(text):
     """<text> - Parse colors and formatting in <text> using $(thing) syntax"""
     return colors.parse(text)
 
 
 # colors - based on code by Reece Selwood - <https://github.com/hitzler/homero>
-@hook.command
+@hook.command()
 def rainbow(text):
     """<text> - Gives <text> rainbow colors."""
     text = str(text)
@@ -326,7 +326,7 @@ def rainbow(text):
     return out
 
 
-@hook.command
+@hook.command()
 def wrainbow(text):
     """<text> - Gives each word in <text> rainbow colors."""
     text = str(text)
@@ -339,7 +339,7 @@ def wrainbow(text):
     return " ".join(out)
 
 
-@hook.command
+@hook.command()
 def usa(text):
     """<text> - Makes <text> more patriotic."""
     text = strip(text)
@@ -351,7 +351,7 @@ def usa(text):
     return out
 
 
-@hook.command
+@hook.command()
 def superscript(text):
     """<text> - Makes <text> superscript."""
     regular = "abcdefghijklmnoprstuvwxyzABDEGHIJKLMNOPRTUVW0123456789+-=()"

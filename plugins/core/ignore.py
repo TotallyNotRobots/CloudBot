@@ -30,7 +30,7 @@ table = Table(
 ignore_cache: List[Tuple[str, str, str]] = []
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
     """
     :type db: sqlalchemy.orm.Session

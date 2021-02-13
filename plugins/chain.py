@@ -20,7 +20,7 @@ commands = Table(
 allow_cache: Dict[str, bool] = {}
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
     new_cache = {}
     for row in db.execute(commands.select()):
@@ -146,7 +146,7 @@ def wrap_event(_hook, event, cmd, args):
     return cmd_event
 
 
-@hook.command
+@hook.command()
 async def chain(text, bot, event):
     """<cmd1> [args...] | <cmd2> [args...] | ... - Runs commands in a chain, piping the output from previous commands
     to tne next"""

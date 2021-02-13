@@ -53,7 +53,7 @@ flippers = ["( ﾉ⊙︵⊙）ﾉ", "(╯°□°）╯", "( ﾉ♉︵♉ ）ﾉ"
 table_flipper = "┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻"
 
 
-@hook.command
+@hook.command()
 def flip(text, reply, message, chan):
     """<text> - Flips <text> over."""
     if USE_FLIPPERS:
@@ -83,7 +83,7 @@ def flip(text, reply, message, chan):
         reply(formatting.multi_replace(text[::-1], replacements))
 
 
-@hook.command
+@hook.command()
 def table(text, message):
     """<text> - (╯°□°）╯︵ <ʇxǝʇ>"""
     message(
@@ -93,7 +93,7 @@ def table(text, message):
     )
 
 
-@hook.command
+@hook.command()
 def fix(text, reply, message, chan):
     """<text> - fixes a flipped over table. ┬─┬ノ(ಠ_ಠノ)"""
     if text in ["table", "tables"]:

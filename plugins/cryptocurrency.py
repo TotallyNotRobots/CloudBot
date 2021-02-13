@@ -566,7 +566,7 @@ def get_plugin_config(conf, name, default):
         return default
 
 
-@hook.onload
+@hook.onload()
 def init_api(bot):
     api.api_key = bot.config.get_api_key("coinmarketcap")
 

@@ -9,7 +9,7 @@ def get_latest_line(conn, chan, nick):
     return None
 
 
-@hook.command
+@hook.command()
 def mock(text, chan, conn, message):
     """<nick> - turn <user>'s last message in to aLtErNaTiNg cApS"""
     nick = text.strip()

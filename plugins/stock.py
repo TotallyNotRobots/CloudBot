@@ -98,13 +98,13 @@ def format_money(n):
     return "{:,.2f}{}".format(n, c)
 
 
-@hook.on_start
+@hook.on_start()
 def setup_api(bot):
     api.api_key = bot.config.get_api_key("alphavantage")
     api.user_agent = bot.user_agent
 
 
-@hook.command
+@hook.command()
 def stock(text):
     """<symbol> - Get stock information from the AlphaVantage API"""
     if not api:

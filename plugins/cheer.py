@@ -10,7 +10,7 @@ cheer_re = re.compile(r"\\o/", re.IGNORECASE)
 cheers: List[str] = []
 
 
-@hook.on_start
+@hook.on_start()
 def load_cheers(bot):
     cheers.clear()
     data_file = Path(bot.data_dir) / "cheers.txt"

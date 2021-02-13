@@ -49,7 +49,7 @@ user_join: Dict[str, Dict[str, ChannelData]] = defaultdict(
 herald_cache: Dict[str, Dict[str, str]] = defaultdict(dict)
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
     new_cache = defaultdict(dict)
     for row in db.execute(table.select()):

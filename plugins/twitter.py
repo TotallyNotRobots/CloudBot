@@ -71,7 +71,7 @@ IGNORE_ERRORS = [
 ]
 
 
-@hook.on_start
+@hook.on_start()
 def set_api(bot):
     container.api = make_api(bot)
 

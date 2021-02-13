@@ -1,6 +1,7 @@
 import collections
 import inspect
 import re
+import warnings
 from enum import Enum, IntEnum, unique
 
 from cloudbot.event import EventType
@@ -241,6 +242,12 @@ def _get_hook(func, hook_type):
     return None
 
 
+def _hook_warn():
+    warnings.warn(
+        "Direct decorators are deprecated", DeprecationWarning, stacklevel=3
+    )
+
+
 def command(*args, **kwargs):
     """External command decorator. Can be used directly as a decorator, or with args to return a decorator.
     :type param: str | list[str] | function
@@ -255,9 +262,9 @@ def command(*args, **kwargs):
         hook.add_hook(alias_param, kwargs)
         return func
 
-    if len(args) == 1 and callable(
-        args[0]
-    ):  # this decorator is being used directly
+    if len(args) == 1 and callable(args[0]):
+        # this decorator is being used directly
+        _hook_warn()
         return _command_hook(args[0])
 
     # this decorator is being used indirectly, so return a decorator function
@@ -361,6 +368,7 @@ def sieve(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _sieve_hook(param)
 
     return _sieve_hook
@@ -426,6 +434,7 @@ def on_start(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _on_start_hook(param)
 
     return _on_start_hook
@@ -449,6 +458,7 @@ def on_stop(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _on_stop_hook(param)
 
     return _on_stop_hook
@@ -501,6 +511,7 @@ def on_connect(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _on_connect_hook(param)
 
     return _on_connect_hook
@@ -520,6 +531,7 @@ def irc_out(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _decorate(param)
 
     return _decorate
@@ -540,6 +552,7 @@ def post_hook(param=None, **kwargs):
         return func
 
     if callable(param):
+        _hook_warn()
         return _decorate(param)
 
     return _decorate
