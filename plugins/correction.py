@@ -24,9 +24,8 @@ def correction(match, conn, nick, chan, message):
             find, replace
         )
 
-    if (
-        not find.strip()
-    ):  # Replacing empty or entirely whitespace strings is spammy
+    if not find.strip():
+        # Replacing empty or entirely whitespace strings is spammy
         return "really dude? you want me to replace nothing with {}?".format(
             replace
         )

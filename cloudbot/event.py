@@ -303,9 +303,8 @@ class Event(Mapping[str, Any]):
 
             target = self.chan
 
-        if (
-            not messages
-        ):  # if there are no messages specified, don't do anything
+        if not messages:
+            # if there are no messages specified, don't do anything
             return
 
         if target == self.nick or not reply_ping:

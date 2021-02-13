@@ -126,9 +126,8 @@ isupport_handlers = {
 def on_isupport(conn, irc_paramlist):
     serv_info = get_server_info(conn)
     token_data = serv_info["isupport_tokens"]
-    tokens = irc_paramlist[
-        1:-1
-    ]  # strip the nick and trailing ':are supported by this server' message
+    # strip the nick and trailing ':are supported by this server' message
+    tokens = irc_paramlist[1:-1]
     for token in tokens:
         name, _, value = token.partition("=")
         name = name.upper()

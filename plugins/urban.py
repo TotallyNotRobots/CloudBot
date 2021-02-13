@@ -69,9 +69,8 @@ def urban(text, reply):
         try:
             definition = definitions[id_num - 1]
 
-            def_text = " ".join(
-                definition["definition"].split()
-            )  # remove excess spaces
+            # remove excess spaces
+            def_text = " ".join(definition["definition"].split())
             def_text = formatting.truncate(def_text, 200)
         except IndexError:
             return "Not found."
@@ -85,9 +84,8 @@ def urban(text, reply):
     else:
         definition = random.choice(definitions)
 
-        def_text = " ".join(
-            definition["definition"].split()
-        )  # remove excess spaces
+        # remove excess spaces
+        def_text = " ".join(definition["definition"].split())
         def_text = formatting.truncate(def_text, 200)
 
         name = definition["word"]

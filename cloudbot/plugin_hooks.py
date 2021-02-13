@@ -110,13 +110,11 @@ class CommandHook(Hook):
         self.auto_help = auto_help
 
         self.name = cmd_hook.main_alias.lower()
-        self.aliases = [
-            alias.lower() for alias in cmd_hook.aliases
-        ]  # turn the set into a list
+        # turn the set into a list
+        self.aliases = [alias.lower() for alias in cmd_hook.aliases]
         self.aliases.remove(self.name)
-        self.aliases.insert(
-            0, self.name
-        )  # make sure the name, or 'main alias' is in position 0
+        # make sure the name, or 'main alias' is in position 0
+        self.aliases.insert(0, self.name)
         self.doc = cmd_hook.doc
 
     def __repr__(self):

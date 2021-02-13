@@ -387,9 +387,8 @@ class IrcClient(Client):
         :type command: str
         :type params: (str)
         """
-        params = list(
-            map(str, params)
-        )  # turn the tuple of parameters into a list
+        # turn the tuple of parameters into a list
+        params = list(map(str, params))
         self.send(str(Message(None, None, command, params)))
 
     def send(self, line, log=True):

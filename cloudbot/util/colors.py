@@ -105,9 +105,8 @@ def get_color(colour, return_formatted=True):
 
     if colour == "random":  # Special keyword for a random colour
         rand = randint(0, 15)
-        if (
-            rand < 10
-        ):  # Prepend '0' before colour so it always is double digits.
+        if rand < 10:
+            # Prepend '0' before colour so it always is double digits.
             rand = "0" + str(rand)
         rand = str(rand)
 

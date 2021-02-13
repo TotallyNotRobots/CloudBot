@@ -24,11 +24,12 @@ class Priority(IntEnum):
 class Action(Enum):
     """Defines the action to take after executing a hook"""
 
-    HALTTYPE = (
-        0  # Once this hook executes, no other hook of that type should run
-    )
-    HALTALL = 1  # Once this hook executes, No other hook should run
-    CONTINUE = 2  # Normal execution of all hooks
+    # Once this hook executes, no other hook of that type should run
+    HALTTYPE = 0
+    # Once this hook executes, No other hook should run
+    HALTALL = 1
+    # Normal execution of all hooks
+    CONTINUE = 2
 
 
 class _Hook:
@@ -285,9 +286,8 @@ def irc_raw(triggers_param, **kwargs):
         hook.add_hook(triggers_param, kwargs)
         return func
 
-    if callable(
-        triggers_param
-    ):  # this decorator is being used directly, which isn't good
+    if callable(triggers_param):
+        # this decorator is being used directly, which isn't good
         raise TypeError(
             "@irc_raw() must be used as a function that returns a decorator"
         )
@@ -310,9 +310,8 @@ def event(types_param, **kwargs):
         hook.add_hook(types_param, kwargs)
         return func
 
-    if callable(
-        types_param
-    ):  # this decorator is being used directly, which isn't good
+    if callable(types_param):
+        # this decorator is being used directly, which isn't good
         raise TypeError(
             "@irc_raw() must be used as a function that returns a decorator"
         )
@@ -336,9 +335,8 @@ def regex(regex_param, **kwargs):
         hook.add_hook(regex_param, kwargs)
         return func
 
-    if callable(
-        regex_param
-    ):  # this decorator is being used directly, which isn't good
+    if callable(regex_param):
+        # this decorator is being used directly, which isn't good
         raise TypeError(
             "@regex() hook must be used as a function that returns a decorator"
         )
@@ -359,9 +357,8 @@ def sieve(param=None, **kwargs):
 
         hook = _get_hook(func, "sieve")
         if hook is None:
-            hook = _Hook(
-                func, "sieve"
-            )  # there's no need to have a specific SieveHook object
+            # there's no need to have a specific SieveHook object
+            hook = _Hook(func, "sieve")
             _add_hook(func, hook)
 
         hook._add_hook(kwargs)
@@ -388,9 +385,8 @@ def periodic(interval, **kwargs):
         hook.add_hook(interval, kwargs)
         return func
 
-    if callable(
-        interval
-    ):  # this decorator is being used directly, which isn't good
+    if callable(interval):
+        # this decorator is being used directly, which isn't good
         raise TypeError(
             "@periodic() hook must be used as a function that returns a decorator"
         )

@@ -179,6 +179,5 @@ async def on_invalid_nick(conn):
     nick = conn.config["nick"]
     conn.nick = nick
     conn.cmd("NICK", conn.nick)
-    await asyncio.sleep(
-        30
-    )  # Just in case, we make sure to wait at least 30 seconds between sending this
+    # Just in case, we make sure to wait at least 30 seconds between sending this
+    await asyncio.sleep(30)

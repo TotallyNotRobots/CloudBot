@@ -432,10 +432,11 @@ def lastfmcompare(text, nick):
         ("High", 60),
         ("Medium", 40),
         ("Low", 10),
+        # Everything is > -math.inf so this acts as an `else:`
         (
             "Very Low",
             -math.inf,
-        ),  # Everything is > -math.inf so this acts as an `else:`
+        ),
     )
     level = ""
     for name, threshold in levels:

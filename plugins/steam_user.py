@@ -79,9 +79,8 @@ def get_data(user):
     except AttributeError as e:
         raise SteamError("Could not get data for this user.") from e
 
-    online_state = online_state.replace(
-        "<br/>", ": "
-    )  # will make this pretty later
+    # will make this pretty later
+    online_state = online_state.replace("<br/>", ": ")
     data["state"] = formatting.strip_html(online_state)
 
     data["id_32"] = convert_id32(data["id_64"])

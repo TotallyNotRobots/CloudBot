@@ -360,9 +360,8 @@ def _hydrate_object(_value, _cls):
                 for k, v in _value.items()
             }
 
-        raise TypeError(
-            "Can't match typing alias {!r}".format(typing_cls)
-        )  # pragma: no cover
+        # pragma: no cover
+        raise TypeError("Can't match typing alias {!r}".format(typing_cls))
 
     _assert_type(_value, _cls)
 
