@@ -74,9 +74,6 @@ last_cache: Dict[str, str] = {}
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = {}
     for row in db.execute(table.select()):
         nick = row["nick"]
@@ -248,7 +245,7 @@ def lastfm(event, db, text, nick):
         user = get_account(nick)
         if not user:
             event.notice_doc()
-            return
+            return None
 
     response, err = api_request("user.getrecenttracks", user=user, limit=1)
     if err:
@@ -340,7 +337,7 @@ def getuserartistplaycount(event, text, nick):
     user = get_account(nick)
     if not user:
         event.notice_doc()
-        return
+        return None
 
     artist_info = getartistinfo(text, user)
 

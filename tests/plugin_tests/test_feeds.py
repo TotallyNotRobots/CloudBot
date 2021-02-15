@@ -1,18 +1,9 @@
-from unittest.mock import patch
-
-import pytest
 from feedparser import FeedParserDict
 
-
-@pytest.fixture()
-def mock_feedparse():
-    with patch("feedparser.parse") as mock:
-        yield mock
+from plugins import feeds
 
 
 def test_feeds(mock_feedparse, patch_try_shorten):
-    from plugins import feeds
-
     mock_feedparse.return_value = FeedParserDict(
         entries=[],
     )

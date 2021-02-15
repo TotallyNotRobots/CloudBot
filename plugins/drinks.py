@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
-from cloudbot.util import web
+from cloudbot.util import formatting, web
 
 drink_data: List[Dict[str, Any]] = []
 
@@ -25,17 +25,16 @@ def drink_cmd(text, chan, action):
     url = web.try_shorten(drink_data[index]["url"])
     if drink.endswith(" recipe"):
         drink = drink[:-7]
+
     contents = drink_data[index]["ingredients"]
-    out = "grabs some"
-    for x in contents:
-        if x == contents[len(contents) - 1]:
-            out += " and {}".format(x)
-        else:
-            out += " {},".format(x)
+    out = "grabs some "
+    out += formatting.get_text_list(contents, "and")
+
     if drink[0].lower() in ["a", "e", "i", "o", "u"]:
         article = "an"
     else:
         article = "a"
+
     out += "\x0F and makes {} {} \x02{}\x02. {}".format(
         text, article, drink, url
     )

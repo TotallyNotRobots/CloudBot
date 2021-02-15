@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import socket
 from asyncio import CancelledError
 from typing import Any, Dict
@@ -12,13 +11,6 @@ from cloudbot.client import ClientConnectError
 from cloudbot.event import Event, EventType
 from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock
-
-
-@pytest.fixture()
-def caplog_bot(caplog):
-    caplog.set_level(logging.WARNING, "asyncio")
-    caplog.set_level(0)
-    yield caplog
 
 
 def make_mock_conn(event_loop, *, name="testconn"):

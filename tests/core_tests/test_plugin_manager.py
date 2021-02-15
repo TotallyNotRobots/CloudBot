@@ -1,7 +1,7 @@
 import itertools
 import logging
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import Column, String, Table
@@ -30,7 +30,7 @@ def test_get_plugin(mock_manager):
     assert mock_manager.get_plugin("plugins/test.py") is None
     assert mock_manager.find_plugin("test") is None
 
-    file_path = Path("plugins").resolve() / "test.py"
+    file_path = mock_manager.bot.plugin_dir / "test.py"
     file_name = file_path.name
 
     obj = Plugin(
@@ -42,12 +42,16 @@ def test_get_plugin(mock_manager):
 
     mock_manager._add_plugin(obj)
 
-    assert mock_manager.get_plugin("plugins/test.py") is obj
+    assert (
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is obj
+    )
     assert mock_manager.find_plugin("test") is obj
 
     mock_manager._rem_plugin(obj)
 
-    assert mock_manager.get_plugin("plugins/test.py") is None
+    assert (
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is None
+    )
     assert mock_manager.find_plugin("test") is None
 
 
@@ -109,39 +113,33 @@ def test_can_load(mock_manager):
     assert mock_manager.can_load("plugins.foo")
 
 
-@pytest.fixture()
-def patch_import_module():
-    with patch("importlib.import_module") as mocked:
-        yield mocked
-
-
-@pytest.fixture()
-def patch_import_reload():
-    with patch("importlib.reload") as mocked:
-        yield mocked
-
-
 def test_plugin_load(mock_manager, patch_import_module, patch_import_reload):
     patch_import_module.return_value = mod = MockModule()
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin("plugins/test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
     )
     patch_import_module.assert_called_once_with("plugins.test")
     patch_import_reload.assert_not_called()
-    assert mock_manager.get_plugin("plugins/test.py").code is mod
+    assert (
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py").code
+        is mod
+    )
 
     patch_import_module.reset_mock()
 
     patch_import_reload.return_value = newmod = MockModule()
 
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin("plugins/test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
     )
 
     patch_import_module.assert_called_once_with("plugins.test")
     patch_import_reload.assert_called_once_with(mod)
 
-    assert mock_manager.get_plugin("plugins/test.py").code is newmod
+    assert (
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py").code
+        is newmod
+    )
 
 
 class WeirdObject:
@@ -160,7 +158,7 @@ def _test_weird_obj(patch_import_module, mock_manager, weird_obj):
     patch_import_module.return_value = MockModule(some_import=weird_obj)
 
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin("plugins/test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
     )
 
 
@@ -212,14 +210,16 @@ def test_plugin_load_disabled(
     )
     assert (
         mock_manager.bot.loop.run_until_complete(
-            mock_manager.load_plugin("plugins/test.py")
+            mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
         )
         is None
     )
 
     patch_import_module.assert_not_called()
     patch_import_reload.assert_not_called()
-    assert mock_manager.get_plugin("plugins/test.py") is None
+    assert (
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is None
+    )
 
 
 class TestPluginLoad:
@@ -566,7 +566,9 @@ async def test_launch(
 
     patch_import_module.return_value = mod
 
-    await mock_manager.load_plugin("plugins/test.py")
+    await mock_manager.load_plugin(
+        mock_manager.bot.base_dir / "plugins/test.py"
+    )
 
     from cloudbot.event import CommandEvent
 

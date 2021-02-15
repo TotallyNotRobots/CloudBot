@@ -6,10 +6,6 @@ from cloudbot.event import EventType
 
 
 def track_history(event, message_time, conn):
-    """
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    """
     try:
         history = conn.history[event.chan]
     except KeyError:
@@ -24,10 +20,6 @@ def track_history(event, message_time, conn):
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def chat_tracker(event, conn):
-    """
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    """
     if event.type is EventType.action:
         event.content = "\x01ACTION {}\x01".format(event.content)
 
@@ -37,11 +29,7 @@ def chat_tracker(event, conn):
 
 @hook.command(autohelp=False)
 async def resethistory(event, conn):
-    """- resets chat history for the current channel
-
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    """
+    """- resets chat history for the current channel"""
     try:
         conn.history[event.chan].clear()
         return "Reset chat history for current channel."

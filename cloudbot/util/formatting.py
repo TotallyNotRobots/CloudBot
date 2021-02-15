@@ -136,7 +136,6 @@ class HTMLTextExtractor(HTMLParser):
 def strip_html(to_strip):
     """
     Takes HTML and returns cleaned and stripped text.
-    :rtype str
     """
     s = HTMLTextExtractor()
     s.feed(to_strip)
@@ -147,7 +146,6 @@ def munge(text, count=0):
     """
     Replaces characters in a string with visually similar characters to avoid pinging users in IRC.
     Count sets how many characters are replaced, defaulting to all characters.
-    :rtype str
     """
     reps = 0
     for n, c in enumerate(text):
@@ -178,7 +176,6 @@ def multi_replace(text, word_dic):
     """
     Takes a string and replace words that match a key in a dictionary with the associated value,
     then returns the changed text
-    :rtype str
     """
     rc = re.compile("|".join(map(re.escape, word_dic)))
 
@@ -195,7 +192,6 @@ multiword_replace = multi_replace
 def truncate_words(content, length=10, suffix="..."):
     """
     Truncates a string after a certain number of words.
-    :rtype str
     """
     split = content.split()
     if len(split) <= length:
@@ -208,7 +204,6 @@ def truncate(content, length=100, suffix="...", sep=" "):
     """
     Truncates a string after a certain number of characters.
     Function always tries to truncate on a word boundary.
-    :rtype str
     """
     if len(content) <= length:
         return content
@@ -224,7 +219,6 @@ strip_colors = strip_irc
 def chunk_str(content, length=420):
     """
     Chunks a string into smaller strings of given length. Returns chunks.
-    :rtype list
     """
 
     def chunk(c, l):
@@ -239,7 +233,6 @@ def chunk_str(content, length=420):
 def pluralize(num=0, text=""):  # pragma: no cover
     """
     Takes a number and a string, and pluralizes that string using the number and combines the results.
-    :rtype: str
     """
     warnings.warn(
         "formatting.pluralize() is deprecated, please use one of the other formatting.pluralize_*() functions",
@@ -251,7 +244,6 @@ def pluralize(num=0, text=""):  # pragma: no cover
 def pluralise(num=0, text=""):  # pragma: no cover
     """
     Takes a number and a string, and pluralizes that string using the number and combines the results.
-    :rtype: str
     """
     warnings.warn(
         "formatting.pluralise() is deprecated, please use one of the other formatting.pluralise_*() functions",
@@ -263,7 +255,6 @@ def pluralise(num=0, text=""):  # pragma: no cover
 def pluralize_suffix(num=0, text="", suffix="s"):
     """
     Takes a number and a string, and pluralizes that string using the number and combines the results.
-    :rtype: str
     """
     return pluralize_select(num, text, text + suffix)
 
@@ -310,11 +301,6 @@ pluralise_auto = pluralize_auto
 
 
 def dict_format(args, formats):
-    """
-    :type args: dict[unknown, unknown]
-    :type formats: list[str]
-    :rtype: str
-    """
     matches = {}
     for f in formats:
         try:

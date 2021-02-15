@@ -6,10 +6,10 @@ from cloudbot import hook
 
 def get_data(url, reply, bot, params=None):
     try:
-        r = requests.get(
+        with requests.get(
             url, headers={"User-Agent": bot.user_agent}, params=params
-        )
-        r.raise_for_status()
+        ) as r:
+            r.raise_for_status()
     except HTTPError:
         reply("API error occurred.")
         raise

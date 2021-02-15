@@ -21,7 +21,6 @@ def load_joke_file(path: Path) -> List[str]:
 def load_jokes(bot):
     """Load strings into memory from files in the data directory.
     Put 'NAME.txt' in `file_list` to make those strings available as `joke_lines['NAME']`.
-    :type bot: cloudbot.bot.Cloudbot
     """
     file_list = [
         "yo_momma.txt",

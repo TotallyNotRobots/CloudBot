@@ -133,6 +133,12 @@ class TimeUnit:
         self.long_name = long_name
         self.long_name_plural = long_name_plural
 
+    def __repr__(self):
+        fields = ("seconds", "short_name", "long_name", "long_name_plural")
+        return "TimeUnit({})".format(
+            ", ".join(f"{k}={getattr(self, k)!r}" for k in fields)
+        )
+
     def __mul__(self, other):
         return self.seconds * other
 
@@ -163,6 +169,9 @@ class TimeInterval:
             i += 1
             out.append(unit.format(num, simple=simple))
 
+        if not out:
+            out.append(TimeUnits.SECOND.format(0, simple=simple))
+
         if simple:
             return " ".join(out)
 
@@ -191,6 +200,8 @@ class TimeUnits:
                 p_val = 0
 
             out.append((p_val, unit))
+
+        out[-1] = (out[-1][0] + seconds, out[-1][1])
 
         return TimeInterval(out)
 

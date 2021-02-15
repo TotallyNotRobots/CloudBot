@@ -1,13 +1,15 @@
-import textwrap
+from itertools import product
 from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from cloudbot import config, hook
+from cloudbot import hook
 from cloudbot.bot import CloudBot, clean_name, get_cmd_regex
 from cloudbot.event import Event, EventType
 from cloudbot.hook import Action, Priority
 from cloudbot.plugin_hooks import CommandHook, ConfigHook, EventHook, RawHook
+from tests.util.async_mock import AsyncMock
+from tests.util.mock_config import MockConfig
 
 
 @pytest.mark.asyncio()
@@ -23,6 +25,24 @@ async def test_connect_clients(mock_bot_factory, event_loop):
     await CloudBot._init_routine(bot)
     assert load_mock.mock_calls == [call(bot.base_dir / "plugins")]
     conn.try_connect.assert_called()
+
+
+@pytest.mark.asyncio()
+async def test_start_plugin_reload(tmp_path):
+    bot = MagicMock()
+    bot.plugin_manager.load_all = AsyncMock()
+    bot.running = True
+    bot.plugin_reloading_enabled = True
+    bot.config_reloading_enabled = True
+    bot.connections = {}
+    bot.plugin_dir = plugin_dir = tmp_path / "plugins"
+    await CloudBot._init_routine(bot)
+    assert bot.mock_calls == [
+        call.plugin_manager.load_all(plugin_dir),
+        call.plugin_reloader.start(str(plugin_dir)),
+        call.config_reloader.start(),
+        call.observer.start(),
+    ]
 
 
 class MockConn:
@@ -361,25 +381,76 @@ def test_clean_name(text, result):
 def test_get_cmd_regex():
     event = Event(channel="TestUser", nick="TestUser", conn=MockConn("Bot"))
     regex = get_cmd_regex(event)
-    assert textwrap.dedent(regex.pattern) == textwrap.dedent(
-        r"""
-    ^
-    # Prefix or nick
-    (?:
-        (?P<prefix>[\.])?
-        |
-        Bot[,;:]+\s+
-    )
-    (?P<command>\w+)  # Command
-    (?:$|\s+)
-    (?P<text>.*)     # Text
-    """
+    assert (
+        regex.pattern
+        == r"""
+        ^
+        # Prefix or nick
+        (?:
+            (?P<prefix>[\.])?
+            |
+            Bot[,;:]+\s+
+        )
+        (?P<command>\w+)  # Command
+        (?:$|\s+)
+        (?P<text>.*)     # Text
+        """
     )
 
 
-class MockConfig(config.Config):
-    def load_config(self):
-        self.update(
+def config_mock(config):
+    def _make_config(bot):
+        conf = MockConfig(bot)
+        conf.update(config)
+        return conf
+
+    return _make_config
+
+
+@pytest.mark.parametrize(
+    "config_enabled,plugin_enabled", list(product([True, False], [True, False]))
+)
+def test_reloaders(
+    event_loop, tmp_path, config_enabled, plugin_enabled, unset_bot
+):
+    with patch(
+        "cloudbot.bot.Config",
+        new=config_mock(
+            {
+                "connections": [],
+                "reloading": {
+                    "plugin_reloading": plugin_enabled,
+                    "config_reloading": config_enabled,
+                },
+            }
+        ),
+    ):
+        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
+        assert bot.config_reloading_enabled is config_enabled
+        assert bot.plugin_reloading_enabled is plugin_enabled
+        bot.observer.stop()
+
+
+def test_set_error(event_loop, tmp_path, unset_bot):
+    with patch(
+        "cloudbot.bot.Config",
+        new=config_mock(
+            {
+                "connections": [],
+            }
+        ),
+    ):
+        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
+        with pytest.raises(ValueError):
+            CloudBot(loop=event_loop, base_dir=tmp_path)
+
+        bot.observer.stop()
+
+
+def test_load_clients(event_loop, tmp_path, unset_bot):
+    with patch(
+        "cloudbot.bot.Config",
+        new=config_mock(
             {
                 "connections": [
                     {
@@ -391,13 +462,14 @@ class MockConfig(config.Config):
                     }
                 ]
             }
-        )
-
-
-def test_load_clients():
-    with patch("cloudbot.bot.Config", new=MockConfig):
-        bot = CloudBot()
+        ),
+    ):
+        (tmp_path / "data").mkdir(exist_ok=True, parents=True)
+        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
         conn = bot.connections["foobar"]
         assert conn.nick == "TestBot"
         assert conn.type == "irc"
+        with pytest.deprecated_call():
+            assert bot.data_dir == str(tmp_path / "data")
+
         bot.observer.stop()

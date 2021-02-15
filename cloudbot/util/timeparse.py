@@ -100,6 +100,8 @@ def _interpret_as_minutes(string, mdict):
     >>> import pprint
     >>> pprint.pprint(_interpret_as_minutes('1:24', {'secs': '24', 'mins': '1'}))
     {'hours': '1', 'mins': '24'}
+    >>> pprint.pprint(_interpret_as_minutes('24:01', {'hours': '24', 'mins': '1', 'secs': '5'}))
+    {'hours': '24', 'mins': '1', 'secs': '5'}
     """
     has_keys = (
         mdict.get("hours") is None
@@ -151,6 +153,8 @@ def time_parse(string, granularity="seconds"):
     90
     >>> time_parse('1:30', granularity='minutes')
     5400
+    >>> time_parse('1:30:50', granularity='minutes')
+    5450
     """
     match = re.match(r"\s*" + SIGN + r"\s*(?P<unsigned>.*)$", string)
     sign = -1 if match.groupdict()["sign"] == "-" else 1
@@ -161,6 +165,7 @@ def time_parse(string, granularity="seconds"):
             mdict = match.groupdict()
             if granularity == "minutes":
                 mdict = _interpret_as_minutes(string, mdict)
+
             # if all of the fields are integer numbers
             if all(v.isdigit() for v in list(mdict.values()) if v):
                 return sign * sum(
@@ -192,3 +197,5 @@ def time_parse(string, granularity="seconds"):
                     if v is not None
                 ]
             )
+
+    return None

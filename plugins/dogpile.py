@@ -23,7 +23,7 @@ def check_certs(bot: CloudBot):
         with requests.get(search_url):
             pass
     except requests.exceptions.SSLError:
-        session.verify = bot.data_path / CERT_PATH
+        session.verify = str(bot.data_path / CERT_PATH)
     else:
         session.verify = None
 

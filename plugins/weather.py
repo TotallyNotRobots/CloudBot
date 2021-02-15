@@ -97,9 +97,6 @@ class LocationNotFound(Exception):
 def find_location(location, bias=None):
     """
     Takes a location as a string, and returns a dict of data
-    :param location: string
-    :param bias: The region to bias answers towards
-    :return: dict
     """
     results = data.maps_api.geocode(location, region=bias)
     if not results:
@@ -120,14 +117,13 @@ def add_location(nick, location, db):
             .values(loc=location.lower())
             .where(table.c.nick == nick.lower())
         )
-        db.commit()
-        load_cache(db)
     else:
         db.execute(
             table.insert().values(nick=nick.lower(), loc=location.lower())
         )
-        db.commit()
-        load_cache(db)
+
+    db.commit()
+    load_cache(db)
 
 
 @hook.on_start()
@@ -155,7 +151,7 @@ def get_location(nick):
     """looks in location_cache for a saved location"""
     location = [row[1] for row in location_cache if nick.lower() == row[0]]
     if not location:
-        return
+        return None
 
     location = location[0]
     return location
@@ -273,6 +269,8 @@ def weather(reply, db, triggered_prefix, event):
         )
     )
 
+    return None
+
 
 @hook.command("forecast", "fc", autohelp=False)
 def forecast(reply, db, event):
@@ -338,3 +336,4 @@ def forecast(reply, db, event):
             url=url,
         )
     )
+    return None

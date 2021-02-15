@@ -45,9 +45,6 @@ async def reconnect(conn, text, bot):
 
 @hook.periodic(120, singlethread=True)
 async def check_conns(bot):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
     for conn in bot.connections.values():
         if conn.active and not conn.connected:
             await do_reconnect(conn)

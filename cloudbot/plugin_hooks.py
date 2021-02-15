@@ -11,23 +11,10 @@ class Hook:
     """
     Each hook is specific to one function. This class is never used by itself,
     rather extended.
-
-    :type type; str
-    :type plugin: Plugin
-    :type function: callable
-    :type function_name: str
-    :type required_args: list[str]
-    :type threaded: bool
-    :type permissions: list[str]
-    :type single_thread: bool
     """
 
     def __init__(self, _type, plugin, func_hook):
-        """
-        :type _type: str
-        :type plugin: Plugin
-        :type func_hook: hook._Hook
-        """
+        """"""
         self.type = _type
         self.plugin = plugin
         self.function = func_hook.function
@@ -91,18 +78,7 @@ class Hook:
 
 
 class CommandHook(Hook):
-    """
-    :type name: str
-    :type aliases: list[str]
-    :type doc: str
-    :type auto_help: bool
-    """
-
     def __init__(self, plugin, cmd_hook):
-        """
-        :type plugin: Plugin
-        :type cmd_hook: cloudbot.util.hook._CommandHook
-        """
         auto_help = cmd_hook.kwargs.pop("autohelp", True)
 
         super().__init__("command", plugin, cmd_hook)
@@ -129,15 +105,7 @@ class CommandHook(Hook):
 
 
 class RegexHook(Hook):
-    """
-    :type regexes: set[re.__Regex]
-    """
-
     def __init__(self, plugin, regex_hook):
-        """
-        :type plugin: Plugin
-        :type regex_hook: cloudbot.util.hook._RegexHook
-        """
         run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
         only_no_match = regex_hook.kwargs.pop("only_no_match", False)
 
@@ -161,16 +129,7 @@ class RegexHook(Hook):
 
 
 class PeriodicHook(Hook):
-    """
-    :type interval: int
-    """
-
     def __init__(self, plugin, periodic_hook):
-        """
-        :type plugin: Plugin
-        :type periodic_hook: cloudbot.util.hook._PeriodicHook
-        """
-
         interval = periodic_hook.interval
         initial_interval = periodic_hook.kwargs.pop(
             "initial_interval", interval
@@ -193,15 +152,7 @@ class PeriodicHook(Hook):
 
 
 class RawHook(Hook):
-    """
-    :type triggers: set[str]
-    """
-
     def __init__(self, plugin, irc_raw_hook):
-        """
-        :type plugin: Plugin
-        :type irc_raw_hook: cloudbot.util.hook._RawHook
-        """
         super().__init__("irc_raw", plugin, irc_raw_hook)
 
         self.triggers = irc_raw_hook.triggers
@@ -222,10 +173,7 @@ class RawHook(Hook):
 
 class SieveHook(Hook):
     def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._SieveHook
-        """
+        """"""
         super().__init__("sieve", plugin, sieve_hook)
 
     def __repr__(self):
@@ -238,15 +186,7 @@ class SieveHook(Hook):
 
 
 class EventHook(Hook):
-    """
-    :type types: set[cloudbot.event.EventType]
-    """
-
     def __init__(self, plugin, event_hook):
-        """
-        :type plugin: Plugin
-        :type event_hook: cloudbot.util.hook._EventHook
-        """
         super().__init__("event", plugin, event_hook)
 
         self.types = event_hook.types
@@ -266,10 +206,7 @@ class EventHook(Hook):
 
 class OnStartHook(Hook):
     def __init__(self, plugin, on_start_hook):
-        """
-        :type plugin: Plugin
-        :type on_start_hook: cloudbot.util.hook._On_startHook
-        """
+        """"""
         super().__init__("on_start", plugin, on_start_hook)
 
     def __repr__(self):
@@ -323,10 +260,7 @@ class OnCapAckHook(CapHook):
 
 class OnConnectHook(Hook):
     def __init__(self, plugin, sieve_hook):
-        """
-        :type plugin: Plugin
-        :type sieve_hook: cloudbot.util.hook._Hook
-        """
+        """"""
         super().__init__("on_connect", plugin, sieve_hook)
 
     def __repr__(self):

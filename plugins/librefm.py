@@ -36,9 +36,6 @@ def api_request(method, **params):
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = []
     for row in db.execute(table.select()):
         nick = row["nick"]
@@ -53,7 +50,7 @@ def get_account(nick):
     """looks in last_cache for the libre.fm account name"""
     last_account = [row[1] for row in last_cache if nick.lower() == row[0]]
     if not last_account:
-        return
+        return None
 
     last_account = last_account[0]
     return last_account
@@ -74,7 +71,7 @@ def librefm(text, nick, db, event):
         user = get_account(nick)
         if not user:
             event.notice_doc()
-            return
+            return None
 
     response, err = api_request("user.getrecenttracks", user=user, limit=1)
     if err:
@@ -109,7 +106,7 @@ def librefm(text, nick, db, event):
             status = "is listening to"
             ending = "."
         else:
-            return
+            return None
 
     elif isinstance(tracks, dict):
         track = tracks

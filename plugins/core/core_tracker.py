@@ -29,10 +29,6 @@ def bot_joined_channel(conn, chan):
 
 @hook.irc_raw("KICK")
 async def on_kick(conn, chan, target, loop):
-    """
-    :type conn: cloudbot.client.Client
-    :type chan: str
-    """
     # if the bot has been kicked, remove from the channel list
     if target == conn.nick:
         bot_left_channel(conn, chan)
@@ -49,11 +45,6 @@ async def on_kick(conn, chan, target, loop):
 
 @hook.irc_raw("NICK")
 async def on_nick(irc_paramlist, conn, nick):
-    """
-    :type irc_paramlist: list[str]
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    """
     old_nick = nick
     new_nick = str(irc_paramlist[0])
 
@@ -71,21 +62,11 @@ async def on_nick(irc_paramlist, conn, nick):
 # mostly when using a BNC which saves channels
 @hook.irc_raw("JOIN")
 async def on_join(conn, chan, nick):
-    """
-    :type conn: cloudbot.client.Client
-    :type chan: str
-    :type nick: str
-    """
     if nick == conn.nick:
         bot_joined_channel(conn, chan)
 
 
 @hook.irc_raw("PART")
 async def on_part(conn, chan, nick):
-    """
-    :type conn: cloudbot.client.Client
-    :type chan: str
-    :type nick: str
-    """
     if nick == conn.nick:
         bot_left_channel(conn, chan)

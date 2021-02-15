@@ -11,9 +11,6 @@ formats = {
 
 
 def format_domain(domain):
-    """
-    :type domain: dict[str, str]
-    """
     if domain["availability"] in formats:
         domainformat = formats[domain["availability"]]
     else:
@@ -23,10 +20,7 @@ def format_domain(domain):
 
 @hook.command("domain", "domainr")
 def domainr(text):
-    """<domain> - uses domain.nr's API to search for a domain, and similar domains
-
-    :type text: str
-    """
+    """<domain> - uses domain.nr's API to search for a domain, and similar domains"""
     try:
         data = http.get_json("http://domai.nr/api/json/search?q=" + text)
     except (URLError, HTTPError):

@@ -3,13 +3,12 @@ import random
 import requests
 
 from cloudbot import hook
-from cloudbot.bot import bot
 
 api_url = "http://api.giphy.com/v1/gifs"
 
 
 @hook.command("gif", "giphy")
-def giphy(text):
+def giphy(text, bot):
     """<query> - Searches giphy.com for a gif using the provided search term."""
     api_key = bot.config.get_api_key("giphy")
     term = text.strip()
@@ -20,6 +19,7 @@ def giphy(text):
     r = results.json()
     if not r["data"]:
         return "no results found."
+
     gif = random.choice(r["data"])
     if gif["rating"]:
         out = "{} content rating: \x02{}\x02. (Powered by GIPHY)".format(
@@ -27,4 +27,5 @@ def giphy(text):
         )
     else:
         out = "{} - (Powered by GIPHY)".format(gif["embed_url"])
+
     return out

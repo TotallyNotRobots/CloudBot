@@ -72,9 +72,6 @@ def load_template_data(bot, filename, data_dict):
 
 @hook.on_start()
 def load_foods(bot):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
     basic_food_data.clear()
 
     for food in BASIC_FOOD:
@@ -108,6 +105,7 @@ def basic_food(food):
             return "I can't give {} to that user.".format(food.unit)
 
         action(basic_format(nick, text, basic_food_data[food.name]))
+        return None
 
     func.__name__ = food.name
     func.__doc__ = "<user> - gives {} to [user]".format(food.unit)

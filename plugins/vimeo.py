@@ -14,7 +14,7 @@ def vimeo_url(match):
     data = http.get_json(api_url.format(id=video_id))
 
     if not data:
-        return
+        return None
 
     info = data[0]
 

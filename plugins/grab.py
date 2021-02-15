@@ -32,9 +32,6 @@ logger = logging.getLogger("cloudbot")
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = {}
     for row in db.execute(table.select().order_by(table.c.time)):
         name = row["name"].lower()
@@ -79,7 +76,8 @@ def grab_add(nick, time, msg, chan, db):
 
 
 def get_latest_line(conn, chan, nick):
-    for name, timestamp, msg in reversed(conn.history[chan]):
+    history = conn.history.get(chan, [])
+    for name, timestamp, msg in reversed(history):
         if nick.casefold() == name.casefold():
             return name, timestamp, msg
 
@@ -142,10 +140,12 @@ def lastgrab(text, chan, message):
         with cache_lock:
             lgrab = grab_cache[chan][text.lower()][-1]
     except (KeyError, IndexError):
-        return "<{}> has never been grabbed.".format(text)
+        return "{} has never been grabbed.".format(text)
+
     if lgrab:
-        quote = lgrab
-        message(format_grab(text, quote), chan)
+        message(format_grab(text, lgrab), chan)
+
+    return None
 
 
 @hook.command("grabrandom", "grabr", autohelp=False)
@@ -180,6 +180,7 @@ def grabrandom(text, chan, message):
     name, quote_text = random.choice(matching_quotes)
 
     message(format_grab(name, quote_text))
+    return None
 
 
 @hook.command("grabsearch", "grabs", autohelp=False)

@@ -54,7 +54,7 @@ def update_score(nick, chan, thing, score, db):
     )
     karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
     if karma:
-        score += int(karma[0])
+        score += karma["score"]
         query = karma_table.update().values(score=score).where(clause)
     else:
         query = karma_table.insert().values(
@@ -212,6 +212,8 @@ def do_list(text, db, chan, loved=True):
             "{} with {} points".format(thing[0], thing[1]) for thing in sorts
         )
         return out
+
+    return None
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)

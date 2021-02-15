@@ -62,7 +62,6 @@ confidence=
 # --disable=W".
 disable=invalid-name,
         missing-docstring,
-        inconsistent-return-statements,
         redefined-outer-name,
         unused-argument,
         broad-except,

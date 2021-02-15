@@ -16,6 +16,11 @@ def test_yell_check():
     )
     conn.cmd.reset_mock()
 
+    yell_check(conn, "#yelling", "AAAAAAAAAAAAAAAAA", bot, "testuser")
+
+    conn.cmd.assert_not_called()
+    conn.cmd.reset_mock()
+
     yell_check(conn, "#yelling", "11", bot, "testuser")
 
     conn.cmd.assert_not_called()

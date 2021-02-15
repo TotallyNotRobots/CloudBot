@@ -9,10 +9,7 @@ from cloudbot.util.http import parse_soup
 
 @hook.command("down", "offline", "up")
 def down(text):
-    """<url> - checks if <url> is online or offline
-
-    :type text: str
-    """
+    """<url> - checks if <url> is online or offline"""
 
     if "://" not in text:
         text = "http://" + text
@@ -30,10 +27,7 @@ def down(text):
 
 @hook.command()
 def isup(text):
-    """<url> - uses isup.me to check if <url> is online or offline
-
-    :type text: str
-    """
+    """<url> - uses isup.me to check if <url> is online or offline"""
     url = text.strip()
 
     # slightly overcomplicated, esoteric URL parsing

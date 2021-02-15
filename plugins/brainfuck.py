@@ -106,10 +106,7 @@ class BrainfuckProgram:
 
 @hook.command("brainfuck", "bf")
 def bf(text):
-    """<prog> - executes <prog> as Brainfuck code
-
-    :type text: str
-    """
+    """<prog> - executes <prog> as Brainfuck code"""
 
     program_text = re.sub(r"[^][<>+\-.,]", "", text)
 

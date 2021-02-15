@@ -1,7 +1,6 @@
 import json
 import logging
 import logging.config
-import sys
 from pathlib import Path
 
 version = (1, 3, 0)
@@ -41,8 +40,9 @@ class LoggingInfo:
 logging_info = LoggingInfo()
 
 
-def _setup():
-    cfg_file = Path("config.json")
+def _setup(base_path=None):
+    base_path = base_path or Path().resolve()
+    cfg_file = base_path / "config.json"
     if cfg_file.exists():
         with open(cfg_file, encoding="utf-8") as config_file:
             json_conf = json.load(config_file)
@@ -55,7 +55,7 @@ def _setup():
         "INFO" if logging_config.get("console_log_info", True) else "WARNING"
     )
 
-    logging_info.dir = Path("logs").resolve()
+    logging_info.dir = base_path / "logs"
 
     logging_info.make_dir()
 

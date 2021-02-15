@@ -18,10 +18,7 @@ from cloudbot.util.http import parse_soup
 
 @hook.command("e", "etymology")
 def etymology(text, reply):
-    """<word> - retrieves the etymology of <word>
-
-    :type text: str
-    """
+    """<word> - retrieves the etymology of <word>"""
 
     url = "http://www.etymonline.com/index.php"
 

@@ -2,7 +2,6 @@ import requests
 from requests import HTTPError
 
 from cloudbot import hook
-from cloudbot.bot import bot
 from cloudbot.util import formatting, web
 
 base_url = "https://www.googleapis.com/books/v1/"
@@ -10,23 +9,22 @@ book_search_api = base_url + "volumes?"
 
 
 @hook.command("books", "gbooks")
-def books(text, reply):
+def books(text, reply, bot):
     """<query> - Searches Google Books for <query>."""
     dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."
 
-    request = requests.get(
+    with requests.get(
         book_search_api, params={"q": text, "key": dev_key, "country": "US"}
-    )
+    ) as response:
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            reply("API error occurred.")
+            raise
 
-    try:
-        request.raise_for_status()
-    except HTTPError:
-        reply("Bing API error occurred.")
-        raise
-
-    json = request.json()
+        json = response.json()
 
     if json.get("error"):
         if json["error"]["code"] == 403:
@@ -59,13 +57,11 @@ def books(text, reply):
 
     try:
         page_count = book["pageCount"]
-        pages = " - \x02{:,}\x02 page{}".format(
-            page_count, "s"[page_count == 1 :]
-        )
+        pages = " - " + formatting.pluralize_suffix(page_count, "page")
     except KeyError:
         pages = ""
 
-    link = web.shorten(book["infoLink"], service="goo.gl", key=dev_key)
+    link = web.try_shorten(book["infoLink"])
 
     return "\x02{}\x02 by \x02{}\x02 ({}){} - {} - {}".format(
         title, author, year, pages, description, link

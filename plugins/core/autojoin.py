@@ -22,12 +22,6 @@ chan_cache: Dict[str, Set[str]] = defaultdict(set)
 db_lock = RLock()
 
 
-def get_channels(db, conn):
-    return db.execute(
-        table.select().where(table.c.conn == conn.name.casefold())
-    ).fetchall()
-
-
 @hook.on_start()
 def load_cache(db):
     new_cache = defaultdict(set)
@@ -54,37 +48,41 @@ async def do_joins(conn):
 def add_chan(db, conn, chan, nick):
     chans = chan_cache[conn.name]
     chan = chan.casefold()
-    if nick.casefold() == conn.nick.casefold() and chan not in chans:
-        with db_lock:
-            try:
-                db.execute(
-                    table.insert().values(
-                        conn=conn.name.casefold(), chan=chan.casefold()
-                    )
-                )
-            except IntegrityError:
-                db.rollback()
-            else:
-                db.commit()
+    if nick.casefold() != conn.nick.casefold() or chan in chans:
+        return
 
-                load_cache(db)
+    with db_lock:
+        try:
+            db.execute(
+                table.insert().values(
+                    conn=conn.name.casefold(), chan=chan.casefold()
+                )
+            )
+        except IntegrityError:
+            db.rollback()
+        else:
+            db.commit()
+
+            load_cache(db)
 
 
 @hook.irc_raw("PART", singlethread=True)
 def on_part(db, conn, chan, nick):
-    if nick.casefold() == conn.nick.casefold():
-        with db_lock:
-            db.execute(
-                table.delete().where(
-                    and_(
-                        table.c.conn == conn.name.casefold(),
-                        table.c.chan == chan.casefold(),
-                    )
+    if nick.casefold() != conn.nick.casefold():
+        return
+
+    with db_lock:
+        db.execute(
+            table.delete().where(
+                and_(
+                    table.c.conn == conn.name.casefold(),
+                    table.c.chan == chan.casefold(),
                 )
             )
-            db.commit()
+        )
+        db.commit()
 
-        load_cache(db)
+    load_cache(db)
 
 
 @hook.irc_raw("KICK", singlethread=True)

@@ -32,7 +32,7 @@ def load_data(bot):
 def hookup(db, chan):
     """- matches two users from the channel in a sultry scene."""
     if seen_table.name not in metadata.tables:
-        return
+        return None
 
     times = time.time() - 86400
     results = db.execute(

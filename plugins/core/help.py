@@ -5,10 +5,6 @@ from cloudbot.util import formatting, web
 
 
 def get_potential_commands(bot, cmd_name):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    :type cmd_name: str
-    """
     cmd_name = cmd_name.lower().strip()
     try:
         yield cmd_name, bot.plugin_manager.commands[cmd_name]
@@ -22,12 +18,7 @@ def get_potential_commands(bot, cmd_name):
 async def help_command(
     text, chan, bot, notice, message, has_permission, triggered_prefix
 ):
-    """[command] - gives help for [command], or lists all available commands if no command is specified
-
-    :type chan: str
-    :type text: str
-    :type bot: cloudbot.bot.CloudBot
-    """
+    """[command] - gives help for [command], or lists all available commands if no command is specified"""
     if text:
         searching_for = text.lower().strip()
     else:

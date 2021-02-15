@@ -2,7 +2,7 @@ from cloudbot import hook
 
 
 def get_latest_line(conn, chan, nick):
-    for name, _, msg in reversed(conn.history[chan.casefold()]):
+    for name, _, msg in reversed(conn.history.get(chan.casefold(), [])):
         if nick.casefold() == name.casefold():
             return msg
 
@@ -28,3 +28,4 @@ def mock(text, chan, conn, message):
         c.upper() if i & 1 else c.lower() for i, c in enumerate(line)
     )
     message(fmt.format(nick=nick, msg=line))
+    return None

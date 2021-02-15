@@ -33,39 +33,18 @@ class Action(Enum):
 
 
 class _Hook:
-    """
-    :type function: function
-    :type type: str
-    :type kwargs: dict[str, unknown]
-    """
-
     def __init__(self, function, _type):
-        """
-        :type function: function
-        :type _type: str
-        """
         self.function = function
         self.type = _type
         self.kwargs = {}
 
     def _add_hook(self, kwargs):
-        """
-        :type kwargs: dict[str, unknown]
-        """
         # update kwargs, overwriting duplicates
         self.kwargs.update(kwargs)
 
 
 class _CommandHook(_Hook):
-    """
-    :type main_alias: str
-    :type aliases: set[str]
-    """
-
     def __init__(self, function):
-        """
-        :type function: function
-        """
         _Hook.__init__(self, function, "command")
         self.aliases = set()
         self.main_alias = None
@@ -80,9 +59,6 @@ class _CommandHook(_Hook):
             self.doc = None
 
     def add_hook(self, alias_param, kwargs):
-        """
-        :type alias_param: list[str] | str
-        """
         self._add_hook(kwargs)
 
         if not alias_param:
@@ -98,22 +74,11 @@ class _CommandHook(_Hook):
 
 
 class _RegexHook(_Hook):
-    """
-    :type regexes: list[re.__Regex]
-    """
-
     def __init__(self, function):
-        """
-        :type function: function
-        """
         _Hook.__init__(self, function, "regex")
         self.regexes = []
 
     def add_hook(self, regex_param, kwargs):
-        """
-        :type regex_param: Iterable[str | re.__Regex] | str | re.__Regex
-        :type kwargs: dict[str, unknown]
-        """
         self._add_hook(kwargs)
         # add all regex_parameters to valid regexes
         if isinstance(regex_param, str):
@@ -136,22 +101,11 @@ class _RegexHook(_Hook):
 
 
 class _RawHook(_Hook):
-    """
-    :type triggers: set[str]
-    """
-
     def __init__(self, function):
-        """
-        :type function: function
-        """
         _Hook.__init__(self, function, "irc_raw")
         self.triggers = set()
 
     def add_hook(self, trigger_param, kwargs):
-        """
-        :type trigger_param: list[str] | str
-        :type kwargs: dict[str, unknown]
-        """
         self._add_hook(kwargs)
 
         if isinstance(trigger_param, str):
@@ -163,17 +117,10 @@ class _RawHook(_Hook):
 
 class _PeriodicHook(_Hook):
     def __init__(self, function):
-        """
-        :type function: function
-        """
         _Hook.__init__(self, function, "periodic")
         self.interval = 60.0
 
     def add_hook(self, interval, kwargs):
-        """
-        :type interval: int
-        :type kwargs: dict[str, unknown]
-        """
         self._add_hook(kwargs)
 
         if interval:
@@ -181,22 +128,11 @@ class _PeriodicHook(_Hook):
 
 
 class _EventHook(_Hook):
-    """
-    :type types: set[cloudbot.event.EventType]
-    """
-
     def __init__(self, function):
-        """
-        :type function: function
-        """
         _Hook.__init__(self, function, "event")
         self.types = set()
 
     def add_hook(self, trigger_param, kwargs):
-        """
-        :type trigger_param: cloudbot.event.EventType | list[cloudbot.event.EventType]
-        :type kwargs: dict[str, unknown]
-        """
         self._add_hook(kwargs)
 
         if isinstance(trigger_param, EventType):
@@ -250,9 +186,7 @@ def _hook_warn():
 
 
 def command(*args, **kwargs):
-    """External command decorator. Can be used directly as a decorator, or with args to return a decorator.
-    :type param: str | list[str] | function
-    """
+    """External command decorator. Can be used directly as a decorator, or with args to return a decorator."""
 
     def _command_hook(func, alias_param=None):
         hook = _get_hook(func, "command")
@@ -273,9 +207,7 @@ def command(*args, **kwargs):
 
 
 def irc_raw(triggers_param, **kwargs):
-    """External raw decorator. Must be used as a function to return a decorator
-    :type triggers_param: str | list[str]
-    """
+    """External raw decorator. Must be used as a function to return a decorator"""
 
     def _raw_hook(func):
         hook = _get_hook(func, "irc_raw")
@@ -297,9 +229,7 @@ def irc_raw(triggers_param, **kwargs):
 
 
 def event(types_param, **kwargs):
-    """External event decorator. Must be used as a function to return a decorator
-    :type types_param: cloudbot.event.EventType | list[cloudbot.event.EventType]
-    """
+    """External event decorator. Must be used as a function to return a decorator"""
 
     def _event_hook(func):
         hook = _get_hook(func, "event")
@@ -321,10 +251,7 @@ def event(types_param, **kwargs):
 
 
 def regex(regex_param, **kwargs):
-    """External regex decorator. Must be used as a function to return a decorator.
-    :type regex_param: str | re.__Regex | list[str | re.__Regex]
-    :type flags: int
-    """
+    """External regex decorator. Must be used as a function to return a decorator."""
 
     def _regex_hook(func):
         hook = _get_hook(func, "regex")
@@ -346,9 +273,7 @@ def regex(regex_param, **kwargs):
 
 
 def sieve(param=None, **kwargs):
-    """External sieve decorator. Can be used directly as a decorator, or with args to return a decorator
-    :type param: function | None
-    """
+    """External sieve decorator. Can be used directly as a decorator, or with args to return a decorator"""
 
     def _sieve_hook(func):
         assert (
@@ -372,9 +297,7 @@ def sieve(param=None, **kwargs):
 
 
 def periodic(interval, **kwargs):
-    """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator
-    :type param: function | None
-    """
+    """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator"""
 
     def _periodic_hook(func):
         hook = _get_hook(func, "periodic")
@@ -395,14 +318,7 @@ def periodic(interval, **kwargs):
     return _periodic_hook
 
 
-def config(param=None, **kwargs):
-    """
-    External on_start decorator. Can be used directly as a decorator,
-    or with args to return a decorator.
-
-    :type param: function | None
-    """
-
+def config(**kwargs):
     def _config_hook(func):
         hook = _get_hook(func, "config")
         if hook is None:
@@ -416,9 +332,7 @@ def config(param=None, **kwargs):
 
 
 def on_start(param=None, **kwargs):
-    """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator
-    :type param: function | None
-    """
+    """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator"""
 
     def _on_start_hook(func):
         hook = _get_hook(func, "on_start")
@@ -441,9 +355,7 @@ onload = on_start
 
 
 def on_stop(param=None, **kwargs):
-    """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator
-    :type param: function | None
-    """
+    """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator"""
 
     def _on_stop_hook(func):
         hook = _get_hook(func, "on_stop")

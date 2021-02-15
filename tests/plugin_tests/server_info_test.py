@@ -9,8 +9,9 @@ def test_parse_isupport():
     server_info.clear_isupport(conn)
     tokens = [
         "PREFIX=(ohv)@%+",
-        "CHANMODES=a,b,c,d",
+        "CHANMODES=a,b,c,d,e",
         "EXTBAN=$,abcd",
+        "Foo=bar",
     ]
     params = ["foo"] + list(tokens) + ["blah"]
     server_info.on_isupport(conn, params)
@@ -35,8 +36,9 @@ def test_parse_isupport():
             "extban_prefix": "$",
             "extbans": "abcd",
             "isupport_tokens": {
-                "CHANMODES": "a,b,c,d",
+                "CHANMODES": "a,b,c,d,e",
                 "EXTBAN": "$,abcd",
+                "FOO": "bar",
                 "PREFIX": "(ohv)@%+",
             },
             "statuses": {

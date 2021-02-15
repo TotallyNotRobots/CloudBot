@@ -44,17 +44,18 @@ def get_user(text):
     if match:
         return match.group("name")
 
+    return None
+
 
 def get_sub(text):
     match = sub_re.match(text)
     if match:
         return match.group("name")
 
+    return None
+
 
 def api_request(url):
-    """
-    :type url: yarl.URL
-    """
     url = url.with_query("").with_scheme("https") / ".json"
     r = requests.get(str(url), headers=agent)
     r.raise_for_status()
@@ -131,7 +132,7 @@ def reddit_post_url(match):
         data = get_post(post_id)
     except HTTPError as e:
         if e.response.status_code in (403, 404):
-            return
+            return None
 
         raise
 

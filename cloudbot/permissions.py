@@ -10,18 +10,7 @@ backdoor = None
 
 
 class PermissionManager:
-    """
-    :type name: str
-    :type config: dict[str, ?]
-    :type group_perms: dict[str, list[str]]
-    :type group_users: dict[str, list[str]]
-    :type perm_users: dict[str, list[str]]
-    """
-
     def __init__(self, conn):
-        """
-        :type conn: cloudbot.client.Client
-        """
         logger.info(
             "[%s|permissions] Created permission manager for %s.",
             conn.name,
@@ -86,12 +75,6 @@ class PermissionManager:
         )
 
     def has_perm_mask(self, user_mask, perm, notice=True):
-        """
-        :type user_mask: str
-        :type perm: str
-        :rtype: bool
-        """
-
         if backdoor:
             if match_mask(user_mask.lower(), backdoor.lower()):
                 return True
@@ -119,24 +102,12 @@ class PermissionManager:
         return set().union(self.group_perms.keys(), self.group_users.keys())
 
     def get_group_permissions(self, group):
-        """
-        :type group: str
-        :rtype: list[str]
-        """
         return self.group_perms.get(group.lower())
 
     def get_group_users(self, group):
-        """
-        :type group: str
-        :rtype: list[str]
-        """
         return self.group_users.get(group.lower())
 
     def get_user_permissions(self, user_mask):
-        """
-        :type user_mask: str
-        :rtype: list[str]
-        """
         permissions = set()
         for permission, users in self.perm_users.items():
             for mask_to_check in users:
@@ -145,10 +116,6 @@ class PermissionManager:
         return permissions
 
     def get_user_groups(self, user_mask):
-        """
-        :type user_mask: str
-        :rtype: list[str]
-        """
         groups = []
         for group, users in self.group_users.items():
             for mask_to_check in users:
@@ -160,17 +127,12 @@ class PermissionManager:
     def group_exists(self, group):
         """
         Checks whether a group exists
-        :type group: str
-        :rtype: bool
         """
         return group.lower() in self.group_perms
 
     def user_in_group(self, user_mask, group):
         """
         Checks whether a user is matched by any masks in a given group
-        :type group: str
-        :type user_mask: str
-        :rtype: bool
         """
         users = self.group_users.get(group.lower())
         if not users:
@@ -185,9 +147,6 @@ class PermissionManager:
         Removes all users that match user_mask from group. Returns a list of user masks removed from the group.
         Use permission_manager.reload() to make this change take affect.
         Use bot.config.save_config() to save this change to file.
-        :type group: str
-        :type user_mask: str
-        :rtype: list[str]
         """
         masks_removed = []
 
@@ -217,9 +176,6 @@ class PermissionManager:
         Adds user to group. Returns whether this actually did anything.
         Use permission_manager.reload() to make this change take affect.
         Use bot.config.save_config() to save this change to file.
-        :type group: str
-        :type user_mask: str
-        :rtype: bool
         """
         if self.user_in_group(user_mask, group):
             return False

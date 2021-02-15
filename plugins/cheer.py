@@ -20,8 +20,5 @@ def load_cheers(bot: CloudBot):
 
 @hook.regex(cheer_re)
 def cheer(chan, message):
-    """
-    :type chan: str
-    """
     shit = random.choice(cheers)
     message(shit, chan)

@@ -57,3 +57,5 @@ def octopart(text, reply):
                 part["brand"]["name"], part["mpn"], part["octopart_url"]
             )
         )
+
+    return None

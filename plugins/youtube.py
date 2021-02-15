@@ -191,7 +191,10 @@ def youtube_url(match: Match[str]) -> str:
 
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text: str, reply) -> str:
-    """<query> - Returns the first YouTube search result for <query>."""
+    """<query> - Returns the first YouTube search result for <query>.
+
+    :param text: User input
+    """
     try:
         video_id = get_video_id(text)
         return (

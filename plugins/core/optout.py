@@ -206,9 +206,6 @@ def optout_sieve(bot, event, _hook):
 async def optout(text, event, chan, db, conn):
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current
     channel if not specified
-
-    :type text: str
-    :type event: cloudbot.event.CommandEvent
     """
     args = text.split()
     if args[0].startswith("#") and len(args) > 1:
@@ -299,9 +296,6 @@ async def check_global_perms(event):
 async def list_optout(conn, event, async_call):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to
     view all data for this network
-
-    :type conn: cloudbot.clients.irc.Client
-    :type event: cloudbot.event.CommandEvent
     """
     chan, allowed = await check_global_perms(event)
 

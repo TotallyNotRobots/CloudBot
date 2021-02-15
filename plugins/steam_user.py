@@ -19,8 +19,6 @@ class SteamError(Exception):
 def convert_id32(id_64):
     """
     Takes a Steam ID_64 formatted ID and returns a ID_32 formatted ID
-    :type id_64: int
-    :return: str
     """
     out = ["STEAM_0:"]
     final = id_64 - ID_BASE
@@ -35,8 +33,6 @@ def convert_id32(id_64):
 def convert_id3(id_64):
     """
     Takes a Steam ID_64 formatted ID and returns a ID_3 formatted ID
-    :typetype id_64: int
-    :return: str
     """
     _id = (id_64 - ID_BASE) * 2
     if _id % 2 == 0:
@@ -50,8 +46,6 @@ def convert_id3(id_64):
 def get_data(user):
     """
     Takes a Steam Community ID of a Steam user and returns a dict of data about that user
-    :type user: str
-    :return: dict
     """
     data = {}
 

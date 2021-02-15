@@ -153,13 +153,12 @@ def size(b, system=traditional):
     '1M'
     >>> size(2000000, system=si)
     '2M'
-
     """
     for factor, suffix in system:
         if b >= factor:
             break
     else:  # pragma: no cover
-        return
+        return None
 
     amount = int(b / factor)
     if isinstance(suffix, tuple):

@@ -50,12 +50,12 @@ def xkcd_search(term):
     request.raise_for_status()
     soup = parse_soup(request.text)
     result = soup.find("li")
-    if result:
-        url = result.find("div", {"class": "tinylink"}).text
-        xkcd_id = url[:-1].split("/")[-1]
-        return xkcd_info(xkcd_id, url=True)
+    if not result:
+        return "No results found!"
 
-    return "No results found!"
+    url = result.find("div", {"class": "tinylink"}).text
+    xkcd_id = url[:-1].split("/")[-1]
+    return xkcd_info(xkcd_id, url=True)
 
 
 @hook.regex(xkcd_re)

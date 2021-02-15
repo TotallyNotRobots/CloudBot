@@ -12,10 +12,6 @@ logger = logging.getLogger("cloudbot")
 # Auto-join on Invite (Configurable, defaults to True)
 @hook.irc_raw("INVITE")
 def invite(irc_paramlist, conn):
-    """
-    :type irc_paramlist: list[str]
-    :type conn: cloudbot.client.Client
-    """
     invite_join = conn.config.get("invite_join", True)
     chan = irc_paramlist[-1]
 
@@ -62,10 +58,6 @@ def on_mode_change(conn, irc_paramlist, message):
 # Identify to NickServ (or other service)
 @hook.irc_raw("004")
 async def onjoin(conn, bot):
-    """
-    :type conn: cloudbot.clients.clients.IrcClient
-    :type bot: cloudbot.bot.CloudBot
-    """
     logger.info(
         "[%s|misc] Bot is sending join commands for network.", conn.name
     )

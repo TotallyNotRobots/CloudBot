@@ -21,6 +21,7 @@ class Poll:
     def __init__(self, question, creator, options=("Yes", "No")):
         self.question = question
         self.creator = creator
+        self.option_list = list(options)
         self.options = {i.lower(): PollOption(i) for i in options}
 
         self.voted = []
@@ -29,6 +30,7 @@ class Poll:
         """
         Adds a vote to a specific poll option. Raises PollError if option is invalid or user has already voted.
         Returns PollOption if sucessful.
+
         :param voted_option: The poll option to vote on
         :param voter: The user who is voting on the poll
         """
@@ -81,7 +83,7 @@ def poll(text, conn, nick, chan, message, reply):
         )
         message(p.format_results())
         del polls[uid]
-        return
+        return None
 
     if uid in polls.keys():
         return "You already have an active poll in this channel, you must close it before you can create a new one."
@@ -91,7 +93,13 @@ def poll(text, conn, nick, chan, message, reply):
         c = findall(r"([^,]+)", options)
         if len(c) == 1:
             c = findall(r"(\S+)", options)
-        options = list(set(x.strip() for x in c))
+
+        options = []
+        for o in c:
+            o = o.strip()
+            if o not in options:
+                options.append(o)
+
         _poll = Poll(question, nick, options)
     else:
         question = text.strip()
@@ -100,39 +108,40 @@ def poll(text, conn, nick, chan, message, reply):
     # store poll in list
     polls[uid] = _poll
 
-    option_str = get_text_list(
-        [option.title for option in _poll.options.values()], "and"
-    )
+    option_str = get_text_list(_poll.option_list, "and")
     message(
         'Created poll \x02"{}"\x02 with the following options: {}'.format(
             _poll.question, option_str
         )
     )
     message("Use .vote {} <option> to vote on this poll!".format(nick.lower()))
+    return None
 
 
 @hook.command(autohelp=True)
 def vote(text, nick, conn, chan, notice):
     """<poll> <choice> - Vote on a poll; responds on error and silently records on success."""
-    if len(text.split(" ", 1)) == 2:
-        _user, option = text.split(" ", 1)
-        uid = ":".join([conn.name, chan, _user]).lower()
-    else:
+    split = text.split(None, 1)
+    if len(split) != 2:
         return (
             "Invalid input, please use .vote <user> <option> to vote on a poll."
         )
 
-    if uid not in polls.keys():
-        return "Sorry, there is no active poll from that user."
+    _user, option = split
+    uid = ":".join([conn.name, chan, _user]).lower()
 
     p = polls.get(uid)
+
+    if p is None:
+        return "Sorry, there is no active poll from that user."
 
     try:
         o = p.vote(option, nick)
     except PollError as e:
-        return "{}".format(e)
+        return str(e)
 
     notice('Voted \x02"{}"\x02 on {}\'s poll!'.format(o.title, p.creator))
+    return None
 
 
 @hook.command(autohelp=False)
@@ -153,3 +162,4 @@ def results(text, conn, chan, nick, message, reply):
         'Results for \x02"{}"\x02 by \x02{}\x02:'.format(p.question, p.creator)
     )
     message(p.format_results())
+    return None

@@ -11,7 +11,6 @@ imdb_re = re.compile(r"https?://(?:www\.)?imdb\.com/+title/+(tt[0-9]+)", re.I)
 @hook.command()
 def imdb(text, bot):
     """<movie> - gets information about <movie> from IMDb"""
-
     headers = {"User-Agent": bot.user_agent}
     strip = text.strip()
 
@@ -22,13 +21,13 @@ def imdb(text, bot):
         endpoint = "search"
         params = {"q": strip, "limit": 1}
 
-    request = requests.get(
+    with requests.get(
         "https://imdb-scraper.herokuapp.com/" + endpoint,
         params=params,
         headers=headers,
-    )
-    request.raise_for_status()
-    content = request.json()
+    ) as request:
+        request.raise_for_status()
+        content = request.json()
 
     if content["success"] is False:
         return "Unknown error"
@@ -39,6 +38,7 @@ def imdb(text, bot):
     result = content["result"]
     if endpoint == "search":
         result = result[0]  # part of the search results, not 1 record
+
     url = "http://www.imdb.com/title/{}".format(result["id"])
     return movie_str(result) + " " + url
 
@@ -58,12 +58,16 @@ def imdb_url(match, bot):
     if content["success"] is True:
         return movie_str(content["result"])
 
+    return None
+
 
 def movie_str(movie):
     movie["genre"] = ", ".join(movie["genres"])
-    out = "\x02%(title)s\x02 (%(year)s) (%(genre)s): %(plot)s"
+    out = "\x02{title}\x02 ({year}) ({genre}): {plot}"
     if movie["runtime"] != "N/A":
-        out += " \x02%(runtime)s\x02."
+        out += " \x02{runtime}\x02."
+
     if movie["rating"] != "N/A" and movie["votes"] != "N/A":
-        out += " \x02%(rating)s/10\x02 with \x02%(votes)s\x02" " votes."
-    return out % movie
+        out += " \x02{rating}/10\x02 with \x02{votes}\x02 votes."
+
+    return out.format_map(movie)

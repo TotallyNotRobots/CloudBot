@@ -62,9 +62,6 @@ tell_cache: List[Tuple[str, str]] = []
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = []
     for row in db.execute(table.select().where(not_(table.c.is_read))):
         conn = row["connection"]
@@ -77,9 +74,6 @@ def load_cache(db):
 
 @hook.on_start()
 def load_disabled(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = defaultdict(set)
     for row in db.execute(disable_table.select()):
         new_cache[row["conn"]].add(row["target"].lower())
@@ -90,9 +84,6 @@ def load_disabled(db):
 
 @hook.on_start()
 def load_ignores(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = defaultdict(lambda: defaultdict(list))
     for row in db.execute(ignore_table.select()):
         new_cache[row["conn"].lower()][row["nick"].lower()].append(row["mask"])
@@ -102,31 +93,14 @@ def load_ignores(db):
 
 
 def is_disable(conn, target):
-    """
-    :type conn: cloudbot.client.Client
-    :type target: str
-    :rtype: bool
-    """
     return target.lower() in disable_cache[conn.name.lower()]
 
 
 def ignore_exists(conn, nick, mask):
-    """
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    :type mask: str
-    :rtype: bool
-    """
     return mask in ignore_cache[conn.name.lower()][nick.lower()]
 
 
 def can_send_to_user(conn, sender, target):
-    """
-    :type conn: cloudbot.client.Client
-    :type sender: str
-    :type target: str
-    :rtype: bool
-    """
     if target.lower() in disable_cache[conn.name.lower()]:
         return False
 
@@ -138,13 +112,6 @@ def can_send_to_user(conn, sender, target):
 
 
 def add_disable(db, conn, setter, target, now=None):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    :type setter: str
-    :type target: str
-    :type now: datetime
-    """
     if now is None:
         now = datetime.now()
 
@@ -161,11 +128,6 @@ def add_disable(db, conn, setter, target, now=None):
 
 
 def del_disable(db, conn, target):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    :type target: str
-    """
     db.execute(
         disable_table.delete().where(
             and_(
@@ -179,10 +141,6 @@ def del_disable(db, conn, target):
 
 
 def list_disabled(db, conn):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    """
     for row in db.execute(
         disable_table.select().where(disable_table.c.conn == conn.name.lower())
     ):
@@ -190,13 +148,6 @@ def list_disabled(db, conn):
 
 
 def add_ignore(db, conn, nick, mask, now=None):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    :type mask: str
-    :type now: datetime
-    """
     if now is None:
         now = datetime.now()
 
@@ -213,12 +164,6 @@ def add_ignore(db, conn, nick, mask, now=None):
 
 
 def del_ignore(db, conn, nick, mask):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    :type mask: str
-    """
     db.execute(
         ignore_table.delete().where(
             and_(
@@ -233,20 +178,11 @@ def del_ignore(db, conn, nick, mask):
 
 
 def list_ignores(conn, nick):
-    """
-    :type conn: cloudbot.client.Client
-    :type nick: str
-    """
     for mask in ignore_cache[conn.name.lower()][nick.lower()]:
         yield mask
 
 
 def get_unread(db, server, target):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type server: str
-    :type target: str
-    """
     query = (
         select([table.c.sender, table.c.message, table.c.time_sent])
         .where(table.c.connection == server.lower())
@@ -313,41 +249,35 @@ def tell_check(conn, nick):
         if (conn, nick.lower()) == (_conn, _target):
             return True
 
+    return False
+
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def tellinput(event, conn, db, nick, notice):
-    """
-    :type event: cloudbot.event.Event
-    :type conn: cloudbot.client.Client
-    :type db: sqlalchemy.orm.Session
-    """
-    if "showtells" in event.content.lower():
+def tellinput(conn, db, nick, notice, content):
+    if "showtells" in content.lower():
         return
 
-    if tell_check(conn.name, nick):
-        tells = get_unread(db, conn.name, nick)
-    else:
+    if not tell_check(conn.name, nick):
         return
 
-    if tells:
-        user_from, message, time_sent = tells[0]
-        reltime = timeformat.time_since(time_sent)
+    tells = get_unread(db, conn.name, nick)
 
-        if reltime == 0:
-            reltime_formatted = "just a moment"
-        else:
-            reltime_formatted = reltime
+    if not tells:
+        return
 
-        reply = "{} sent you a message {} ago: {}".format(
-            user_from, reltime_formatted, message
+    user_from, message, time_sent = tells[0]
+    reltime = timeformat.time_since(time_sent)
+    reply = "{} sent you a message {} ago: {}".format(
+        user_from, reltime, message
+    )
+
+    if len(tells) > 1:
+        reply += " (+{} more, {}showtells to view)".format(
+            len(tells) - 1, conn.config["command_prefix"][0]
         )
-        if len(tells) > 1:
-            reply += " (+{} more, {}showtells to view)".format(
-                len(tells) - 1, conn.config["command_prefix"][0]
-            )
 
-        read_tell(db, conn.name, nick, message)
-        notice(reply)
+    read_tell(db, conn.name, nick, message)
+    notice(reply)
 
 
 @hook.command(autohelp=False)
@@ -370,16 +300,7 @@ def showtells(nick, notice, db, conn):
 
 @hook.command("tell")
 def tell_cmd(text, nick, db, conn, mask, event):
-    """<nick> <message> - Relay <message> to <nick> when <nick> is around.
-
-    :type text: str
-    :type nick: str
-    :type db: sqlalchemy.orm.Session
-    :type conn: cloudbot.client.Client
-    :type mask: str
-    :type event: cloudbot.event.CommandEvent
-    :rtype: None
-    """
+    """<nick> <message> - Relay <message> to <nick> when <nick> is around."""
     query = text.split(" ", 1)
 
     if len(query) != 2:

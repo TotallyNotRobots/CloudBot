@@ -19,8 +19,6 @@ STORE_URL = "http://store.steampowered.com/app/{}/"
 def format_game(app_id, show_url=True):
     """
     Takes a Steam Store app ID and returns a formatted string with data about that app ID
-    :type app_id: string
-    :return: string
     """
     params = {"appids": app_id}
 

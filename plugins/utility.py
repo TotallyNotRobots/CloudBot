@@ -65,9 +65,6 @@ def translate(text, dic):
 
 @hook.on_start()
 def load_text(bot):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
     leet_text.clear()
     with open((bot.data_path / "leet.json"), encoding="utf-8") as f:
         leet_text.update(json.load(f))
@@ -97,10 +94,7 @@ def qrcode(text):
 
 @hook.command("capitalize", "capitalise")
 def capitalize(text):
-    """<string> - Capitalizes <string>.
-
-    :type text: str
-    """
+    """<string> - Capitalizes <string>."""
     return ". ".join([sentence.capitalize() for sentence in text.split(". ")])
 
 
@@ -161,7 +155,7 @@ def base64_decode(text, notice):
         decoded = base64.b64decode(text.encode()).decode(errors="ignore")
     except binascii.Error:
         notice("Invalid base64 string '{}'".format(text))
-        return
+        return None
 
     if repr(decoded)[1:-1] != decoded:
         return (

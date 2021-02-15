@@ -23,7 +23,6 @@ class Pager:
     >>> p1.next()
     ['a', 'b', 'c', 'd', 'e']
     >>> p1.next()
-
     """
 
     @classmethod

@@ -20,7 +20,6 @@ def get_with_search(endpoint, term):
     Searches :endpoint on SoundCloud for :term and returns an item.
     :param endpoint: API endpoint to search
     :param term: Term to search for.
-    :return:
     """
     api_key = bot.config.get_api_key("soundcloud")
     try:
@@ -45,7 +44,6 @@ def get_with_url(url):
     """
     Takes a SoundCloud URL and returns an item.
     :param url: URL to fetch data on.
-    :return:
     """
     api_key = bot.config.get_api_key("soundcloud")
     try:
@@ -202,7 +200,7 @@ def soundcloud_user(text):
 def soundcloud_url(match):
     api_key = bot.config.get_api_key("soundcloud")
     if not api_key:
-        return
+        return None
 
     url = (
         match.group(1).split(" ")[-1]
@@ -214,7 +212,7 @@ def soundcloud_url(match):
 
     item = get_with_url(url)
     if not item:
-        return
+        return None
 
     if item["kind"] == "track":
         return format_track(item, show_url=False)
@@ -227,3 +225,5 @@ def soundcloud_url(match):
 
     if item["kind"] == "group":
         return format_group(item, show_url=False)
+
+    return None

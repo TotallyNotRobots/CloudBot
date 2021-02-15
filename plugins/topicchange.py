@@ -8,9 +8,6 @@ topicchange_data: List[str] = []
 
 @hook.on_start()
 def load_topicchange(bot):
-    """
-    :type bot: cloudbot.bot.Cloudbot
-    """
     topicchange_data.clear()
     with open((bot.data_path / "topicchange.txt"), encoding="utf-8") as f:
         topicchange_data.extend(

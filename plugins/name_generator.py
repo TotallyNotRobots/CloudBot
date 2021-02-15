@@ -29,8 +29,6 @@ def get_generator(_json):
 def namegen(text, bot, notice):
     """[generator|list] - generates some names using the chosen generator, or lists all generators
     if 'list' is specified
-
-    :type bot: cloudbot.bot.CloudBot
     """
 
     # clean up the input
@@ -48,7 +46,7 @@ def namegen(text, bot, notice):
         message = "Available generators: "
         message += formatting.get_text_list(all_modules, "and")
         notice(message)
-        return
+        return None
 
     if inp:
         selected_module = inp.split()[0]

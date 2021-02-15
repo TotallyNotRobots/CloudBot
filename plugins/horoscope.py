@@ -112,7 +112,6 @@ def parse_page(content):
     plugins.horoscope.HoroscopeParseError: Unable to parse horoscope
     >>> parse_page('<div class="main-horoscope"><p>hello world</p></div>')
     'hello world'
-
     """
     soup = parse_soup(content)
     container = soup.find("div", class_="main-horoscope")

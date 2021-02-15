@@ -27,9 +27,6 @@ PLAYED_RE = re.compile(r"(.*)\((.*)%\)")
 def get_data(user, currency="us"):
     """
     Takes a steam user ID and returns a dict containing info about the games the user owns
-    :type user: str
-    :type currency: str
-    :return: dict
     """
     data = {}
 

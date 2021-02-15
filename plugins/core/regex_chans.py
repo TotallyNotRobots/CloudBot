@@ -25,9 +25,6 @@ logger = logging.getLogger("cloudbot")
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = {}
     for row in db.execute(table.select()):
         conn = row["connection"]
@@ -40,12 +37,6 @@ def load_cache(db):
 
 
 def set_status(db, conn, chan, status):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type conn: str
-    :type chan: str
-    :type status: str
-    """
     if (conn, chan) in status_cache:
         # if we have a set value, update
         db.execute(

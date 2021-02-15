@@ -1,6 +1,7 @@
 import datetime
+import logging
 from typing import List
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import freezegun
 import pytest
@@ -11,6 +12,25 @@ from cloudbot.bot import bot
 from cloudbot.util import database
 from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
+
+
+@pytest.fixture()
+def caplog_bot(caplog):
+    caplog.set_level(logging.WARNING, "asyncio")
+    caplog.set_level(0)
+    yield caplog
+
+
+@pytest.fixture()
+def patch_import_module():
+    with patch("importlib.import_module") as mocked:
+        yield mocked
+
+
+@pytest.fixture()
+def patch_import_reload():
+    with patch("importlib.reload") as mocked:
+        yield mocked
 
 
 @pytest.fixture()
@@ -25,10 +45,12 @@ def mock_db(tmp_path):
 
 
 @pytest.fixture()
-def mock_bot_factory():
+def mock_bot_factory(event_loop, tmp_path):
     instances: List[MockBot] = []
 
     def _factory(*args, **kwargs):
+        kwargs.setdefault("loop", event_loop)
+        kwargs.setdefault("base_dir", tmp_path)
         _bot = MockBot(*args, **kwargs)
         instances.append(_bot)
         return _bot
@@ -67,3 +89,17 @@ def mock_api_keys():
         yield
     finally:
         bot.set(None)
+
+
+@pytest.fixture()
+def unset_bot():
+    try:
+        yield
+    finally:
+        bot.set(None)
+
+
+@pytest.fixture()
+def mock_feedparse():
+    with patch("feedparser.parse") as mock:
+        yield mock

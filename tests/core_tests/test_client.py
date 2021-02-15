@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, call, patch
 
+import pytest
+
 from cloudbot.client import Client
 
 
@@ -79,6 +81,20 @@ def test_client_connect_exc(event_loop):
             fail_count=1,
         )
         client.loop.run_until_complete(client.try_connect())
+
+
+@pytest.mark.asyncio()
+async def test_try_connect(event_loop):
+    client = MockClient(
+        Bot(event_loop),
+        "foo",
+        "foobot",
+        channels=["#foo"],
+        config={"name": "foo"},
+    )
+
+    client.active = True
+    await client.try_connect()
 
 
 def test_auto_reconnect(event_loop):

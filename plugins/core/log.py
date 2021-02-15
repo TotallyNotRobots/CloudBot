@@ -65,8 +65,6 @@ server_info_numerics = (
 def format_event(event):
     """
     Format an event
-    :type event: cloudbot.event.Event
-    :rtype: str
     """
 
     # Setup arguments
@@ -94,6 +92,8 @@ def format_event(event):
     # Try formatting with IRC-formats, if this is an IRC event
     if event.irc_command is not None:
         return format_irc_event(event, args)
+
+    return None
 
 
 def format_irc_event(event, args):
@@ -232,9 +232,6 @@ def get_raw_log_stream(server):
 
 @hook.irc_raw("*", singlethread=True)
 def log_raw(event):
-    """
-    :type event: cloudbot.event.Event
-    """
     logging_config = event.bot.config.get("logging", {})
     if not logging_config.get("raw_file_log", False):
         return
@@ -246,9 +243,6 @@ def log_raw(event):
 
 @hook.irc_raw("*", singlethread=True)
 def log(event):
-    """
-    :type event: cloudbot.event.Event
-    """
     logging_config = event.bot.config.get("logging", {})
     if not logging_config.get("file_log", False):
         return
@@ -269,10 +263,6 @@ def log(event):
 # Log console separately to prevent lag
 @hook.irc_raw("*")
 async def console_log(bot, event):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    :type event: cloudbot.event.Event
-    """
     text = format_event(event)
     if text is not None:
         logger.info(text)

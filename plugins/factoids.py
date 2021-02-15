@@ -29,9 +29,6 @@ table = Table(
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = defaultdict(default_dict.copy)
     for row in db.execute(table.select()):
         # assign variables
@@ -45,12 +42,6 @@ def load_cache(db):
 
 
 def add_factoid(db, word, chan, data, nick):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type word: str
-    :type data: str
-    :type nick: str
-    """
     if word in factoid_cache[chan]:
         # if we have a set value, update
         db.execute(
@@ -70,11 +61,6 @@ def add_factoid(db, word, chan, data, nick):
 
 
 def del_factoid(db, chan, word=None):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type chan: str
-    :type word: list[str]
-    """
     clause = table.c.chan == chan
 
     if word is not None:
@@ -160,13 +146,7 @@ def remove_fact(chan, names, db, notice):
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
 def forget(text, chan, db, notice):
-    """<word>... - Remove factoids with the specified names
-
-    :type text: str
-    :type chan: str
-    :type db: sqlalchemy.orm.Session
-    :type notice: function
-    """
+    """<word>... - Remove factoids with the specified names"""
     remove_fact(chan, text.split(), db, notice)
 
 
@@ -174,11 +154,7 @@ def forget(text, chan, db, notice):
     "forgetall", "clearfacts", autohelp=False, permissions=["op", "chanop"]
 )
 def forget_all(chan, db):
-    """- Remove all factoids in the current channel
-
-    :type chan: str
-    :type db: sqlalchemy.orm.Session
-    """
+    """- Remove all factoids in the current channel"""
     del_factoid(db, chan)
     return "Facts cleared."
 

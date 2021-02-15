@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import random
+from pathlib import Path
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
@@ -32,7 +33,7 @@ def _do_test(
     bot_nick=None,
 ):
     plugin = importlib.import_module("plugins." + plugin_name)
-    bot = mock_bot_factory()
+    bot = mock_bot_factory(base_dir=Path().resolve())
 
     bot.loop = event_loop
     event = Event(

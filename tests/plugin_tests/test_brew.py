@@ -79,7 +79,7 @@ def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
             None,
             "1.5",
             None,
-            "fooBar by foo (unknown style, ?.?% ABV) - [no website found]",
+            "fooBar by foo (unknown style, 1.5% ABV) - [no website found]",
         ),
         (
             None,
@@ -115,7 +115,7 @@ def test_results(
         "nameDisplay": "fooBar",
     }
     if abv:
-        beer["abc"] = abv
+        beer["abv"] = abv
 
     if style:
         beer["style"] = {"shortName": style}

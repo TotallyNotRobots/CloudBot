@@ -64,7 +64,6 @@ class TokenBucket:
         Calculates and returns the current amount of tokens the bucker contains
 
         :return Amount of tokens the bucket contains
-        :rtype Float
         """
         now = time()
         if self._tokens < self.capacity:

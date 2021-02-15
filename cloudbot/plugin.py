@@ -28,11 +28,6 @@ logger = logging.getLogger("cloudbot")
 
 
 def find_hooks(parent, module):
-    """
-    :type parent: Plugin
-    :type module: object
-    :rtype: dict
-    """
     hooks = defaultdict(list)
     for func in module.__dict__.values():
         if hasattr(func, HOOK_ATTR) and not hasattr(func, "_not_" + HOOK_ATTR):
@@ -51,10 +46,6 @@ def find_hooks(parent, module):
 
 
 def find_tables(code):
-    """
-    :type code: object
-    :rtype: list[sqlalchemy.Table]
-    """
     tables = []
     for obj in code.__dict__.values():
         if (
@@ -80,22 +71,11 @@ class PluginManager:
     - RawPlugin hooks onto irc_raw irc lines
     - RegexPlugin loads a regex parameter, and executes on irc lines which match the regex
     - SievePlugin is a catch-all sieve, which all other plugins go through before being executed.
-
-    :type bot: cloudbot.bot.CloudBot
-    :type plugins: dict[str, Plugin]
-    :type commands: dict[str, cloudbot.plugin_hooks.CommandHook]
-    :type raw_triggers: dict[str, list[cloudbot.plugin_hooks.RawHook]]
-    :type catch_all_triggers: list[cloudbot.plugin_hooks.RawHook]
-    :type event_type_hooks: dict[cloudbot.event.EventType,
-        list[cloudbot.plugin_hooks.EventHook]]
-    :type regex_hooks: list[(re.__Regex, cloudbot.plugin_hooks.RegexHook)]
-    :type sieves: list[cloudbot.plugin_hooks.SieveHook]
     """
 
     def __init__(self, bot):
         """
         Creates a new PluginManager. You generally only need to do this from inside cloudbot.bot.CloudBot
-        :type bot: cloudbot.bot.CloudBot
         """
         self.bot = bot
 
@@ -201,8 +181,6 @@ class PluginManager:
         Load a plugin from each *.py file in the given directory.
 
         Won't load any plugins listed in "disabled_plugins".
-
-        :type plugin_dir: str
         """
         plugin_dir = Path(plugin_dir)
         # Load all .py files in the plugins directory and any subdirectory
@@ -232,8 +210,6 @@ class PluginManager:
         """
         Loads a plugin from the given path and plugin object,
         then registers all hooks from that plugin.
-
-        :type path: str | Path
         """
 
         path = Path(path)
@@ -398,9 +374,6 @@ class PluginManager:
         Unloads the plugin from the given path, unregistering all hooks from the plugin.
 
         Returns True if the plugin was unloaded, False if the plugin wasn't loaded in the first place.
-
-        :type path: str | Path
-        :rtype: bool
         """
         path = Path(path)
         file_path = self.safe_resolve(path)
@@ -512,18 +485,13 @@ class PluginManager:
     def _log_hook(self, hook):
         """
         Logs registering a given hook
-
-        :type hook: cloudbot.plugin_hooks.Hook
         """
         if self.bot.config.get("logging", {}).get("show_plugin_loading", True):
             logger.info("Loaded %s", hook)
             logger.debug("Loaded %r", hook)
 
     def _execute_hook_threaded(self, hook, event):
-        """
-        :type hook: cloudbot.plugin_hooks.Hook
-        :type event: cloudbot.event.Event
-        """
+        """"""
         event.prepare_threaded()
 
         try:
@@ -532,10 +500,7 @@ class PluginManager:
             event.close_threaded()
 
     async def _execute_hook_sync(self, hook, event):
-        """
-        :type hook: cloudbot.plugin_hooks.Hook
-        :type event: cloudbot.event.Event
-        """
+        """"""
         await event.prepare()
 
         try:
@@ -577,10 +542,6 @@ class PluginManager:
         Runs the specific hook with the given bot and event.
 
         Returns False if the hook errored, True otherwise.
-
-        :type hook: cloudbot.plugin_hooks.Hook
-        :type event: cloudbot.event.Event
-        :rtype: bool
         """
         ok, out = await self.internal_launch(hook, event)
         result, error = None, None
@@ -608,12 +569,7 @@ class PluginManager:
         return ok
 
     async def _sieve(self, sieve, event, hook):
-        """
-        :type sieve: cloudbot.plugin_hooks.Hook
-        :type event: cloudbot.event.Event
-        :type hook: cloudbot.plugin_hooks.Hook
-        :rtype: cloudbot.event.Event
-        """
+        """"""
         if sieve.threaded:
             coro = self.bot.loop.run_in_executor(
                 None, sieve.function, self.bot, event, hook
@@ -683,10 +639,6 @@ class PluginManager:
         Dispatch a given event to a given hook using a given bot object.
 
         Returns False if the hook didn't run successfully, and True if it ran successfully.
-
-        :type event: cloudbot.event.Event | cloudbot.event.CommandEvent
-        :type hook: cloudbot.plugin_hooks.Hook | cloudbot.plugin_hooks.CommandHook
-        :rtype: bool
         """
 
         if hook.lock:
@@ -703,20 +655,10 @@ def _create_table(table: Table, bot):
 class Plugin:
     """
     Each Plugin represents a plugin file, and contains loaded hooks.
-
-    :type file_path: str
-    :type file_name: str
-    :type title: str
-    :type hooks: dict
-    :type tables: list[sqlalchemy.Table]
     """
 
     def __init__(self, filepath, filename, title, code):
-        """
-        :type filepath: str
-        :type filename: str
-        :type code: object
-        """
+        """"""
         self.tasks = []
         self.file_path = filepath
         self.file_name = filename
@@ -731,8 +673,6 @@ class Plugin:
     async def create_tables(self, bot):
         """
         Creates all sqlalchemy Tables that are registered in this plugin
-
-        :type bot: cloudbot.bot.CloudBot
         """
         if self.tables:
             # if there are any tables
@@ -745,7 +685,6 @@ class Plugin:
     def unregister_tables(self, bot):
         """
         Unregisters all sqlalchemy Tables registered to the global metadata by this plugin
-        :type bot: cloudbot.bot.CloudBot
         """
         if self.tables:
             # if there are any tables

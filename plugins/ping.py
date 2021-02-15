@@ -24,6 +24,8 @@ win_ping_regex = re.compile(
     r"Minimum = (\d+)ms, Maximum = (\d+)ms, Average = (\d+)ms"
 )
 
+IS_WINDOWS = os.name == "nt"
+
 
 @hook.command()
 def ping(text, reply):
@@ -42,7 +44,7 @@ def ping(text, reply):
 
     count = str(count)
 
-    if os.name == "nt":
+    if IS_WINDOWS:
         args = ["ping", "-n", count, host]
     else:
         args = ["ping", "-c", count, host]
@@ -56,7 +58,7 @@ def ping(text, reply):
     if re.search("(?:not find host|timed out|unknown host)", pingcmd, re.I):
         return "Could not ping host."
 
-    if os.name == "nt":
+    if IS_WINDOWS:
         m = re.search(win_ping_regex, pingcmd)
         r = int(m.group(2)) - int(m.group(1))
         return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" % (
