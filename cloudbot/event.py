@@ -65,7 +65,7 @@ class Event(Mapping[str, Any]):
         irc_command=None,
         irc_paramlist=None,
         irc_ctcp_text=None,
-        irc_tags=None
+        irc_tags=None,
     ):
         """
         All of these parameters except for `bot` and `hook` are optional.
@@ -268,7 +268,9 @@ class Event(Mapping[str, Any]):
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -295,11 +297,15 @@ class Event(Mapping[str, Any]):
         reply_ping = self.conn.config.get("reply_ping", True)
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
-        if not messages:  # if there are no messages specified, don't do anything
+        if (
+            not messages
+        ):  # if there are no messages specified, don't do anything
             return
 
         if target == self.nick or not reply_ping:
@@ -317,7 +323,9 @@ class Event(Mapping[str, Any]):
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -331,7 +339,9 @@ class Event(Mapping[str, Any]):
         """
         if target is None:
             if self.chan is None:
-                raise ValueError("Target must be specified when chan is not assigned")
+                raise ValueError(
+                    "Target must be specified when chan is not assigned"
+                )
 
             target = self.chan
 
@@ -349,7 +359,9 @@ class Event(Mapping[str, Any]):
         avoid_notices = self.conn.config.get("avoid_notices", False)
         if target is None:
             if self.nick is None:
-                raise ValueError("Target must be specified when nick is not assigned")
+                raise ValueError(
+                    "Target must be specified when nick is not assigned"
+                )
 
             target = self.nick
 
@@ -360,17 +372,19 @@ class Event(Mapping[str, Any]):
             self.conn.notice(target, message)
 
     def has_permission(self, permission, notice=True):
-        """ returns whether or not the current user has a given permission
+        """returns whether or not the current user has a given permission
         :type permission: str
         :rtype: bool
         """
         if not self.mask:
             raise ValueError("has_permission requires mask is not assigned")
 
-        return self.conn.permissions.has_perm_mask(self.mask, permission, notice=notice)
+        return self.conn.permissions.has_perm_mask(
+            self.mask, permission, notice=notice
+        )
 
     async def check_permission(self, permission, notice=True):
-        """ returns whether or not the current user has a given permission
+        """returns whether or not the current user has a given permission
         :type permission: str
         :type notice: bool
         :rtype: bool
@@ -379,7 +393,9 @@ class Event(Mapping[str, Any]):
             return True
 
         for perm_hook in self.bot.plugin_manager.perm_hooks[permission]:
-            ok, res = await self.bot.plugin_manager.internal_launch(perm_hook, self)
+            ok, res = await self.bot.plugin_manager.internal_launch(
+                perm_hook, self
+            )
             if ok and res:
                 return True
 
@@ -440,7 +456,7 @@ class CommandEvent(Event):
         irc_raw=None,
         irc_prefix=None,
         irc_command=None,
-        irc_paramlist=None
+        irc_paramlist=None,
     ):
         """
         :param text: The arguments for the command
@@ -520,7 +536,7 @@ class RegexEvent(Event):
         irc_raw=None,
         irc_prefix=None,
         irc_command=None,
-        irc_paramlist=None
+        irc_paramlist=None,
     ):
         """
         :param: match: The match objected returned by the regex search method
@@ -567,7 +583,9 @@ class IrcOutEvent(Event):
             try:
                 self.parsed_line = Message.parse(self.line)
             except Exception:
-                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                logger.exception(
+                    "Unable to parse line requested by hook %s", self.hook
+                )
                 self.parsed_line = None
 
     def prepare_threaded(self):
@@ -577,7 +595,9 @@ class IrcOutEvent(Event):
             try:
                 self.parsed_line = Message.parse(self.line)
             except Exception:
-                logger.exception("Unable to parse line requested by hook %s", self.hook)
+                logger.exception(
+                    "Unable to parse line requested by hook %s", self.hook
+                )
                 self.parsed_line = None
 
     @property
@@ -593,7 +613,7 @@ class PostHookEvent(Event):
         launched_event=None,
         result=None,
         error=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.launched_hook = launched_hook

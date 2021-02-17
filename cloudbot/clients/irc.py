@@ -178,7 +178,7 @@ class IrcClient(Client):
         channel: str,
         default: Optional[str] = None,
         *,
-        set_key: bool = True
+        set_key: bool = True,
     ) -> Optional[str]:
         if channel in self._channel_keys:
             key = self._channel_keys[channel]

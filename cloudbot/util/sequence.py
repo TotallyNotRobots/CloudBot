@@ -11,4 +11,4 @@ def chunk_iter(data, chunk_size):
     :return: An iterable of all the chunks of the sequence
     """
     for i in range(0, len(data), chunk_size):
-        yield data[i:i + chunk_size]
+        yield data[i : i + chunk_size]

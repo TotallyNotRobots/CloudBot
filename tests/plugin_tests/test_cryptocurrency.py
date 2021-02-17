@@ -106,7 +106,14 @@ def init_response(
                         "elapsed": 1,
                         "credit_count": 1,
                     },
-                    "data": [{"id": 1, "name": "Dollar", "sign": "$", "symbol": "USD"}],
+                    "data": [
+                        {
+                            "id": 1,
+                            "name": "Dollar",
+                            "sign": "$",
+                            "symbol": "USD",
+                        }
+                    ],
                 },
             )
         )
@@ -133,7 +140,9 @@ def init_response(
                         "percent_change_1h": 14.5,
                         "percent_change_24h": pct_change,
                         "percent_change_7d": 24.5,
-                        "last_updated": (now - timedelta(minutes=3)).strftime(iso_fmt),
+                        "last_updated": (now - timedelta(minutes=3)).strftime(
+                            iso_fmt
+                        ),
                     },
                 },
             },
@@ -216,7 +225,8 @@ def test_complex_schema():
 
 def test_invalid_schema_type():
     with pytest.raises(
-        TypeError, match="field 'a' expected type <class 'str'>, got type <class 'int'>"
+        TypeError,
+        match="field 'a' expected type <class 'str'>, got type <class 'int'>",
     ):
         cryptocurrency.read_data({"a": 1, "b": "world"}, OtherConcreteSchema)
 
@@ -239,14 +249,18 @@ def test_schema_nested_exceptions():
         cryptocurrency.read_data({"a": {"b": "hello"}}, NestedSchema)
 
     assert isinstance(exc.value.__cause__, cryptocurrency.ParseError)
-    assert isinstance(exc.value.__cause__.__cause__, cryptocurrency.MissingSchemaField)
+    assert isinstance(
+        exc.value.__cause__.__cause__, cryptocurrency.MissingSchemaField
+    )
 
 
 def test_schema_unknown_fields():
     input_data = {"a": {"a": "hello", "b": "world"}, "c": 1}
     with pytest.warns(
         UserWarning,
-        match=re.escape("Unknown fields: ['c'] while parsing schema 'NestedSchema'"),
+        match=re.escape(
+            "Unknown fields: ['c'] while parsing schema 'NestedSchema'"
+        ),
     ):
         obj = cryptocurrency.read_data(input_data, NestedSchema)
 
@@ -427,7 +441,9 @@ def test_cmd_api_error(mock_requests):
     with pytest.raises(cryptocurrency.APIError, match="FooBar"):
         wrap_hook_response(cryptocurrency.crypto_command, event, res)
 
-    assert res == [HookResult("message", ("#foo", "(foobaruser) Unknown API error"))]
+    assert res == [
+        HookResult("message", ("#foo", "(foobaruser) Unknown API error"))
+    ]
 
 
 def test_list_currencies(patch_paste, mock_requests):

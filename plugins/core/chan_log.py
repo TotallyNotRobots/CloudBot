@@ -46,7 +46,7 @@ def is_dunder(name: str) -> bool:
     :param name: The name to check
     :return: True if the name is a dunder, False otherwise
     """
-    return len(name) > 4 and name.startswith('__') and name.endswith('__')
+    return len(name) > 4 and name.startswith("__") and name.endswith("__")
 
 
 AttrList = Iterable[Tuple[str, Any]]
@@ -86,7 +86,7 @@ def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:
         yield (name, getattr(obj, name, None))
 
 
-def indent(lines: Iterable[str], size: int = 2, char: str = ' '):
+def indent(lines: Iterable[str], size: int = 2, char: str = " "):
     """
     Indent each line in an iterable and yield it, ignoring blank lines
 
@@ -134,7 +134,7 @@ def format_error_data(exc: Exception) -> Iterable[str]:
         if isinstance(exc, typ):
             yield from indent(func(exc))
 
-    yield ''
+    yield ""
 
 
 def format_error_chain(exc: Exception) -> Iterable[str]:
@@ -149,8 +149,8 @@ def format_error_chain(exc: Exception) -> Iterable[str]:
         yield from format_error_data(exc)
         # Get "direct cause of" or
         # "during handling of ..., another exception occurred" stack
-        cause = getattr(exc, '__cause__', None)
-        context = getattr(exc, '__context__', None)
+        cause = getattr(exc, "__cause__", None)
+        context = getattr(exc, "__context__", None)
         exc = cause or context
 
 
@@ -169,7 +169,7 @@ def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
     :return: An iterable of lines of formatted data
     """
     for k, v in dump_attrs(obj, ignore_dunder=ignore_dunder):
-        yield '{} = {!r}'.format(k, v)
+        yield "{} = {!r}".format(k, v)
 
 
 @hook.post_hook
@@ -190,12 +190,10 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
         messages.append(last_line.strip())
     except Exception:
         msg = traceback.format_exc()[-1]
-        messages.append(
-            "Error occurred while formatting error {}".format(msg)
-        )
+        messages.append("Error occurred while formatting error {}".format(msg))
     else:
         try:
-            url = web.paste('\n'.join(lines))
+            url = web.paste("\n".join(lines))
             messages.append("Traceback: " + url)
         except Exception:
             msg = traceback.format_exc()[-1]
@@ -212,7 +210,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
         lines.append("Error data:")
         lines.extend(indent(format_error_chain(exc)))
 
-        url = web.paste('\n'.join(lines))
+        url = web.paste("\n".join(lines))
         messages.append("Event: " + url)
     except Exception:
         msg = traceback.format_exc()[-1]

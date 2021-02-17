@@ -19,10 +19,12 @@ def mock(text, chan, conn, message):
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"
-        line = line[8:].strip(' \x01')
+        line = line[8:].strip(" \x01")
     else:
         fmt = "<{nick}> {msg}"
 
     # Return the message in aLtErNaTiNg cApS
-    line = "".join(c.upper() if i & 1 else c.lower() for i, c in enumerate(line))
+    line = "".join(
+        c.upper() if i & 1 else c.lower() for i, c in enumerate(line)
+    )
     message(fmt.format(nick=nick, msg=line))

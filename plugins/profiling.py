@@ -4,6 +4,9 @@ import sys
 import threading
 import traceback
 
+from cloudbot import hook
+from cloudbot.util import web
+
 PYMPLER_ENABLED = False
 
 if PYMPLER_ENABLED:
@@ -21,8 +24,6 @@ try:
 except ImportError:
     objgraph = None
 
-from cloudbot import hook
-from cloudbot.util import web
 
 
 def create_tracker():
@@ -61,8 +62,10 @@ def get_name(thread_id):
 
 def get_thread_dump():
     code = []
-    threads = [(get_name(thread_id), traceback.extract_stack(stack))
-               for thread_id, stack in sys._current_frames().items()]
+    threads = [
+        (get_name(thread_id), traceback.extract_stack(stack))
+        for thread_id, stack in sys._current_frames().items()
+    ]
     for thread_name, stack in threads:
         code.append("# {}".format(thread_name))
         for filename, line_num, name, line in stack:
@@ -70,7 +73,7 @@ def get_thread_dump():
             if line:
                 code.append("    {}".format(line.strip()))
         code.append("")  # new line
-    return web.paste("\n".join(code), ext='txt')
+    return web.paste("\n".join(code), ext="txt")
 
 
 @hook.command("threaddump", autohelp=False, permissions=["botcontrol"])
@@ -124,6 +127,5 @@ if os.name == "posix":
     # noinspection PyUnusedLocal
     def debug(sig, frame):
         print(get_thread_dump())
-
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler

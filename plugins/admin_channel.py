@@ -36,13 +36,15 @@ def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
         target = split[0]
 
     event.notice("Attempting to {} {} in {}...".format(text, target, channel))
-    event.admin_log(MODE_CMD_LOG.format(
-        nick=nick,
-        cmd=text,
-        mode=mode,
-        target=target,
-        channel=channel,
-    ))
+    event.admin_log(
+        MODE_CMD_LOG.format(
+            nick=nick,
+            cmd=text,
+            mode=mode,
+            target=target,
+            channel=channel,
+        )
+    )
     event.conn.send("MODE {} {} {}".format(channel, mode, target))
 
     return True
@@ -60,12 +62,14 @@ def mode_cmd_no_target(mode, text, text_inp, chan, event, mode_warn=True):
         channel = chan
 
     event.notice("Attempting to {} {}...".format(text, channel))
-    event.admin_log(MODE_CMD_NO_TARGET_LOG.format(
-        nick=event.nick,
-        cmd=text,
-        mode=mode,
-        channel=channel,
-    ))
+    event.admin_log(
+        MODE_CMD_NO_TARGET_LOG.format(
+            nick=event.nick,
+            cmd=text,
+            mode=mode,
+            channel=channel,
+        )
+    )
     event.conn.send("MODE {} {}".format(channel, mode))
     return True
 
@@ -108,7 +112,7 @@ def quiet(text, chan, nick, event):
     if mode_cmd("+q", "quiet", text, chan, nick, event, False):
         return
 
-    if not do_extban('m', "quiet", text, chan, nick, event, True):
+    if not do_extban("m", "quiet", text, chan, nick, event, True):
         event.notice("Unable to set +q or a mute extban on this network.")
 
 
@@ -118,7 +122,7 @@ def unquiet(text, chan, nick, event):
     if mode_cmd("-q", "unquiet", text, chan, nick, event, False):
         return
 
-    if not do_extban('m', "unquiet", text, chan, nick, event, False):
+    if not do_extban("m", "unquiet", text, chan, nick, event, False):
         event.notice("Unable to unset +q or a mute extban on this network.")
 
 
@@ -149,7 +153,7 @@ def deop(text, chan, nick, event):
 @hook.command(permissions=["op_topic", "op", "chanop"])
 def topic(text, conn, chan, nick, event):
     """[channel] <topic> - changes the topic to <topic> in [channel], or in the caller's channel
-     if no channel is specified"""
+    if no channel is specified"""
     split = text.split(" ")
     if split[0].startswith("#"):
         msg = " ".join(split[1:])
@@ -198,9 +202,9 @@ def remove(text, chan, conn, nick, event):
     else:
         reason = "requested by {}.".format(nick)
     out = "REMOVE {} {} :{}".format(user, chan, reason)
-    event.admin_log(REMOVE_LOG.format(
-        nick=nick, target=user, channel=chan, reason=reason
-    ))
+    event.admin_log(
+        REMOVE_LOG.format(nick=nick, target=user, channel=chan, reason=reason)
+    )
     conn.send(out)
 
 

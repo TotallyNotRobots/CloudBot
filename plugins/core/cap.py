@@ -26,7 +26,9 @@ async def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
     for cap in caplist:
         name = cap.name
         name_cf = name.casefold()
-        cap_event = partial(CapEvent, base_event=event, cap=name, cap_param=cap.value)
+        cap_event = partial(
+            CapEvent, base_event=event, cap=name, cap_param=cap.value
+        )
         tasks = [
             bot.plugin_manager.internal_launch(_hook, cap_event(hook=_hook))
             for _hook in bot.plugin_manager.cap_hooks["on_available"][name_cf]
@@ -36,7 +38,7 @@ async def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
             cap_queue[name_cf] = async_util.create_future(conn.loop)
             conn.cmd("CAP", "REQ", name)
 
-    if irc_paramlist[2] != '*':
+    if irc_paramlist[2] != "*":
         await asyncio.gather(*cap_queue.values())
         cap_queue.clear()
         conn.send("CAP END")
@@ -63,7 +65,9 @@ async def _launch_handler(subcmd, event, **kwargs):
     except LookupError:
         return
 
-    await async_util.run_func_with_args(event.loop, handler, ChainMap(event, kwargs))
+    await async_util.run_func_with_args(
+        event.loop, handler, ChainMap(event, kwargs)
+    )
 
 
 @_subcmd_handler("LS")
@@ -73,7 +77,7 @@ async def cap_ls(conn, caplist, event, irc_paramlist, bot):
 
 
 async def handle_req_resp(enabled, conn, caplist, event, bot):
-    server_caps = conn.memory.setdefault('server_caps', {})
+    server_caps = conn.memory.setdefault("server_caps", {})
     cap_queue = conn.memory.get("cap_queue", {})
     caps = (cap.name.casefold() for cap in caplist)
     for cap in caps:
@@ -114,8 +118,10 @@ async def cap_new(caplist, conn, event, bot, irc_paramlist):
 @_subcmd_handler("DEL")
 def cap_del(conn, caplist):
     # TODO add hooks for CAP removal
-    logger.info("[%s|cap] Capabilities removed by server: %s", conn.name, caplist)
-    server_caps = conn.memory.setdefault('server_caps', {})
+    logger.info(
+        "[%s|cap] Capabilities removed by server: %s", conn.name, caplist
+    )
+    server_caps = conn.memory.setdefault("server_caps", {})
     for cap in caplist:
         server_caps[cap.name.casefold()] = False
 

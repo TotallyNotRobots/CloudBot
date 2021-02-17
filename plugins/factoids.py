@@ -13,7 +13,7 @@ from cloudbot.util.web import NoPasteException
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
 factoid_cache = defaultdict(default_dict.copy)
 
-re_lineends = re.compile(r'[\r\n]*')
+re_lineends = re.compile(r"[\r\n]*")
 
 FACTOID_CHAR = "?"  # TODO: config
 
@@ -24,7 +24,7 @@ table = Table(
     Column("data", String),
     Column("nick", String),
     Column("chan", String),
-    PrimaryKeyConstraint('word', 'chan')
+    PrimaryKeyConstraint("word", "chan"),
 )
 
 
@@ -54,12 +54,18 @@ def add_factoid(db, word, chan, data, nick):
     """
     if word in factoid_cache[chan]:
         # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
-            table.c.word == word))
+        db.execute(
+            table.update()
+            .values(data=data, nick=nick, chan=chan)
+            .where(table.c.chan == chan)
+            .where(table.c.word == word)
+        )
         db.commit()
     else:
         # otherwise, insert
-        db.execute(table.insert().values(word=word, data=data, nick=nick, chan=chan))
+        db.execute(
+            table.insert().values(word=word, data=data, nick=nick, chan=chan)
+        )
         db.commit()
     load_cache(db)
 
@@ -97,19 +103,23 @@ def remember(text, nick, db, chan, notice, event):
     except LookupError:
         old_data = None
 
-    if data.startswith('+') and old_data:
+    if data.startswith("+") and old_data:
         # remove + symbol
         new_data = data[1:]
         # append new_data to the old_data
-        if len(new_data) > 1 and new_data[1] in (string.punctuation + ' '):
+        if len(new_data) > 1 and new_data[1] in (string.punctuation + " "):
             data = old_data + new_data
         else:
-            data = old_data + ' ' + new_data
+            data = old_data + " " + new_data
         notice("Appending \x02{}\x02 to \x02{}\x02".format(new_data, old_data))
     else:
-        notice('Remembering \x02{0}\x02 for \x02{1}\x02. Type {2}{1} to see it.'.format(data, word, FACTOID_CHAR))
+        notice(
+            "Remembering \x02{0}\x02 for \x02{1}\x02. Type {2}{1} to see it.".format(
+                data, word, FACTOID_CHAR
+            )
+        )
         if old_data:
-            notice('Previous data was \x02{}\x02'.format(old_data))
+            notice("Previous data was \x02{}\x02".format(old_data))
 
     add_factoid(db, word, chan, data, nick)
 
@@ -117,8 +127,8 @@ def remember(text, nick, db, chan, notice, event):
 def paste_facts(facts, raise_on_no_paste=False):
     headers = ("Command", "Output")
     data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(facts.items())]
-    tbl = gen_markdown_table(headers, data).encode('UTF-8')
-    return web.paste(tbl, 'md', 'hastebin', raise_on_no_paste=raise_on_no_paste)
+    tbl = gen_markdown_table(headers, data).encode("UTF-8")
+    return web.paste(tbl, "md", "hastebin", raise_on_no_paste=raise_on_no_paste)
 
 
 def remove_fact(chan, names, db, notice):
@@ -132,9 +142,11 @@ def remove_fact(chan, names, db, notice):
             missing.append(name)
 
     if missing:
-        notice("Unknown factoids: {}".format(
-            get_text_list([repr(s) for s in missing], 'and')
-        ))
+        notice(
+            "Unknown factoids: {}".format(
+                get_text_list([repr(s) for s in missing], "and")
+            )
+        )
 
     if found:
         try:
@@ -158,7 +170,9 @@ def forget(text, chan, db, notice):
     remove_fact(chan, text.split(), db, notice)
 
 
-@hook.command('forgetall', 'clearfacts', autohelp=False, permissions=['op', 'chanop'])
+@hook.command(
+    "forgetall", "clearfacts", autohelp=False, permissions=["op", "chanop"]
+)
 def forget_all(chan, db):
     """- Remove all factoids in the current channel
 
@@ -181,7 +195,7 @@ def info(text, chan, notice):
         notice("Unknown Factoid.")
 
 
-factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
+factoid_re = re.compile(r"^{} ?(.+)".format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)
