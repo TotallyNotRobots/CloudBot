@@ -49,7 +49,9 @@ TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
 class TextGenerator(object):
-    def __init__(self, templates, parts, default_templates=None, variables=None):
+    def __init__(
+        self, templates, parts, default_templates=None, variables=None
+    ):
         self.templates = templates
         self.default_templates = default_templates
         self.parts = parts
@@ -77,7 +79,9 @@ class TextGenerator(object):
         If no templates are specified, use a random template from the default_templates list.
         """
         if self.default_templates:
-            text = self.templates[template or random.choice(self.default_templates)]
+            text = self.templates[
+                template or random.choice(self.default_templates)
+            ]
         else:
             text = random.choice(self.templates)
 

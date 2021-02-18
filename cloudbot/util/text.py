@@ -1,6 +1,6 @@
 from typing import Optional
 
-__all__ = ('parse_bool',)
+__all__ = ("parse_bool",)
 
 _STR_TO_BOOL = {
     "yes": True,

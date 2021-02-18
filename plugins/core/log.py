@@ -33,20 +33,33 @@ irc_formats = {
 irc_default = "[{server}] {irc_raw}"
 
 ctcp_known = "[{server}:{channel}] {nick} [{user}@{host}] has requested CTCP {ctcp_command}"
-ctcp_known_with_message = ("[{server}:{channel}] {nick} [{user}@{host}] "
-                           "has requested CTCP {ctcp_command}: {ctcp_message}")
+ctcp_known_with_message = (
+    "[{server}:{channel}] {nick} [{user}@{host}] "
+    "has requested CTCP {ctcp_command}: {ctcp_message}"
+)
 ctcp_unknown = "[{server}:{channel}] {nick} [{user}@{host}] has requested unknown CTCP {ctcp_command}"
-ctcp_unknown_with_message = ("[{server}:{channel}] {nick} [{user}@{host}] "
-                             "has requested unknown CTCP {ctcp_command}: {ctcp_message}")
+ctcp_unknown_with_message = (
+    "[{server}:{channel}] {nick} [{user}@{host}] "
+    "has requested unknown CTCP {ctcp_command}: {ctcp_message}"
+)
 
 server_info_numerics = (
-    "003", "005", "250", "251", "252", "253", "254", "255", "256"
+    "003",
+    "005",
+    "250",
+    "251",
+    "252",
+    "253",
+    "254",
+    "255",
+    "256",
 )
 
 
 # +------------+
 # | Formatting |
 # +------------+
+
 
 def format_event(event):
     """
@@ -58,8 +71,12 @@ def format_event(event):
     # Setup arguments
 
     args = {
-        "server": event.conn.name, "target": event.target, "channel": event.chan, "nick": event.nick,
-        "user": event.user, "host": event.host
+        "server": event.conn.name,
+        "target": event.target,
+        "channel": event.chan,
+        "nick": event.nick,
+        "user": event.user,
+        "host": event.host,
     }
 
     if event.content is not None:
@@ -99,7 +116,7 @@ def format_irc_event(event, args):
     # Try formatting with the CTCP command
 
     if event.irc_ctcp_text is not None:
-        ctcp_command, _, ctcp_message = event.irc_ctcp_text.partition(' ')
+        ctcp_command, _, ctcp_message = event.irc_ctcp_text.partition(" ")
         args["ctcp_command"] = ctcp_command
         args["ctcp_message"] = ctcp_message
 
@@ -120,10 +137,17 @@ def format_irc_event(event, args):
 
     logging_config = event.bot.config.get("logging", {})
 
-    if not logging_config.get("show_motd", True) and event.irc_command in ("375", "372", "376"):
+    if not logging_config.get("show_motd", True) and event.irc_command in (
+        "375",
+        "372",
+        "376",
+    ):
         return None
 
-    if not logging_config.get("show_server_info", True) and event.irc_command in server_info_numerics:
+    if (
+        not logging_config.get("show_server_info", True)
+        and event.irc_command in server_info_numerics
+    ):
         return None
 
     if event.irc_command == "PING":
@@ -152,7 +176,9 @@ raw_cache = {}
 def get_log_filename(server, chan):
     current_time = time.gmtime()
     folder_name = time.strftime(folder_format, current_time)
-    file_name = time.strftime(file_format.format(chan=chan, server=server), current_time).lower()
+    file_name = time.strftime(
+        file_format.format(chan=chan, server=server), current_time
+    ).lower()
     return cloudbot.logging_info.add_path(folder_name, file_name)
 
 
@@ -174,7 +200,9 @@ def get_log_stream(server, chan):
         # a dumb hack to bypass the fact windows does not allow * in file names
         new_filename = new_filename.replace("*", "server")
 
-        log_stream = codecs.open(new_filename, mode="a", encoding="utf-8", buffering=1)
+        log_stream = codecs.open(
+            new_filename, mode="a", encoding="utf-8", buffering=1
+        )
         stream_cache[cache_key] = (new_filename, log_stream)
 
     return log_stream
@@ -183,7 +211,9 @@ def get_log_stream(server, chan):
 def get_raw_log_filename(server):
     current_time = time.gmtime()
     folder_name = time.strftime(folder_format, current_time)
-    file_name = time.strftime(raw_file_format.format(server=server), current_time).lower()
+    file_name = time.strftime(
+        raw_file_format.format(server=server), current_time
+    ).lower()
     return cloudbot.logging_info.add_path("raw", folder_name, file_name)
 
 
@@ -201,7 +231,9 @@ def get_raw_log_stream(server):
         logging_dir = os.path.dirname(new_filename)
         os.makedirs(logging_dir, exist_ok=True)
 
-        log_stream = codecs.open(new_filename, mode="a", encoding="utf-8", buffering=1)
+        log_stream = codecs.open(
+            new_filename, mode="a", encoding="utf-8", buffering=1
+        )
         stream_cache[server] = (new_filename, log_stream)
 
     return log_stream
@@ -233,7 +265,11 @@ def log(event):
     text = format_event(event)
 
     if text is not None:
-        if event.irc_command in ["PRIVMSG", "PART", "JOIN", "MODE", "TOPIC", "QUIT", "NOTICE"] and event.chan:
+        if (
+            event.irc_command
+            in ["PRIVMSG", "PART", "JOIN", "MODE", "TOPIC", "QUIT", "NOTICE"]
+            and event.chan
+        ):
             stream = get_log_stream(event.conn.name, event.chan)
             stream.write(text + os.linesep)
             stream.flush()

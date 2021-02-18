@@ -12,11 +12,11 @@ def test_register():
 
     sprunge.register()
 
-    assert web.pastebins.get('sprunge') is not None
+    assert web.pastebins.get("sprunge") is not None
 
     sprunge.unregister()
 
-    assert web.pastebins.get('sprunge') is None
+    assert web.pastebins.get("sprunge") is None
 
 
 def test_paste(mock_requests):
@@ -25,12 +25,12 @@ def test_paste(mock_requests):
 
     sprunge.register()
 
-    paster = web.pastebins['sprunge']
+    paster = web.pastebins["sprunge"]
 
     mock_requests.add(
-        'POST', 'http://sprunge.us', body='http://sprunge.us/foobar'
+        "POST", "http://sprunge.us", body="http://sprunge.us/foobar"
     )
-    assert paster.paste('test data', 'txt') == 'http://sprunge.us/foobar?txt'
+    assert paster.paste("test data", "txt") == "http://sprunge.us/foobar?txt"
 
 
 def test_data_params(mock_requests):
@@ -44,14 +44,12 @@ def test_data_params(mock_requests):
     def req_cb(req):
         nonlocal body
         body = req.body
-        return 200, {}, 'http://sprunge.us/foobar\n'
+        return 200, {}, "http://sprunge.us/foobar\n"
 
-    paster = web.pastebins['sprunge']
-    mock_requests.add_callback(
-        'POST', 'http://sprunge.us', callback=req_cb
-    )
-    assert paster.paste('test data', 'txt') == 'http://sprunge.us/foobar?txt'
-    assert body == 'sprunge=test+data'
+    paster = web.pastebins["sprunge"]
+    mock_requests.add_callback("POST", "http://sprunge.us", callback=req_cb)
+    assert paster.paste("test data", "txt") == "http://sprunge.us/foobar?txt"
+    assert body == "sprunge=test+data"
 
 
 def test_paste_bytes(mock_requests):
@@ -60,12 +58,12 @@ def test_paste_bytes(mock_requests):
 
     sprunge.register()
 
-    paster = web.pastebins['sprunge']
+    paster = web.pastebins["sprunge"]
 
     mock_requests.add(
-        'POST', 'http://sprunge.us', body='http://sprunge.us/foobar'
+        "POST", "http://sprunge.us", body="http://sprunge.us/foobar"
     )
-    assert paster.paste(b'test data', 'txt') == 'http://sprunge.us/foobar?txt'
+    assert paster.paste(b"test data", "txt") == "http://sprunge.us/foobar?txt"
 
 
 def test_paste_error(mock_requests):
@@ -74,14 +72,16 @@ def test_paste_error(mock_requests):
 
     sprunge.register()
 
-    paster = web.pastebins['sprunge']
+    paster = web.pastebins["sprunge"]
 
     with pytest.raises(web.ServiceError):
-        paster.paste('test data', 'txt')
+        paster.paste("test data", "txt")
 
     mock_requests.add(
-        'POST', 'http://sprunge.us', status=500,
+        "POST",
+        "http://sprunge.us",
+        status=500,
     )
 
     with pytest.raises(web.ServiceHTTPError):
-        paster.paste('test data', 'txt')
+        paster.paste("test data", "txt")

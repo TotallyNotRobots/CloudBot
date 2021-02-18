@@ -39,6 +39,13 @@ def test_parse_isupport():
                 "EXTBAN": "$,abcd",
                 "PREFIX": "(ohv)@%+",
             },
-            "statuses": {"%": hop, "+": voice, "@": op, "h": hop, "o": op, "v": voice},
+            "statuses": {
+                "%": hop,
+                "+": voice,
+                "@": op,
+                "h": hop,
+                "o": op,
+                "v": voice,
+            },
         }
     }

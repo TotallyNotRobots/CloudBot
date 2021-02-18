@@ -37,56 +37,58 @@ License:
 
 import re
 
-SIGN = r'(?P<sign>[+|-])?'
+SIGN = r"(?P<sign>[+|-])?"
 
 # YEARS      = r'(?P<years>\d+)\s*(?:ys?|yrs?.?|years?)'
 # MONTHS     = r'(?P<months>\d+)\s*(?:mos?.?|mths?.?|months?)'
-WEEKS = r'(?P<weeks>[\d.]+)\s*(?:w|wks?|weeks?)'
-DAYS = r'(?P<days>[\d.]+)\s*(?:d|dys?|days?)'
-HOURS = r'(?P<hours>[\d.]+)\s*(?:h|hrs?|hours?)'
-MINS = r'(?P<mins>[\d.]+)\s*(?:m|(mins?)|(minutes?))'
-SECS = r'(?P<secs>[\d.]+)\s*(?:s|secs?|seconds?)'
-SEPARATORS = r'[,/]'
-SEC_CLOCK = r':(?P<secs>\d{2}(?:\.\d+)?)'
-MIN_CLOCK = r'(?P<mins>\d{1,2}):(?P<secs>\d{2}(?:\.\d+)?)'
-HOUR_CLOCK = r'(?P<hours>\d+):(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)'
-DAY_CLOCK = (r'(?P<days>\d+):(?P<hours>\d{2}):'
-             r'(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)')
+WEEKS = r"(?P<weeks>[\d.]+)\s*(?:w|wks?|weeks?)"
+DAYS = r"(?P<days>[\d.]+)\s*(?:d|dys?|days?)"
+HOURS = r"(?P<hours>[\d.]+)\s*(?:h|hrs?|hours?)"
+MINS = r"(?P<mins>[\d.]+)\s*(?:m|(mins?)|(minutes?))"
+SECS = r"(?P<secs>[\d.]+)\s*(?:s|secs?|seconds?)"
+SEPARATORS = r"[,/]"
+SEC_CLOCK = r":(?P<secs>\d{2}(?:\.\d+)?)"
+MIN_CLOCK = r"(?P<mins>\d{1,2}):(?P<secs>\d{2}(?:\.\d+)?)"
+HOUR_CLOCK = r"(?P<hours>\d+):(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)"
+DAY_CLOCK = (
+    r"(?P<days>\d+):(?P<hours>\d{2}):"
+    r"(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)"
+)
 
-OPT = lambda x: r'(?:{x})?'.format(x=x)
-OPT_SEP = lambda x: r'(?:{x}\s*(?:{SEPARATORS}\s*)?)?'.format(
-    x=x, SEPARATORS=SEPARATORS)
+OPT = lambda x: r"(?:{x})?".format(x=x)
+OPT_SEP = lambda x: r"(?:{x}\s*(?:{SEPARATORS}\s*)?)?".format(
+    x=x, SEPARATORS=SEPARATORS
+)
 
 TIME_FORMATS = [
-    r'{WEEKS}\s*{DAYS}\s*{HOURS}\s*{MINS}\s*{SECS}'.format(
+    r"{WEEKS}\s*{DAYS}\s*{HOURS}\s*{MINS}\s*{SECS}".format(
         # YEARS=OPT_SEP(YEARS),
         # MONTHS=OPT_SEP(MONTHS),
         WEEKS=OPT_SEP(WEEKS),
         DAYS=OPT_SEP(DAYS),
         HOURS=OPT_SEP(HOURS),
         MINS=OPT_SEP(MINS),
-        SECS=OPT(SECS)),
-    r'{MIN_CLOCK}'.format(
-        MIN_CLOCK=MIN_CLOCK),
-    r'{WEEKS}\s*{DAYS}\s*{HOUR_CLOCK}'.format(
-        WEEKS=OPT_SEP(WEEKS),
-        DAYS=OPT_SEP(DAYS),
-        HOUR_CLOCK=HOUR_CLOCK),
-    r'{DAY_CLOCK}'.format(
-        DAY_CLOCK=DAY_CLOCK),
-    r'{SEC_CLOCK}'.format(
-        SEC_CLOCK=SEC_CLOCK),
+        SECS=OPT(SECS),
+    ),
+    r"{MIN_CLOCK}".format(MIN_CLOCK=MIN_CLOCK),
+    r"{WEEKS}\s*{DAYS}\s*{HOUR_CLOCK}".format(
+        WEEKS=OPT_SEP(WEEKS), DAYS=OPT_SEP(DAYS), HOUR_CLOCK=HOUR_CLOCK
+    ),
+    r"{DAY_CLOCK}".format(DAY_CLOCK=DAY_CLOCK),
+    r"{SEC_CLOCK}".format(SEC_CLOCK=SEC_CLOCK),
 ]
 
-MULTIPLIERS = dict([
-    # ('years',  60 * 60 * 24 * 365),
-    # ('months', 60 * 60 * 24 * 30),
-    ('weeks', 60 * 60 * 24 * 7),
-    ('days', 60 * 60 * 24),
-    ('hours', 60 * 60),
-    ('mins', 60),
-    ('secs', 1)
-])
+MULTIPLIERS = dict(
+    [
+        # ('years',  60 * 60 * 24 * 365),
+        # ('months', 60 * 60 * 24 * 30),
+        ("weeks", 60 * 60 * 24 * 7),
+        ("days", 60 * 60 * 24),
+        ("hours", 60 * 60),
+        ("mins", 60),
+        ("secs", 1),
+    ]
+)
 
 
 def _interpret_as_minutes(string, mdict):
@@ -99,16 +101,20 @@ def _interpret_as_minutes(string, mdict):
     >>> pprint.pprint(_interpret_as_minutes('1:24', {'secs': '24', 'mins': '1'}))
     {'hours': '1', 'mins': '24'}
     """
-    has_keys = mdict.get('hours') is None and mdict.get('days') is None and mdict.get('weeks') is None
-    if string.count(':') == 1 and '.' not in string and has_keys:
-        mdict['hours'] = mdict['mins']
-        mdict['mins'] = mdict['secs']
-        mdict.pop('secs')
+    has_keys = (
+        mdict.get("hours") is None
+        and mdict.get("days") is None
+        and mdict.get("weeks") is None
+    )
+    if string.count(":") == 1 and "." not in string and has_keys:
+        mdict["hours"] = mdict["mins"]
+        mdict["mins"] = mdict["secs"]
+        mdict.pop("secs")
 
     return mdict
 
 
-def time_parse(string, granularity='seconds'):
+def time_parse(string, granularity="seconds"):
     """
     Parse a time expression, returning it as a number of seconds.  If
     possible, the return value will be an `int`; if this is not
@@ -146,28 +152,43 @@ def time_parse(string, granularity='seconds'):
     >>> time_parse('1:30', granularity='minutes')
     5400
     """
-    match = re.match(r'\s*' + SIGN + r'\s*(?P<unsigned>.*)$', string)
-    sign = -1 if match.groupdict()['sign'] == '-' else 1
-    string = match.groupdict()['unsigned']
+    match = re.match(r"\s*" + SIGN + r"\s*(?P<unsigned>.*)$", string)
+    sign = -1 if match.groupdict()["sign"] == "-" else 1
+    string = match.groupdict()["unsigned"]
     for timefmt in TIME_FORMATS:
-        match = re.match(r'\s*' + timefmt + r'\s*$', string, re.I)
+        match = re.match(r"\s*" + timefmt + r"\s*$", string, re.I)
         if match and match.group(0).strip():
             mdict = match.groupdict()
-            if granularity == 'minutes':
+            if granularity == "minutes":
                 mdict = _interpret_as_minutes(string, mdict)
             # if all of the fields are integer numbers
             if all(v.isdigit() for v in list(mdict.values()) if v):
-                return sign * sum([MULTIPLIERS[k] * int(v, 10) for (k, v) in
-                                   list(mdict.items()) if v is not None])
+                return sign * sum(
+                    [
+                        MULTIPLIERS[k] * int(v, 10)
+                        for (k, v) in list(mdict.items())
+                        if v is not None
+                    ]
+                )
 
             # if SECS is an integer number
-            if mdict.get('secs') is None or mdict['secs'].isdigit():
+            if mdict.get("secs") is None or mdict["secs"].isdigit():
                 # we will return an integer
-                return (
-                    sign * int(sum([MULTIPLIERS[k] * float(v) for (k, v) in
-                                    list(mdict.items()) if k != 'secs' and v is not None])) +
-                    (int(mdict['secs'], 10) if mdict['secs'] else 0))
+                return sign * int(
+                    sum(
+                        [
+                            MULTIPLIERS[k] * float(v)
+                            for (k, v) in list(mdict.items())
+                            if k != "secs" and v is not None
+                        ]
+                    )
+                ) + (int(mdict["secs"], 10) if mdict["secs"] else 0)
 
             # SECS is a float, we will return a float
-            return sign * sum([MULTIPLIERS[k] * float(v) for (k, v) in
-                               list(mdict.items()) if v is not None])
+            return sign * sum(
+                [
+                    MULTIPLIERS[k] * float(v)
+                    for (k, v) in list(mdict.items())
+                    if v is not None
+                ]
+            )

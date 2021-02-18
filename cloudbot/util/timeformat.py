@@ -94,7 +94,7 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
 
     if since <= 0:
         # d is in the future compared to now, stop processing.
-        return '0 ' + 'minutes'
+        return "0 " + "minutes"
 
     # pass the number in seconds on to format_time to make the output string
     return format_time(since, count, accuracy, simple)
@@ -170,14 +170,14 @@ class TimeInterval:
 
 
 class TimeUnits:
-    SECOND = TimeUnit(1, 's', 'second', 'seconds')
-    MINUTE = TimeUnit(60 * SECOND, 'm', 'minute', 'minutes')
-    HOUR = TimeUnit(60 * MINUTE, 'h', 'hour', 'hours')
-    DAY = TimeUnit(24 * HOUR, 'd', 'day', 'days')
-    MONTH = TimeUnit(30 * DAY, 'M', 'month', 'months')
-    YEAR = TimeUnit(365 * DAY, 'y', 'year', 'years')
-    DECADE = TimeUnit(10 * YEAR, 'D', 'decade', 'decades')
-    CENTURY = TimeUnit(10 * DECADE, 'c', 'century', 'centuries')
+    SECOND = TimeUnit(1, "s", "second", "seconds")
+    MINUTE = TimeUnit(60 * SECOND, "m", "minute", "minutes")
+    HOUR = TimeUnit(60 * MINUTE, "h", "hour", "hours")
+    DAY = TimeUnit(24 * HOUR, "d", "day", "days")
+    MONTH = TimeUnit(30 * DAY, "M", "month", "months")
+    YEAR = TimeUnit(365 * DAY, "y", "year", "years")
+    DECADE = TimeUnit(10 * YEAR, "D", "decade", "decades")
+    CENTURY = TimeUnit(10 * DECADE, "c", "century", "centuries")
 
     units = (CENTURY, DECADE, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
 

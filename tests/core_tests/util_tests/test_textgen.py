@@ -3,45 +3,45 @@ import re
 
 def test_textgenerator():
     from cloudbot.util.textgen import TextGenerator
+
     generator = TextGenerator(
-        [
-            '{thing} is {stuff}'
-        ],
+        ["{thing} is {stuff}"],
         {
-            'thing': ['a', 'b'],
-            'stuff': [
-                'c',
-                ('d', 2),
-            ]
-        }
+            "thing": ["a", "b"],
+            "stuff": [
+                "c",
+                ("d", 2),
+            ],
+        },
     )
 
     for s in generator.generate_strings(4):
-        assert re.match(r'[ab] is [cd]', s)
+        assert re.match(r"[ab] is [cd]", s)
 
-    assert generator.get_template(0) == '{thing} is {stuff}'
+    assert generator.get_template(0) == "{thing} is {stuff}"
 
 
 def test_textgen_default_tmpl():
     from cloudbot.util.textgen import TextGenerator
+
     generator = TextGenerator(
         [
-            '{thing} is {stuff} {a}',
-            '{thing} are {stuff} {a}',
+            "{thing} is {stuff} {a}",
+            "{thing} are {stuff} {a}",
         ],
         {
-            'thing': ['a', 'b'],
-            'stuff': [
-                'c',
-                ('d', 2),
-            ]
+            "thing": ["a", "b"],
+            "stuff": [
+                "c",
+                ("d", 2),
+            ],
         },
         default_templates=[1],
-        variables={'a': 'foo'}
+        variables={"a": "foo"},
     )
 
     for s in generator.generate_strings(4):
-        assert re.match(r'[ab] are [cd] foo', s)
+        assert re.match(r"[ab] are [cd] foo", s)
 
-    assert generator.get_template(0) == '{thing} is {stuff} {a}'
-    assert generator.get_template(1) == '{thing} are {stuff} {a}'
+    assert generator.get_template(0) == "{thing} is {stuff} {a}"
+    assert generator.get_template(1) == "{thing} are {stuff} {a}"

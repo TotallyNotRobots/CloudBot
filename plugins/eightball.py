@@ -14,8 +14,7 @@ def load_responses(bot):
     responses.clear()
     with codecs.open(path, encoding="utf-8") as f:
         responses.extend(
-            line.strip() for line in f.readlines()
-            if not line.startswith("//")
+            line.strip() for line in f.readlines() if not line.startswith("//")
         )
 
 

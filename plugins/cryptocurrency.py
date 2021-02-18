@@ -45,7 +45,9 @@ class UnknownFiatCurrencyError(APIError):
 
 
 class APIResponse:
-    def __init__(self, api, data: "UntypedResponse", response: Response) -> None:
+    def __init__(
+        self, api, data: "UntypedResponse", response: Response
+    ) -> None:
         self.api = api
         self.data = data
         self.response = response
@@ -83,7 +85,9 @@ class SchemaMeta(type):
         if members.setdefault("_abstract", False):
             super_fields = ()
             for base in bases:
-                if not getattr(base, "_abstract", False) and isinstance(base, cls):
+                if not getattr(base, "_abstract", False) and isinstance(
+                    base, cls
+                ):
                     super_fields = getattr(base, "_fields")
                     break
 
@@ -142,7 +146,9 @@ class UntypedResponse(APIRequestResponse):
 
 class Platform(Schema):
     # noinspection PyShadowingBuiltins
-    def __init__(self, id: int, name: str, symbol: str, slug: str, token_address: str):
+    def __init__(
+        self, id: int, name: str, symbol: str, slug: str, token_address: str
+    ):
         super().__init__()
         self.id = id
         self.name = name
@@ -241,7 +247,9 @@ class FiatCurrencyMap(APIRequestResponse):
         super().__init__(status)
         self.data = data
 
-        self.symbols = {currency.symbol: currency.sign for currency in self.data}
+        self.symbols = {
+            currency.symbol: currency.sign for currency in self.data
+        }
 
 
 class CryptoCurrencyEntry(Schema):
@@ -278,7 +286,9 @@ class CryptoCurrencyMap(APIRequestResponse):
         self.names = set(currency.symbol for currency in self.data)
 
 
-BAD_FIELD_TYPE_MSG = "field {field!r} expected type {exp_type!r}, got type {act_type!r}"
+BAD_FIELD_TYPE_MSG = (
+    "field {field!r} expected type {exp_type!r}, got type {act_type!r}"
+)
 
 
 def sentinel(name: str):
@@ -344,7 +354,9 @@ def _hydrate_object(_value, _cls):
             _assert_type(_value, dict, _cls)
 
             return {
-                _hydrate_object(k, type_args[0]): _hydrate_object(v, type_args[1])
+                _hydrate_object(k, type_args[0]): _hydrate_object(
+                    v, type_args[1]
+                )
                 for k, v in _value.items()
             }
 
@@ -498,7 +510,9 @@ class CoinMarketCapAPI:
             convert = currency
 
         data = self.request(
-            "cryptocurrency/quotes/latest", symbol=symbol.upper(), convert=convert,
+            "cryptocurrency/quotes/latest",
+            symbol=symbol.upper(),
+            convert=convert,
         ).data.cast_to(QuoteRequestResponse)
         _, out = data.data.popitem()
         return out
@@ -510,10 +524,15 @@ class CoinMarketCapAPI:
 
     def get_crypto_currency_map(self) -> CryptoCurrencyMap:
         return self._request_cache(
-            "crypto_currency_map", "cryptocurrency/map", CryptoCurrencyMap, 86400
+            "crypto_currency_map",
+            "cryptocurrency/map",
+            CryptoCurrencyMap,
+            86400,
         )
 
-    def _request_cache(self, name: str, endpoint: str, fmt: Type[T], ttl: int) -> T:
+    def _request_cache(
+        self, name: str, endpoint: str, fmt: Type[T], ttl: int
+    ) -> T:
         out = self.cache.get(name)
         if out is None:
             currencies = self.request(endpoint).data.cast_to(fmt)
@@ -523,7 +542,9 @@ class CoinMarketCapAPI:
 
     def request(self, endpoint: str, **params) -> APIResponse:
         url = str(self.api_url / endpoint)
-        with requests.get(url, headers=self.request_headers, params=params) as response:
+        with requests.get(
+            url, headers=self.request_headers, params=params
+        ) as response:
             api_response = APIResponse.from_response(self, response)
             self.check(api_response)
 
@@ -585,7 +606,9 @@ def alias_wrapper(alias):
 def init_aliases():
     for alias in ALIASES:
         _hook = alias_wrapper(alias)
-        globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(_hook)
+        globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(
+            _hook
+        )
 
 
 # main command
@@ -628,8 +651,15 @@ def crypto_command(text, event):
         btc = ""
 
     return colors.parse(
-        ("{} ({}) // $(orange){}{:,.2f}$(clear) {} " + btc + "// {} change").format(
-            data.symbol, data.slug, currency_sign, quote.price, currency, change_str,
+        (
+            "{} ({}) // $(orange){}{:,.2f}$(clear) {} " + btc + "// {} change"
+        ).format(
+            data.symbol,
+            data.slug,
+            currency_sign,
+            quote.price,
+            currency,
+            change_str,
         )
     )
 
@@ -639,7 +669,8 @@ def currency_list():
     """- List all available currencies from the API"""
     currency_map = api.get_crypto_currency_map()
     currencies = sorted(
-        set((obj.symbol, obj.name) for obj in currency_map.data), key=itemgetter(0)
+        set((obj.symbol, obj.name) for obj in currency_map.data),
+        key=itemgetter(0),
     )
     lst = ["{: <10} {}".format(symbol, name) for symbol, name in currencies]
     lst.insert(0, "Symbol     Name")
