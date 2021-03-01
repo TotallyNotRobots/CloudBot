@@ -4,7 +4,7 @@ ci:
   - mypy
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 9136088a246768144165fcc3ecc3d31bb686920a  # frozen: v3.3.0
+  rev: 6e2418c5521b7d606e72914dced3253f9ace1205  # frozen: v3.4.0
   hooks:
   - id: trailing-whitespace
     args: ['--markdown-linebreak-ext=md,markdown']
@@ -37,11 +37,11 @@ repos:
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: 6bb47b7acc1554ecb59d2855e9110c447162f674  # frozen: 5.6.4
+  rev: 473d150c1db60f4614a574e30993e9e0d3ca0cce  # frozen: 5.7.0
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
-  rev: 4f4c0a4cda27980be153cca2cb7710c9fec57ba3  # frozen: v1.7.0
+  rev: 58ace0d0dc6b2439b737a5ea353f836f6a2bad13  # frozen: v1.8.0
   hooks:
   - id: python-no-eval
   - id: python-no-log-warn
