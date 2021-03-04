@@ -52,8 +52,6 @@ async def run_func_with_args(loop, func, arg_data, executor=None):
 def run_coroutine_threadsafe(coro, loop):
     """
     Runs a coroutine in a threadsafe manner
-    :type coro: coroutine
-    :type loop: asyncio.AbstractEventLoop
     """
     if not asyncio.iscoroutine(coro):
         raise TypeError("A coroutine object is required")
@@ -64,7 +62,7 @@ def run_coroutine_threadsafe(coro, loop):
         asyncio.run_coroutine_threadsafe(coro, loop)
 
 
-def create_future(loop=None):
+def create_future(loop=None) -> asyncio.Future:
     if loop is None:
         loop = asyncio.get_event_loop()
 

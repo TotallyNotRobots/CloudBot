@@ -62,7 +62,7 @@ class MockTime:
 @pytest.fixture()
 def mock_time():
     mocked = MockTime()
-    with patch.object(tokenbucket, 'time', mocked.get):
+    with patch.object(tokenbucket, "time", mocked.get):
         yield mocked
 
 

@@ -7,7 +7,7 @@ api_url_taf = "http://api.av-wx.com/taf/"
 
 
 def lookup(text, url):
-    station = text.split(' ')[0].upper()
+    station = text.split(" ")[0].upper()
     if len(station) != 4:
         return "please specify a valid station code see http://weather.rap.ucar.edu/surface/stations.txt for a list."
 
@@ -16,8 +16,8 @@ def lookup(text, url):
         return "Station not found"
 
     request.raise_for_status()
-    r = request.json()['reports'][0]
-    out = r['name'] + ": " + r['raw_text']
+    r = request.json()["reports"][0]
+    out = r["name"] + ": " + r["raw_text"]
     return out
 
 

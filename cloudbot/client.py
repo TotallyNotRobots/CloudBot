@@ -36,25 +36,9 @@ class ClientConnectError(Exception):
 class Client:
     """
     A Client representing each connection the bot makes to a single server
-    :type bot: cloudbot.bot.CloudBot
-    :type loop: asyncio.events.AbstractEventLoop
-    :type name: str
-    :type channels: list[str]
-    :type config: dict[str, unknown]
-    :type nick: str
-    :type vars: dict
-    :type history: dict[str, list[tuple]]
-    :type permissions: PermissionManager
     """
 
     def __init__(self, bot, _type, name, nick, *, channels=None, config=None):
-        """
-        :type bot: cloudbot.bot.CloudBot
-        :type name: str
-        :type nick: str
-        :type channels: list[str]
-        :type config: dict[str, unknown]
-        """
         self.bot = bot
         self.loop = bot.loop
         self.name = name
@@ -132,54 +116,42 @@ class Client:
     def message(self, target, *text):
         """
         Sends a message to the given target
-        :type target: str
-        :type text: str
         """
         raise NotImplementedError
 
     def admin_log(self, text, console=True):
         """
         Log a message to the configured admin channel
-        :type text: str
-        :type console: bool
         """
         raise NotImplementedError
 
     def action(self, target, text):
         """
         Sends an action (or /me) to the given target channel
-        :type target: str
-        :type text: str
         """
         raise NotImplementedError
 
     def notice(self, target, text):
         """
         Sends a notice to the given target
-        :type target: str
-        :type text: str
         """
         raise NotImplementedError
 
     def set_nick(self, nick):
         """
         Sets the bot's nickname
-        :type nick: str
         """
         raise NotImplementedError
 
     def join(self, channel, key=None):
         """
         Joins a given channel
-        :type channel: str
-        :type key: str
         """
         raise NotImplementedError
 
     def part(self, channel):
         """
         Parts a given channel
-        :type channel: str
         """
         raise NotImplementedError
 

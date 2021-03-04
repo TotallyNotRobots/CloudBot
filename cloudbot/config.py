@@ -9,14 +9,7 @@ logger = logging.getLogger("cloudbot")
 
 
 class Config(OrderedDict):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    """
-
     def __init__(self, bot, *, filename="config.json"):
-        """
-        :type bot: cloudbot.bot.CloudBot
-        """
         super().__init__()
         self.filename = filename
         self.path = Path(self.filename).resolve()

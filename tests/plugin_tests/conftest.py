@@ -13,13 +13,3 @@ def patch_paste():
 def patch_try_shorten():
     with patch("cloudbot.util.web.try_shorten", new=lambda x: x):
         yield
-
-
-@pytest.fixture()
-def unset_bot():
-    try:
-        yield
-    finally:
-        from cloudbot.bot import bot
-
-        bot.set(None)

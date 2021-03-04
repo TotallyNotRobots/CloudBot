@@ -4,6 +4,8 @@ import importlib
 import pytest
 import requests
 
+from cloudbot.util import web
+
 
 def test_paste(mock_requests):
     mock_requests.add(
@@ -11,8 +13,6 @@ def test_paste(mock_requests):
         "https://hastebin.com/documents",
         json={"key": "foobar"},
     )
-    from cloudbot.util import web
-
     assert (
         web.paste("test data", service="hastebin")
         == "https://hastebin.com/foobar.txt"
@@ -22,8 +22,6 @@ def test_paste(mock_requests):
 
 
 def test_paste_error(mock_requests):
-    from cloudbot.util import web
-
     assert web.paste("test data") == "Unable to paste data"
 
     mock_requests.add(
@@ -40,10 +38,17 @@ def test_paste_error(mock_requests):
     assert web.paste("test data") == "Unable to paste data"
 
 
-def test_registry_item_working(freeze_time):
-    from cloudbot.util.web import Registry
+def test_registry_items():
+    registry = web.Registry()
+    obj = object()
+    registry.register("test", obj)
+    item = registry.get_item("test")
 
-    registry = Registry()
+    assert list(registry.items()) == [("test", item)]
+
+
+def test_registry_item_working(freeze_time):
+    registry = web.Registry()
     registry.register("test", object())
     item = registry.get_item("test")
     assert item.should_use
@@ -62,7 +67,6 @@ def test_shorten(mock_requests):
         "http://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
-    from cloudbot.util import web
 
     assert (
         web.shorten("https://example.com", service="is.gd")
@@ -139,7 +143,6 @@ def test_shorten(mock_requests):
 
 def test_isgd_errors(mock_requests):
     mock_requests.add(mock_requests.GET, "http://is.gd/create.php", status=429)
-    from cloudbot.util import web
 
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="is.gd")
@@ -155,7 +158,6 @@ def test_try_shorten(mock_requests):
         "http://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
-    from cloudbot.util import web
 
     assert (
         web.try_shorten("https://example.com", service="is.gd")
@@ -179,7 +181,6 @@ def test_expand(mock_requests):
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
-    from cloudbot.util import web
 
     assert (
         web.expand("https://is.gd/foobar", service="is.gd")
@@ -261,8 +262,6 @@ def test_expand(mock_requests):
 
 
 def test_register_duplicate_paste():
-    from cloudbot.util import web
-
     obj = object()
     obj1 = object()
 
@@ -274,8 +273,6 @@ def test_register_duplicate_paste():
 
 
 def test_remove_paste():
-    from cloudbot.util import web
-
     obj = object()
 
     web.pastebins.register("test", obj)

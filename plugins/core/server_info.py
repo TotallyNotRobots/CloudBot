@@ -12,7 +12,7 @@ DEFAULT_STATUS = (
 )
 
 
-@hook.on_start
+@hook.on_start()
 def do_isupport(bot):
     for conn in bot.connections.values():
         if conn.connected:
@@ -20,7 +20,7 @@ def do_isupport(bot):
             conn.send("VERSION")
 
 
-@hook.connect
+@hook.connect()
 def clear_isupport(conn):
     serv_info = conn.memory.setdefault("server_info", {})
     statuses = get_status_modes(serv_info, clear=True)
@@ -126,9 +126,8 @@ isupport_handlers = {
 def on_isupport(conn, irc_paramlist):
     serv_info = get_server_info(conn)
     token_data = serv_info["isupport_tokens"]
-    tokens = irc_paramlist[
-        1:-1
-    ]  # strip the nick and trailing ':are supported by this server' message
+    # strip the nick and trailing ':are supported by this server' message
+    tokens = irc_paramlist[1:-1]
     for token in tokens:
         name, _, value = token.partition("=")
         name = name.upper()

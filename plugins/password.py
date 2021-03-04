@@ -12,7 +12,7 @@ except ImportError:
     # Just use the regular random module, not the strong one
     gen = std_random.SystemRandom()
 
-with open("data/password_words.txt") as f:
+with open("data/password_words.txt", encoding="utf-8") as f:
     common_words = [line.strip() for line in f.readlines()]
 
 
@@ -83,4 +83,8 @@ def word_password(text, notice):
     for _ in range(length):
         words.append(gen.choice(common_words))
 
-    notice("Your password is '{}'. Feel free to remove the spaces when using it.".format(" ".join(words)))
+    notice(
+        "Your password is '{}'. Feel free to remove the spaces when using it.".format(
+            " ".join(words)
+        )
+    )

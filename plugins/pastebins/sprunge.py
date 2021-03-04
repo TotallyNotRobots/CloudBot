@@ -2,7 +2,12 @@ import requests
 from requests import HTTPError, RequestException
 
 from cloudbot import hook
-from cloudbot.util.web import Pastebin, pastebins, ServiceHTTPError, ServiceError
+from cloudbot.util.web import (
+    Pastebin,
+    ServiceError,
+    ServiceHTTPError,
+    pastebins,
+)
 
 
 class Sprunge(Pastebin):
@@ -17,7 +22,7 @@ class Sprunge(Pastebin):
             encoded = data
 
         params = {
-            'sprunge': encoded,
+            "sprunge": encoded,
         }
 
         try:
@@ -31,16 +36,16 @@ class Sprunge(Pastebin):
             raise ServiceError(e.request, "Connection error occurred") from e
 
         if ext:
-            url += '?{}'.format(ext)
+            url += "?{}".format(ext)
 
         return url
 
 
 @hook.on_start()
 def register():
-    pastebins.register('sprunge', Sprunge('http://sprunge.us'))
+    pastebins.register("sprunge", Sprunge("http://sprunge.us"))
 
 
 @hook.on_stop()
 def unregister():
-    pastebins.remove('sprunge')
+    pastebins.remove("sprunge")

@@ -1,18 +1,19 @@
-import codecs
-import os
 import random
+from typing import List
 
 from cloudbot import hook
 
-fortunes = []
+fortunes: List[str] = []
 
 
 @hook.on_start()
 def load_fortunes(bot):
-    path = os.path.join(bot.data_dir, "fortunes.txt")
+    path = bot.data_path / "fortunes.txt"
     fortunes.clear()
-    with codecs.open(path, encoding="utf-8") as f:
-        fortunes.extend(line.strip() for line in f.readlines() if not line.startswith("//"))
+    with open(path, encoding="utf-8") as f:
+        fortunes.extend(
+            line.strip() for line in f.readlines() if not line.startswith("//")
+        )
 
 
 @hook.command(autohelp=False)

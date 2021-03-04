@@ -1,30 +1,30 @@
-import codecs
 import json
-import os
 import random
 import time
+from typing import Any, Dict
 
-from sqlalchemy import table, column, String, Float, and_, select
+from sqlalchemy import Float, String, and_, column, select, table
 
 from cloudbot import hook
 from cloudbot.util.database import metadata
 from cloudbot.util.textgen import TextGenerator
 
-hookups = {}
+hookups: Dict[str, Any] = {}
+
 seen_table = table(
-    'seen_user',
-    column('name', String),
-    column('time', Float),
-    column('quote', String),
-    column('chan', String),
-    column('host', String),
+    "seen_user",
+    column("name", String),
+    column("time", Float),
+    column("quote", String),
+    column("chan", String),
+    column("host", String),
 )
 
 
-@hook.on_start
+@hook.on_start()
 def load_data(bot):
     hookups.clear()
-    with codecs.open(os.path.join(bot.data_dir, "hookup.json"), encoding="utf-8") as f:
+    with open((bot.data_path / "hookup.json"), encoding="utf-8") as f:
         hookups.update(json.load(f))
 
 
@@ -32,13 +32,15 @@ def load_data(bot):
 def hookup(db, chan):
     """- matches two users from the channel in a sultry scene."""
     if seen_table.name not in metadata.tables:
-        return
+        return None
 
     times = time.time() - 86400
-    results = db.execute(select(
-        [seen_table.c.name],
-        and_(seen_table.c.chan == chan, seen_table.c.time > times)
-    )).fetchall()
+    results = db.execute(
+        select(
+            [seen_table.c.name],
+            and_(seen_table.c.chan == chan, seen_table.c.time > times),
+        )
+    ).fetchall()
 
     if not results or len(results) < 2:
         return "something went wrong"
@@ -48,10 +50,10 @@ def hookup(db, chan):
     random.shuffle(people)
     person1, person2 = people[:2]
     variables = {
-        'user1': person1,
-        'user2': person2,
+        "user1": person1,
+        "user2": person2,
     }
     generator = TextGenerator(
-        hookups['templates'], hookups['parts'], variables=variables
+        hookups["templates"], hookups["parts"], variables=variables
     )
     return generator.generate_string()

@@ -22,10 +22,6 @@ from cloudbot import hook
 
 
 def encode(password, text):
-    """
-    :type password: str
-    :type text: str
-    """
     enc = []
     for i, c in enumerate(text):
         key_c = password[i % len(password)]
@@ -36,11 +32,6 @@ def encode(password, text):
 
 
 def decode(password, encoded, event):
-    """
-    :type password: str
-    :type encoded: str
-    :type event: cloudbot.event.Event
-    """
     dec = []
     try:
         encoded_bytes = base64.urlsafe_b64decode(encoded.encode()).decode()
@@ -58,15 +49,11 @@ def decode(password, encoded, event):
 
 @hook.command("cypher", "cipher")
 def cypher(text, event):
-    """<pass> <string> - cyphers <string> with <password>
-
-    :type text: str
-    :type event: cloudbot.event.CommandEvent
-    """
+    """<pass> <string> - cyphers <string> with <password>"""
     split = text.split(None, 1)
     if len(split) < 2:
         event.notice_doc()
-        return
+        return None
 
     password = split[0]
     plaintext = split[1]
@@ -75,15 +62,11 @@ def cypher(text, event):
 
 @hook.command("decypher", "decipher")
 def decypher(text, event):
-    """<pass> <string> - decyphers <string> with <password>
-
-    :type text: str
-    :type event: cloudbot.event.CommandEvent
-    """
+    """<pass> <string> - decyphers <string> with <password>"""
     split = text.split(None, 1)
     if len(split) < 2:
         event.notice_doc()
-        return
+        return None
 
     password = split[0]
     encoded = split[1]

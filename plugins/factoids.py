@@ -1,6 +1,7 @@
 import re
 import string
 from collections import defaultdict
+from typing import Dict
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 
@@ -11,9 +12,7 @@ from cloudbot.util.web import NoPasteException
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
-factoid_cache = defaultdict(default_dict.copy)
-
-re_lineends = re.compile(r'[\r\n]*')
+factoid_cache: Dict[str, Dict[str, str]] = defaultdict(default_dict.copy)
 
 FACTOID_CHAR = "?"  # TODO: config
 
@@ -24,15 +23,12 @@ table = Table(
     Column("data", String),
     Column("nick", String),
     Column("chan", String),
-    PrimaryKeyConstraint('word', 'chan')
+    PrimaryKeyConstraint("word", "chan"),
 )
 
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = defaultdict(default_dict.copy)
     for row in db.execute(table.select()):
         # assign variables
@@ -46,30 +42,25 @@ def load_cache(db):
 
 
 def add_factoid(db, word, chan, data, nick):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type word: str
-    :type data: str
-    :type nick: str
-    """
     if word in factoid_cache[chan]:
         # if we have a set value, update
-        db.execute(table.update().values(data=data, nick=nick, chan=chan).where(table.c.chan == chan).where(
-            table.c.word == word))
+        db.execute(
+            table.update()
+            .values(data=data, nick=nick, chan=chan)
+            .where(table.c.chan == chan)
+            .where(table.c.word == word)
+        )
         db.commit()
     else:
         # otherwise, insert
-        db.execute(table.insert().values(word=word, data=data, nick=nick, chan=chan))
+        db.execute(
+            table.insert().values(word=word, data=data, nick=nick, chan=chan)
+        )
         db.commit()
     load_cache(db)
 
 
 def del_factoid(db, chan, word=None):
-    """
-    :type db: sqlalchemy.orm.Session
-    :type chan: str
-    :type word: list[str]
-    """
     clause = table.c.chan == chan
 
     if word is not None:
@@ -97,19 +88,24 @@ def remember(text, nick, db, chan, notice, event):
     except LookupError:
         old_data = None
 
-    if data.startswith('+') and old_data:
+    if data.startswith("+") and old_data:
         # remove + symbol
         new_data = data[1:]
         # append new_data to the old_data
-        if len(new_data) > 1 and new_data[1] in (string.punctuation + ' '):
+        puncts = string.punctuation + " "
+        if len(new_data) > 1 and new_data[1] in puncts:
             data = old_data + new_data
         else:
-            data = old_data + ' ' + new_data
+            data = old_data + " " + new_data
         notice("Appending \x02{}\x02 to \x02{}\x02".format(new_data, old_data))
     else:
-        notice('Remembering \x02{0}\x02 for \x02{1}\x02. Type {2}{1} to see it.'.format(data, word, FACTOID_CHAR))
+        notice(
+            "Remembering \x02{0}\x02 for \x02{1}\x02. Type {2}{1} to see it.".format(
+                data, word, FACTOID_CHAR
+            )
+        )
         if old_data:
-            notice('Previous data was \x02{}\x02'.format(old_data))
+            notice("Previous data was \x02{}\x02".format(old_data))
 
     add_factoid(db, word, chan, data, nick)
 
@@ -117,8 +113,8 @@ def remember(text, nick, db, chan, notice, event):
 def paste_facts(facts, raise_on_no_paste=False):
     headers = ("Command", "Output")
     data = [(FACTOID_CHAR + fact[0], fact[1]) for fact in sorted(facts.items())]
-    tbl = gen_markdown_table(headers, data).encode('UTF-8')
-    return web.paste(tbl, 'md', 'hastebin', raise_on_no_paste=raise_on_no_paste)
+    tbl = gen_markdown_table(headers, data).encode("UTF-8")
+    return web.paste(tbl, "md", "hastebin", raise_on_no_paste=raise_on_no_paste)
 
 
 def remove_fact(chan, names, db, notice):
@@ -132,9 +128,11 @@ def remove_fact(chan, names, db, notice):
             missing.append(name)
 
     if missing:
-        notice("Unknown factoids: {}".format(
-            get_text_list([repr(s) for s in missing], 'and')
-        ))
+        notice(
+            "Unknown factoids: {}".format(
+                get_text_list([repr(s) for s in missing], "and")
+            )
+        )
 
     if found:
         try:
@@ -148,23 +146,15 @@ def remove_fact(chan, names, db, notice):
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
 def forget(text, chan, db, notice):
-    """<word>... - Remove factoids with the specified names
-
-    :type text: str
-    :type chan: str
-    :type db: sqlalchemy.orm.Session
-    :type notice: function
-    """
+    """<word>... - Remove factoids with the specified names"""
     remove_fact(chan, text.split(), db, notice)
 
 
-@hook.command('forgetall', 'clearfacts', autohelp=False, permissions=['op', 'chanop'])
+@hook.command(
+    "forgetall", "clearfacts", autohelp=False, permissions=["op", "chanop"]
+)
 def forget_all(chan, db):
-    """- Remove all factoids in the current channel
-
-    :type chan: str
-    :type db: sqlalchemy.orm.Session
-    """
+    """- Remove all factoids in the current channel"""
     del_factoid(db, chan)
     return "Facts cleared."
 
@@ -181,7 +171,7 @@ def info(text, chan, notice):
         notice("Unknown Factoid.")
 
 
-factoid_re = re.compile(r'^{} ?(.+)'.format(re.escape(FACTOID_CHAR)), re.I)
+factoid_re = re.compile(r"^{} ?(.+)".format(re.escape(FACTOID_CHAR)), re.I)
 
 
 @hook.regex(factoid_re)

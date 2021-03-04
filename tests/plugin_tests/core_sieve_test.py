@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cloudbot.event import CommandEvent, RegexEvent
+from cloudbot.event import CommandEvent, Event, RegexEvent
 from cloudbot.util.tokenbucket import TokenBucket
 from plugins.core import core_sieve
 
@@ -70,12 +70,60 @@ def test_rate_limit_regex() -> None:
     assert res is None
 
 
-def test_task_clear() -> None:
+def test_rate_limit_regex_strict() -> None:
+    conn = MagicMock()
+    conn.name = "foobarconn"
+    conn.config = {"ratelimit": {"strict": False}}
+    conn.bot = MagicMock()
+
+    hook = MagicMock()
+    hook.type = "regex"
+    event = RegexEvent(
+        hook=hook,
+        bot=conn.bot,
+        conn=conn,
+        channel="#foo",
+        nick="foobaruser",
+        match=MagicMock(),
+    )
+    for _ in range(3):
+        res = core_sieve.rate_limit(event.bot, event, event.hook)
+        assert res is event
+
+    res = core_sieve.rate_limit(event.bot, event, event.hook)
+    assert res is None
+
+
+def test_rate_limit_other() -> None:
+    conn = MagicMock()
+    conn.name = "foobarconn"
+    conn.config = {}
+    conn.bot = MagicMock()
+
+    hook = MagicMock()
+    hook.type = "event"
+    event = Event(
+        hook=hook,
+        bot=conn.bot,
+        conn=conn,
+        channel="#foo",
+        nick="foobaruser",
+    )
+    for _ in range(3):
+        res = core_sieve.rate_limit(event.bot, event, event.hook)
+        assert res is event
+
+    res = core_sieve.rate_limit(event.bot, event, event.hook)
+    assert res is event
+
+
+def test_task_clear(freeze_time) -> None:
     core_sieve.buckets["a"] = bucket = TokenBucket(10, 2)
     bucket.timestamp = 0
-    assert len(core_sieve.buckets) == 1
+    core_sieve.buckets["b"] = TokenBucket(10, 2)
+    assert len(core_sieve.buckets) == 2
     core_sieve.task_clear()
-    assert len(core_sieve.buckets) == 0
+    assert len(core_sieve.buckets) == 1
 
 
 @pytest.mark.parametrize(
@@ -119,6 +167,20 @@ async def test_permissions(event_loop) -> None:
         assert res is None
 
 
+@pytest.mark.asyncio()
+async def test_permissions_no_perms(event_loop) -> None:
+    event = make_command_event()
+    event.hook.permissions = []
+
+    with patch.object(event, "has_permission") as perm:
+        res = await core_sieve.perm_sieve(event.bot, event, event.hook)
+        assert res is event
+
+        perm.return_value = False
+        res = await core_sieve.perm_sieve(event.bot, event, event.hook)
+        assert res is event
+
+
 def make_command_event(chan: Optional[str] = "#foo") -> CommandEvent:
     conn = MagicMock()
     conn.name = "foobarconn"
@@ -150,4 +212,9 @@ def test_disabled():
     event.conn.config["disabled_commands"] = ["random"]
     assert core_sieve.check_disabled(event.bot, event, event.hook) is event
     event.conn.config["disabled_commands"] = []
+    assert core_sieve.check_disabled(event.bot, event, event.hook) is event
+
+
+def test_disabled_non_command():
+    event = Event(hook=MagicMock(type="ievent"))
     assert core_sieve.check_disabled(event.bot, event, event.hook) is event

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import socket
 from asyncio import CancelledError
 from typing import Any, Dict
@@ -12,13 +11,6 @@ from cloudbot.client import ClientConnectError
 from cloudbot.event import Event, EventType
 from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock
-
-
-@pytest.fixture()
-def caplog_bot(caplog):
-    caplog.set_level(logging.WARNING, "asyncio")
-    caplog.set_level(0)
-    yield caplog
 
 
 def make_mock_conn(event_loop, *, name="testconn"):
@@ -676,8 +668,7 @@ class TestSend:
     async def test_send_sieve_error(self, caplog_bot, event_loop):
         conn = make_mock_conn(event_loop=event_loop)
         proto = irc._IrcProtocol(conn)
-        proto._connected = True
-        proto._transport = MagicMock()
+        proto.connection_made(MagicMock())
         sieve = object()
         proto.bot.plugin_manager.out_sieves = [sieve]
         proto.bot.plugin_manager.internal_launch = launch = MagicMock()

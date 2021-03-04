@@ -2,16 +2,14 @@ import asyncio
 import collections
 import gc
 import logging
-import os
 import re
 import time
+import warnings
 from functools import partial
 from pathlib import Path
-from typing import Type
+from typing import Any, Dict, Optional, Type
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
 from venusian import Scanner
 from watchdog.observers import Observer
 
@@ -54,10 +52,7 @@ bot = BotInstanceHolder()
 
 
 def clean_name(n):
-    """strip all spaces and capitalization
-    :type n: str
-    :rtype: str
-    """
+    """strip all spaces and capitalization"""
     return re.sub("[^A-Za-z0-9_]+", "", n.replace(" ", "_"))
 
 
@@ -91,34 +86,24 @@ def get_cmd_regex(event):
 
 
 class CloudBot:
-    """
-    :type start_time: float
-    :type running: bool
-    :type connections: dict[str, Client]
-    :type data_dir: bytes
-    :type config: core.config.Config
-    :type plugin_manager: PluginManager
-    :type plugin_reloader: PluginReloader
-    :type db_engine: sqlalchemy.engine.Engine
-    :type db_factory: sqlalchemy.orm.session.sessionmaker
-    :type db_session: sqlalchemy.orm.scoping.scoped_session
-    :type db_metadata: sqlalchemy.sql.schema.MetaData
-    :type loop: asyncio.events.AbstractEventLoop
-    :type stopped_future: asyncio.Future
-    :param: stopped_future: Future that will be given a result when the bot has stopped.
-    """
-
-    def __init__(self, loop=asyncio.get_event_loop()):
+    def __init__(
+        self,
+        *,
+        loop: asyncio.AbstractEventLoop = None,
+        base_dir: Optional[Path] = None,
+    ) -> None:
+        loop = loop or asyncio.get_event_loop()
         if bot.get():
             raise ValueError("There seems to already be a bot running!")
 
         bot.set(self)
         # basic variables
-        self.base_dir = Path().resolve()
+        self.base_dir = base_dir or Path().resolve()
+        self.plugin_dir = self.base_dir / "plugins"
         self.loop = loop
         self.start_time = time.time()
         self.running = True
-        self.clients = {}
+        self.clients: Dict[str, Type[Client]] = {}
         # future which will be called when the bot stopsIf you
         self.stopped_future = async_util.create_future(self.loop)
 
@@ -129,13 +114,14 @@ class CloudBot:
         self.logger = logger
 
         # for plugins to abuse
-        self.memory = collections.defaultdict()
+        self.memory: Dict[str, Any] = collections.defaultdict()
 
         # declare and create data folder
-        self.data_dir = os.path.abspath("data")
-        if not os.path.exists(self.data_dir):
+        self.data_path = self.base_dir / "data"
+
+        if not self.data_path.exists():
             logger.debug("Data folder not found, creating.")
-            os.mkdir(self.data_dir)
+            self.data_path.mkdir(parents=True)
 
         # set up config
         self.config = Config(self)
@@ -161,15 +147,7 @@ class CloudBot:
         # setup db
         db_path = self.config.get("database", "sqlite:///cloudbot.db")
         self.db_engine = create_engine(db_path)
-        self.db_factory = sessionmaker(bind=self.db_engine)
-        self.db_session = scoped_session(self.db_factory)
-        self.db_metadata = database.metadata
-        self.db_base = declarative_base(
-            metadata=self.db_metadata, bind=self.db_engine
-        )
-
-        # set botvars so plugins can access when loading
-        database.base = self.db_base
+        database.configure(self.db_engine)
 
         logger.debug("Database system initialised.")
 
@@ -191,12 +169,18 @@ class CloudBot:
 
         self.plugin_manager = PluginManager(self)
 
+    @property
+    def data_dir(self) -> str:
+        warnings.warn(
+            "data_dir has been replaced by data_path", DeprecationWarning
+        )
+        return str(self.data_path)
+
     def run(self):
         """
         Starts CloudBot.
         This will load plugins, connect to IRC, and process input.
         :return: True if CloudBot should be restarted, False otherwise
-        :rtype: bool
         """
         # Initializes the bot, plugins and connections
         self.loop.run_until_complete(self._init_routine())
@@ -283,7 +267,7 @@ class CloudBot:
 
     async def _init_routine(self):
         # Load plugins
-        await self.plugin_manager.load_all(str(self.base_dir / "plugins"))
+        await self.plugin_manager.load_all(self.plugin_dir)
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -292,7 +276,7 @@ class CloudBot:
 
         if self.plugin_reloading_enabled:
             # start plugin reloader
-            self.plugin_reloader.start(os.path.abspath("plugins"))
+            self.plugin_reloader.start(str(self.plugin_dir))
 
         if self.config_reloading_enabled:
             self.config_reloader.start()
@@ -305,7 +289,6 @@ class CloudBot:
         # Connect to servers
         await asyncio.gather(
             *[conn.try_connect() for conn in self.connections.values()],
-            loop=self.loop,
         )
         logger.debug("Connections created.")
 
@@ -320,9 +303,6 @@ class CloudBot:
         scanner.scan(clients, categories=["cloudbot.client"])
 
     async def process(self, event):
-        """
-        :type event: Event
-        """
         run_before_tasks = []
         tasks = []
         halted = False

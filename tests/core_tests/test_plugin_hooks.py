@@ -71,7 +71,7 @@ def load_plugin(plugin_path):
 
 def get_plugins():
     if not PLUGINS:
-        bot = MockBot()
+        bot = MockBot(base_dir=Path().resolve())
         cloudbot.bot.bot.set(bot)
         PLUGINS.extend(map(load_plugin, gather_plugins()))
         cloudbot.bot.bot.set(None)

@@ -164,7 +164,7 @@ def _format_search(text, _type, reply):
     return _format_response(data, _type, show_url=True, show_uri=True)
 
 
-@hook.on_start
+@hook.on_start()
 def set_keys():
     api.set_keys(
         bot.config.get_api_key("spotify_client_id"),

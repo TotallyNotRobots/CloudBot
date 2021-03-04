@@ -94,7 +94,7 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
 
     if since <= 0:
         # d is in the future compared to now, stop processing.
-        return '0 ' + 'minutes'
+        return "0 " + "minutes"
 
     # pass the number in seconds on to format_time to make the output string
     return format_time(since, count, accuracy, simple)
@@ -133,6 +133,12 @@ class TimeUnit:
         self.long_name = long_name
         self.long_name_plural = long_name_plural
 
+    def __repr__(self):
+        fields = ("seconds", "short_name", "long_name", "long_name_plural")
+        return "TimeUnit({})".format(
+            ", ".join(f"{k}={getattr(self, k)!r}" for k in fields)
+        )
+
     def __mul__(self, other):
         return self.seconds * other
 
@@ -163,6 +169,9 @@ class TimeInterval:
             i += 1
             out.append(unit.format(num, simple=simple))
 
+        if not out:
+            out.append(TimeUnits.SECOND.format(0, simple=simple))
+
         if simple:
             return " ".join(out)
 
@@ -170,14 +179,14 @@ class TimeInterval:
 
 
 class TimeUnits:
-    SECOND = TimeUnit(1, 's', 'second', 'seconds')
-    MINUTE = TimeUnit(60 * SECOND, 'm', 'minute', 'minutes')
-    HOUR = TimeUnit(60 * MINUTE, 'h', 'hour', 'hours')
-    DAY = TimeUnit(24 * HOUR, 'd', 'day', 'days')
-    MONTH = TimeUnit(30 * DAY, 'M', 'month', 'months')
-    YEAR = TimeUnit(365 * DAY, 'y', 'year', 'years')
-    DECADE = TimeUnit(10 * YEAR, 'D', 'decade', 'decades')
-    CENTURY = TimeUnit(10 * DECADE, 'c', 'century', 'centuries')
+    SECOND = TimeUnit(1, "s", "second", "seconds")
+    MINUTE = TimeUnit(60 * SECOND, "m", "minute", "minutes")
+    HOUR = TimeUnit(60 * MINUTE, "h", "hour", "hours")
+    DAY = TimeUnit(24 * HOUR, "d", "day", "days")
+    MONTH = TimeUnit(30 * DAY, "M", "month", "months")
+    YEAR = TimeUnit(365 * DAY, "y", "year", "years")
+    DECADE = TimeUnit(10 * YEAR, "D", "decade", "decades")
+    CENTURY = TimeUnit(10 * DECADE, "c", "century", "centuries")
 
     units = (CENTURY, DECADE, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
 
@@ -191,6 +200,8 @@ class TimeUnits:
                 p_val = 0
 
             out.append((p_val, unit))
+
+        out[-1] = (out[-1][0] + seconds, out[-1][1])
 
         return TimeInterval(out)
 

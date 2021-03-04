@@ -60,7 +60,9 @@ class TvdbApi:
     def set_api_key(self, bot: CloudBot) -> None:
         res = cast(
             Dict[str, str],
-            self._post("/login", json={"apikey": bot.config.get_api_key("tvdb")}),
+            self._post(
+                "/login", json={"apikey": bot.config.get_api_key("tvdb")}
+            ),
         )
         self.set_token(res["token"])
 
@@ -93,7 +95,10 @@ class TvdbApi:
             return cast(JsonObject, response.json())
 
     def _get_paged(
-        self, path: str, params: Optional[GetParams] = None, reverse: bool = False
+        self,
+        path: str,
+        params: Optional[GetParams] = None,
+        reverse: bool = False,
     ) -> Iterable[JsonObject]:
         params = params or {}
         params["page"] = 1
@@ -156,11 +161,13 @@ class TvdbApi:
             )
         except requests.HTTPError as e:
             if e.response.status_code == 404:
-                raise NoMatchingSeries(name)
+                raise NoMatchingSeries(name) from e
 
             raise
 
-    def get_episodes(self, series_id: str, reverse=True) -> Iterable[JsonObject]:
+    def get_episodes(
+        self, series_id: str, reverse=True
+    ) -> Iterable[JsonObject]:
         try:
             for page in self._get_paged(
                 "/series/{id}/episodes".format(id=series_id), reverse=reverse
@@ -364,7 +371,9 @@ class EpisodeInfo:
         if not first_aired:
             air_date = None
         else:
-            air_date = datetime.datetime.strptime(first_aired, "%Y-%m-%d").date()
+            air_date = datetime.datetime.strptime(
+                first_aired, "%Y-%m-%d"
+            ).date()
 
         episode_number = json["airedEpisodeNumber"]
         season = json["airedSeason"]
@@ -422,14 +431,16 @@ def get_episodes_for_series(series_name: str) -> SeriesInfo:
     return SeriesInfo(cast(str, series["seriesName"]), episodes, status)
 
 
-def check_and_get_series(series: str) -> Tuple[bool, Union[SeriesInfo, str]]:
+def check_and_get_series(
+    series: str,
+) -> Union[Tuple[SeriesInfo, None], Tuple[None, str]]:
     if not api.authed:
-        return False, "TVDB API not enabled."
+        return None, "TVDB API not enabled."
 
     try:
-        return True, get_episodes_for_series(series)
+        return get_episodes_for_series(series), None
     except NoMatchingSeries:
-        return False, "Unable to find series"
+        return None, "Unable to find series"
 
 
 def handle_error(event: Event, error):
@@ -461,9 +472,9 @@ def refresh(bot: CloudBot) -> None:
 @_error_handler(requests.HTTPError, handle_error)
 def tv_next(text: str) -> str:
     """<series> - Get the next episode of <series>."""
-    ok, series = check_and_get_series(text)
-    if not ok:
-        return series
+    series, err = check_and_get_series(text)
+    if err is not None:
+        return err
 
     if series.ended:
         return "{} has ended.".format(series.name)
@@ -499,9 +510,9 @@ def tv_next(text: str) -> str:
 @_error_handler(requests.HTTPError, handle_error)
 def tv_last(text: str) -> str:
     """<series> - Gets the most recently aired episode of <series>."""
-    ok, series = check_and_get_series(text)
-    if not ok:
-        return series
+    series, err = check_and_get_series(text)
+    if err is not None:
+        return err
 
     prev_ep = None
     today = datetime.date.today()
@@ -515,9 +526,13 @@ def tv_last(text: str) -> str:
             break
 
     if not prev_ep:
-        return "There are no previously aired episodes for {}.".format(series.name)
+        return "There are no previously aired episodes for {}.".format(
+            series.name
+        )
 
     if series.ended:
-        return "{} ended. The last episode aired {}.".format(series.name, prev_ep)
+        return "{} ended. The last episode aired {}.".format(
+            series.name, prev_ep
+        )
 
     return "The last episode of {} aired {}.".format(series.name, prev_ep)

@@ -33,6 +33,8 @@ def check_status(status):
     if status == "OK":
         return None
 
+    return None
+
 
 @hook.command("locate", "maps")
 def locate(text):

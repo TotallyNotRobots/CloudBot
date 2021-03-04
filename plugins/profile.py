@@ -31,9 +31,6 @@ profile_cache: Dict[str, Dict[str, Dict[str, str]]] = {}
 
 @hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = {}
     for row in db.execute(table.select().order_by(table.c.category)):
         nick = row["nick"].lower()
@@ -92,7 +89,7 @@ def profile(text, chan, notice, nick):
         notice(
             "User {} has no profile data saved in this channel".format(pnick)
         )
-        return
+        return None
 
     # Check if the caller specified a profile category, if not, send a NOTICE with the users registered categories
     if not unpck:
@@ -108,19 +105,20 @@ def profile(text, chan, notice, nick):
         for line in page:
             notice(line)
 
-    else:
-        category = unpck.pop(0)
-        cat_cf = category.casefold()
-        if cat_cf not in user_profile:
-            notice(
-                "User {} has no profile data for category {} in this channel".format(
-                    pnick, category
-                )
-            )
+        return None
 
-        else:
-            content = user_profile[cat_cf]
-            return format_profile(pnick, category, content)
+    category = unpck.pop(0)
+    cat_cf = category.casefold()
+    if cat_cf not in user_profile:
+        notice(
+            "User {} has no profile data for category {} in this channel".format(
+                pnick, category
+            )
+        )
+        return None
+
+    content = user_profile[cat_cf]
+    return format_profile(pnick, category, content)
 
 
 @hook.command()
@@ -133,39 +131,40 @@ def profileadd(text, chan, nick, notice, db):
 
     if not match:
         notice("Invalid data")
-    else:
-        chan_profiles = profile_cache.get(chan.casefold(), {})
-        user_profile = chan_profiles.get(nick.casefold(), {})
-        cat, data = match.groups()
-        if cat.casefold() not in user_profile:
-            db.execute(
-                table.insert().values(
-                    chan=chan.casefold(),
-                    nick=nick.casefold(),
-                    category=cat.casefold(),
-                    text=data,
-                )
-            )
-            db.commit()
-            load_cache(db)
-            return "Created new profile category {}".format(cat)
+        return None
 
+    chan_profiles = profile_cache.get(chan.casefold(), {})
+    user_profile = chan_profiles.get(nick.casefold(), {})
+    cat, data = match.groups()
+    if cat.casefold() not in user_profile:
         db.execute(
-            table.update()
-            .values(text=data)
-            .where(
-                (
-                    and_(
-                        table.c.nick == nick.casefold(),
-                        table.c.chan == chan.casefold(),
-                        table.c.category == cat.casefold(),
-                    )
-                )
+            table.insert().values(
+                chan=chan.casefold(),
+                nick=nick.casefold(),
+                category=cat.casefold(),
+                text=data,
             )
         )
         db.commit()
         load_cache(db)
-        return "Updated profile category {}".format(cat)
+        return "Created new profile category {}".format(cat)
+
+    db.execute(
+        table.update()
+        .values(text=data)
+        .where(
+            (
+                and_(
+                    table.c.nick == nick.casefold(),
+                    table.c.chan == chan.casefold(),
+                    table.c.category == cat.casefold(),
+                )
+            )
+        )
+    )
+    db.commit()
+    load_cache(db)
+    return "Updated profile category {}".format(cat)
 
 
 @hook.command()
@@ -180,7 +179,7 @@ def profiledel(nick, chan, text, notice, db):
     user_profile = chan_profiles.get(nick.casefold(), {})
     if category.casefold() not in user_profile:
         notice("That category does not exist in your profile")
-        return
+        return None
 
     db.execute(
         table.delete().where(
@@ -225,7 +224,7 @@ def profileclear(nick, chan, text, notice, db):
             return "Profile data cleared for {}.".format(nick)
 
         notice("Invalid confirm key")
-        return
+        return None
 
     key = "".join(
         random.choice(string.ascii_letters + string.digits) for _ in range(10)
@@ -236,4 +235,4 @@ def profileclear(nick, chan, text, notice, db):
             chan, key
         )
     )
-    return
+    return None

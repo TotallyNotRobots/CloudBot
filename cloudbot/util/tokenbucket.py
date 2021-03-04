@@ -14,7 +14,7 @@ License:
 from time import time
 
 
-class TokenBucket(object):
+class TokenBucket:
     """An implementation of the token bucket algorithm.
     >>> bucket = TokenBucket(80, 0.5)
     >>> bucket.consume(10)
@@ -64,7 +64,6 @@ class TokenBucket(object):
         Calculates and returns the current amount of tokens the bucker contains
 
         :return Amount of tokens the bucket contains
-        :rtype Float
         """
         now = time()
         if self._tokens < self.capacity:

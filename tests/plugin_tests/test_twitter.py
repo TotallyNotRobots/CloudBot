@@ -149,7 +149,7 @@ def test_twitter_cmd_id(mock_requests, mock_conn, freeze_time):
     assert event.mock_calls == []
 
 
-def test_twitter_cmd_name(mock_requests, mock_conn):
+def test_twitter_cmd_name(mock_requests, mock_conn, freeze_time):
     bot = mock_conn.bot
 
     twitter.set_api(bot)
@@ -623,7 +623,7 @@ def test_twitter_cmd_name(mock_requests, mock_conn):
     assert res == (
         "✓@\x02TwitterAPI\x02 (Twitter API): RT @TwitterDev: 1/ Today we’re sharing "
         "our vision for the future of the Twitter API "
-        "platform!nhttps://t.co/XweGngmxlP (3 years and 10 months ago)"
+        "platform!nhttps://t.co/XweGngmxlP (2 years and 4 months ago)"
     )
     assert event.mock_calls == []
 

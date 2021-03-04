@@ -30,11 +30,8 @@ table = Table(
 ignore_cache: List[Tuple[str, str, str]] = []
 
 
-@hook.on_start
+@hook.on_start()
 def load_cache(db):
-    """
-    :type db: sqlalchemy.orm.Session
-    """
     new_cache = []
     for row in db.execute(table.select()):
         conn = row["connection"]
@@ -112,11 +109,6 @@ def is_ignored(conn, chan, mask):
 # noinspection PyUnusedLocal
 @hook.sieve(priority=50)
 async def ignore_sieve(bot, event, _hook):
-    """
-    :type bot: cloudbot.bot.CloudBot
-    :type event: cloudbot.event.Event
-    :type _hook: cloudbot.plugin_hooks.Hook
-    """
     # don't block event hooks
     if _hook.type in ("irc_raw", "event"):
         return event
