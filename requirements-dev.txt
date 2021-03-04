@@ -1,4 +1,4 @@
-coverage == 5.4
+coverage == 5.5
 freezegun == 1.1.0
 mypy == 0.812
 pylint == 2.6.0
