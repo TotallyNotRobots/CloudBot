@@ -23,10 +23,8 @@ class MockBot:
         self.plugin_dir = self.base_dir / "plugins"
 
         if db:
-            self.db_session = db.session
             self.db_engine = db.engine
         else:
-            self.db_session = None
             self.db_engine = None
 
         self.running = True

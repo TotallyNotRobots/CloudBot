@@ -9,7 +9,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from sqlalchemy import create_engine
+from sqlalchemy import Table, create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from venusian import Scanner
 from watchdog.observers import Observer
 
@@ -126,6 +128,9 @@ class CloudBot:
         # set up config
         self.config = Config(self)
         logger.debug("Config system initialised.")
+
+        self.old_db = self.config.get("old_database")
+        self.do_db_migrate = self.config.get("migrate_db")
 
         # set values for reloading
         reloading_conf = self.config.get("reloading", {})
@@ -268,6 +273,11 @@ class CloudBot:
     async def _init_routine(self):
         # Load plugins
         await self.plugin_manager.load_all(self.plugin_dir)
+
+        if self.old_db and self.do_db_migrate:
+            self.migrate_db()
+            self.stopped_future.set_result(False)
+            return
 
         # If we we're stopped while loading plugins, cancel that and just stop
         if not self.running:
@@ -443,3 +453,24 @@ class CloudBot:
         ]
 
         await asyncio.gather(*tasks)
+
+    def migrate_db(self) -> None:
+        logger.info("Migrating database")
+        engine: Engine = create_engine(self.old_db)
+        old_session: Session = scoped_session(sessionmaker(bind=engine))()
+        new_session: Session = database.Session()
+        table: Table
+        for table in database.metadata.tables.values():
+            logger.info("Migrating table %s", table.name)
+            if not table.exists(engine):
+                continue
+
+            old_data = old_session.execute(table.select()).fetchall()
+            if not old_data:
+                continue
+
+            table.create(bind=engine, checkfirst=True)
+            new_session.execute(table.insert(), [row for row in old_data])
+            new_session.commit()
+            old_session.execute(table.delete())
+            old_session.commit()

@@ -691,4 +691,4 @@ class Plugin:
             logger.info("Unregistering tables for %s", self.title)
 
             for table in self.tables:
-                bot.db_metadata.remove(table)
+                database.metadata.remove(table)
