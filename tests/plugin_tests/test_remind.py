@@ -1,5 +1,4 @@
 import datetime
-import importlib
 import time
 from contextlib import contextmanager
 from unittest.mock import MagicMock, call
@@ -14,13 +13,8 @@ hour = 60 * minute
 
 
 @pytest.fixture()
-def refresh_mods():
-    importlib.reload(remind)
-
-
-@pytest.fixture()
 def setup_db(mock_db):
-    remind.table.create(mock_db.engine, checkfirst=True)
+    remind.table.create(mock_db.engine)
 
 
 async def async_call(func, *args):
@@ -34,7 +28,8 @@ async def make_reminder(text, nick, chan, mock_db, conn, event):
 
 
 @pytest.mark.asyncio()
-async def test_invalid_reminder(mock_db, freeze_time, refresh_mods, setup_db):
+async def test_invalid_reminder(mock_db, freeze_time, setup_db):
+    await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -51,9 +46,8 @@ async def test_invalid_reminder(mock_db, freeze_time, refresh_mods, setup_db):
 
 
 @pytest.mark.asyncio()
-async def test_invalid_reminder_time(
-    mock_db, freeze_time, refresh_mods, setup_db
-):
+async def test_invalid_reminder_time(mock_db, freeze_time, setup_db):
+    await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -68,9 +62,8 @@ async def test_invalid_reminder_time(
 
 
 @pytest.mark.asyncio()
-async def test_invalid_reminder_overtime(
-    mock_db, freeze_time, refresh_mods, setup_db
-):
+async def test_invalid_reminder_overtime(mock_db, freeze_time, setup_db):
+    await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -92,7 +85,8 @@ async def test_invalid_reminder_overtime(
 
 
 @pytest.mark.asyncio()
-async def test_add_reminder(mock_db, freeze_time, refresh_mods, setup_db):
+async def test_add_reminder(mock_db, freeze_time, setup_db):
+    await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -118,9 +112,7 @@ async def test_add_reminder(mock_db, freeze_time, refresh_mods, setup_db):
 
 
 @pytest.mark.asyncio()
-async def test_add_reminder_fail_count(
-    mock_db, freeze_time, refresh_mods, setup_db
-):
+async def test_add_reminder_fail_count(mock_db, freeze_time, setup_db):
     mock_conn = MagicMock()
     mock_conn.name = "test"
     mock_event = MagicMock()
@@ -215,10 +207,10 @@ class TestCheckReminders:
         mock_bot_factory,
         mock_db,
         setup_db,
-        refresh_mods,
         freeze_time,
         event_loop,
     ):
+        await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory(loop=event_loop)
         bot.connections = {}
         mock_conn = MagicMock()
@@ -246,10 +238,10 @@ class TestCheckReminders:
         mock_bot_factory,
         mock_db,
         setup_db,
-        refresh_mods,
         freeze_time,
         event_loop,
     ):
+        await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory(loop=event_loop)
         mock_conn = MagicMock()
         mock_conn.name = "test"
@@ -277,10 +269,10 @@ class TestCheckReminders:
         mock_bot_factory,
         mock_db,
         setup_db,
-        refresh_mods,
         freeze_time,
         event_loop,
     ):
+        await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory(loop=event_loop)
         mock_conn = MagicMock()
         mock_conn.name = "test"
@@ -310,10 +302,10 @@ class TestCheckReminders:
         mock_bot_factory,
         mock_db,
         setup_db,
-        refresh_mods,
         freeze_time,
         event_loop,
     ):
+        await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory(loop=event_loop)
         mock_conn = MagicMock()
         mock_conn.name = "test"
@@ -333,7 +325,7 @@ class TestCheckReminders:
 
 
 @pytest.mark.asyncio()
-async def test_clear_reminders(mock_db, setup_db, refresh_mods):
+async def test_clear_reminders(mock_db, setup_db):
     now = datetime.datetime.now()
 
     mock_db.add_row(
@@ -371,7 +363,7 @@ async def test_clear_reminders(mock_db, setup_db, refresh_mods):
 
 
 @pytest.mark.asyncio()
-async def test_clear_reminders_empty(mock_db, refresh_mods):
+async def test_clear_reminders_empty(mock_db):
     remind.table.create(mock_db.engine, checkfirst=True)
     assert mock_db.get_data(remind.table) == []
 

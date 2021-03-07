@@ -1,5 +1,3 @@
-import importlib
-
 import pytest
 
 from cloudbot.util import web
@@ -7,9 +5,6 @@ from plugins.pastebins import sprunge
 
 
 def test_register():
-    importlib.reload(web)
-    importlib.reload(sprunge)
-
     sprunge.register()
 
     assert web.pastebins.get("sprunge") is not None
@@ -20,9 +15,6 @@ def test_register():
 
 
 def test_paste(mock_requests):
-    importlib.reload(web)
-    importlib.reload(sprunge)
-
     sprunge.register()
 
     paster = web.pastebins["sprunge"]
@@ -31,12 +23,10 @@ def test_paste(mock_requests):
         "POST", "http://sprunge.us", body="http://sprunge.us/foobar"
     )
     assert paster.paste("test data", "txt") == "http://sprunge.us/foobar?txt"
+    sprunge.unregister()
 
 
 def test_data_params(mock_requests):
-    importlib.reload(web)
-    importlib.reload(sprunge)
-
     sprunge.register()
 
     body = None
@@ -50,12 +40,10 @@ def test_data_params(mock_requests):
     mock_requests.add_callback("POST", "http://sprunge.us", callback=req_cb)
     assert paster.paste("test data", "txt") == "http://sprunge.us/foobar?txt"
     assert body == "sprunge=test+data"
+    sprunge.unregister()
 
 
 def test_paste_bytes(mock_requests):
-    importlib.reload(web)
-    importlib.reload(sprunge)
-
     sprunge.register()
 
     paster = web.pastebins["sprunge"]
@@ -64,12 +52,10 @@ def test_paste_bytes(mock_requests):
         "POST", "http://sprunge.us", body="http://sprunge.us/foobar"
     )
     assert paster.paste(b"test data", "txt") == "http://sprunge.us/foobar?txt"
+    sprunge.unregister()
 
 
 def test_paste_error(mock_requests):
-    importlib.reload(web)
-    importlib.reload(sprunge)
-
     sprunge.register()
 
     paster = web.pastebins["sprunge"]
@@ -85,3 +71,5 @@ def test_paste_error(mock_requests):
 
     with pytest.raises(web.ServiceHTTPError):
         paster.paste("test data", "txt")
+
+    sprunge.unregister()

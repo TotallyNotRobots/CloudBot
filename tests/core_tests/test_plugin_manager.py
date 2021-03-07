@@ -554,9 +554,103 @@ async def test_launch(
         return None
 
     @hook.post_hook()
-    def post_hook():
+    def post_hook(db):
         nonlocal post_called
         post_called += 1
+        assert db is not None
+
+    mod = MockModule()
+
+    mod.sieve_cb = sieve_cb
+    mod.foo_cb = foo_cb
+    mod.post_hook = post_hook
+
+    patch_import_module.return_value = mod
+
+    await mock_manager.load_plugin(
+        mock_manager.bot.base_dir / "plugins/test.py"
+    )
+
+    from cloudbot.event import CommandEvent
+
+    event = CommandEvent(
+        bot=mock_manager.bot,
+        hook=mock_manager.commands["test"],
+        cmd_prefix=".",
+        text="",
+        triggered_command="test",
+    )
+    caplog.clear()
+    result = await mock_manager.launch(event.hook, event)
+    if do_sieve:
+        if sieve_allow and not sieve_error:
+            expected_post = 2
+        else:
+            expected_post = 1
+    else:
+        expected_post = 1
+
+    if sieve_error and sieve_called:
+        assert result == called and not called
+        assert caplog.record_tuples == [
+            (
+                "cloudbot",
+                40,
+                "Error running sieve test:sieve_cb on test:foo_cb:",
+            )
+        ]
+    else:
+        assert result == called and called == (sieve_allow or not do_sieve)
+
+    assert sieve_called == do_sieve
+    assert post_called == expected_post
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "do_sieve,sieve_allow,single_thread,sieve_error",
+    list(
+        itertools.product(
+            [True, False], [True, False], [True, False], [True, False]
+        )
+    ),
+)
+async def test_launch_async(
+    mock_manager,
+    patch_import_module,
+    do_sieve,
+    sieve_allow,
+    single_thread,
+    sieve_error,
+    caplog,
+):
+    caplog.set_level(logging.INFO)
+    called = False
+    sieve_called = False
+    post_called = 0
+
+    @hook.command("test", do_sieve=do_sieve, singlethread=single_thread)
+    async def foo_cb():
+        nonlocal called
+        called = True
+
+    @hook.sieve()
+    async def sieve_cb(_bot, _event, _hook):
+        nonlocal sieve_called
+        sieve_called = True
+        if sieve_error:
+            raise Exception()
+
+        if sieve_allow:
+            return _event
+
+        return None
+
+    @hook.post_hook()
+    async def post_hook(db):
+        nonlocal post_called
+        post_called += 1
+        assert db is not None
 
     mod = MockModule()
 
@@ -607,7 +701,7 @@ async def test_launch(
 
 @pytest.mark.asyncio
 async def test_create_tables(
-    mock_bot_factory, caplog, tmp_path, event_loop, mock_db
+    mock_bot_factory, caplog_bot, tmp_path, event_loop, mock_db
 ):
     db = mock_db
     bot = mock_bot_factory(db=db, loop=event_loop)
@@ -620,8 +714,16 @@ async def test_create_tables(
     plugin.title = "test.py"
     plugin.tables = [table]
     await Plugin.create_tables(plugin, bot)
-    assert [t for t in caplog.record_tuples if t[0] == "cloudbot"] == [
+    assert caplog_bot.record_tuples == [
         ("cloudbot", 20, "Registering tables for test.py"),
     ]
     assert plugin.mock_calls == []
     assert table.exists(bot.db_engine)
+
+    caplog_bot.clear()
+
+    Plugin.unregister_tables(plugin, bot)
+    assert caplog_bot.record_tuples == [
+        ("cloudbot", 20, "Unregistering tables for test.py")
+    ]
+    assert plugin.mock_calls == []

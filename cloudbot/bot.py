@@ -469,7 +469,7 @@ class CloudBot:
             if not old_data:
                 continue
 
-            table.create(bind=engine, checkfirst=True)
+            table.create(bind=self.db_engine, checkfirst=True)
             new_session.execute(table.insert(), [row for row in old_data])
             new_session.commit()
             old_session.execute(table.delete())

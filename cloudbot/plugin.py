@@ -187,14 +187,11 @@ class PluginManager:
         # But ignore files starting with _
         path_list = plugin_dir.rglob("[!_]*.py")
         # Load plugins asynchronously :O
-        await asyncio.gather(
-            *[self.load_plugin(path) for path in path_list], loop=self.bot.loop
-        )
+        await asyncio.gather(*[self.load_plugin(path) for path in path_list])
 
     async def unload_all(self):
         await asyncio.gather(
             *[self.unload_plugin(path) for path in self.plugins],
-            loop=self.bot.loop,
         )
 
     def _load_mod(self, name):

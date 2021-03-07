@@ -1,4 +1,3 @@
-import importlib
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -116,7 +115,6 @@ def test_display_scores(mock_db):
 
 
 def test_ignore_integration(mock_db):
-    importlib.reload(duckhunt)
     event = MagicMock()
     event.chan = "#chan"
     event.mask = "nick!user@host"

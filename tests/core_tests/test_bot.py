@@ -2,14 +2,73 @@ from itertools import product
 from unittest.mock import MagicMock, call, patch
 
 import pytest
+from sqlalchemy import Column, String, Table
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot, clean_name, get_cmd_regex
 from cloudbot.event import Event, EventType
 from cloudbot.hook import Action, Priority
 from cloudbot.plugin_hooks import CommandHook, ConfigHook, EventHook, RawHook
+from cloudbot.util import database
 from tests.util.async_mock import AsyncMock
 from tests.util.mock_config import MockConfig
+from tests.util.mock_db import MockDB
+
+
+@pytest.mark.asyncio()
+async def test_migrate_db(
+    mock_db, mock_bot_factory, event_loop, mock_requests, tmp_path
+):
+    old_db_url = "sqlite:///" + str(tmp_path / "database1.db")
+    old_db = MockDB(old_db_url, True)
+    table = Table(
+        "foobar",
+        database.metadata,
+        Column("a", String, primary_key=True),
+        Column("b", String, default="bar"),
+    )
+
+    other_table = Table(
+        "foobar1",
+        database.metadata,
+        Column("a", String, primary_key=True),
+        Column("b", String, default="bar"),
+    )
+
+    table.create(old_db.engine)
+    other_table.create(old_db.engine)
+    mock_bot = mock_bot_factory(
+        loop=event_loop,
+        db=mock_db,
+        config={"old_database": old_db_url, "migrate_db": True},
+    )
+
+    mock_bot.do_db_migrate = True
+    mock_bot.old_db = old_db_url
+
+    # pylint: disable=assignment-from-no-return
+    mock_bot.migrate_db = CloudBot.migrate_db.__get__(
+        mock_bot, mock_bot.__class__
+    )
+
+    old_db.add_row(table, a="blah")
+
+    old_db.add_row(table, a="blah1", b="thing")
+
+    old_db.add_row(table, a="blah2", b="thing2")
+
+    assert old_db.get_data(table) == [
+        ("blah", "bar"),
+        ("blah1", "thing"),
+        ("blah2", "thing2"),
+    ]
+    await CloudBot._init_routine(mock_bot)
+    assert mock_db.get_data(table) == [
+        ("blah", "bar"),
+        ("blah1", "thing"),
+        ("blah2", "thing2"),
+    ]
+    assert old_db.get_data(table) == []
 
 
 @pytest.mark.asyncio()
@@ -29,7 +88,11 @@ async def test_connect_clients(mock_bot_factory, event_loop):
 
 @pytest.mark.asyncio()
 async def test_start_plugin_reload(tmp_path):
-    bot = MagicMock()
+    bot = MagicMock(
+        old_db=None,
+        do_migrate_db=False,
+    )
+
     bot.plugin_manager.load_all = AsyncMock()
     bot.running = True
     bot.plugin_reloading_enabled = True
@@ -67,6 +130,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -100,6 +164,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -137,6 +202,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -170,6 +236,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -205,6 +272,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -239,6 +307,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -285,6 +354,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
@@ -315,6 +385,7 @@ class TestProcessing:
             conn=conn,
             content=".foo bar",
         )
+
         plugin = MagicMock()
 
         run_hooks = []
