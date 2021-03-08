@@ -1,5 +1,4 @@
 import datetime
-import importlib
 
 import pytest
 import requests
@@ -269,7 +268,7 @@ def test_register_duplicate_paste():
     with pytest.raises(ValueError):
         web.pastebins.register("test", obj1)
 
-    importlib.reload(web)
+    web.pastebins.remove("test")
 
 
 def test_remove_paste():
@@ -279,5 +278,3 @@ def test_remove_paste():
     assert web.pastebins.get("test") is obj
     web.pastebins.remove("test")
     assert web.pastebins.get("test") is None
-
-    importlib.reload(web)

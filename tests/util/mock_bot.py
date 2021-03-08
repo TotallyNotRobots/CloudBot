@@ -1,8 +1,10 @@
+import asyncio
 import logging
-from typing import Optional
+from typing import Awaitable, Dict, Optional
 
 from watchdog.observers import Observer
 
+from cloudbot.client import Client
 from cloudbot.plugin import PluginManager
 from tests.util.mock_config import MockConfig
 from tests.util.mock_db import MockDB
@@ -17,16 +19,17 @@ class MockBot:
         db: Optional[MockDB] = None,
         base_dir=None,
     ):
+        self.old_db = None
+        self.do_db_migrate = False
         self.base_dir = base_dir
         self.data_path = self.base_dir / "data"
         self.data_dir = str(self.data_path)
         self.plugin_dir = self.base_dir / "plugins"
+        self.stopped_future: Awaitable[bool] = asyncio.Future()
 
         if db:
-            self.db_session = db.session
             self.db_engine = db.engine
         else:
-            self.db_session = None
             self.db_engine = None
 
         self.running = True
@@ -43,6 +46,7 @@ class MockBot:
         self.observer = Observer()
         self.repo_link = "https://github.com/foobar/baz"
         self.user_agent = "User agent"
+        self.connections: Dict[str, Client] = {}
 
     def close(self):
         self.observer.stop()

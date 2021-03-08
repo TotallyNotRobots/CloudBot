@@ -10,7 +10,7 @@ from plugins import lastfm
 from plugins.lastfm import api_request
 
 
-def test_get_account(mock_db):
+def test_get_account(mock_db, mock_requests):
     lastfm.table.create(mock_db.engine)
     mock_db.add_row(lastfm.table, nick="foo", acc="bar")
     lastfm.load_cache(mock_db.session())

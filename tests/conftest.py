@@ -10,6 +10,7 @@ from sqlalchemy.orm import close_all_sessions
 
 from cloudbot.bot import bot
 from cloudbot.util import database
+from cloudbot.util.database import Session
 from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
 
@@ -36,12 +37,11 @@ def patch_import_reload():
 @pytest.fixture()
 def mock_db(tmp_path):
     db = MockDB("sqlite:///" + str(tmp_path / "database.db"))
-    database.metadata.clear()
     database.configure(db.engine)
     yield db
     close_all_sessions()
+    Session.remove()
     database.configure()
-    database.metadata.clear()
 
 
 @pytest.fixture()

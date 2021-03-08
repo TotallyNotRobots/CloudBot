@@ -6,6 +6,8 @@ from typing import Any, Iterator, Mapping
 
 from irclib.parser import Message
 
+from cloudbot.util.database import Session
+
 logger = logging.getLogger("cloudbot")
 
 
@@ -152,7 +154,7 @@ class Event(Mapping[str, Any]):
             # we're running a coroutine hook with a db, so initialise an executor pool
             self.db_executor = concurrent.futures.ThreadPoolExecutor(1)
             # be sure to initialize the db in the database executor, so it will be accessible in that thread.
-            self.db = await self.async_call(self.bot.db_session)
+            self.db = await self.async_call(Session)
 
     def prepare_threaded(self):
         """
@@ -170,7 +172,7 @@ class Event(Mapping[str, Any]):
         if "db" in self.hook.required_args:
             # logger.debug("Opening database session for {}:threaded=True".format(self.hook.description))
 
-            self.db = self.bot.db_session()
+            self.db = Session()
 
     async def close(self):
         """
