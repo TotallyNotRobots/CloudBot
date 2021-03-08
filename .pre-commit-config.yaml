@@ -41,7 +41,7 @@ repos:
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
-  rev: eccb8cef2c7987014012c3f07be550415c4d379e  # frozen: v1.7.1
+  rev: 58ace0d0dc6b2439b737a5ea353f836f6a2bad13  # frozen: v1.8.0
   hooks:
   - id: python-no-eval
   - id: python-no-log-warn
