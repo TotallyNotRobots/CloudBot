@@ -1,10 +1,12 @@
+from typing import Optional
+
 from cleverwrap import CleverWrap
 
 from cloudbot import hook
 
 
 class APIContainer:
-    api = None
+    api: Optional[CleverWrap] = None
 
 
 container = APIContainer()

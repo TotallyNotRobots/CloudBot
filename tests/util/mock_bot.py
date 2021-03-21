@@ -4,6 +4,7 @@ from typing import Awaitable, Dict, Optional
 
 from watchdog.observers import Observer
 
+from cloudbot.bot import CloudBot
 from cloudbot.client import Client
 from cloudbot.plugin import PluginManager
 from tests.util.mock_config import MockConfig
@@ -50,3 +51,6 @@ class MockBot:
 
     def close(self):
         self.observer.stop()
+
+    def migrate_db(self) -> None:
+        return CloudBot.migrate_db(self)  # type: ignore[arg-type]

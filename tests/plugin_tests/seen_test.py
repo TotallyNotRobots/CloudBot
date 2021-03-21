@@ -158,7 +158,7 @@ def test_seen_not_seen(mock_db):
     assert res == "I've never seen other talking in this channel."
 
 
-def test_seen(mock_db):
+def test_seen(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -184,7 +184,7 @@ def test_seen(mock_db):
         cmd_prefix=".",
     )
     res = seen.seen(event.text, event.nick, event.chan, db, event)
-    assert res == "other was last seen 51 years and 2 months ago saying: foo"
+    assert res == "other was last seen 49 years and 8 months ago saying: foo"
 
 
 def test_seen_bad_nick(mock_db):
@@ -201,7 +201,7 @@ def test_seen_bad_nick(mock_db):
 
     db = mock_db.session()
     conn = MockConn()
-    conn.is_nick_valid = lambda text: False
+    conn.is_nick_valid = lambda text: False  # type: ignore[assignment]
     nick = "bar"
     event = CommandEvent(
         conn=conn,
@@ -218,7 +218,7 @@ def test_seen_bad_nick(mock_db):
     assert res == "I can't look up that name, its impossible to use!"
 
 
-def test_seen_action(mock_db):
+def test_seen_action(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -245,5 +245,5 @@ def test_seen_action(mock_db):
     )
     res = seen.seen(event.text, event.nick, event.chan, db, event)
     assert (
-        res == "other was last seen 51 years and 2 months ago: * other foobar"
+        res == "other was last seen 49 years and 8 months ago: * other foobar"
     )

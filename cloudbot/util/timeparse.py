@@ -36,6 +36,7 @@ License:
 """
 
 import re
+from typing import Optional, Union
 
 SIGN = r"(?P<sign>[+|-])?"
 
@@ -116,7 +117,7 @@ def _interpret_as_minutes(string, mdict):
     return mdict
 
 
-def time_parse(string, granularity="seconds"):
+def time_parse(string, granularity="seconds") -> Optional[Union[int, float]]:
     """
     Parse a time expression, returning it as a number of seconds.  If
     possible, the return value will be an `int`; if this is not
@@ -190,7 +191,7 @@ def time_parse(string, granularity="seconds"):
                 ) + (int(mdict["secs"], 10) if mdict["secs"] else 0)
 
             # SECS is a float, we will return a float
-            return sign * sum(
+            return float(sign) * sum(
                 [
                     MULTIPLIERS[k] * float(v)
                     for (k, v) in list(mdict.items())

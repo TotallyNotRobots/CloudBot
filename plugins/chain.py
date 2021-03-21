@@ -246,7 +246,9 @@ def chainlist(notice, bot):
         for name, allowed in allow_cache.items()
         if allowed
     ]
-    cmds = itertools.chain.from_iterable(map(attrgetter("aliases"), hooks))
-    cmds = sorted(cmds)
-    for part in chunk_str(", ".join(cmds)):
+    s = ", ".join(
+        sorted(itertools.chain.from_iterable(map(attrgetter("aliases"), hooks)))
+    )
+
+    for part in chunk_str(s):
         notice(part)

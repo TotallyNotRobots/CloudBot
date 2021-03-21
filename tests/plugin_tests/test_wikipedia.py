@@ -1,3 +1,4 @@
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,7 +6,7 @@ from requests import RequestException
 
 from cloudbot.event import CommandEvent
 from plugins import wikipedia
-from tests.util import wrap_hook_response
+from tests.util import HookResult, wrap_hook_response
 
 
 def do_search(query, results=None):
@@ -36,7 +37,7 @@ def make_search_url(query):
 
 
 def test_search(mock_requests):
-    err_results = []
+    err_results: List[HookResult] = []
     with pytest.raises(RequestException):
         do_search("some failed query", err_results)
 

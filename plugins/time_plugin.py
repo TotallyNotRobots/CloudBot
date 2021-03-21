@@ -55,8 +55,10 @@ def time_command(text, reply):
         utcoffset = [x for x in pattern.split(text.lower()) if x]
         if len(utcoffset) > 2:
             return "Please specify a valid UTC/GMT format Example: UTC-4, UTC+7 GMT7"
+
         if len(utcoffset) == 1:
             utcoffset.append("0")
+
         if len(utcoffset) == 2:
             try:
                 offset = datetime.timedelta(
@@ -67,6 +69,7 @@ def time_command(text, reply):
                     "Sorry I could not parse the UTC format you entered. Example UTC7 or UTC-4"
                 )
                 raise
+
             curtime = datetime.datetime.utcnow()
             tztime = curtime + offset
             formatted_time = datetime.datetime.strftime(
@@ -100,6 +103,7 @@ def time_command(text, reply):
         "timestamp": epoch,
         "key": dev_key,
     }
+
     json = requests.get(timezone_api, params=params).json()
 
     error = check_status(json["status"], "timezone")
@@ -107,11 +111,11 @@ def time_command(text, reply):
         return error
 
     # Work out the current time
-    offset = json["rawOffset"] + json["dstOffset"]
+    tz_offset = json["rawOffset"] + json["dstOffset"]
 
     # I'm telling the time module to parse the data as GMT, but whatever, it doesn't matter
     # what the time module thinks the timezone is. I just need dumb time formatting here.
-    raw_time = time.gmtime(epoch + offset)
+    raw_time = time.gmtime(epoch + tz_offset)
     formatted_time = time.strftime("%I:%M %p, %A, %B %d, %Y", raw_time)
 
     timezone = json["timeZoneName"]

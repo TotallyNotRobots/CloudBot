@@ -23,11 +23,12 @@ def lyricsnmusic(text, reply):
 
     if r.status_code != 200:
         return "There was an error returned by the LyricsNMusic API."
-    r = r.json()
-    snippet = r[0]["snippet"].replace("\r\n", " ")
-    url = web.try_shorten(r[0]["url"])
-    title = r[0]["title"]
-    viewable = r[0]["viewable"]
+    json = r.json()
+    data = json[0]
+    snippet = data["snippet"].replace("\r\n", " ")
+    url = web.try_shorten(data["url"])
+    title = data["title"]
+    viewable = data["viewable"]
     out = "\x02{}\x02 -- {} {}".format(title, snippet, url)
     if not viewable:
         out += " Full lyrics not available."

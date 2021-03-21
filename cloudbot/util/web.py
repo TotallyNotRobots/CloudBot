@@ -41,7 +41,7 @@ class Registry:
         def __init__(self, item):
             self.item = item
             self.working = True
-            self.last_check = 0
+            self.last_check = 0.0
             self.uses = 0
 
         def failed(self):

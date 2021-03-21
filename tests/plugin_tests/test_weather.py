@@ -1,5 +1,6 @@
 import re
 from copy import deepcopy
+from typing import Any, Dict, List
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,7 +9,7 @@ from googlemaps.exceptions import ApiError
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
-from tests.util import wrap_hook_response
+from tests.util import HookResult, wrap_hook_response
 
 
 @pytest.mark.parametrize(
@@ -66,7 +67,7 @@ def test_mph_to_kph(mph, kph):
     assert weather.mph_to_kph(mph) == kph
 
 
-FIO_DATA = {
+FIO_DATA: Dict[str, Any] = {
     "json": {
         "currently": {
             "summary": "foobar",
@@ -213,14 +214,13 @@ def test_rounding(
         "(\x1dTo get a forecast, use .fc\x1d)"
     )
 
-    calls = [
-        (
+    calls: List[HookResult] = [
+        HookResult(
             "message",
             (
                 "#foo",
                 out_text,
             ),
-            {},
         )
     ]
 
@@ -317,7 +317,7 @@ def test_find_location(
         json={"status": "foobar"},
     )
 
-    response = []
+    response: List[HookResult] = []
     with pytest.raises(ApiError):
         wrap_hook_response(weather.weather, cmd_event, response)
 

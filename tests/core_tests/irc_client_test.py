@@ -1,7 +1,7 @@
 import asyncio
 import socket
 from asyncio import CancelledError
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,6 +11,10 @@ from cloudbot.client import ClientConnectError
 from cloudbot.event import Event, EventType
 from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock
+
+if TYPE_CHECKING:
+    from asyncio import Future
+    from typing import Tuple
 
 
 def make_mock_conn(event_loop, *, name="testconn"):
@@ -467,7 +471,7 @@ class TestConnect:
             runs += 1
             raise socket.error("foo")
 
-        client.connect = connect
+        client.connect = connect  # type: ignore
         await client.try_connect()
         assert caplog_bot.record_tuples == [
             (
@@ -530,7 +534,7 @@ class TestConnect:
             runs += 1
             raise TimeoutError("foo")
 
-        client.connect = connect
+        client.connect = connect  # type: ignore
         await client.try_connect()
         assert caplog_bot.record_tuples == [
             (
@@ -578,7 +582,7 @@ class TestConnect:
     async def test_other_exc(self, caplog_bot, event_loop):
         client = await self.make_client(event_loop)
 
-        client.connect = AsyncMock()
+        client.connect = AsyncMock()  # type: ignore
         client.connect.side_effect = Exception("foo")
 
         with pytest.raises(ClientConnectError):
@@ -605,10 +609,10 @@ class TestConnect:
     async def test_one_connect(self, caplog_bot, event_loop):
         client = await self.make_client(event_loop)
 
-        async def _connect(timeout):
+        async def _connect(timeout=5):
             await asyncio.sleep(timeout)
 
-        client._connect = _connect
+        client._connect = _connect  # type: ignore
         with pytest.raises(
             ValueError,
             match="Attempted to connect while another connect attempt is happening",
@@ -636,7 +640,7 @@ class TestConnect:
     async def test_create_socket(self, caplog_bot, event_loop):
         client = await self.make_client(event_loop)
         client.loop.create_connection = mock = MagicMock()
-        fut = asyncio.Future(loop=client.loop)
+        fut: "Future[Tuple[None, None]]" = asyncio.Future(loop=client.loop)
         fut.set_result((None, None))
         mock.return_value = fut
 

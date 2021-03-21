@@ -3,7 +3,7 @@ import random
 from collections import defaultdict
 from threading import Lock
 from time import sleep, time
-from typing import Dict, List, TypeVar
+from typing import Dict, List, NamedTuple, TypeVar
 
 from sqlalchemy import (
     Boolean,
@@ -33,6 +33,15 @@ duck = [
     "\\_\u00f3< ",
 ]
 duck_noise = ["QUACK!", "FLAP FLAP!", "quack!"]
+
+
+class ScoreEntry(NamedTuple):
+    network: str
+    name: str
+    chan: str
+    shot: int = 0
+    befriend: int = 0
+
 
 table = Table(
     "duck_hunt",
@@ -104,7 +113,7 @@ class ChannelState:
 
 T = TypeVar("T")
 ConnMap = Dict[str, Dict[str, T]]
-scripters: Dict[str, int] = defaultdict(int)
+scripters: Dict[str, float] = defaultdict(float)
 chan_locks: ConnMap[Lock] = defaultdict(lambda: defaultdict(Lock))
 game_status: ConnMap[ChannelState] = defaultdict(
     lambda: defaultdict(ChannelState)
@@ -748,81 +757,67 @@ def duck_merge(text, conn, db, message):
         .where(table.c.name == newnick)
     ).fetchall()
 
-    duckmerge = defaultdict(lambda: defaultdict(int))
-    duckmerge["TKILLS"] = 0
-    duckmerge["TFRIENDS"] = 0
-    channelkey = {"update": [], "insert": []}
-    if oldnickscore:
-        if newnickscore:
-            for row in newnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
+    duckmerge: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    total_kills = 0
+    total_friends = 0
+    channelkey: Dict[str, List[str]] = {"update": [], "insert": []}
+    if not oldnickscore:
+        return "There are no duck scores to migrate from {}".format(oldnick)
 
-            for row in oldnickscore:
-                if row["chan"] in duckmerge:
-                    duckmerge[row["chan"]]["shot"] = (
-                        duckmerge[row["chan"]]["shot"] + row["shot"]
-                    )
-                    duckmerge[row["chan"]]["befriend"] = (
-                        duckmerge[row["chan"]]["befriend"] + row["befriend"]
-                    )
-                    channelkey["update"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-                    duckmerge["TFRIENDS"] = (
-                        duckmerge["TFRIENDS"] + row["befriend"]
-                    )
-                else:
-                    duckmerge[row["chan"]]["shot"] = row["shot"]
-                    duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                    channelkey["insert"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-                    duckmerge["TFRIENDS"] = (
-                        duckmerge["TFRIENDS"] + row["befriend"]
-                    )
+    for row in newnickscore:
+        chan_data = duckmerge[row["chan"]]
+        chan_data["shot"] = row["shot"]
+        chan_data["befriend"] = row["befriend"]
+
+    for row in oldnickscore:
+        chan_name = row["chan"]
+        chan_data1 = duckmerge[chan_name]
+        shot: int = row["shot"]
+        _friends: int = row["befriend"]
+        chan_data1["shot"] += shot
+        chan_data1["befriend"] += _friends
+        total_kills += shot
+        total_friends += _friends
+        if chan_name in duckmerge:
+            channelkey["update"].append(chan_name)
         else:
-            for row in oldnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                channelkey["insert"].append(row["chan"])
-                # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
+            channelkey["insert"].append(chan_name)
 
-        for channel in channelkey["insert"]:
-            dbadd_entry(
-                newnick,
-                channel,
-                db,
-                conn,
-                duckmerge[channel]["shot"],
-                duckmerge[channel]["befriend"],
-            )
-
-        for channel in channelkey["update"]:
-            dbupdate(
-                newnick,
-                channel,
-                db,
-                conn,
-                duckmerge[channel]["shot"],
-                duckmerge[channel]["befriend"],
-            )
-
-        query = table.delete().where(
-            and_(table.c.network == conn.name, table.c.name == oldnick)
+    for channel in channelkey["insert"]:
+        dbadd_entry(
+            newnick,
+            channel,
+            db,
+            conn,
+            duckmerge[channel]["shot"],
+            duckmerge[channel]["befriend"],
         )
 
-        db.execute(query)
-        db.commit()
-        message(
-            "Migrated {} and {} from {} to {}".format(
-                pluralize_auto(duckmerge["TKILLS"], "duck kill"),
-                pluralize_auto(duckmerge["TFRIENDS"], "duck friend"),
-                oldnick,
-                newnick,
-            )
+    for channel in channelkey["update"]:
+        dbupdate(
+            newnick,
+            channel,
+            db,
+            conn,
+            duckmerge[channel]["shot"],
+            duckmerge[channel]["befriend"],
         )
-        return None
 
-    return "There are no duck scores to migrate from {}".format(oldnick)
+    query = table.delete().where(
+        and_(table.c.network == conn.name, table.c.name == oldnick)
+    )
+
+    db.execute(query)
+    db.commit()
+    message(
+        "Migrated {} and {} from {} to {}".format(
+            pluralize_auto(duckmerge["TKILLS"], "duck kill"),
+            pluralize_auto(duckmerge["TFRIENDS"], "duck friend"),
+            oldnick,
+            newnick,
+        )
+    )
+    return None
 
 
 @hook.command("ducks", autohelp=False)
@@ -832,7 +827,7 @@ def ducks_user(text, nick, chan, conn, db, message):
     if text:
         name = text.split()[0].lower()
 
-    ducks = defaultdict(int)
+    ducks: Dict[str, int] = defaultdict(int)
     scores = db.execute(
         select(
             [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
@@ -897,37 +892,38 @@ def ducks_user(text, nick, chan, conn, db, message):
 @hook.command("duckstats", autohelp=False)
 def duck_stats(chan, conn, db, message):
     """- Prints duck statistics for the entire channel and totals for the network."""
-    ducks = defaultdict(int)
     scores = db.execute(
         select(
             [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
             table.c.network == conn.name,
         )
     ).fetchall()
+    friend_chan: Dict[str, int] = defaultdict(int)
+    kill_chan: Dict[str, int] = defaultdict(int)
+    chan_killed = 0
+    chan_friends = 0
+    killed = 0
+    friends = 0
+    chans = set()
 
     if scores:
-        ducks["friendchan"] = defaultdict(int)
-        ducks["killchan"] = defaultdict(int)
         for row in scores:
-            ducks["friendchan"][row["chan"]] += row["befriend"]
-            ducks["killchan"][row["chan"]] += row["shot"]
-            # ducks["chans"] += 1
-            if row["chan"].lower() == chan.lower():
-                ducks["chankilled"] += row["shot"]
-                ducks["chanfriends"] += row["befriend"]
+            chan_name = row["chan"]
+            chans.add(chan_name)
+            friend_chan[chan_name] += row["befriend"]
+            kill_chan[chan_name] += row["shot"]
+            if chan_name.lower() == chan.lower():
+                chan_killed += row["shot"]
+                chan_friends += row["befriend"]
 
-            ducks["killed"] += row["shot"]
-            ducks["friend"] += row["befriend"]
-
-        ducks["chans"] = int(
-            (len(ducks["friendchan"]) + len(ducks["killchan"])) / 2
-        )
+            killed += row["shot"]
+            friends += row["befriend"]
 
         killerchan, killscore = sorted(
-            ducks["killchan"].items(), key=operator.itemgetter(1), reverse=True
+            kill_chan.items(), key=operator.itemgetter(1), reverse=True
         )[0]
         friendchan, friendscore = sorted(
-            ducks["friendchan"].items(),
+            friend_chan.items(),
             key=operator.itemgetter(1),
             reverse=True,
         )[0]
@@ -935,12 +931,12 @@ def duck_stats(chan, conn, db, message):
             "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. "
             "Across {} \x02{:,}\x02 ducks have been killed and \x02{:,}\x02 befriended. "
             "\x02Top Channels:\x02 \x02{}\x02 with {} and \x02{}\x02 with {}".format(
-                ducks["chankilled"],
-                ducks["chanfriends"],
+                chan_killed,
+                chan_friends,
                 chan,
-                pluralize_auto(ducks["chans"], "channel"),
-                ducks["killed"],
-                ducks["friend"],
+                pluralize_auto(len(chans), "channel"),
+                killed,
+                friends,
                 killerchan,
                 pluralize_auto(killscore, "kill"),
                 friendchan,

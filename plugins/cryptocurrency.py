@@ -12,10 +12,10 @@ License:
 import inspect
 import time
 import warnings
-from numbers import Number
+from numbers import Real
 from operator import itemgetter
 from threading import RLock
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
 
 import requests
 from requests import Response
@@ -160,18 +160,18 @@ class Platform(Schema):
 class Quote(Schema):
     def __init__(
         self,
-        price: Number,
-        volume_24h: Number,
-        market_cap: Number,
-        percent_change_1h: Number,
-        percent_change_24h: Number,
-        percent_change_7d: Number,
+        price: Real,
+        volume_24h: Real,
+        market_cap: Real,
+        percent_change_1h: Real,
+        percent_change_24h: Real,
+        percent_change_7d: Real,
         last_updated: str,
-        volume_24h_reported: Number = None,
-        volume_7d: Number = None,
-        volume_7d_reported: Number = None,
-        volume_30d: Number = None,
-        volume_30d_reported: Number = None,
+        volume_24h_reported: Real = None,
+        volume_7d: Real = None,
+        volume_7d_reported: Real = None,
+        volume_30d: Real = None,
+        volume_30d_reported: Real = None,
     ):
         super().__init__()
         self.price = price
@@ -196,16 +196,16 @@ class CryptoCurrency(Schema):
         name: str,
         symbol: str,
         slug: str,
-        circulating_supply: Number,
-        total_supply: Number,
+        circulating_supply: Real,
+        total_supply: Real,
         date_added: str,
         num_market_pairs: int,
         cmc_rank: int,
         last_updated: str,
         tags: List[str],
         quote: Dict[str, Quote],
-        max_supply: Number = None,
-        market_cap_by_total_supply: Number = None,
+        max_supply: Real = None,
+        market_cap_by_total_supply: Real = None,
         platform: Platform = None,
     ):
         super().__init__()
@@ -340,11 +340,11 @@ def _hydrate_object(_value, _cls):
         return read_data(_value, _cls)
 
     try:
-        typing_cls = _cls.__origin__
+        typing_cls = _cls.__origin__  # type: ignore[union-attr]
     except AttributeError:
         pass
     else:
-        type_args = _cls.__args__
+        type_args = _cls.__args__  # type: ignore[union-attr]
         if issubclass(typing_cls, list):
             _assert_type(_value, list, _cls)
 
@@ -602,14 +602,6 @@ def alias_wrapper(alias):
     return func
 
 
-def init_aliases():
-    for alias in ALIASES:
-        _hook = alias_wrapper(alias)
-        globals()[_hook.__name__] = hook.command(*alias.cmds, autohelp=False)(
-            _hook
-        )
-
-
 # main command
 @hook.command("crypto", "cryptocurrency")
 def crypto_command(text, event):
@@ -633,7 +625,7 @@ def crypto_command(text, event):
         raise
 
     quote = data.quote[currency]
-    change = quote.percent_change_24h
+    change = cast(Union[int, float], quote.percent_change_24h)
     if change > 0:
         change_str = "$(dark_green)+{}%$(clear)".format(change)
     elif change < 0:
@@ -645,7 +637,7 @@ def crypto_command(text, event):
 
     if api.show_btc:
         btc_quote = data.quote["BTC"]
-        btc = "- {:,.7f} BTC ".format(btc_quote.price)
+        btc = "- {:,.7f} BTC ".format(float(btc_quote.price))
     else:
         btc = ""
 
@@ -677,4 +669,11 @@ def currency_list():
     return "Available currencies: " + web.paste("\n".join(lst))
 
 
-init_aliases()
+def make_alias(alias):
+    _hook = alias_wrapper(alias)
+    return hook.command(*alias.cmds, autohelp=False)(_hook)
+
+
+btc_alias = make_alias(Alias("btc", "bitcoin"))
+ltc_alias = make_alias(Alias("ltc", "litecoin"))
+doge_alias = make_alias(Alias("doge", "dogecoin"))

@@ -48,6 +48,7 @@ import copy
 import re
 import warnings
 from html.parser import HTMLParser
+from typing import Dict
 
 from cloudbot.util.colors import strip_irc
 
@@ -301,7 +302,7 @@ pluralise_auto = pluralize_auto
 
 
 def dict_format(args, formats):
-    matches = {}
+    matches: Dict[str, int] = {}
     for f in formats:
         try:
             # Check if values can be mapped

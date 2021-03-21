@@ -25,6 +25,7 @@ from cloudbot import hook
 from cloudbot.bot import CloudBot
 from cloudbot.event import Event
 from cloudbot.util import func_utils
+from cloudbot.util.http import GetParams
 
 logger = logging.getLogger(__name__)
 token_lifetime = datetime.timedelta(hours=1)
@@ -33,7 +34,6 @@ JsonPrimitive = Union[int, str, bool, None]
 JsonObject = Dict[
     str, Union[JsonPrimitive, List[JsonPrimitive], Dict[str, JsonPrimitive]]
 ]
-GetParams = Dict[str, Union[str, int]]
 
 
 class NoMatchingSeries(LookupError):
@@ -231,7 +231,7 @@ class Holder(Generic[T]):
         return obj
 
     @classmethod
-    def of_optional(cls, item: T) -> "Holder[T]":
+    def of_optional(cls, item: Optional[T]) -> "Holder[T]":
         obj = cls()
         if item is not None:
             obj.set(item)

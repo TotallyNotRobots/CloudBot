@@ -1,6 +1,7 @@
 import operator
 import re
 from collections import defaultdict
+from typing import Dict
 
 import sqlalchemy
 from sqlalchemy import (
@@ -12,6 +13,7 @@ from sqlalchemy import (
     and_,
     select,
 )
+from sqlalchemy.sql.base import Executable
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -53,6 +55,7 @@ def update_score(nick, chan, thing, score, db):
         karma_table.c.thing == thing.lower(),
     )
     karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
+    query: Executable
     if karma:
         score += karma["score"]
         query = karma_table.update().values(score=score).where(clause)
@@ -198,7 +201,7 @@ def parse_lookup(text, db, chan, name):
 
 
 def do_list(text, db, chan, loved=True):
-    counts = defaultdict(int)
+    counts: Dict[str, int] = defaultdict(int)
     out, items = parse_lookup(text, db, chan, "loved" if loved else "hated")
     if items:
         for item in items:

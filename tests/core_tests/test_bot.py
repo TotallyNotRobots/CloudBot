@@ -46,11 +46,6 @@ async def test_migrate_db(
     mock_bot.do_db_migrate = True
     mock_bot.old_db = old_db_url
 
-    # pylint: disable=assignment-from-no-return
-    mock_bot.migrate_db = CloudBot.migrate_db.__get__(
-        mock_bot, mock_bot.__class__
-    )
-
     old_db.add_row(table, a="blah")
 
     old_db.add_row(table, a="blah1", b="thing")

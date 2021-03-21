@@ -1,5 +1,5 @@
 from threading import RLock
-from typing import List
+from typing import List, Tuple
 
 from cloudbot.util.formatting import chunk_str
 from cloudbot.util.sequence import chunk_iter
@@ -47,6 +47,7 @@ class Pager:
         # Added here due to extensive use of threads throughout plugins
         self.lock = RLock()
         self.chunk_size = chunk_size
+        self.chunks: Tuple[str, ...]
         if self.chunk_size == 0:
             self.chunks = (lines,)
         else:

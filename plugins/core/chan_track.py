@@ -58,9 +58,9 @@ class ChannelMembersDict(KeyFoldDict):
         except KeyError as e:
             raise MemberNotFoundException(item, self.chan()) from e
 
-    def pop(self, key, *args, **kwargs):
+    def pop(self, key, *args):
         try:
-            return super().pop(key, *args, **kwargs)
+            return super().pop(key, *args)
         except KeyError as e:
             raise MemberNotFoundException(key, self.chan()) from e
 

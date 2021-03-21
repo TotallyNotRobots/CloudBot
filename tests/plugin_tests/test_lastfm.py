@@ -199,7 +199,7 @@ class TestCheckKeyAndUser:
         assert err == expected
 
     def test_no_key(self, mock_api_keys, mock_requests, mock_db):
-        bot.config.get_api_key.return_value = None
+        bot.config.get_api_key.return_value = None  # type: ignore
         res, err = lastfm.check_key_and_user("foo", "baz")
         assert res is None
         assert err == "Error: No API key set."

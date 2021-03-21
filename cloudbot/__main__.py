@@ -15,8 +15,8 @@ def main():
 
     # Logging optimizations, doing it here because we only want to change this if we're the main file
     logging._srcfile = None
-    logging.logThreads = 0
-    logging.logProcesses = 0
+    logging.logThreads = False
+    logging.logProcesses = False
 
     logger = logging.getLogger("cloudbot")
     logger.info("Starting CloudBot.")

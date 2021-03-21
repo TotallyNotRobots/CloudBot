@@ -244,8 +244,8 @@ class TestPluginLoad:
         def cmd_func_2():
             raise NotImplementedError
 
-        plugin_a.cmd_func = cmd_func
-        plugin_b.cmd_func_2 = cmd_func_2
+        plugin_a.cmd_func = cmd_func  # type: ignore[attr-defined]
+        plugin_b.cmd_func_2 = cmd_func_2  # type: ignore[attr-defined]
 
         patch_import_module.return_value = plugin_a
         plugin_dir = mock_bot.base_dir / "plugins"
@@ -316,9 +316,9 @@ async def test_load_all(
         nonlocal stopped
         stopped += 1
 
-    mod.cmd_func = cmd_func
-    mod.start = start
-    mod.stop = stop
+    mod.cmd_func = cmd_func  # type: ignore[attr-defined]
+    mod.start = start  # type: ignore[attr-defined]
+    mod.stop = stop  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
@@ -356,7 +356,7 @@ async def test_load_on_start_error(
     def start():
         raise ValueError
 
-    mod.start = start
+    mod.start = start  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
@@ -393,7 +393,7 @@ async def test_load_config_hooks(
     def config():
         raise NotImplementedError
 
-    mod.config = config
+    mod.config = config  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -441,8 +441,8 @@ async def test_unload_raw_hooks(
     def irc_raw2():
         raise NotImplementedError
 
-    mod.irc_raw = irc_raw
-    mod.irc_raw2 = irc_raw2
+    mod.irc_raw = irc_raw  # type: ignore[attr-defined]
+    mod.irc_raw2 = irc_raw2  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -482,8 +482,8 @@ async def test_unload_event_hooks(
     def event2():
         raise NotImplementedError
 
-    mod.event = event
-    mod.event2 = event2
+    mod.event = event  # type: ignore[attr-defined]
+    mod.event2 = event2  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -561,9 +561,9 @@ async def test_launch(
 
     mod = MockModule()
 
-    mod.sieve_cb = sieve_cb
-    mod.foo_cb = foo_cb
-    mod.post_hook = post_hook
+    mod.sieve_cb = sieve_cb  # type: ignore[attr-defined]
+    mod.foo_cb = foo_cb  # type: ignore[attr-defined]
+    mod.post_hook = post_hook  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
 
@@ -654,9 +654,9 @@ async def test_launch_async(
 
     mod = MockModule()
 
-    mod.sieve_cb = sieve_cb
-    mod.foo_cb = foo_cb
-    mod.post_hook = post_hook
+    mod.sieve_cb = sieve_cb  # type: ignore[attr-defined]
+    mod.foo_cb = foo_cb  # type: ignore[attr-defined]
+    mod.post_hook = post_hook  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
 

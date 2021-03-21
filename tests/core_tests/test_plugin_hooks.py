@@ -8,12 +8,13 @@ import re
 from functools import wraps
 from numbers import Number
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple, Union, cast
 from unittest.mock import patch
 
 import pytest
 
 import cloudbot.bot
+from cloudbot.bot import CloudBot
 from cloudbot.event import (
     CapEvent,
     CommandEvent,
@@ -72,7 +73,7 @@ def load_plugin(plugin_path):
 def get_plugins():
     if not PLUGINS:
         bot = MockBot(base_dir=Path().resolve())
-        cloudbot.bot.bot.set(bot)
+        cloudbot.bot.bot.set(cast(CloudBot, bot))
         PLUGINS.extend(map(load_plugin, gather_plugins()))
         cloudbot.bot.bot.set(None)
         bot.close()
@@ -104,7 +105,7 @@ def pytest_generate_tests(metafunc):
         )
 
 
-HOOK_ATTR_TYPES = {
+HOOK_ATTR_TYPES: Dict[str, Union[type, Tuple[type, ...]]] = {
     "permissions": (list, set, frozenset, tuple),
     "single_thread": bool,
     "action": Action,

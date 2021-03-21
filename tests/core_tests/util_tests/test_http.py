@@ -9,7 +9,7 @@ def test_open_request():
     ) as mocked_open_build:
         http.open_request("https://host.invalid")
         assert mocked.mock_calls == [
-            call("https://host.invalid", None),
+            call("https://host.invalid", None, method=None),
             call().add_header(
                 "User-Agent", "Cloudbot/DEV http://github.com/CloudDev/CloudBot"
             ),
@@ -27,7 +27,7 @@ def test_open_request_with_cookies():
             "https://host.invalid", cookies=True, referer="https://example.com"
         )
         assert mocked.mock_calls == [
-            call("https://host.invalid", None),
+            call("https://host.invalid", None, method=None),
             call().add_header(
                 "User-Agent", "Cloudbot/DEV http://github.com/CloudDev/CloudBot"
             ),

@@ -1,4 +1,6 @@
 import re
+import urllib
+import urllib.parse
 import uuid
 
 import requests
@@ -42,7 +44,7 @@ def mcuser(text, bot, reply):
     # get user data from fishbans
     try:
         request = requests.get(
-            HIST_API.format(requests.utils.quote(name)), headers=headers
+            HIST_API.format(urllib.parse.quote(name)), headers=headers
         )
         request.raise_for_status()
     except (

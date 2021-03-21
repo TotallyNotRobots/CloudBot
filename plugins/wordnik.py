@@ -3,12 +3,14 @@ import random
 import re
 import urllib.parse
 from json import JSONDecodeError
+from typing import Any, Dict, Iterable, List, Optional, Tuple, cast
 
 import requests
 
 from cloudbot import hook
 from cloudbot.bot import bot
 from cloudbot.util import colors, web
+from cloudbot.util.http import GetParams
 
 logger = logging.getLogger("cloudbot")
 
@@ -69,6 +71,7 @@ def raise_error(data):
             "Unknown error, unable to retrieve error data"
         ) from e
 
+    err: Exception
     try:
         err = ERROR_MAP[error]()
     except KeyError:
@@ -77,7 +80,7 @@ def raise_error(data):
     raise err
 
 
-def api_request(endpoint, params=(), **kwargs):
+def api_request(endpoint: str, params=(), **kwargs) -> List[Dict[str, Any]]:
     kwargs.update(params)
 
     api_key = bot.config.get_api_key("wordnik")
@@ -103,45 +106,57 @@ def api_request(endpoint, params=(), **kwargs):
     return data
 
 
+def api_request_single(endpoint: str, params=(), **kwargs) -> Dict[str, Any]:
+    return cast(Dict[str, Any], api_request(endpoint, params, **kwargs))
+
+
 class WordLookupRequest:
-    def __init__(self, word, operation, *, required_fields=()):
+    def __init__(
+        self,
+        word: str,
+        operation: str,
+        *,
+        required_fields: Tuple[str, ...] = (),
+    ) -> None:
         self.word = word
         self.operation = operation
         self.required_fields = required_fields
-        self.extra_params = {}
+        self.extra_params: GetParams = {}
         self.result_limit = 5
         self.max_tries = 3
 
     @staticmethod
-    def sanitize(text):
+    def sanitize(text: str) -> str:
         return urllib.parse.quote(
             text.translate({ord("\\"): None, ord("/"): None})
         )
 
     @property
-    def endpoint(self):
+    def endpoint(self) -> str:
         return "word.json/" + self.sanitize(self.word) + "/" + self.operation
 
-    def get_params(self):
+    def get_params(self) -> GetParams:
         params = dict(self.extra_params)
         if self.result_limit:
             params["limit"] = self.result_limit
 
         return params
 
-    def get_results(self):
+    def get_results(self) -> List[Dict[str, Any]]:
         data = api_request(self.endpoint, params=self.get_params())
 
         return data
 
-    def is_result_valid(self, result):
+    def is_result_valid(self, result: Dict[str, Any]) -> bool:
         for field in self.required_fields:
             if field not in result:
                 return False
 
         return True
 
-    def get_filtered_results(self, min_results=1):
+    def get_filtered_results(
+        self, min_results: int = 1
+    ) -> Iterable[Dict[str, Any]]:
         count = 0
         tries = 0
         results = []
@@ -170,11 +185,13 @@ class WordLookupRequest:
 
         raise NoValidResults(self.word, results)
 
-    def first(self):
+    def first(self) -> Optional[Dict[str, Any]]:
         for item in self.get_filtered_results():
             return item
 
-    def random(self):
+        return None
+
+    def random(self) -> Dict[str, Any]:
         return random.choice(list(self.get_filtered_results()))
 
 
@@ -189,8 +206,9 @@ class ExamplesLookupRequest(WordLookupRequest):
         self.result_limit = 10
 
     def get_results(self):
-        results = super().get_results()
-        return results["examples"]
+        return api_request_single(self.endpoint, params=self.get_params())[
+            "examples"
+        ]
 
 
 class PronounciationLookupRequest(WordLookupRequest):
@@ -272,7 +290,7 @@ def pronounce(text, event):
     example."""
     lookup = PronounciationLookupRequest(text)
     try:
-        audio_response = list(lookup.get_filtered_results())[:5]
+        pronounce_response = list(lookup.get_filtered_results())[:5]
     except WordNotFound:
         return colors.parse(
             "Sorry, I don't know how to pronounce $(b){}$(b)."
@@ -282,7 +300,7 @@ def pronounce(text, event):
         raise
 
     out = colors.parse("$(b){}$(b): ").format(text)
-    out += " • ".join([i["raw"] for i in audio_response])
+    out += " • ".join([i["raw"] for i in pronounce_response])
 
     audio_lookup = AudioLookupRequest(text)
     try:
@@ -359,7 +377,7 @@ def wordoftheday(text, event):
         day = "today"
 
     try:
-        json = api_request("words.json/wordOfTheDay", params)
+        json = api_request_single("words.json/wordOfTheDay", params)
     except WordNotFound:
         return "Sorry I couldn't find the word of the day"
     except WordnikAPIError as e:
@@ -386,7 +404,7 @@ def wordoftheday(text, event):
 def random_word(event):
     """- Grabs a random word from wordnik.com"""
     try:
-        json = api_request(
+        json = api_request_single(
             "words.json/randomWord",
             {"hasDictionarydef": "true", "vulgar": "true"},
         )

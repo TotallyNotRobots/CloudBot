@@ -52,8 +52,7 @@ def get_account(nick):
     if not last_account:
         return None
 
-    last_account = last_account[0]
-    return last_account
+    return last_account[0]
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)

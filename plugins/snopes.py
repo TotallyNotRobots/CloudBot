@@ -42,10 +42,10 @@ def snopes(text):
     snopes_text = snopes_page.text_content()
 
     claim = re.search(r"Claim: .*", snopes_text).group(0).strip()
-    status = re.search(r"Status: .*", snopes_text)
+    _status = re.search(r"Status: .*", snopes_text)
 
-    if status is not None:
-        status = status.group(0).strip()
+    if _status is not None:
+        status = _status.group(0).strip()
     else:  # new-style statuses
         status = "Status: {}".format(
             re.search(r"FALSE|TRUE|MIXTURE|UNDETERMINED", snopes_text)

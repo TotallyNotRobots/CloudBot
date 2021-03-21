@@ -37,12 +37,16 @@ tr = create_tracker()
 
 def get_name(thread_id):
     current_thread = threading.current_thread()
-    if thread_id == current_thread._ident:
+    if thread_id == current_thread.ident:
         is_current = True
         thread = current_thread
     else:
         is_current = False
-        thread = threading._active.get(thread_id)
+        thread = None
+        for t in threading.enumerate():
+            if t.ident == thread_id:
+                thread = t
+                break
 
     if thread is not None:
         if thread.name is not None:

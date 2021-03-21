@@ -153,8 +153,7 @@ def get_location(nick):
     if not location:
         return None
 
-    location = location[0]
-    return location
+    return location[0]
 
 
 def check_and_parse(event, db):

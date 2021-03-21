@@ -327,9 +327,10 @@ def submods(text, chan, conn, reply):
         username = mod["name"]
         # Showing the modtime makes the message too long for larger subs
         # if you want to show this information add modtime.days to out below
-        modtime = datetime.now() - datetime.fromtimestamp(mod["date"])
-        modtime = time_format(modtime.days)
+        _modtime = datetime.now() - datetime.fromtimestamp(mod["date"])
+        modtime = time_format(_modtime.days)
         moderators.append("{} ({}{})".format(username, modtime[0], modtime[1]))
+
     pager = paginated_list(moderators, pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()

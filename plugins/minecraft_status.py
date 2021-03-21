@@ -50,8 +50,8 @@ def mcstatus(reply):
         red.sort()
         out.append("\x02Offline\x02: " + ", ".join(red))
 
-    out = " ".join(out)
+    _out = " ".join(out)
 
-    return "\x0f" + out.replace(".mojang.com", ".mj").replace(
+    return "\x0f" + _out.replace(".mojang.com", ".mj").replace(
         ".minecraft.net", ".mc"
     )

@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,7 +12,7 @@ from plugins.core.chan_track import MappingSerializer
 class MockConn:
     def __init__(self, bot=None, loop=None):
         self.name = "foo"
-        self.memory = {
+        self.memory: Dict[str, Any] = {
             "server_info": {
                 "statuses": {},
             },

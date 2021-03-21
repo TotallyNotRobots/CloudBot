@@ -8,7 +8,7 @@ import traceback
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Mapping, Optional
+from typing import Mapping, Optional, Tuple, Union
 
 from irclib.parser import Message
 
@@ -132,10 +132,12 @@ class IrcClient(Client):
             conn_config.get("bind_port"),
         )
 
+        self.local_bind: Union[bool, Tuple[str, str]]
         if not (local_bind[0] or local_bind[1]):
-            local_bind = False
+            self.local_bind = False
+        else:
+            self.local_bind = local_bind
 
-        self.local_bind = local_bind
         # create SSL context
         self.ssl_context = self.make_ssl_context(conn_config)
 
@@ -373,8 +375,8 @@ class IrcClient(Client):
         :param params: The params to the IRC command
         """
         # turn the tuple of parameters into a list
-        params = list(map(str, params))
-        self.send(str(Message(None, None, command, params)))
+        param_list = list(map(str, params))
+        self.send(str(Message(None, None, command, param_list)))
 
     def send(self, line, log=True):
         """

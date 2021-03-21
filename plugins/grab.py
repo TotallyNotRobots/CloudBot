@@ -2,7 +2,7 @@ import logging
 import random
 from collections import defaultdict
 from threading import RLock
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from sqlalchemy import Column, String, Table
 from sqlalchemy.exc import SQLAlchemyError
@@ -32,7 +32,8 @@ logger = logging.getLogger("cloudbot")
 
 @hook.on_start()
 def load_cache(db):
-    new_cache = {}
+    new_cache = grab_cache.copy()
+    new_cache.clear()
     for row in db.execute(table.select().order_by(table.c.time)):
         name = row["name"].lower()
         quote = row["quote"]
@@ -157,7 +158,7 @@ def grabrandom(text, chan, message):
         except KeyError:
             return "I couldn't find any grabs in {}.".format(chan)
 
-        matching_quotes = []
+        matching_quotes: List[Tuple[str, str]] = []
 
         if text:
             for nick in text.split():
@@ -186,7 +187,7 @@ def grabrandom(text, chan, message):
 @hook.command("grabsearch", "grabs", autohelp=False)
 def grabsearch(text, chan, conn):
     """[text] - matches "text" against nicks or grab strings in the database"""
-    result = []
+    result: List[Tuple[str, str]] = []
     lower_text = text.lower()
     with cache_lock:
         try:
