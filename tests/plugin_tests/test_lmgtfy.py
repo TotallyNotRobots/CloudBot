@@ -1,4 +1,5 @@
-def test_lmgtfy(patch_try_shorten):
-    from plugins.lmgtfy import lmgtfy
+from plugins import lmgtfy
 
-    assert lmgtfy("foo bar") == "http://lmgtfy.com/?q=foo%20bar"
+
+def test_lmgtfy(patch_try_shorten):
+    assert lmgtfy.lmgtfy("foo bar") == "http://lmgtfy.com/?q=foo%20bar"

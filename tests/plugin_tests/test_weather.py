@@ -162,7 +162,7 @@ def setup_api(
         ],
     }
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
         json=return_value,
     )
@@ -200,7 +200,7 @@ def test_rounding(
     new_data["json"]["currently"]["temperature"] = 31.9
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **new_data,
     )
@@ -275,7 +275,7 @@ def test_find_location(
     weather.location_cache.append(("foobar", "test location"))
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **FIO_DATA,
     )
@@ -312,7 +312,7 @@ def test_find_location(
 
     mock_requests.reset()
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
         json={"status": "foobar"},
     )
@@ -369,7 +369,7 @@ def test_find_location(
         mock_bot_factory,
     )
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **FIO_DATA,
     )

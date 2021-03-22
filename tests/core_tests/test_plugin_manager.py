@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import Column, String, Table
 
 from cloudbot import hook
-from cloudbot.event import EventType
+from cloudbot.event import CommandEvent, EventType
 from cloudbot.plugin import Plugin
 from cloudbot.util import database
 from tests.util.mock_module import MockModule
@@ -571,8 +571,6 @@ async def test_launch(
         mock_manager.bot.base_dir / "plugins/test.py"
     )
 
-    from cloudbot.event import CommandEvent
-
     event = CommandEvent(
         bot=mock_manager.bot,
         hook=mock_manager.commands["test"],
@@ -663,8 +661,6 @@ async def test_launch_async(
     await mock_manager.load_plugin(
         mock_manager.bot.base_dir / "plugins/test.py"
     )
-
-    from cloudbot.event import CommandEvent
 
     event = CommandEvent(
         bot=mock_manager.bot,

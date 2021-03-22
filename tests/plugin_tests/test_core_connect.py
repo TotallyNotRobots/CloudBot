@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from cloudbot.clients.irc import IrcClient
+from plugins.core import core_connect
 
 
 class MockClient(IrcClient):
@@ -78,13 +79,11 @@ async def test_core_connects(event_loop, mock_bot_factory):
 
     await client.connect()
 
-    from plugins.core.core_connect import conn_nick, conn_pass, conn_user
-
-    conn_pass(client)
+    core_connect.conn_pass(client)
     client.send.assert_called_with("PASS foobar123")
-    conn_nick(client)
+    core_connect.conn_nick(client)
     client.send.assert_called_with("NICK FooBot")
-    conn_user(client, bot)
+    core_connect.conn_user(client, bot)
     client.send.assert_called_with(
         "USER cloudbot 3 * :CloudBot - https://github.com/foobar/baz"
     )

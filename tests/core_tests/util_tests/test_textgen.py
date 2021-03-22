@@ -1,10 +1,10 @@
 import re
 
+from cloudbot.util import textgen
+
 
 def test_textgenerator():
-    from cloudbot.util.textgen import TextGenerator
-
-    generator = TextGenerator(
+    generator = textgen.TextGenerator(
         ["{thing} is {stuff}"],
         {
             "thing": ["a", "b"],
@@ -22,9 +22,7 @@ def test_textgenerator():
 
 
 def test_textgen_default_tmpl():
-    from cloudbot.util.textgen import TextGenerator
-
-    generator = TextGenerator(
+    generator = textgen.TextGenerator(
         [
             "{thing} is {stuff} {a}",
             "{thing} are {stuff} {a}",

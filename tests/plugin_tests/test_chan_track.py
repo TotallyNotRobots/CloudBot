@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 import pytest
 from irclib.parser import Prefix, TagList
 
+from cloudbot.clients.irc import _IrcProtocol
 from cloudbot.util.func_utils import call_with_args
 from plugins.core import chan_track, server_info
-from plugins.core.chan_track import MappingSerializer
 
 
 class MockConn:
@@ -162,8 +162,6 @@ def test_names_handling(event_loop):
     )
 
     for line in NAMES_MOCK_TRAFFIC:
-        from cloudbot.clients.irc import _IrcProtocol
-
         event = _IrcProtocol(conn=conn).parse_line(line)
         call_with_args(handlers[event.irc_command], event)
 
@@ -198,16 +196,18 @@ def test_account_tag(event_loop):
 
 class TestSerializer:
     def test_simple(self):
-        assert MappingSerializer().serialize("a") == '"a"'
-        assert MappingSerializer().serialize(1) == "1"
-        assert MappingSerializer().serialize(None) == "null"
-        assert MappingSerializer().serialize(True) == "true"
+        assert chan_track.MappingSerializer().serialize("a") == '"a"'
+        assert chan_track.MappingSerializer().serialize(1) == "1"
+        assert chan_track.MappingSerializer().serialize(None) == "null"
+        assert chan_track.MappingSerializer().serialize(True) == "true"
 
     def test_dict(self):
         assert (
-            MappingSerializer().serialize({"a": 1, "b": True})
+            chan_track.MappingSerializer().serialize({"a": 1, "b": True})
             == '{"a": 1, "b": true}'
         )
 
     def test_int_list(self):
-        assert MappingSerializer().serialize([1, 2, 3]) == "[1, 2, 3]"
+        assert (
+            chan_track.MappingSerializer().serialize([1, 2, 3]) == "[1, 2, 3]"
+        )

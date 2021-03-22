@@ -4,15 +4,8 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 from bs4 import BeautifulSoup
-from responses import RequestsMock
 
-from plugins.link_announcer import (
-    MAX_TITLE,
-    get_encoding,
-    parse_content,
-    print_url_title,
-    url_re,
-)
+from plugins import link_announcer
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -91,16 +84,16 @@ SEARCH = (
 
 def test_urls():
     for url in MATCHES:
-        assert url_re.fullmatch(url), url
+        assert link_announcer.url_re.fullmatch(url), url
 
     for url in FAILS:
-        match = url_re.fullmatch(url)
+        match = link_announcer.url_re.fullmatch(url)
         assert not match, match.group()
 
 
 def test_search():
     for text, out in SEARCH:
-        match = url_re.search(text)
+        match = link_announcer.url_re.search(text)
         assert match and match.group() == out
 
 
@@ -117,7 +110,7 @@ ENCODINGS = (
 def test_encoding_parse():
     for text, enc in ENCODINGS:
         soup = BeautifulSoup(text, "lxml")
-        encoding = get_encoding(soup)
+        encoding = link_announcer.get_encoding(soup)
         if encoding is None:
             assert (
                 enc is None
@@ -153,20 +146,21 @@ TESTS = {
 
 @pytest.mark.parametrize(
     "match,test_str,res",
-    [(url_re.search(a), b.format(c), c) for a, (b, c) in TESTS.items()],
+    [
+        (link_announcer.url_re.search(a), b.format(c), c)
+        for a, (b, c) in TESTS.items()
+    ],
     ids=lambda case: str(getattr(case, "string", case))[:100],
 )
 def test_link_announce(match, test_str, res, mock_requests):
-    mock_requests.add(
-        RequestsMock.GET, match.string, body=test_str, stream=True
-    )
+    mock_requests.add("GET", match.string, body=test_str, stream=True)
     mck = MagicMock()
     logger = MagicMock()
 
-    print_url_title(match=match, message=mck, logger=logger)
+    link_announcer.print_url_title(match=match, message=mck, logger=logger)
     if res:
-        if len(res) > MAX_TITLE:
-            res = res[:MAX_TITLE] + " ... [trunc]"
+        if len(res) > link_announcer.MAX_TITLE:
+            res = res[: link_announcer.MAX_TITLE] + " ... [trunc]"
 
         mck.assert_called_with("Title: \x02" + res + "\x02")
     else:
@@ -175,14 +169,17 @@ def test_link_announce(match, test_str, res, mock_requests):
 
 def test_link_announce_404(mock_requests):
     url = "http://example.com"
-    mock_requests.add(mock_requests.GET, url, status=404)
+    mock_requests.add("GET", url, status=404)
 
-    match = url_re.search(url)
+    match = link_announcer.url_re.search(url)
     assert match
     mck = MagicMock()
     logger = MagicMock()
 
-    assert print_url_title(match=match, message=mck, logger=logger) is None
+    assert (
+        link_announcer.print_url_title(match=match, message=mck, logger=logger)
+        is None
+    )
 
     mck.assert_not_called()
 
@@ -195,12 +192,15 @@ def test_read_timeout(mock_requests):
 
     mock_requests.add_callback("GET", url, callback)
 
-    match = url_re.search(url)
+    match = link_announcer.url_re.search(url)
     assert match
     mck = MagicMock()
     logger = MagicMock()
 
-    assert print_url_title(match=match, message=mck, logger=logger) is None
+    assert (
+        link_announcer.print_url_title(match=match, message=mck, logger=logger)
+        is None
+    )
 
     logger.debug.assert_called_with("Read timeout reached for %r", url)
 
@@ -243,17 +243,23 @@ def test_read_timeout(mock_requests):
 )
 def test_change_encoding(body, encoding):
     # ISO-8859-1 is the default encoding requests would return if none is found
-    assert parse_content(body, "ISO-8859-1").original_encoding == encoding
+    assert (
+        link_announcer.parse_content(body, "ISO-8859-1").original_encoding
+        == encoding
+    )
 
 
 def test_connection_error(mock_requests):
     url = "http://example.com"
 
-    match = url_re.search(url)
+    match = link_announcer.url_re.search(url)
     assert match
     mck = MagicMock()
     logger = MagicMock()
 
-    assert print_url_title(match=match, message=mck, logger=logger) is None
+    assert (
+        link_announcer.print_url_title(match=match, message=mck, logger=logger)
+        is None
+    )
 
     assert logger.warning.called

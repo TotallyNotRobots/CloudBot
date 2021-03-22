@@ -3,11 +3,11 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 
+from cloudbot.util import web
+from plugins import shorten
+
 
 def test_shorten(mock_requests):
-    from cloudbot.util import web
-    from plugins import shorten
-
     reply = MagicMock()
     with pytest.raises(web.ServiceError):
         shorten.shorten("https://example.com", reply)
@@ -15,7 +15,7 @@ def test_shorten(mock_requests):
     assert reply.called
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
@@ -25,16 +25,13 @@ def test_shorten(mock_requests):
 
 
 def test_expand(mock_requests):
-    from cloudbot.util import web
-    from plugins import shorten
-
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
         shorten.expand("https://is.gd/foobar", reply)
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
@@ -44,9 +41,6 @@ def test_expand(mock_requests):
 
 
 def test_isgd(mock_requests):
-    from cloudbot.util import web
-    from plugins import shorten
-
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -56,14 +50,14 @@ def test_isgd(mock_requests):
         shorten.isgd("https://example.com/page", reply)
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
     assert shorten.isgd("https://is.gd/foobar", reply) == "https://example.com"
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/create.php?url=https%3A%2F%2Fexample.com&format=json",
         json={"shorturl": "https://is.gd/foobar"},
     )
@@ -71,9 +65,6 @@ def test_isgd(mock_requests):
 
 
 def test_googl(mock_requests):
-    from cloudbot.util import web
-    from plugins import shorten
-
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -83,7 +74,7 @@ def test_googl(mock_requests):
         shorten.googl("https://example.com/page", reply)
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://www.googleapis.com/urlshortener/v1/url?shortUrl=https%3A%2F%2Fgoo.gl%2Ffoobar",
         json={"longUrl": "https://example.com"},
     )
@@ -92,7 +83,7 @@ def test_googl(mock_requests):
     )
 
     mock_requests.add(
-        mock_requests.POST,
+        "POST",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={"id": "https://goo.gl/foobar"},
     )
@@ -102,9 +93,6 @@ def test_googl(mock_requests):
 
 
 def test_gitio(mock_requests):
-    from cloudbot.util import web
-    from plugins import shorten
-
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -114,7 +102,7 @@ def test_gitio(mock_requests):
         shorten.gitio("https://example.com/page", reply)
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://git.io/foobar",
         status=301,
         headers={"Location": "https://example.com"},
@@ -124,7 +112,7 @@ def test_gitio(mock_requests):
     )
 
     mock_requests.add(
-        mock_requests.POST,
+        "POST",
         "http://git.io",
         headers={"Location": "https://git.io/foobar"},
         status=requests.codes.created,

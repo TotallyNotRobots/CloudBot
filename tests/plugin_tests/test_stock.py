@@ -1,5 +1,7 @@
 import pytest
 
+from plugins import stock
+
 
 @pytest.mark.parametrize(
     "number,output",
@@ -23,6 +25,4 @@ import pytest
     ],
 )
 def test_format_money(number, output):
-    from plugins import stock
-
     assert stock.format_money(number) == output

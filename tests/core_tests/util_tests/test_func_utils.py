@@ -1,5 +1,7 @@
 import pytest
 
+from cloudbot.util import func_utils
+
 
 def test_call_with_args():
     args = []
@@ -8,10 +10,8 @@ def test_call_with_args():
         nonlocal args
         args = [arg1, arg2, _arg3]
 
-    from cloudbot.util.func_utils import ParameterError, call_with_args
-
-    call_with_args(func, {"arg1": 1, "arg2": 3})
+    func_utils.call_with_args(func, {"arg1": 1, "arg2": 3})
     assert args == [1, 3, None]
 
-    with pytest.raises(ParameterError):
-        call_with_args(func, {})
+    with pytest.raises(func_utils.ParameterError):
+        func_utils.call_with_args(func, {})

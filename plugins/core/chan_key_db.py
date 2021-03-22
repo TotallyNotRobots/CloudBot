@@ -17,7 +17,7 @@ from cloudbot.client import Client
 from cloudbot.clients.irc import IrcClient
 from cloudbot.util import database
 from cloudbot.util.irc import parse_mode_string
-from plugins.core.server_info import get_channel_modes, get_server_info
+from plugins.core import server_info
 
 table = Table(
     "channel_keys",
@@ -54,9 +54,9 @@ def handle_modes(
 
     modes = irc_paramlist[1]
     mode_params = list(irc_paramlist[2:])
-    serv_info = get_server_info(conn)
+    serv_info = server_info.get_server_info(conn)
     mode_changes = parse_mode_string(
-        modes, mode_params, get_channel_modes(serv_info)
+        modes, mode_params, server_info.get_channel_modes(serv_info)
     )
     updated = False
     for change in mode_changes:

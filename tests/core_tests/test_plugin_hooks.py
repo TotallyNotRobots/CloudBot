@@ -24,9 +24,26 @@ from cloudbot.event import (
     PostHookEvent,
     RegexEvent,
 )
-from cloudbot.hook import Action
+from cloudbot.hook import (
+    Action,
+    command,
+    config,
+    event,
+    irc_out,
+    irc_raw,
+    on_cap_ack,
+    on_cap_available,
+    on_connect,
+    on_start,
+    on_stop,
+    periodic,
+    permission,
+    post_hook,
+    regex,
+    sieve,
+)
 from cloudbot.plugin import Plugin
-from cloudbot.plugin_hooks import Hook
+from cloudbot.plugin_hooks import Hook, hook_name_to_plugin
 from tests.util.mock_bot import MockBot
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
@@ -241,8 +258,6 @@ def make_plugin():
 
 
 def get_and_wrap_hook(func, hook_type):
-    from cloudbot.plugin_hooks import hook_name_to_plugin
-
     func_hook = func._cloudbot_hook[hook_type]
     plugin = make_plugin()
 
@@ -251,8 +266,6 @@ def get_and_wrap_hook(func, hook_type):
 
 
 def test_hook_kwargs_warning():
-    from cloudbot.hook import irc_raw
-
     @irc_raw("*", a=1)
     def hook_func():
         pass  # pragma: no cover
@@ -265,8 +278,6 @@ def test_hook_kwargs_warning():
 
 
 def test_hook_catch_all():
-    from cloudbot.hook import irc_raw
-
     @irc_raw("*")
     def hook_func():
         pass  # pragma: no cover
@@ -276,8 +287,6 @@ def test_hook_catch_all():
 
 
 def test_cmd_hook_str():
-    from cloudbot.hook import command
-
     @command("test")
     def hook_func():
         pass  # pragma: no cover
@@ -288,8 +297,6 @@ def test_cmd_hook_str():
 
 
 def test_re_hook_str():
-    from cloudbot.hook import regex
-
     @regex("test")
     def hook_func():
         pass  # pragma: no cover
@@ -300,8 +307,6 @@ def test_re_hook_str():
 
 
 def test_periodic_hook_str():
-    from cloudbot.hook import periodic
-
     @periodic(5)
     def hook_func():
         pass  # pragma: no cover
@@ -312,8 +317,6 @@ def test_periodic_hook_str():
 
 
 def test_raw_hook_str():
-    from cloudbot.hook import irc_raw
-
     @irc_raw("PRIVMSG")
     def hook_func():
         pass  # pragma: no cover
@@ -324,8 +327,6 @@ def test_raw_hook_str():
 
 
 def test_sieve_hook_str():
-    from cloudbot.hook import sieve
-
     @sieve()
     def hook_func(a, b, c):
         pass  # pragma: no cover
@@ -336,8 +337,6 @@ def test_sieve_hook_str():
 
 
 def test_event_hook_str():
-    from cloudbot.hook import event
-
     @event(EventType.message)
     def hook_func():
         pass  # pragma: no cover
@@ -348,8 +347,6 @@ def test_event_hook_str():
 
 
 def test_config_hook():
-    from cloudbot.hook import config
-
     @config()
     def hook_func():
         pass  # pragma: no cover
@@ -360,8 +357,6 @@ def test_config_hook():
 
 
 def test_on_start_hook_str():
-    from cloudbot.hook import on_start
-
     @on_start()
     def hook_func():
         pass  # pragma: no cover
@@ -372,8 +367,6 @@ def test_on_start_hook_str():
 
 
 def test_on_stop_hook_str():
-    from cloudbot.hook import on_stop
-
     @on_stop()
     def hook_func():
         pass  # pragma: no cover
@@ -384,8 +377,6 @@ def test_on_stop_hook_str():
 
 
 def test_cap_avail_hook_str():
-    from cloudbot.hook import on_cap_available
-
     @on_cap_available("test-cap")
     def hook_func():
         pass  # pragma: no cover
@@ -396,8 +387,6 @@ def test_cap_avail_hook_str():
 
 
 def test_cap_ack_hook_str():
-    from cloudbot.hook import on_cap_ack
-
     @on_cap_ack("test-cap")
     def hook_func():
         pass  # pragma: no cover
@@ -408,8 +397,6 @@ def test_cap_ack_hook_str():
 
 
 def test_connect_hook_str():
-    from cloudbot.hook import on_connect
-
     @on_connect()
     def hook_func():
         pass  # pragma: no cover
@@ -420,8 +407,6 @@ def test_connect_hook_str():
 
 
 def test_irc_out_hook_str():
-    from cloudbot.hook import irc_out
-
     @irc_out()
     def hook_func():
         pass  # pragma: no cover
@@ -432,8 +417,6 @@ def test_irc_out_hook_str():
 
 
 def test_post_hook_hook_str():
-    from cloudbot.hook import post_hook
-
     @post_hook()
     def hook_func():
         pass  # pragma: no cover
@@ -444,8 +427,6 @@ def test_post_hook_hook_str():
 
 
 def test_perm_hook_str():
-    from cloudbot.hook import permission
-
     @permission()
     def hook_func():
         pass  # pragma: no cover
