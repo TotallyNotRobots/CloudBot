@@ -1,5 +1,4 @@
 import itertools
-from operator import attrgetter
 from typing import Dict
 
 from sqlalchemy import Boolean, Column, PrimaryKeyConstraint, String, Table
@@ -239,7 +238,7 @@ async def chain(text, bot, event):
 
 
 @hook.command(autohelp=False)
-def chainlist(notice, bot):
+def chainlist(bot, event):
     """- Returns the list of commands allowed in 'chain'"""
     hooks = [
         get_hook_from_command(bot, name)
@@ -247,8 +246,12 @@ def chainlist(notice, bot):
         if allowed
     ]
     s = ", ".join(
-        sorted(itertools.chain.from_iterable(map(attrgetter("aliases"), hooks)))
+        sorted(
+            itertools.chain.from_iterable(
+                h.aliases for h in hooks if h is not None
+            )
+        )
     )
 
     for part in chunk_str(s):
-        notice(part)
+        event.notice(part)

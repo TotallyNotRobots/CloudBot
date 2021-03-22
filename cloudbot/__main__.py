@@ -73,6 +73,7 @@ def main():
             logger.debug("Restart arguments: %s", args)
             for f in [sys.stdout, sys.stderr]:
                 f.flush()
+
             # close logging, and exit the program.
             logger.debug("Stopping logging engine")
             logging.shutdown()

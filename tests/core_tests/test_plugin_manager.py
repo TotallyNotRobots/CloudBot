@@ -1,5 +1,6 @@
 import itertools
 import logging
+import re
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -291,6 +292,50 @@ class TestPluginLoad:
 
         await mock_manager.unload_plugin(str(plugin_file))
         await mock_manager.unload_plugin(str(plugin_file_b))
+
+    @pytest.mark.asyncio
+    async def test_load_regex_hooks(
+        self,
+        mock_manager,
+        tmp_path,
+        mock_bot,
+        patch_import_module,
+        patch_import_reload,
+        caplog,
+    ):
+        mod = MockModule()
+
+        @hook.regex(re.compile(r"."))
+        def regex():
+            raise NotImplementedError
+
+        mod.regex = regex  # type: ignore[attr-defined]
+        patch_import_module.return_value = mod
+        plugin_dir = mock_bot.base_dir / "plugins"
+        plugin_dir.mkdir(exist_ok=True)
+        (plugin_dir / "__init__.py").touch()
+        plugin_file = plugin_dir / "test.py"
+        plugin_file.touch()
+
+        await mock_manager.load_plugin(str(plugin_file))
+
+        assert caplog.record_tuples == [
+            ("cloudbot", 20, "Loaded regex regex from test.py"),
+            (
+                "cloudbot",
+                10,
+                "Loaded Regex[regexes: [.], type: regex, plugin: test, permissions: [], "
+                "single_thread: False, threaded: True]",
+            ),
+        ]
+        assert len(mock_manager.regex_hooks) == 1
+        caplog.clear()
+
+        await mock_manager.unload_plugin(str(plugin_file))
+        assert len(mock_manager.regex_hooks) == 0
+        assert caplog.record_tuples == [
+            ("cloudbot", 20, "Unloaded all plugins from test")
+        ]
 
 
 @pytest.mark.asyncio
