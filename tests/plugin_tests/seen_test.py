@@ -104,7 +104,7 @@ def test_seen_track_action(mock_db, freeze_time):
     ]
 
 
-def test_seen_bot(mock_db):
+def test_seen_bot(mock_db, freeze_time):
     db = mock_db.session()
     conn = MockConn()
     event = CommandEvent(
@@ -121,7 +121,7 @@ def test_seen_bot(mock_db):
     assert res == "You need to get your eyes checked."
 
 
-def test_seen_self(mock_db):
+def test_seen_self(mock_db, freeze_time):
     db = mock_db.session()
     conn = MockConn()
     nick = "bar"
@@ -139,7 +139,7 @@ def test_seen_self(mock_db):
     assert res == "Have you looked in a mirror lately?"
 
 
-def test_seen_not_seen(mock_db):
+def test_seen_not_seen(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockConn()
@@ -158,7 +158,7 @@ def test_seen_not_seen(mock_db):
     assert res == "I've never seen other talking in this channel."
 
 
-def test_seen(mock_db):
+def test_seen(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -184,10 +184,10 @@ def test_seen(mock_db):
         cmd_prefix=".",
     )
     res = seen.seen(event.text, event.nick, event.chan, db, event)
-    assert res == "other was last seen 51 years and 2 months ago saying: foo"
+    assert res == "other was last seen 49 years and 8 months ago saying: foo"
 
 
-def test_seen_bad_nick(mock_db):
+def test_seen_bad_nick(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -218,7 +218,7 @@ def test_seen_bad_nick(mock_db):
     assert res == "I can't look up that name, its impossible to use!"
 
 
-def test_seen_action(mock_db):
+def test_seen_action(mock_db, freeze_time):
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -245,5 +245,5 @@ def test_seen_action(mock_db):
     )
     res = seen.seen(event.text, event.nick, event.chan, db, event)
     assert (
-        res == "other was last seen 51 years and 2 months ago: * other foobar"
+        res == "other was last seen 49 years and 8 months ago: * other foobar"
     )
