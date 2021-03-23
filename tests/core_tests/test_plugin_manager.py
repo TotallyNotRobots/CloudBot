@@ -1,5 +1,6 @@
 import itertools
 import logging
+import re
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -7,7 +8,7 @@ import pytest
 from sqlalchemy import Column, String, Table
 
 from cloudbot import hook
-from cloudbot.event import EventType
+from cloudbot.event import CommandEvent, EventType
 from cloudbot.plugin import Plugin
 from cloudbot.util import database
 from tests.util.mock_module import MockModule
@@ -244,8 +245,8 @@ class TestPluginLoad:
         def cmd_func_2():
             raise NotImplementedError
 
-        plugin_a.cmd_func = cmd_func
-        plugin_b.cmd_func_2 = cmd_func_2
+        plugin_a.cmd_func = cmd_func  # type: ignore[attr-defined]
+        plugin_b.cmd_func_2 = cmd_func_2  # type: ignore[attr-defined]
 
         patch_import_module.return_value = plugin_a
         plugin_dir = mock_bot.base_dir / "plugins"
@@ -292,6 +293,50 @@ class TestPluginLoad:
         await mock_manager.unload_plugin(str(plugin_file))
         await mock_manager.unload_plugin(str(plugin_file_b))
 
+    @pytest.mark.asyncio
+    async def test_load_regex_hooks(
+        self,
+        mock_manager,
+        tmp_path,
+        mock_bot,
+        patch_import_module,
+        patch_import_reload,
+        caplog,
+    ):
+        mod = MockModule()
+
+        @hook.regex(re.compile(r"."))
+        def regex():
+            raise NotImplementedError
+
+        mod.regex = regex  # type: ignore[attr-defined]
+        patch_import_module.return_value = mod
+        plugin_dir = mock_bot.base_dir / "plugins"
+        plugin_dir.mkdir(exist_ok=True)
+        (plugin_dir / "__init__.py").touch()
+        plugin_file = plugin_dir / "test.py"
+        plugin_file.touch()
+
+        await mock_manager.load_plugin(str(plugin_file))
+
+        assert caplog.record_tuples == [
+            ("cloudbot", 20, "Loaded regex regex from test.py"),
+            (
+                "cloudbot",
+                10,
+                "Loaded Regex[regexes: [.], type: regex, plugin: test, permissions: [], "
+                "single_thread: False, threaded: True]",
+            ),
+        ]
+        assert len(mock_manager.regex_hooks) == 1
+        caplog.clear()
+
+        await mock_manager.unload_plugin(str(plugin_file))
+        assert len(mock_manager.regex_hooks) == 0
+        assert caplog.record_tuples == [
+            ("cloudbot", 20, "Unloaded all plugins from test")
+        ]
+
 
 @pytest.mark.asyncio
 async def test_load_all(
@@ -316,9 +361,9 @@ async def test_load_all(
         nonlocal stopped
         stopped += 1
 
-    mod.cmd_func = cmd_func
-    mod.start = start
-    mod.stop = stop
+    mod.cmd_func = cmd_func  # type: ignore[attr-defined]
+    mod.start = start  # type: ignore[attr-defined]
+    mod.stop = stop  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
@@ -356,7 +401,7 @@ async def test_load_on_start_error(
     def start():
         raise ValueError
 
-    mod.start = start
+    mod.start = start  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
@@ -393,7 +438,7 @@ async def test_load_config_hooks(
     def config():
         raise NotImplementedError
 
-    mod.config = config
+    mod.config = config  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -441,8 +486,8 @@ async def test_unload_raw_hooks(
     def irc_raw2():
         raise NotImplementedError
 
-    mod.irc_raw = irc_raw
-    mod.irc_raw2 = irc_raw2
+    mod.irc_raw = irc_raw  # type: ignore[attr-defined]
+    mod.irc_raw2 = irc_raw2  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -482,8 +527,8 @@ async def test_unload_event_hooks(
     def event2():
         raise NotImplementedError
 
-    mod.event = event
-    mod.event2 = event2
+    mod.event = event  # type: ignore[attr-defined]
+    mod.event2 = event2  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
     plugin_dir = mock_bot.base_dir / "plugins"
     plugin_dir.mkdir(exist_ok=True)
@@ -561,17 +606,15 @@ async def test_launch(
 
     mod = MockModule()
 
-    mod.sieve_cb = sieve_cb
-    mod.foo_cb = foo_cb
-    mod.post_hook = post_hook
+    mod.sieve_cb = sieve_cb  # type: ignore[attr-defined]
+    mod.foo_cb = foo_cb  # type: ignore[attr-defined]
+    mod.post_hook = post_hook  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
 
     await mock_manager.load_plugin(
         mock_manager.bot.base_dir / "plugins/test.py"
     )
-
-    from cloudbot.event import CommandEvent
 
     event = CommandEvent(
         bot=mock_manager.bot,
@@ -654,17 +697,15 @@ async def test_launch_async(
 
     mod = MockModule()
 
-    mod.sieve_cb = sieve_cb
-    mod.foo_cb = foo_cb
-    mod.post_hook = post_hook
+    mod.sieve_cb = sieve_cb  # type: ignore[attr-defined]
+    mod.foo_cb = foo_cb  # type: ignore[attr-defined]
+    mod.post_hook = post_hook  # type: ignore[attr-defined]
 
     patch_import_module.return_value = mod
 
     await mock_manager.load_plugin(
         mock_manager.bot.base_dir / "plugins/test.py"
     )
-
-    from cloudbot.event import CommandEvent
 
     event = CommandEvent(
         bot=mock_manager.bot,

@@ -1,3 +1,7 @@
+from cloudbot import permissions
+from cloudbot.permissions import PermissionManager
+
+
 class MockConn:
     def __init__(self, name, config):
         self.name = name
@@ -5,9 +9,6 @@ class MockConn:
 
 
 def test_manager_load():
-    import cloudbot.permissions
-    from cloudbot.permissions import PermissionManager
-
     manager = PermissionManager(MockConn("testconn", {}))
 
     assert not manager.group_perms
@@ -21,7 +22,7 @@ def test_manager_load():
     assert not manager.group_exists("baz")
     assert not manager.user_in_group("foo!bar@baz", "bing")
 
-    cloudbot.permissions.backdoor = "*!user@host"
+    permissions.backdoor = "*!user@host"
 
     assert manager.has_perm_mask("test!user@host", "foo", False)
     assert not manager.has_perm_mask("test!otheruser@host", "foo", False)
@@ -31,7 +32,7 @@ def test_manager_load():
 
     other_user = "user1!b@hosaacom"
 
-    cloudbot.permissions.backdoor = None
+    permissions.backdoor = None
     manager = PermissionManager(
         MockConn(
             "testconn",
@@ -65,8 +66,6 @@ def test_manager_load():
 
 
 def test_mix_case_group():
-    from cloudbot.permissions import PermissionManager
-
     manager = PermissionManager(
         MockConn(
             "testconn",
@@ -85,8 +84,6 @@ def test_mix_case_group():
 
 
 def test_add_user_to_group():
-    from cloudbot.permissions import PermissionManager
-
     manager = PermissionManager(MockConn("testconn", {}))
     manager.add_user_to_group("*!*@host", "admins")
     manager.add_user_to_group("*!*@mask", "admins")

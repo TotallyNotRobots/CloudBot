@@ -7,7 +7,6 @@ from responses import RequestsMock
 
 from cloudbot.bot import bot
 from plugins import lastfm
-from plugins.lastfm import api_request
 
 
 def test_get_account(mock_db, mock_requests):
@@ -30,36 +29,36 @@ def test_api(mock_bot_factory, unset_bot, event_loop):
 
     with RequestsMock() as reqs:
         with pytest.raises(requests.ConnectionError):
-            api_request("track.getTopTags")
+            lastfm.api_request("track.getTopTags")
 
         reqs.add(
-            reqs.GET,
+            "GET",
             "http://ws.audioscrobbler.com/2.0/",
             json={"data": "thing"},
         )
 
-        res, _ = api_request("track.getTopTags")
+        res, _ = lastfm.api_request("track.getTopTags")
 
         assert res["data"] == "thing"
 
     with RequestsMock() as reqs:
         reqs.add(
-            reqs.GET, "http://ws.audioscrobbler.com/2.0/", body="<html></html>"
+            "GET", "http://ws.audioscrobbler.com/2.0/", body="<html></html>"
         )
 
         with pytest.raises(JSONDecodeError):
-            api_request("track.getTopTags")
+            lastfm.api_request("track.getTopTags")
 
     with RequestsMock() as reqs:
         reqs.add(
-            reqs.GET,
+            "GET",
             "http://ws.audioscrobbler.com/2.0/",
             body="<html></html>",
             status=403,
         )
 
         with pytest.raises(HTTPError):
-            api_request("track.getTopTags")
+            lastfm.api_request("track.getTopTags")
 
 
 def test_api_error_message(mock_requests, mock_api_keys):
@@ -72,7 +71,7 @@ def test_api_error_message(mock_requests, mock_api_keys):
         },
     )
 
-    _, error = api_request("track.getTopTags")
+    _, error = lastfm.api_request("track.getTopTags")
 
     assert error == "Error: Invalid API Key."
 
@@ -199,7 +198,7 @@ class TestCheckKeyAndUser:
         assert err == expected
 
     def test_no_key(self, mock_api_keys, mock_requests, mock_db):
-        bot.config.get_api_key.return_value = None
+        bot.config.get_api_key.return_value = None  # type: ignore
         res, err = lastfm.check_key_and_user("foo", "baz")
         assert res is None
         assert err == "Error: No API key set."

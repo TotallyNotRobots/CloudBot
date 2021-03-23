@@ -91,7 +91,7 @@ def test_api_inactive():
 
 def test_search_no_results(mock_requests, setup_api):
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://api.spotify.com/v1/search",
         json={"users": {"items": []}},
     )

@@ -4,7 +4,6 @@ import logging
 import sys
 from collections import defaultdict
 from functools import partial
-from itertools import chain
 from operator import attrgetter
 from pathlib import Path
 from typing import Dict, List, MutableMapping, Optional
@@ -15,6 +14,7 @@ from sqlalchemy import Table
 
 from cloudbot.event import Event, EventType, PostHookEvent
 from cloudbot.plugin_hooks import (
+    CapHook,
     CommandHook,
     ConfigHook,
     EventHook,
@@ -91,7 +91,7 @@ class PluginManager:
         )
         self.regex_hooks = []
         self.sieves = []
-        self.cap_hooks = {
+        self.cap_hooks: Dict[str, Dict[str, List[CapHook]]] = {
             "on_available": defaultdict(list),
             "on_ack": defaultdict(list),
         }
@@ -343,28 +343,32 @@ class PluginManager:
             self._log_hook(perm_hook)
 
         # Sort hooks
-        self.regex_hooks.sort(key=lambda x: x[1].priority)
-        dicts_of_lists_of_hooks = (
-            self.event_type_hooks,
-            self.raw_triggers,
-            self.perm_hooks,
-            self.hook_hooks,
-        )
-        lists_of_hooks = [
-            self.catch_all_triggers,
-            self.sieves,
-            self.connect_hooks,
-            self.out_sieves,
-        ]
-        lists_of_hooks.extend(
-            chain.from_iterable(d.values() for d in dicts_of_lists_of_hooks)
-        )
-
-        for lst in lists_of_hooks:
-            lst.sort(key=attrgetter("priority"))
+        self._sort_hooks()
 
         # we don't need this anymore
         del plugin.hooks["on_start"]
+
+    def _sort_hooks(self) -> None:
+        def _sort_list(hooks):
+            hooks.sort(key=attrgetter("priority"))
+
+        def _sort_dict(hooks):
+            for items in hooks.values():
+                _sort_list(items)
+
+        _sort_dict(self.raw_triggers)
+        _sort_list(self.catch_all_triggers)
+        _sort_dict(self.event_type_hooks)
+        self.regex_hooks.sort(key=lambda x: x[1].priority)
+        _sort_list(self.sieves)
+        for d in self.cap_hooks.values():
+            _sort_dict(d)
+
+        _sort_list(self.connect_hooks)
+        _sort_list(self.out_sieves)
+        _sort_dict(self.hook_hooks)
+        _sort_dict(self.perm_hooks)
+        _sort_list(self.config_hooks)
 
     async def unload_plugin(self, path):
         """

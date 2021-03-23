@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +8,7 @@ import requests
 from cloudbot.bot import bot
 from cloudbot.event import CommandEvent
 from plugins import tvdb
-from tests.util import wrap_hook_response
+from tests.util import HookResult, wrap_hook_response
 
 
 @pytest.fixture()
@@ -24,15 +25,15 @@ def enable_api():
 
 
 def test_holder_of_optional():
-    holder = tvdb.Holder()
+    holder: tvdb.Holder[int] = tvdb.Holder()
     with pytest.raises(tvdb.MissingItem):
         holder.get()
 
     holder.set(1)
     assert holder.get() == 1
 
-    holder = tvdb.Holder.of_optional(None)
-    assert not holder.exists()
+    holder2 = tvdb.Holder.of_optional(None)
+    assert not holder2.exists()
 
     holder = tvdb.Holder.of_optional(1)
     assert holder.exists()
@@ -208,7 +209,7 @@ class _Base(ABC):
             status=502,
         )
 
-        results = []
+        results: List[HookResult] = []
         with pytest.raises(requests.HTTPError):
             self.call("Foo", results=results)
 
@@ -313,7 +314,7 @@ class _Base(ABC):
             status=503,
         )
 
-        results = []
+        results: List[HookResult] = []
         with pytest.raises(requests.HTTPError):
             self.call("Foo", results=results)
 

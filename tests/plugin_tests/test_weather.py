@@ -1,5 +1,6 @@
 import re
 from copy import deepcopy
+from typing import Any, Dict, List
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,7 +9,7 @@ from googlemaps.exceptions import ApiError
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
-from tests.util import wrap_hook_response
+from tests.util import HookResult, wrap_hook_response
 
 
 @pytest.mark.parametrize(
@@ -66,7 +67,7 @@ def test_mph_to_kph(mph, kph):
     assert weather.mph_to_kph(mph) == kph
 
 
-FIO_DATA = {
+FIO_DATA: Dict[str, Any] = {
     "json": {
         "currently": {
             "summary": "foobar",
@@ -161,7 +162,7 @@ def setup_api(
         ],
     }
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
         json=return_value,
     )
@@ -199,7 +200,7 @@ def test_rounding(
     new_data["json"]["currently"]["temperature"] = 31.9
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **new_data,
     )
@@ -213,14 +214,13 @@ def test_rounding(
         "(\x1dTo get a forecast, use .fc\x1d)"
     )
 
-    calls = [
-        (
+    calls: List[HookResult] = [
+        HookResult(
             "message",
             (
                 "#foo",
                 out_text,
             ),
-            {},
         )
     ]
 
@@ -275,7 +275,7 @@ def test_find_location(
     weather.location_cache.append(("foobar", "test location"))
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **FIO_DATA,
     )
@@ -312,12 +312,12 @@ def test_find_location(
 
     mock_requests.reset()
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
         json={"status": "foobar"},
     )
 
-    response = []
+    response: List[HookResult] = []
     with pytest.raises(ApiError):
         wrap_hook_response(weather.weather, cmd_event, response)
 
@@ -369,7 +369,7 @@ def test_find_location(
         mock_bot_factory,
     )
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         re.compile(r"^https://api\.darksky\.net/forecast/.*"),
         **FIO_DATA,
     )

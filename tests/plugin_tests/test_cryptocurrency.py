@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Any, Dict, List
 from unittest.mock import MagicMock
 
 import pytest
@@ -119,7 +119,7 @@ def init_response(
         )
 
     if quote:
-        response_data = {
+        response_data: Dict[str, Any] = {
             "1": {
                 "id": 1,
                 "name": "Bitcoin",
@@ -437,7 +437,7 @@ def test_cmd_api_error(mock_requests):
         channel="#foo",
         nick="foobaruser",
     )
-    res = []
+    res: List[HookResult] = []
     with pytest.raises(cryptocurrency.APIError, match="FooBar"):
         wrap_hook_response(cryptocurrency.crypto_command, event, res)
 

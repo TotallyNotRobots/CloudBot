@@ -8,7 +8,7 @@ from cloudbot.util import web
 
 def test_paste(mock_requests):
     mock_requests.add(
-        mock_requests.POST,
+        "POST",
         "https://hastebin.com/documents",
         json={"key": "foobar"},
     )
@@ -23,13 +23,11 @@ def test_paste(mock_requests):
 def test_paste_error(mock_requests):
     assert web.paste("test data") == "Unable to paste data"
 
-    mock_requests.add(
-        mock_requests.POST, "https://hastebin.com/documents", status=502
-    )
+    mock_requests.add("POST", "https://hastebin.com/documents", status=502)
     assert web.paste("test data") == "Unable to paste data"
 
     mock_requests.replace(
-        mock_requests.POST,
+        "POST",
         "https://hastebin.com/documents",
         json={"message": "Error"},
         status=201,
@@ -62,7 +60,7 @@ def test_registry_item_working(freeze_time):
 
 def test_shorten(mock_requests):
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
@@ -80,7 +78,7 @@ def test_shorten(mock_requests):
         web.shorten("https://example.com", service="goo.gl")
 
     mock_requests.add(
-        mock_requests.POST,
+        "POST",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={},
         status=requests.codes.bad_request,
@@ -89,7 +87,7 @@ def test_shorten(mock_requests):
         web.shorten("https://example.com", service="goo.gl")
 
     mock_requests.replace(
-        mock_requests.POST,
+        "POST",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={"error": {"message": "Error"}},
     )
@@ -97,7 +95,7 @@ def test_shorten(mock_requests):
         web.shorten("https://example.com", service="goo.gl")
 
     mock_requests.replace(
-        mock_requests.POST,
+        "POST",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={"id": "https://goo.gl/foobar"},
     )
@@ -110,23 +108,23 @@ def test_shorten(mock_requests):
         web.shorten("https://example.com", service="git.io")
 
     mock_requests.add(
-        mock_requests.POST,
+        "POST",
         "http://git.io",
         status=400,
     )
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
-    mock_requests.replace(mock_requests.POST, "http://git.io", body="error")
+    mock_requests.replace("POST", "http://git.io", body="error")
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
-    mock_requests.replace(mock_requests.POST, "http://git.io", body="error")
+    mock_requests.replace("POST", "http://git.io", body="error")
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
     mock_requests.replace(
-        mock_requests.POST,
+        "POST",
         "http://git.io",
         headers={"Location": "http://git.io/foobar123"},
         status=requests.codes.created,
@@ -141,7 +139,7 @@ def test_shorten(mock_requests):
 
 
 def test_isgd_errors(mock_requests):
-    mock_requests.add(mock_requests.GET, "http://is.gd/create.php", status=429)
+    mock_requests.add("GET", "http://is.gd/create.php", status=429)
 
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="is.gd")
@@ -153,7 +151,7 @@ def test_isgd_errors(mock_requests):
 
 def test_try_shorten(mock_requests):
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
@@ -164,7 +162,7 @@ def test_try_shorten(mock_requests):
     )
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/create.php",
         json={"errormessage": "Error occurred"},
     )
@@ -176,7 +174,7 @@ def test_try_shorten(mock_requests):
 
 def test_expand(mock_requests):
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
@@ -188,7 +186,7 @@ def test_expand(mock_requests):
     assert web.expand("https://is.gd/foobar") == "https://example.com"
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         status=404,
     )
@@ -197,7 +195,7 @@ def test_expand(mock_requests):
         web.expand("https://is.gd/foobar")
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"errormessage": "Error"},
     )
@@ -214,19 +212,17 @@ def test_expand(mock_requests):
         web.expand("http://my.shortener/foobar")
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "http://my.shortener/foobar",
         headers={"Location": "https://example.com"},
     )
     assert web.expand("http://my.shortener/foobar") == "https://example.com"
 
-    mock_requests.replace(
-        mock_requests.GET, "http://my.shortener/foobar", status=404
-    )
+    mock_requests.replace("GET", "http://my.shortener/foobar", status=404)
     with pytest.raises(web.ServiceHTTPError):
         web.expand("http://my.shortener/foobar")
 
-    mock_requests.replace(mock_requests.GET, "http://my.shortener/foobar")
+    mock_requests.replace("GET", "http://my.shortener/foobar")
     with pytest.raises(web.ServiceHTTPError):
         web.expand("http://my.shortener/foobar")
 
@@ -234,7 +230,7 @@ def test_expand(mock_requests):
         web.expand("http://goo.gl/foobar")
 
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://www.googleapis.com/urlshortener/v1/url",
         status=404,
     )
@@ -243,7 +239,7 @@ def test_expand(mock_requests):
         web.expand("http://goo.gl/foobar")
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={"error": {"message": "Error"}},
     )
@@ -252,7 +248,7 @@ def test_expand(mock_requests):
         web.expand("http://goo.gl/foobar")
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "https://www.googleapis.com/urlshortener/v1/url",
         json={"longUrl": "https://example.com"},
     )

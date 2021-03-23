@@ -31,7 +31,8 @@ profile_cache: Dict[str, Dict[str, Dict[str, str]]] = {}
 
 @hook.on_start()
 def load_cache(db):
-    new_cache = {}
+    new_cache = profile_cache.copy()
+    new_cache.clear()
     for row in db.execute(table.select().order_by(table.c.category)):
         nick = row["nick"].lower()
         cat = row["category"]

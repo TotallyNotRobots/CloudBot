@@ -1,6 +1,6 @@
 from itertools import chain
 
-from plugins.core.chan_log import format_error_chain
+from plugins.core import chan_log
 
 
 def test_format_exception_chain():
@@ -22,7 +22,7 @@ def test_format_exception_chain():
         except ValueError:
             raise err2 from None
     except ValueError as e:
-        assert list(format_error_chain(e)) == list(
+        assert list(chan_log.format_error_chain(e)) == list(
             chain(
                 _get_data(err2),
                 _get_data(err1),

@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -14,7 +15,7 @@ def test_invite_join(mock_bot_factory, event_loop):
     )
     core_misc.invite(ParamList("foo", "#bar"), conn)
 
-    assert conn.send.mock_calls == [call("JOIN #bar")]
+    assert cast(MagicMock, conn.send).mock_calls == [call("JOIN #bar")]
 
 
 def test_invite_join_disabled(mock_bot_factory, event_loop):
@@ -27,7 +28,7 @@ def test_invite_join_disabled(mock_bot_factory, event_loop):
     )
     core_misc.invite(ParamList("foo", "#bar"), conn)
 
-    assert conn.send.mock_calls == []
+    assert cast(MagicMock, conn.send).mock_calls == []
 
 
 @pytest.mark.asyncio()
@@ -74,4 +75,4 @@ async def test_on_connect(config, calls):
 
     assert res is None
 
-    assert conn.send.mock_calls == calls
+    assert cast(MagicMock, conn.send).mock_calls == calls

@@ -4,18 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 
-from cloudbot.bot import bot
 from plugins import wordnik
-
-
-@pytest.fixture()
-def mock_api_keys():
-    try:
-        bot.set(MagicMock())
-        bot.config.get_api_key.return_value = "APIKEY"
-        yield bot.config.get_api_key
-    finally:
-        bot.set(None)
 
 
 @pytest.mark.parametrize(
@@ -151,7 +140,7 @@ class WordTestBase:
             self.call("word", event)
 
     def test_no_key(self, mock_requests, mock_api_keys):
-        mock_api_keys.return_value = None
+        mock_api_keys.config.get_api_key.return_value = None
 
         mock_event = MagicMock()
 

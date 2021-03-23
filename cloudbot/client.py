@@ -2,6 +2,7 @@ import asyncio
 import collections
 import logging
 import random
+from typing import Any, Dict
 
 import venusian
 
@@ -63,7 +64,7 @@ class Client:
         self.permissions = PermissionManager(self)
 
         # for plugins to abuse
-        self.memory = collections.defaultdict()
+        self.memory: Dict[str, Any] = collections.defaultdict()
 
         # set when on_load in core_misc is done
         self.ready = False

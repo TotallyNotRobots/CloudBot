@@ -9,8 +9,7 @@ import pytest
 
 from cloudbot.event import CommandEvent, Event
 from cloudbot.util.func_utils import call_with_args
-from plugins.attacks import ATTACKS, RespType
-from plugins.foods import BASIC_FOOD
+from plugins import attacks, foods
 
 
 def _call(func, event):
@@ -149,7 +148,7 @@ def test_text_return(
     assert res
 
 
-@pytest.mark.parametrize("food", [food.name for food in BASIC_FOOD])
+@pytest.mark.parametrize("food", [food.name for food in foods.BASIC_FOOD])
 def test_foods(food, event_loop, mock_bot_factory):
     _, event = _do_test(
         "foods",
@@ -183,7 +182,7 @@ def test_foods(food, event_loop, mock_bot_factory):
     event.conn.action.assert_not_called()
 
 
-@pytest.mark.parametrize("attack", [attack for attack in ATTACKS])
+@pytest.mark.parametrize("attack", [attack for attack in attacks.ATTACKS])
 def test_attacks(attack, event_loop, mock_bot_factory):
     _, event = _do_test(
         "attacks",
@@ -194,7 +193,7 @@ def test_attacks(attack, event_loop, mock_bot_factory):
         mock_bot_factory,
     )
 
-    if attack.response == RespType.ACTION:
+    if attack.response == attacks.RespType.ACTION:
         assert event.conn.action.called
     else:
         assert event.conn.message.called
@@ -208,7 +207,7 @@ def test_attacks(attack, event_loop, mock_bot_factory):
         mock_bot_factory,
     )
 
-    if attack.response == RespType.ACTION:
+    if attack.response == attacks.RespType.ACTION:
         assert event.conn.action.called
     else:
         assert event.conn.message.called
@@ -224,7 +223,7 @@ def test_attacks(attack, event_loop, mock_bot_factory):
         bot_nick="foobot",
     )
 
-    if attack.response is RespType.ACTION:
+    if attack.response is attacks.RespType.ACTION:
         assert event.conn.action.called
     else:
         assert event.conn.message.called
@@ -240,7 +239,7 @@ def test_attacks(attack, event_loop, mock_bot_factory):
             None,
         )
 
-        if attack.response is RespType.ACTION:  # pragma: no cover
+        if attack.response is attacks.RespType.ACTION:  # pragma: no cover
             assert event.conn.action.called
         else:
             assert event.conn.message.called

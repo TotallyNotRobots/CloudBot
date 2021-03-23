@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote
 
 import requests
 from lxml import html
@@ -42,7 +43,7 @@ def mcwiki(text, reply):
         # there are no items without /, just return a / one
         article_name = j[1][0].replace(" ", "_").encode("utf8")
 
-    url = mc_url + requests.utils.quote(article_name, "")
+    url = mc_url + quote(article_name, "")
 
     try:
         request_ = requests.get(url)

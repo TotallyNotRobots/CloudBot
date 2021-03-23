@@ -6,7 +6,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Union
+from typing import Dict, Union
 from urllib.parse import quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
@@ -110,10 +110,7 @@ def open_request(
 
     url = prepare_url(url, query_params)
 
-    request = urllib.request.Request(url, post_data)
-
-    if get_method is not None:
-        request.get_method = lambda: get_method
+    request = urllib.request.Request(url, post_data, method=get_method)
 
     if headers is not None:
         for header_key, header_value in headers.items():
@@ -239,3 +236,6 @@ def unify_url(url: UrlOrStr) -> URL:
 def compare_urls(a: UrlOrStr, b: UrlOrStr) -> bool:
     """Compare two URLs, unifying them first"""
     return unify_url(a) == unify_url(b)
+
+
+GetParams = Dict[str, Union[str, int]]

@@ -2,6 +2,7 @@ import json
 import logging
 import logging.config
 from pathlib import Path
+from typing import Any, Dict
 
 version = (1, 3, 0)
 __version__ = ".".join(str(i) for i in version)
@@ -63,7 +64,7 @@ def _setup(base_path=None):
 
     logger_names = ["cloudbot", "plugins"]
 
-    dict_config = {
+    dict_config: Dict[str, Any] = {
         "version": 1,
         "formatters": {
             "brief": {

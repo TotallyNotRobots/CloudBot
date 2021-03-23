@@ -84,7 +84,8 @@ def load_disabled(db):
 
 @hook.on_start()
 def load_ignores(db):
-    new_cache = defaultdict(lambda: defaultdict(list))
+    new_cache = ignore_cache.copy()
+    new_cache.clear()
     for row in db.execute(ignore_table.select()):
         new_cache[row["conn"].lower()][row["nick"].lower()].append(row["mask"])
 

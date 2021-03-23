@@ -1,6 +1,7 @@
 import random
 import re
 from contextlib import suppress
+from typing import Match, Optional
 
 from imgurpython import ImgurClient
 
@@ -17,7 +18,7 @@ NO_NSFW = False
 
 
 class APIContainer:
-    api = None
+    api: Optional[ImgurClient] = None
 
 
 container = APIContainer()
@@ -40,6 +41,7 @@ def set_api():
 
 
 def get_items(text):
+    reddit_search: Optional[Match[str]]
     if text:
         reddit_search = re.search(r"/r/([^\s/]+)", text)
         user_search = re.search(r"/user/([^\s/]+)", text)
@@ -59,13 +61,13 @@ def get_items(text):
             page = random.randint(1, 5)
             items = container.api.gallery_search(text, page=page)
     else:
-        reddit_search = False
+        reddit_search = None
         items = container.api.gallery()
 
     if NO_NSFW:
         items = [item for item in items if not item.nsfw]
 
-    return items, reddit_search
+    return items, bool(reddit_search)
 
 
 @hook.command(autohelp=False)
@@ -146,7 +148,7 @@ def imguralbum(text, conn):
     random.shuffle(items)
     items = items[:50]
 
-    nsfw = any([item.nsfw for item in items])
+    nsfw = any(item.nsfw for item in items)
 
     params = {
         "title": '{} presents: "{}"'.format(conn.nick, text or "random images"),

@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
+from plugins import vimeo
+
 
 @pytest.fixture()
 def patch_get_json():
@@ -32,8 +34,6 @@ DATA = [
 
 
 def test_no_data(patch_get_json):
-    from plugins import vimeo
-
     patch_get_json.return_value = []
 
     result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/1125483"))
@@ -42,8 +42,6 @@ def test_no_data(patch_get_json):
 
 
 def test_no_likes(patch_get_json):
-    from plugins import vimeo
-
     patch_get_json.return_value = deepcopy(DATA)
 
     result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/11235"))
@@ -62,8 +60,6 @@ def test_no_likes(patch_get_json):
 
 
 def test_with_likes(patch_get_json):
-    from plugins import vimeo
-
     data = deepcopy(DATA)
 
     data[0]["stats_number_of_likes"] = 54

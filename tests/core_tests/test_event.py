@@ -120,7 +120,8 @@ async def test_check_permission_hooks(
         return True
 
     mod = MockModule()
-    mod.foo_perm = foo_perm
+
+    mod.foo_perm = foo_perm  # type: ignore[attr-defined]
     patch_import_module.return_value = mod
 
     await mock_bot.plugin_manager.load_plugin(

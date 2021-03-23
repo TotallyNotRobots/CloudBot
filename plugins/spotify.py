@@ -70,7 +70,7 @@ class SpotifyAPI:
             basic_auth = HTTPBasicAuth(self._client_id, self._client_secret)
             gtcc = {"grant_type": "client_credentials"}
             r = requests.post(
-                self.token_refresh_url, data=gtcc, auth=basic_auth
+                str(self.token_refresh_url), data=gtcc, auth=basic_auth
             )
             r.raise_for_status()
             auth = r.json()

@@ -1,5 +1,7 @@
 import pytest
 
+from plugins import brainfuck
+
 
 @pytest.mark.parametrize(
     "text,output",
@@ -21,6 +23,4 @@ import pytest
     ],
 )
 def test_brainfuck(text, output):
-    from plugins.brainfuck import bf
-
-    assert bf(text) == output
+    assert brainfuck.bf(text) == output

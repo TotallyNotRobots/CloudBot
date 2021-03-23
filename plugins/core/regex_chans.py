@@ -176,7 +176,7 @@ def regexstatus(text, conn, chan):
 def listregex(conn):
     """- List non-default regex statuses for channels"""
     values = []
-    for (conn_name, chan), status in status_cache.values():
+    for (conn_name, chan), status in status_cache.items():
         if conn_name != conn.name:
             continue
         values.append("{}: {}".format(chan, status))

@@ -76,9 +76,9 @@ def dice(text, event):
     rolls = []
 
     for roll in groups:
-        count, side = split_re.match(roll).groups()
-        count = int(count) if count not in " +-" else 1
-        if side.upper() == "F":  # fudge dice are basically 1d3-2
+        _count, _side = split_re.match(roll).groups()
+        count = int(_count) if _count not in " +-" else 1
+        if _side.upper() == "F":  # fudge dice are basically 1d3-2
             for fudge in n_rolls(count, "F"):
                 if fudge == 1:
                     rolls.append("\x033+\x0F")
@@ -87,10 +87,10 @@ def dice(text, event):
                 else:
                     rolls.append("0")
                 total += fudge
-        elif side == "":
+        elif _side == "":
             total += count
         else:
-            side = int(side)
+            side = int(_side)
             try:
                 if count > 0:
                     d = n_rolls(count, side)

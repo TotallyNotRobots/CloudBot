@@ -42,22 +42,38 @@ class TestWelcome:
             ("o\u200b<", "DECOY DUCK --> o\u200b<"),
         ],
     )
-    def test_char_strip(self, clear_cache, text, out):
-        herald.herald_cache["#foo"]["foobaruser"] = text
+    def test_char_strip(self, mock_db, clear_cache, text, out):
+        nick = "foobaruser"
+        chan = "#foo"
+        herald.table.create(mock_db.engine)
+        mock_db.add_row(
+            herald.table,
+            name=nick,
+            chan=chan,
+            quote=text,
+        )
+        herald.load_cache(mock_db.session())
         result = self._run()
-        assert result == [("message", ("#foo", out))]
+        assert result == [("message", (chan, out))]
 
-    def test_flood(self, clear_cache, freeze_time):
+    def test_flood(self, clear_cache, freeze_time, mock_db):
         chan = "#foo"
         nick = "foobaruser"
         nick1 = "foonick"
         chan1 = "#barchan"
-        herald.herald_cache[chan].update(
-            {nick: "Some herald", nick1: "Other herald,"}
+        herald.table.create(mock_db.engine)
+        mock_db.add_row(herald.table, name=nick, chan=chan, quote="Some herald")
+        mock_db.add_row(
+            herald.table, name=nick1, chan=chan, quote="Other herald,"
         )
-        herald.herald_cache[chan1].update(
-            {nick: "Someother herald", nick1: "Yet another herald"}
+        mock_db.add_row(
+            herald.table, name=nick, chan=chan1, quote="Someother herald"
         )
+        mock_db.add_row(
+            herald.table, name=nick1, chan=chan1, quote="Yet another herald"
+        )
+
+        herald.load_cache(mock_db.session())
         conn = MagicMock(name="fooconn")
         conn.mock_add_spec(["name", "bot", "action", "message", "notice"])
         event = Event(conn=conn, bot=conn.bot, channel=chan, nick=nick)

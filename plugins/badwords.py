@@ -1,6 +1,6 @@
 import re
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Optional, Pattern
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, select
 
@@ -21,7 +21,7 @@ badcache: Dict[str, List[str]] = defaultdict(list)
 
 
 class BadwordMatcher:
-    regex = None
+    regex: Optional[Pattern[str]] = None
 
 
 matcher = BadwordMatcher()
@@ -109,6 +109,9 @@ def list_bad(text):
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def check_badwords(conn, message, chan, content, nick):
+    if not matcher.regex:
+        return
+
     match = matcher.regex.match(content)
     if not match:
         return

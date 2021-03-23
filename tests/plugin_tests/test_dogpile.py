@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from plugins import dogpile
+
 
 @pytest.fixture(scope="module")
 def test_data():
@@ -17,7 +19,7 @@ def test_data():
 def add_page(mock_requests, endpoint, test_data):
     data = test_data[endpoint]
     mock_requests.add(
-        mock_requests.GET,
+        "GET",
         "https://www.dogpile.com/search/" + endpoint,
         body=data,
     )
@@ -25,10 +27,8 @@ def add_page(mock_requests, endpoint, test_data):
 
 def test_web_search(test_data, mock_requests):
     add_page(mock_requests, "web", test_data)
-    from plugins.dogpile import dogpile
-
     assert (
-        dogpile("test search")
+        dogpile.dogpile("test search")
         == "https://search.google.com/test/mobile-friendly -- "
         "\x02Test how easily a visitor can use your page on a mobile device. "
         "Just enter a page URL to see how your page scores. "
@@ -39,19 +39,18 @@ def test_web_search(test_data, mock_requests):
     )
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "https://www.dogpile.com/search/web",
         body="",
     )
 
-    assert dogpile("test search") == "No results found."
+    assert dogpile.dogpile("test search") == "No results found."
 
 
 def test_image_search(test_data, mock_requests):
     add_page(mock_requests, "images", test_data)
-    from plugins.dogpile import dogpileimage
 
-    assert dogpileimage("test search") in [
+    assert dogpile.dogpileimage("test search") in [
         "http://www.opentestsearch.com/files/2012/04/Searchdaimon_admin_4.png",
         "https://avaldes.com/wp-content/uploads/2014/03/test_search_xml.png?2d262d&2d262d",
         "http://solospark.com/wp-content/uploads/2013/11/google.seo_.search.testing.infographic.png",
@@ -90,17 +89,17 @@ def test_image_search(test_data, mock_requests):
     ]
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "https://www.dogpile.com/search/images",
         body="",
     )
 
-    assert dogpileimage("test search") == "No results found."
+    assert dogpile.dogpileimage("test search") == "No results found."
 
     mock_requests.replace(
-        mock_requests.GET,
+        "GET",
         "https://www.dogpile.com/search/images",
         body=test_data["images-empty"],
     )
 
-    assert dogpileimage("test search") == "No results found."
+    assert dogpile.dogpileimage("test search") == "No results found."

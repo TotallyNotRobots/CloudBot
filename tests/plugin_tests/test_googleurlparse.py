@@ -1,5 +1,7 @@
 import pytest
 
+from plugins import googleurlparse
+
 
 @pytest.mark.parametrize(
     "text,url",
@@ -8,8 +10,6 @@ import pytest
     ],
 )
 def test_google_url(text, url):
-    from plugins.googleurlparse import google_url, spamurl
-
-    match = spamurl.search(text)
+    match = googleurlparse.spamurl.search(text)
     assert match
-    assert google_url(match) == url
+    assert googleurlparse.google_url(match) == url

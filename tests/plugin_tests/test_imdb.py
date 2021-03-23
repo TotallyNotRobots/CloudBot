@@ -1,9 +1,9 @@
-from plugins.imdb import imdb_re
+from plugins import imdb
 
 
 def test_imdb_re():
     def match(text):
-        return imdb_re.match(text)
+        return imdb.imdb_re.match(text)
 
     assert not match("http://www.imdb.com/title/stuff")
 

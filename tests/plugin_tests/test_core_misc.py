@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -10,7 +11,7 @@ class MockClient(Client):  # pylint: disable=abstract-method
     def __init__(self, bot, *args, **kwargs):
         super().__init__(bot, "TestClient", *args, **kwargs)
         self.active = True
-        self.join = MagicMock()
+        self.join = MagicMock()  # type: ignore[assignment]
 
 
 @pytest.mark.asyncio
@@ -33,7 +34,7 @@ async def test_do_joins(mock_bot_factory, event_loop):
 
     await core_misc.do_joins(client)
 
-    assert client.join.mock_calls == [
+    assert cast(MagicMock, client.join).mock_calls == [
         call("#foo", None),
         call("#bar", "key"),
         call("#baz", "key1"),

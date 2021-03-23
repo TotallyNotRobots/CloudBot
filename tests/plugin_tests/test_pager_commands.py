@@ -3,6 +3,7 @@ import importlib
 import pytest
 
 from cloudbot.util.pager import CommandPager
+from plugins import profile
 
 
 class MockConn:
@@ -76,8 +77,6 @@ class CaptureCalls:
 
 
 def test_profile_pager():
-    from plugins import profile
-
     hook = profile.moreprofile
 
     pages = profile.cat_pages

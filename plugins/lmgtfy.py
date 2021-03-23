@@ -1,4 +1,4 @@
-import requests
+from urllib.parse import quote
 
 from cloudbot import hook
 from cloudbot.util import web
@@ -8,6 +8,6 @@ from cloudbot.util import web
 def lmgtfy(text):
     """[phrase] - gets a lmgtfy.com link for the specified phrase"""
 
-    link = "http://lmgtfy.com/?q={}".format(requests.utils.quote(text))
+    link = "http://lmgtfy.com/?q={}".format(quote(text))
 
     return web.try_shorten(link)

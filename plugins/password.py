@@ -54,14 +54,14 @@ def password(text, notice):
     if not okay:
         okay = string.ascii_lowercase + string.digits
 
-    okay = list(okay)
+    _okay = list(okay)
 
     # extra random lel
-    gen.shuffle(okay)
+    gen.shuffle(_okay)
     chars = []
 
     for _ in range(length):
-        chars.append(gen.choice(okay))
+        chars.append(gen.choice(_okay))
 
     notice("".join(chars))
 

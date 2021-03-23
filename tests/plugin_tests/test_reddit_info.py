@@ -2,6 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from plugins import reddit_info
+
 
 @pytest.mark.parametrize(
     "text,post_id",
@@ -18,9 +20,7 @@ import pytest
     ],
 )
 def test_post_re_match(text, post_id):
-    from plugins.reddit_info import post_re
-
-    match = post_re.search(text)
+    match = reddit_info.post_re.search(text)
     assert match and (match.group(1) == post_id)
 
 
@@ -34,9 +34,7 @@ def test_post_re_match(text, post_id):
     ],
 )
 def test_post_re_no_match(text):
-    from plugins.reddit_info import post_re
-
-    assert not post_re.search(text)
+    assert not reddit_info.post_re.search(text)
 
 
 @pytest.mark.parametrize(
@@ -53,9 +51,7 @@ def test_post_re_no_match(text):
     ],
 )
 def test_get_user(text, output):
-    from plugins.reddit_info import get_sub
-
-    assert get_sub(text) == output
+    assert reddit_info.get_sub(text) == output
 
 
 @pytest.mark.parametrize(
@@ -82,14 +78,10 @@ def test_get_user(text, output):
     ],
 )
 def test_get_sub(text, output):
-    from plugins.reddit_info import get_user
-
-    assert get_user(text) == output
+    assert reddit_info.get_user(text) == output
 
 
 def test_reddit_no_posts(mock_requests):
-    from plugins import reddit_info
-
     mock_requests.add(
         "GET",
         "https://reddit.com/r/foobar/.json",

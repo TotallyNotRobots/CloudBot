@@ -1,7 +1,7 @@
 import re
 import string
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, List
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 
@@ -29,7 +29,8 @@ table = Table(
 
 @hook.on_start()
 def load_cache(db):
-    new_cache = defaultdict(default_dict.copy)
+    new_cache = factoid_cache.copy()
+    new_cache.clear()
     for row in db.execute(table.select()):
         # assign variables
         chan = row["chan"]
@@ -202,7 +203,7 @@ def factoid(content, match, chan, message, action):
 @hook.command("listfacts", autohelp=False)
 def listfactoids(notice, chan):
     """- lists all available factoids"""
-    reply_text = []
+    reply_text: List[str] = []
     reply_text_length = 0
     for word in sorted(factoid_cache[chan].keys()):
         text = FACTOID_CHAR + word
