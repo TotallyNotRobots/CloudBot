@@ -20,6 +20,18 @@ def test_paste(mock_requests):
     assert web.paste("test data", service="none") == "Unable to paste data"
 
 
+def test_paste_try(mock_requests):
+    web.pastebins.set_working()
+    mock_requests.add(
+        "POST",
+        "https://hastebin.com/documents",
+        json={"key": "foobar"},
+    )
+
+    expected = "https://hastebin.com/foobar.txt"
+    assert web.paste("test data") == expected
+
+
 def test_paste_error(mock_requests):
     assert web.paste("test data") == "Unable to paste data"
 
