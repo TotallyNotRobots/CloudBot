@@ -6,6 +6,6 @@ pytest == 6.2.2
 pytest-asyncio == 0.14.0
 pytest-cov == 2.11.1
 pytest-random-order == 1.0.4
-responses == 0.13.1
+responses == 0.13.2
 sqlalchemy-stubs == 0.4
 -r requirements.txt
