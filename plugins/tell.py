@@ -196,7 +196,8 @@ def get_unread(db, server, target):
 
 def count_unread(db, server, target):
     query = (
-        select([sa.func.count(table)])
+        select([sa.func.count()])
+        .select_from(table)
         .where(table.c.connection == server.lower())
         .where(table.c.target == target.lower())
         .where(not_(table.c.is_read))
