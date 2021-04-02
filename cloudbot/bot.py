@@ -5,6 +5,7 @@ import logging
 import re
 import time
 import warnings
+from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
@@ -129,6 +130,10 @@ class CloudBot:
         self.config = Config(self)
         logger.debug("Config system initialised.")
 
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.config.get("thread_count")
+        )
+
         self.old_db = self.config.get("old_database")
         self.do_db_migrate = self.config.get("migrate_db")
 
@@ -187,6 +192,7 @@ class CloudBot:
         This will load plugins, connect to IRC, and process input.
         :return: True if CloudBot should be restarted, False otherwise
         """
+        self.loop.set_default_executor(self.executor)
         # Initializes the bot, plugins and connections
         self.loop.run_until_complete(self._init_routine())
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
