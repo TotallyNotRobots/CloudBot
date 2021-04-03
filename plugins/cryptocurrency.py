@@ -106,8 +106,9 @@ class Schema(metaclass=SchemaMeta):
     _abstract = True
     _fields = ()
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.unknown_fields = {}
+        self.unknown_fields.update(kwargs)
 
     def cast_to(self, new_type: Type[T]) -> T:
         return read_data(serialize(self), new_type)
@@ -404,7 +405,7 @@ def read_data(data: Dict, schema_cls: Type[T]) -> T:
                 "Unable to parse schema {!r}".format(schema_cls.__name__)
             ) from e
 
-    obj = schema_cls(**out)  # type: ignore
+    obj = schema_cls(**out)
 
     obj.unknown_fields.update(
         {key: data[key] for key in data if key not in field_names}
