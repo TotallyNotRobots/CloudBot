@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from sqlalchemy import Column, String, Table
+from sqlalchemy import Column, String, Table, inspect
 
 from cloudbot import hook
 from cloudbot.event import CommandEvent, EventType
@@ -759,7 +759,8 @@ async def test_create_tables(
         ("cloudbot", 20, "Registering tables for test.py"),
     ]
     assert plugin.mock_calls == []
-    assert table.exists(bot.db_engine)
+    inspector = inspect(bot.db_engine)
+    assert inspector.has_table(table.name)
 
     caplog_bot.clear()
 
