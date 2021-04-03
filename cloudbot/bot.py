@@ -9,7 +9,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from sqlalchemy import Table, create_engine
+from sqlalchemy import Table, create_engine, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from venusian import Scanner
@@ -460,9 +460,10 @@ class CloudBot:
         old_session: Session = scoped_session(sessionmaker(bind=engine))()
         new_session: Session = database.Session()
         table: Table
+        inspector = inspect(engine)
         for table in database.metadata.tables.values():
             logger.info("Migrating table %s", table.name)
-            if not table.exists(engine):
+            if not inspector.has_table(table.name):
                 continue
 
             old_data = old_session.execute(table.select()).fetchall()
@@ -470,7 +471,7 @@ class CloudBot:
                 continue
 
             table.create(bind=self.db_engine, checkfirst=True)
-            new_session.execute(table.insert(), [row for row in old_data])
+            new_session.execute(table.insert(), [dict(row) for row in old_data])
             new_session.commit()
             old_session.execute(table.delete())
             old_session.commit()
