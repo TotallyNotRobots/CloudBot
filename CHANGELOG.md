@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update tvdb.py to v3 TVDB API
 - Fix channel parameter handling in IRC client
 - Fix trying to use a local bind address when it isn't set
+- Fix creating the log dir in log.py
 ### Removed
 - twitch.py removed due to outdated API and lack of maintainer
 - metacritic.py removed due to broken scraper and lack of maintainer

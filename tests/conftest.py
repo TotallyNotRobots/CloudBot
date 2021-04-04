@@ -8,11 +8,17 @@ import pytest
 from responses import RequestsMock
 from sqlalchemy.orm import close_all_sessions
 
+import cloudbot
 from cloudbot.bot import bot
 from cloudbot.util import database
 from cloudbot.util.database import Session
 from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
+
+
+@pytest.fixture()
+def tmp_logs(tmp_path):
+    cloudbot._setup(tmp_path)
 
 
 @pytest.fixture()
