@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed path patching in main module
 - rua.py removed due to website no longer existing that it's based off
 - Python 3.5 support dropped
+- Removed geoip plugin
+- Removewd yandex translate plugin
 
 ## [1.3.0] 2020-03-17
 ### Added
