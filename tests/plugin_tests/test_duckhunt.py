@@ -223,6 +223,55 @@ def test_duck_migrate_no_data(mock_db):
     assert mock_db.get_data(duckhunt.table) == []
 
 
+def test_duck_migrate(mock_db):
+    duckhunt.table.create(mock_db.engine)
+    conn = MockConn()
+    conn.name = "foo"
+    mock_db.add_row(
+        duckhunt.table,
+        network=conn.name,
+        name="bar",
+        shot=12,
+        befriend=10,
+        chan="#test",
+    )
+
+    mock_db.add_row(
+        duckhunt.table,
+        network=conn.name,
+        name="bar",
+        shot=9,
+        befriend=8,
+        chan="#test1",
+    )
+
+    mock_db.add_row(
+        duckhunt.table,
+        network=conn.name,
+        name="other",
+        shot=3,
+        befriend=0,
+        chan="#test1",
+    )
+
+    event = MagicMock()
+    db = mock_db.session()
+    text = "bar other"
+    message = event.message
+    res = duckhunt.duck_merge(text, conn, db, message)
+
+    assert event.mock_calls == [
+        call.message(
+            "Migrated 21 duck kills and 18 duck friends from bar to other"
+        )
+    ]
+    assert mock_db.get_data(duckhunt.table) == [
+        ("foo", "other", 12, 8, "#test1"),
+        ("foo", "other", 12, 10, "#test"),
+    ]
+    assert res is None
+
+
 def test_duck_stats_user_single_chan(mock_db):
     duckhunt.table.create(mock_db.engine)
     chan = "#foo"

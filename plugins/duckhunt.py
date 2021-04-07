@@ -764,7 +764,10 @@ def duck_merge(text, conn, db, message):
     if not oldnickscore:
         return "There are no duck scores to migrate from {}".format(oldnick)
 
+    new_chans = []
+
     for row in newnickscore:
+        new_chans.append(row["chan"])
         chan_data = duckmerge[row["chan"]]
         chan_data["shot"] = row["shot"]
         chan_data["befriend"] = row["befriend"]
@@ -778,7 +781,7 @@ def duck_merge(text, conn, db, message):
         chan_data1["befriend"] += _friends
         total_kills += shot
         total_friends += _friends
-        if chan_name in duckmerge:
+        if chan_name in new_chans:
             channelkey["update"].append(chan_name)
         else:
             channelkey["insert"].append(chan_name)
@@ -811,8 +814,8 @@ def duck_merge(text, conn, db, message):
     db.commit()
     message(
         "Migrated {} and {} from {} to {}".format(
-            pluralize_auto(duckmerge["TKILLS"], "duck kill"),
-            pluralize_auto(duckmerge["TFRIENDS"], "duck friend"),
+            pluralize_auto(total_kills, "duck kill"),
+            pluralize_auto(total_friends, "duck friend"),
             oldnick,
             newnick,
         )
