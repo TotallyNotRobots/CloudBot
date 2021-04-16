@@ -12,6 +12,7 @@
             "SLAP",
             "KAPOW",
             "ZAM",
+            "SLURP",
             "BOOM"
         ],
         "blow_type": [
@@ -30,6 +31,7 @@
             "lethal",
             "fatal",
             "savage",
+            "sexy",
             "violent"
         ],
         "victory": [
@@ -38,6 +40,7 @@
             "triumphs",
             "conquers",
             "is the champion",
+            "dominates",
             "is the victor"
         ],
         "blow": [
@@ -53,6 +56,7 @@
             "headbutt",
             "haymaker punch",
             "palm strike",
+            "cock suck",
             "pocket bees"
         ]
     }
