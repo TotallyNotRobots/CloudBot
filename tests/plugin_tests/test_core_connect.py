@@ -14,8 +14,9 @@ class MockClient(IrcClient):
         pass
 
 
-def test_ssl_client(mock_bot):
-    bot = mock_bot
+@pytest.mark.asyncio
+async def test_ssl_client(mock_bot_factory, mock_db):
+    bot = mock_bot_factory(db=mock_db)
     client = MockClient(
         bot,
         "mock",
@@ -38,8 +39,9 @@ def test_ssl_client(mock_bot):
     assert client.ssl_context.verify_mode is ssl.CERT_REQUIRED
 
 
-def test_ssl_client_no_verify(mock_bot):
-    bot = mock_bot
+@pytest.mark.asyncio
+async def test_ssl_client_no_verify(mock_bot_factory, mock_db):
+    bot = mock_bot_factory(db=mock_db)
     client = MockClient(
         bot,
         "mock",
@@ -64,8 +66,8 @@ def test_ssl_client_no_verify(mock_bot):
 
 
 @pytest.mark.asyncio()
-async def test_core_connects(mock_bot_factory):
-    bot = mock_bot_factory()
+async def test_core_connects(mock_bot_factory, mock_db):
+    bot = mock_bot_factory(db=mock_db)
     client = MockClient(
         bot,
         "mock",
