@@ -23,7 +23,7 @@ def check_for_chan_mode(char, mode_warn, event):
 
 
 def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
-    """ generic mode setting function """
+    """generic mode setting function"""
     if not check_for_chan_mode(mode[1], mode_warn, event):
         return False
 
@@ -51,7 +51,7 @@ def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
 
 
 def mode_cmd_no_target(mode, text, text_inp, chan, event, mode_warn=True):
-    """ generic mode setting function without a target"""
+    """generic mode setting function without a target"""
     if not check_for_chan_mode(mode[1], mode_warn, event):
         return False
 

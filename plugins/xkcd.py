@@ -14,7 +14,7 @@ ONR_URL = URL("http://www.ohnorobot.com/")
 
 
 def xkcd_info(xkcd_id, url=False):
-    """ takes an XKCD entry ID and returns a formatted string """
+    """takes an XKCD entry ID and returns a formatted string"""
     request = requests.get(str(XKCD_URL / xkcd_id / "info.0.json"))
     request.raise_for_status()
     data = request.json()
