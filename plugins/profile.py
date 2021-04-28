@@ -124,7 +124,7 @@ def profile(text, chan, notice, nick):
 
 @hook.command()
 def profileadd(text, chan, nick, notice, db):
-    """<category> <content> - Adds data to your profile in the current channel under \"<category>\""""
+    """<category> <content> - Adds data to your profile in the current channel under \"<category>\" """
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
 

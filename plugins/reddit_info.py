@@ -69,7 +69,7 @@ def get_post(post_id):
 
 
 def format_output(item, show_url=False):
-    """ takes a reddit post and returns a formatted string """
+    """takes a reddit post and returns a formatted string"""
     item["title"] = formatting.truncate(item["title"], 70)
     item["link"] = short_url.format(item["id"])
 

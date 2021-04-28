@@ -14,7 +14,7 @@ class Hook:
     """
 
     def __init__(self, _type, plugin, func_hook):
-        """"""
+        """ """
         self.type = _type
         self.plugin = plugin
         self.function = func_hook.function
@@ -173,7 +173,7 @@ class RawHook(Hook):
 
 class SieveHook(Hook):
     def __init__(self, plugin, sieve_hook):
-        """"""
+        """ """
         super().__init__("sieve", plugin, sieve_hook)
 
     def __repr__(self):
@@ -206,7 +206,7 @@ class EventHook(Hook):
 
 class OnStartHook(Hook):
     def __init__(self, plugin, on_start_hook):
-        """"""
+        """ """
         super().__init__("on_start", plugin, on_start_hook)
 
     def __repr__(self):
@@ -260,7 +260,7 @@ class OnCapAckHook(CapHook):
 
 class OnConnectHook(Hook):
     def __init__(self, plugin, sieve_hook):
-        """"""
+        """ """
         super().__init__("on_connect", plugin, sieve_hook)
 
     def __repr__(self):
