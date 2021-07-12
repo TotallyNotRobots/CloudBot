@@ -8,4 +8,5 @@ pytest-cov == 2.11.1
 pytest-random-order == 1.0.4
 responses == 0.13.3
 sqlalchemy-stubs == 0.4
+pre-commit == 2.12.1
 -r requirements.txt

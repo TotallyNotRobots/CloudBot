@@ -36,12 +36,14 @@ def test_missing_config(
     )
 
 
-def test_save(mock_bot_factory, tmp_path, event_loop):
+def test_loads(
+    tmp_path,
+    mock_sleep,
+    event_loop,
+    mock_bot_factory,
+):
     config_file = tmp_path / "config.json"
-    config_file.write_text("{}", encoding="utf-8")
+    config_file.write_text('{"a":1}')
     bot = mock_bot_factory(loop=event_loop)
-    config = Config(bot, filename=str(config_file))
-    config["foo"] = "bar"
-    config.save_config()
-
-    assert config_file.read_text(encoding="utf-8") == '{\n    "foo": "bar"\n}'
+    conf = Config(bot, filename=str(config_file))
+    assert dict(conf) == {"a": 1}

@@ -5,6 +5,7 @@ class MockConn:
     def __init__(self, *, nick=None, name=None):
         self.nick = nick or "TestBot"
         self.name = name or "testconn"
+        self.permissions = None
         self.config = {}
         self.history = {}
         self.reload = MagicMock()

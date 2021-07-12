@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expand youtube.py error information
 - Handle 'a' vs 'an' in drinks plugin
 - Apply rate limiting to regex hooks
+- Replaced dynamic permissions config with DB based system
 ### Fixed
 - Fixed config reloading
 - Fix matching exception in horoscope test

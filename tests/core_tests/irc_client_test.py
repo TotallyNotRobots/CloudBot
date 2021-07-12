@@ -26,18 +26,19 @@ def make_mock_conn(event_loop, *, name="testconn"):
     return conn
 
 
-def test_send_not_connected():
+def test_send_not_connected(mock_db):
     bot = MagicMock()
     client = irc.IrcClient(
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
     )
+
     with pytest.raises(ValueError):
         client.send("foobar")
 
     assert bot.mock_calls == [("loop.create_future", (), {})]
 
 
-def test_send_closed(event_loop):
+def test_send_closed(event_loop, mock_db):
     bot = MagicMock(loop=event_loop)
     client = irc.IrcClient(
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
@@ -458,7 +459,7 @@ class TestConnect:
         return client
 
     @pytest.mark.asyncio()
-    async def test_exc(self, caplog_bot, event_loop):
+    async def test_exc(self, caplog_bot, event_loop, mock_db):
         client = await self.make_client(event_loop)
         runs = 0
 
@@ -481,14 +482,6 @@ class TestConnect:
             ),
             (
                 "cloudbot",
-                20,
-                "[testconn|permissions] Reloading permissions for testconn.",
-            ),
-            ("cloudbot", 10, "[testconn|permissions] Group permissions: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Group users: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Permission users: {}"),
-            (
-                "cloudbot",
                 40,
                 "[testconn] Error occurred while connecting to host.invalid:6667 (OSError: "
                 "foo)",
@@ -521,7 +514,7 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_timeout_exc(self, caplog_bot, event_loop):
+    async def test_timeout_exc(self, caplog_bot, event_loop, mock_db):
         client = await self.make_client(event_loop)
         runs = 0
 
@@ -544,14 +537,6 @@ class TestConnect:
             ),
             (
                 "cloudbot",
-                20,
-                "[testconn|permissions] Reloading permissions for testconn.",
-            ),
-            ("cloudbot", 10, "[testconn|permissions] Group permissions: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Group users: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Permission users: {}"),
-            (
-                "cloudbot",
                 40,
                 "[testconn] Timeout occurred while connecting to host.invalid:6667",
             ),
@@ -579,7 +564,7 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_other_exc(self, caplog_bot, event_loop):
+    async def test_other_exc(self, caplog_bot, event_loop, mock_db):
         client = await self.make_client(event_loop)
 
         client.connect = AsyncMock()  # type: ignore
@@ -594,19 +579,11 @@ class TestConnect:
                 20,
                 "[testconn|permissions] Created permission manager for testconn.",
             ),
-            (
-                "cloudbot",
-                20,
-                "[testconn|permissions] Reloading permissions for testconn.",
-            ),
-            ("cloudbot", 10, "[testconn|permissions] Group permissions: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Group users: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Permission users: {}"),
         ]
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_one_connect(self, caplog_bot, event_loop):
+    async def test_one_connect(self, caplog_bot, event_loop, mock_db):
         client = await self.make_client(event_loop)
 
         async def _connect(timeout=5):
@@ -625,19 +602,11 @@ class TestConnect:
                 20,
                 "[testconn|permissions] Created permission manager for testconn.",
             ),
-            (
-                "cloudbot",
-                20,
-                "[testconn|permissions] Reloading permissions for testconn.",
-            ),
-            ("cloudbot", 10, "[testconn|permissions] Group permissions: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Group users: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Permission users: {}"),
         ]
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_create_socket(self, caplog_bot, event_loop):
+    async def test_create_socket(self, caplog_bot, event_loop, mock_db):
         client = await self.make_client(event_loop)
         client.loop.create_connection = mock = MagicMock()
         fut: "Future[Tuple[None, None]]" = asyncio.Future(loop=client.loop)
@@ -652,14 +621,6 @@ class TestConnect:
                 20,
                 "[testconn|permissions] Created permission manager for testconn.",
             ),
-            (
-                "cloudbot",
-                20,
-                "[testconn|permissions] Reloading permissions for testconn.",
-            ),
-            ("cloudbot", 10, "[testconn|permissions] Group permissions: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Group users: {}"),
-            ("cloudbot", 10, "[testconn|permissions] Permission users: {}"),
             ("cloudbot", 20, "[testconn] Connecting"),
         ]
         assert client.bot.mock_calls == [

@@ -2,12 +2,58 @@ import logging
 from typing import Optional
 
 from irclib.util.compare import match_mask
+from sqlalchemy import Boolean, Column, ForeignKey, String
+from sqlalchemy.orm import relationship
+
+from cloudbot.util import database
+from cloudbot.util.database import Session
 
 logger = logging.getLogger("cloudbot")
 
 # put your hostmask here for magic
 # it's disabled by default, see has_perm_mask()
 backdoor: Optional[str] = None
+
+
+class Group(database.Base):
+    __tablename__ = "perm_group"
+
+    name = Column(String, nullable=False, primary_key=True)
+    members = relationship("GroupMember", back_populates="group", uselist=True)
+    perms = relationship(
+        "GroupPermission", back_populates="group", uselist=True
+    )
+
+    config = Column(Boolean, default=False)
+
+    def is_member(self, mask):
+        for member in self.members:
+            if match_mask(mask.lower(), member.mask):
+                return True
+
+        return False
+
+
+class GroupMember(database.Base):
+    __tablename__ = "group_member"
+
+    group_id = Column(String, ForeignKey(Group.name), primary_key=True)
+    group = relationship(Group, back_populates="members", uselist=False)
+
+    mask = Column(String, primary_key=True, nullable=False)
+
+    config = Column(Boolean, default=False)
+
+
+class GroupPermission(database.Base):
+    __tablename__ = "group_perm"
+
+    group_id = Column(String, ForeignKey(Group.name), primary_key=True)
+    group = relationship(Group, back_populates="perms", uselist=False)
+
+    name = Column(String, primary_key=True, nullable=False)
+
+    config = Column(Boolean, default=False)
 
 
 class PermissionManager:
@@ -18,75 +64,72 @@ class PermissionManager:
             conn.name,
         )
 
-        # stuff
         self.name = conn.name
         self.config = conn.config
 
-        self.group_perms = {}
-        self.group_users = {}
-        self.perm_users = {}
+        session = Session()
+        Group.__table__.create(session.bind, checkfirst=True)
+        GroupPermission.__table__.create(session.bind, checkfirst=True)
+        GroupMember.__table__.create(session.bind, checkfirst=True)
 
         self.reload()
 
     def reload(self):
-        self.group_perms = {}
-        self.group_users = {}
-        self.perm_users = {}
-        logger.info(
-            "[%s|permissions] Reloading permissions for %s.",
-            self.name,
-            self.name,
-        )
-        groups = self.config.get("permissions", {})
-        # work out the permissions and users each group has
-        for key, value in groups.items():
-            if not key.islower():
-                logger.warning(
-                    "[%s|permissions] Warning! Non-lower-case group %r in "
-                    "config. This will cause problems when setting "
-                    "permissions using the bot's permissions commands",
-                    self.name,
-                    key,
+        session = Session()
+
+        updated = []
+        for group_id, data in self.config.get("permissions", {}).items():
+            group = self.get_group(group_id)
+            if not group:
+                group = Group(name=group_id)
+                session.add(group)
+
+            group.config = True
+            updated.append(group)
+
+            for user in data["users"]:
+                member = session.get(
+                    GroupMember, {"group_id": group_id, "mask": user}
                 )
-            key = key.lower()
-            self.group_perms[key] = []
-            self.group_users[key] = []
-            for permission in value["perms"]:
-                self.group_perms[key].append(permission.lower())
-            for user in value["users"]:
-                self.group_users[key].append(user.lower())
+                if not member:
+                    member = GroupMember(group_id=group_id, mask=user)
+                    session.add(member)
 
-        for group, users in self.group_users.items():
-            group_perms = self.group_perms[group]
-            for perm in group_perms:
-                if self.perm_users.get(perm) is None:
-                    self.perm_users[perm] = []
-                self.perm_users[perm].extend(users)
+                member.config = True
+                updated.append(member)
 
-        logger.debug(
-            "[%s|permissions] Group permissions: %s",
-            self.name,
-            self.group_perms,
-        )
-        logger.debug(
-            "[%s|permissions] Group users: %s", self.name, self.group_users
-        )
-        logger.debug(
-            "[%s|permissions] Permission users: %s", self.name, self.perm_users
-        )
+            for perm in data["perms"]:
+                binding = session.get(
+                    GroupPermission, {"group_id": group_id, "name": perm}
+                )
+                if not binding:
+                    binding = GroupPermission(group_id=group_id, name=perm)
+                    session.add(binding)
+
+                binding.config = True
+                updated.append(binding)
+
+        session.commit()
+
+        for item in session.query(GroupMember).filter_by(config=True).all():
+            if item not in updated:
+                session.delete(item)
+
+        for item in session.query(GroupPermission).filter_by(config=True).all():
+            if item not in updated:
+                session.delete(item)
+
+        for item in session.query(Group).filter_by(config=True).all():
+            if item not in updated:
+                session.delete(item)
+
+        session.commit()
 
     def has_perm_mask(self, user_mask, perm, notice=True):
-        if backdoor:
-            if match_mask(user_mask.lower(), backdoor.lower()):
-                return True
+        if backdoor and match_mask(user_mask.lower(), backdoor.lower()):
+            return True
 
-        if not perm.lower() in self.perm_users:
-            # no one has access
-            return False
-
-        allowed_users = self.perm_users[perm.lower()]
-
-        for allowed_mask in allowed_users:
+        for allowed_mask in self.get_perm_users(perm):
             if match_mask(user_mask.lower(), allowed_mask):
                 if notice:
                     logger.info(
@@ -95,101 +138,111 @@ class PermissionManager:
                         user_mask,
                         perm,
                     )
+
                 return True
 
         return False
 
+    def get_perm_users(self, perm):
+        session = Session()
+        member_masks = (
+            session.query(GroupMember.mask)
+            .filter(
+                GroupMember.group_id.in_(
+                    session.query(GroupPermission.group_id).filter(
+                        GroupPermission.name == perm
+                    )
+                )
+            )
+            .all()
+        )
+
+        return [item[0] for item in member_masks]
+
     def get_groups(self):
-        return set().union(self.group_perms.keys(), self.group_users.keys())
+        return Session().query(Group).all()
 
-    def get_group_permissions(self, group):
-        return self.group_perms.get(group.lower())
+    def get_group_permissions(self, name):
+        group = self.get_group(name)
+        if not group:
+            return []
 
-    def get_group_users(self, group):
-        return self.group_users.get(group.lower())
+        return [perm.name for perm in group.perms]
+
+    def get_group_users(self, name):
+        group = self.get_group(name)
+        if not group:
+            return []
+
+        return [member.mask for member in group.members]
 
     def get_user_permissions(self, user_mask):
-        permissions = set()
-        for permission, users in self.perm_users.items():
-            for mask_to_check in users:
-                if match_mask(user_mask.lower(), mask_to_check):
-                    permissions.add(permission)
-        return permissions
+        return {
+            perm.name
+            for group in self.get_user_groups(user_mask)
+            for perm in group.perms
+        }
 
     def get_user_groups(self, user_mask):
-        groups = []
-        for group, users in self.group_users.items():
-            for mask_to_check in users:
-                if match_mask(user_mask.lower(), mask_to_check):
-                    groups.append(group)
-                    continue
-        return groups
+        return [
+            group for group in self.get_groups() if group.is_member(user_mask)
+        ]
+
+    def get_group(self, group_id):
+        return Session().get(Group, group_id)
 
     def group_exists(self, group):
         """
         Checks whether a group exists
         """
-        return group.lower() in self.group_perms
+        return self.get_group(group) is not None
 
-    def user_in_group(self, user_mask, group):
+    def user_in_group(self, user_mask, group_id):
         """
         Checks whether a user is matched by any masks in a given group
         """
-        users = self.group_users.get(group.lower())
-        if not users:
+        group = self.get_group(group_id)
+        if not group:
             return False
-        for mask_to_check in users:
-            if match_mask(user_mask.lower(), mask_to_check):
-                return True
-        return False
 
-    def remove_group_user(self, group, user_mask):
+        return group.is_member(user_mask)
+
+    def remove_group_user(self, group_id, user_mask):
         """
         Removes all users that match user_mask from group. Returns a list of user masks removed from the group.
-        Use permission_manager.reload() to make this change take affect.
-        Use bot.config.save_config() to save this change to file.
         """
+        group = self.get_group(group_id)
+        if not group:
+            return []
+
         masks_removed = []
 
-        config_groups = self.config.get("permissions", {})
-
-        for mask_to_check in list(self.group_users[group.lower()]):
+        session = Session()
+        for member in group.members:
+            mask_to_check = member.mask
             if match_mask(user_mask.lower(), mask_to_check):
                 masks_removed.append(mask_to_check)
-                # We're going to act like the group keys are all lowercase.
-                # The user has been warned (above) if they aren't.
-                # Okay, maybe a warning, but no support.
-                if group not in config_groups:
-                    logger.warning(
-                        "[%s|permissions] Can't remove user from group due to"
-                        " upper-case group names!",
-                        self.name,
-                    )
-                    continue
-                config_group = config_groups.get(group)
-                config_users = config_group.get("users")
-                config_users.remove(mask_to_check)
+                session.delete(member)
+
+        Session().commit()
 
         return masks_removed
 
-    def add_user_to_group(self, user_mask, group):
+    def add_user_to_group(self, user_mask, group_id):
         """
         Adds user to group. Returns whether this actually did anything.
-        Use permission_manager.reload() to make this change take affect.
-        Use bot.config.save_config() to save this change to file.
         """
-        if self.user_in_group(user_mask, group):
+        if self.user_in_group(user_mask, group_id):
             return False
-        # We're going to act like the group keys are all lowercase.
-        # The user has been warned (above) if they aren't.
-        groups = self.config.setdefault("permissions", {})
-        if group in groups:
-            group_dict = groups.get(group)
-            users = group_dict["users"]
-            users.append(user_mask)
-        else:
-            # create the group
-            group_dict = {"users": [user_mask], "perms": []}
-            groups[group] = group_dict
+
+        group = self.get_group(group_id)
+        session = Session()
+        if not group:
+            group = Group(name=group_id)
+            session.add(group)
+
+        group.members.append(GroupMember(mask=user_mask))
+
+        session.commit()
 
         return True

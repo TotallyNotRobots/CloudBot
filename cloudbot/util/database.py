@@ -16,7 +16,7 @@ Session = scoped_session(sessionmaker())
 
 
 def configure(bind: Engine = None) -> None:
-    metadata.bind = bind
+    metadata.bind = bind  # type: ignore[assignment]
     close_all_sessions()
     Session.remove()
     Session.configure(bind=bind)

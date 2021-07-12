@@ -37,19 +37,19 @@ class FailingMockClient(MockClient):  # pylint: disable=abstract-method
             raise ValueError("This is a test")
 
 
-def test_reload(event_loop):
+def test_reload(event_loop, mock_db):
     client = MockClient(Bot(event_loop), "foo", "foobot", channels=["#foo"])
     client.permissions = MagicMock()
     client.reload()
     assert client.permissions.mock_calls == [call.reload()]
 
 
-def test_client_no_config(event_loop):
+def test_client_no_config(event_loop, mock_db):
     client = MockClient(Bot(event_loop), "foo", "foobot", channels=["#foo"])
     assert client.config.get("a") is None
 
 
-def test_client(event_loop):
+def test_client(event_loop, mock_db):
     client = MockClient(
         Bot(event_loop),
         "foo",
@@ -70,7 +70,7 @@ def test_client(event_loop):
     client.loop.run_until_complete(client.try_connect())
 
 
-def test_client_connect_exc(event_loop):
+def test_client_connect_exc(event_loop, mock_db):
     with patch("random.randrange", return_value=1):
         client = FailingMockClient(
             Bot(event_loop),
@@ -84,7 +84,7 @@ def test_client_connect_exc(event_loop):
 
 
 @pytest.mark.asyncio()
-async def test_try_connect(event_loop):
+async def test_try_connect(event_loop, mock_db):
     client = MockClient(
         Bot(event_loop),
         "foo",
@@ -97,7 +97,7 @@ async def test_try_connect(event_loop):
     await client.try_connect()
 
 
-def test_auto_reconnect(event_loop):
+def test_auto_reconnect(event_loop, mock_db):
     client = MockClient(
         Bot(event_loop),
         "foo",
