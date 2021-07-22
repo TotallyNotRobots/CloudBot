@@ -1,4 +1,4 @@
-SQLAlchemy == 1.4.11
+SQLAlchemy == 1.4.22
 attrs == 20.3.0
 beautifulsoup4 == 4.9.3
 chardet == 4.0.0
