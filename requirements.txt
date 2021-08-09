@@ -3,7 +3,7 @@ attrs == 20.3.0
 beautifulsoup4 == 4.9.3
 chardet == 4.0.0
 cleverwrap == 0.3.0.2
-feedparser == 6.0.2
+feedparser == 6.0.8
 forecastiopy == 0.22
 googlemaps == 4.4.5
 imgurpython == 1.1.7
