@@ -1,10 +1,10 @@
 coverage == 5.5
 freezegun == 1.1.0
-mypy == 0.812
+mypy == 0.910
 pylint == 2.8.2
-pytest == 6.2.3
+pytest == 6.2.4
 pytest-asyncio == 0.15.1
-pytest-cov == 2.11.1
+pytest-cov == 2.12.1
 pytest-random-order == 1.0.4
 responses == 0.13.3
 sqlalchemy-stubs == 0.4
