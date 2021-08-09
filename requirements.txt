@@ -5,7 +5,7 @@ chardet == 4.0.0
 cleverwrap == 0.3.0.2
 feedparser == 6.0.8
 forecastiopy == 0.22
-googlemaps == 4.4.5
+googlemaps == 4.5.3
 imgurpython == 1.1.7
 isodate == 0.6.0
 lxml == 4.6.3
