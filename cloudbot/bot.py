@@ -300,7 +300,8 @@ class CloudBot:
         self.observer.start()
 
         for conn in self.connections.values():
-            conn.active = True
+            if conn.config.get("enabled", True):
+                conn.active = True
 
         # Connect to servers
         await asyncio.gather(
