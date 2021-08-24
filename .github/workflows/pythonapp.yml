@@ -43,7 +43,7 @@ jobs:
       env:
         PYTHONDEVMODE: 1
         PYTHONPATH: .
-    - uses: codecov/codecov-action@v2.0.2
+    - uses: codecov/codecov-action@v2.0.3
       with:
         name: build-${{ matrix.python-ver }}
         fail_ci_if_error: true
