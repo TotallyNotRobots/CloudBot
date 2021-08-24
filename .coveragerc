@@ -17,3 +17,4 @@ omit =
     tests/data/*
     tests/util/*
     .*
+    venv/*
