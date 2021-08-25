@@ -8,6 +8,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     String,
     Table,
+    func,
     not_,
     select,
 )
@@ -143,11 +144,9 @@ def get_quote_by_nick(db, nick, num=False):
     """Returns a formatted quote from a nick, random or selected by number"""
 
     count_query = (
-        select([qtable])
+        select([func.count(qtable.c.msg)])
         .where(not_(qtable.c.deleted))
         .where(qtable.c.nick == nick.lower())
-        .alias("count")
-        .count()
     )
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -171,12 +170,10 @@ def get_quote_by_nick(db, nick, num=False):
 def get_quote_by_nick_chan(db, chan, nick, num=False):
     """Returns a formatted quote from a nick in a channel, random or selected by number"""
     count_query = (
-        select([qtable])
+        select([func.count(qtable.c.msg)])
         .where(not_(qtable.c.deleted))
         .where(qtable.c.chan == chan)
         .where(qtable.c.nick == nick.lower())
-        .alias("count")
-        .count()
     )
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -201,11 +198,9 @@ def get_quote_by_nick_chan(db, chan, nick, num=False):
 def get_quote_by_chan(db, chan, num=False):
     """Returns a formatted quote from a channel, random or selected by number"""
     count_query = (
-        select([qtable])
+        select([func.count(qtable.c.msg)])
         .where(not_(qtable.c.deleted))
         .where(qtable.c.chan == chan)
-        .alias("count")
-        .count()
     )
     count = db.execute(count_query).fetchall()[0][0]
 
@@ -227,17 +222,16 @@ def get_quote_by_chan(db, chan, num=False):
 
 
 @hook.command("q", "quote")
-def quote(text, nick, chan, db, notice, event):
+def quote(text, nick, chan, db, event):
     """[#chan] [nick] [#n] OR add <nick> <message> - gets the [#n]th quote by <nick> (defaulting to random)
     OR adds <message> as a quote for <nick> in the caller's channel"""
-
     add = re.match(r"add[^\w@]+(\S+?)>?\s+(.*)", text, re.I)
     retrieve = re.match(r"(\S+)(?:\s+#?(-?\d+))?$", text)
     retrieve_chan = re.match(r"(#\S+)\s+(\S+)(?:\s+#?(-?\d+))?$", text)
 
     if add:
         quoted_nick, msg = add.groups()
-        notice(add_quote(db, chan, quoted_nick, nick, msg))
+        event.notice(add_quote(db, chan, quoted_nick, nick, msg))
         return None
 
     if retrieve:
