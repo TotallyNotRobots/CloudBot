@@ -7,11 +7,9 @@ from plugins import notes
 def test_note_add(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    res = notes.note(
-        text="add foo", conn=event.conn, nick="bar", db=db, event=event
-    )
+    res = notes.note(text="add foo", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("Note added!")]
@@ -23,14 +21,10 @@ def test_note_add(mock_db, freeze_time):
 def test_note_add_multiple(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    res = notes.note(
-        text="add foo", conn=event.conn, nick="bar", db=db, event=event
-    )
-    res1 = notes.note(
-        text="add foo1", conn=event.conn, nick="bar", db=db, event=event
-    )
+    res = notes.note(text="add foo", db=db, event=event)
+    res1 = notes.note(text="add foo1", db=db, event=event)
     assert res is None
     assert res1 is None
 
@@ -47,24 +41,22 @@ def test_note_add_multiple(mock_db, freeze_time):
 def test_note_del(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(
-        text="del 1", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="del 1", db=db, event=event)
     assert res is None
 
 
 def test_note_del_no_text(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(text="del", conn=event.conn, nick=nick, db=db, event=event)
+    res = notes.note(text="del", db=db, event=event)
     assert res == "No note ID provided!"
 
     assert event.mock_calls == []
@@ -84,13 +76,11 @@ def test_note_del_no_text(mock_db, freeze_time):
 def test_note_get(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(
-        text="get 1", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="get 1", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [
@@ -112,14 +102,14 @@ def test_note_get(mock_db, freeze_time):
 def test_note_get_no_id(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(text="get", conn=event.conn, nick=nick, db=db, event=event)
-    assert res == "No note ID provided!"
+    res = notes.note(text="get", db=db, event=event)
+    assert res is None
 
-    assert event.mock_calls == []
+    assert event.mock_calls == [call.notice("No note ID provided!")]
     assert mock_db.get_data(notes.table) == [
         (
             1,
@@ -136,11 +126,11 @@ def test_note_get_no_id(mock_db, freeze_time):
 def test_note_get_bad_id(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(text="2", conn=event.conn, nick=nick, db=db, event=event)
+    res = notes.note(text="2", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("2 is not a valid note ID.")]
@@ -149,28 +139,24 @@ def test_note_get_bad_id(mock_db, freeze_time):
 def test_note_show_no_id(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(
-        text="show", conn=event.conn, nick=nick, db=db, event=event
-    )
-    assert res == "No note ID provided!"
+    res = notes.note(text="show", db=db, event=event)
+    assert res is None
 
-    assert event.mock_calls == []
+    assert event.mock_calls == [call.notice("No note ID provided!")]
 
 
 def test_note_show_bad_id(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(
-        text="show 2", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="show 2", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("2 is not a valid note ID.")]
@@ -179,13 +165,11 @@ def test_note_show_bad_id(mock_db, freeze_time):
 def test_note_share(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
-    res = notes.note(
-        text="share 1", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="share 1", db=db, event=event)
     assert res == "\x02Note #1:\x02 testing - \x0222 Aug, 2019\x02"
 
     assert event.mock_calls == []
@@ -194,10 +178,9 @@ def test_note_share(mock_db, freeze_time):
 def test_note_bad_cmd(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    nick = "bar"
-    res = notes.note(text="foo", conn=event.conn, nick=nick, db=db, event=event)
+    res = notes.note(text="foo", db=db, event=event)
 
     assert res is None
 
@@ -208,16 +191,14 @@ def test_note_bad_cmd(mock_db, freeze_time):
 def test_note_list(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
     notes.add_note(db, event.conn.name, nick, "testing1")
     notes.add_note(db, event.conn.name, nick, "testing2")
     notes.delete_note(db, event.conn.name, nick, 2)
-    res = notes.note(
-        text="list", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="list", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [
@@ -230,16 +211,14 @@ def test_note_list(mock_db, freeze_time):
 def test_note_listall(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
     notes.add_note(db, event.conn.name, nick, "testing1")
     notes.add_note(db, event.conn.name, nick, "testing2")
     notes.delete_note(db, event.conn.name, nick, 2)
-    res = notes.note(
-        text="listall", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="listall", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [
@@ -253,12 +232,9 @@ def test_note_listall(mock_db, freeze_time):
 def test_note_list_no_notes(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    nick = "bar"
-    res = notes.note(
-        text="list", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="list", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("You have no notes.")]
@@ -267,12 +243,9 @@ def test_note_list_no_notes(mock_db, freeze_time):
 def test_note_listall_no_notes(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    nick = "bar"
-    res = notes.note(
-        text="listall", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="listall", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("You have no notes.")]
@@ -281,14 +254,12 @@ def test_note_listall_no_notes(mock_db, freeze_time):
 def test_note_clear(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
     nick = "bar"
     notes.add_note(db, event.conn.name, nick, "testing")
     notes.add_note(db, event.conn.name, nick, "testing1")
-    res = notes.note(
-        text="clear", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="clear", db=db, event=event)
 
     assert res is None
 
@@ -318,12 +289,9 @@ def test_note_clear(mock_db, freeze_time):
 def test_note_del_no_note(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    nick = "bar"
-    res = notes.note(
-        text="del 1", conn=event.conn, nick=nick, db=db, event=event
-    )
+    res = notes.note(text="del 1", db=db, event=event)
     assert res is None
 
     assert event.mock_calls == [call.notice("#1 is not a valid note ID.")]
@@ -333,11 +301,9 @@ def test_note_del_no_note(mock_db, freeze_time):
 def test_note_add_no_text(mock_db, freeze_time):
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
-    event = MagicMock()
+    event = MagicMock(nick="bar")
     event.conn.name = "test"
-    res = notes.note(
-        text="add", conn=event.conn, nick="bar", db=db, event=event
-    )
+    res = notes.note(text="add", db=db, event=event)
     assert res == "No text provided!"
     assert event.mock_calls == []
     assert mock_db.get_data(notes.table) == []
