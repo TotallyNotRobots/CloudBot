@@ -117,8 +117,9 @@ def format_note(data):
 
 
 @hook.command("note", "notes", "todo")
-def note(text, conn, nick, db, notice):
+def note(text, conn, nick, db, event):
     """<add|list|get|del|clear> args - manipulates your list of notes"""
+    notice = event.notice
     args, cmd = parse_args(text)
 
     if cmd in ["add", "new"]:
@@ -203,7 +204,7 @@ def cmd_show(args, conn, db, nick, notice):
     note_id = args[0]
     n = read_note(db, conn.name, nick, note_id)
     if not n:
-        notice("{} is not a valid note ID.".format(nick))
+        notice("{} is not a valid note ID.".format(note_id))
         return None
 
     # show the note
@@ -218,7 +219,7 @@ def cmd_get(args, conn, db, nick, notice):
     note_id = args[0]
     n = read_note(db, conn.name, nick, note_id)
     if not n:
-        notice("{} is not a valid note ID.".format(nick))
+        notice("{} is not a valid note ID.".format(note_id))
         return None
 
     # show the note
