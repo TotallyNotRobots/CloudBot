@@ -1,4 +1,3 @@
-import os
 import signal
 import sys
 import threading
@@ -123,12 +122,17 @@ def pympler_diff():
     return "Printed to console"
 
 
+try:
+    SIGUSR1 = getattr(signal, "SIGUSR1")
+except AttributeError:
+    SIGUSR1 = None
+
 # # Provide an easy way to get a threaddump, by using SIGUSR1 (only on POSIX systems)
-if os.name == "posix":
+if SIGUSR1 is not None:
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
     # noinspection PyUnusedLocal
     def debug(sig, frame):
         print(get_thread_dump())
 
-    signal.signal(signal.SIGUSR1, debug)  # Register handler
+    signal.signal(SIGUSR1, debug)  # Register handler

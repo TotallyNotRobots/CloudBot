@@ -209,7 +209,7 @@ class Holder(Generic[T]):
     """
 
     def __init__(self) -> None:
-        self._item = None  # type: Optional[T]
+        self._item: Optional[T] = None
         self._set = False
 
     def set(self, item: T) -> None:
@@ -245,7 +245,7 @@ class Holder(Generic[T]):
         if not self._set:
             raise MissingItem()
 
-        return cast(T, self._item)
+        return self._item
 
 
 class LazyCollection(Sized, Iterable[T], Container[T]):
