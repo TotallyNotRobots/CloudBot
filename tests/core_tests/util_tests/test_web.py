@@ -121,29 +121,29 @@ def test_shorten(mock_requests):
 
     mock_requests.add(
         "POST",
-        "http://git.io",
+        "https://git.io",
         status=400,
     )
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
-    mock_requests.replace("POST", "http://git.io", body="error")
+    mock_requests.replace("POST", "https://git.io", body="error")
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
-    mock_requests.replace("POST", "http://git.io", body="error")
+    mock_requests.replace("POST", "https://git.io", body="error")
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
     mock_requests.replace(
         "POST",
-        "http://git.io",
-        headers={"Location": "http://git.io/foobar123"},
+        "https://git.io",
+        headers={"Location": "https://git.io/foobar123"},
         status=requests.codes.created,
     )
     assert (
         web.shorten("https://example.com", service="git.io")
-        == "http://git.io/foobar123"
+        == "https://git.io/foobar123"
     )
 
     with pytest.raises(web.ServiceHTTPError):
