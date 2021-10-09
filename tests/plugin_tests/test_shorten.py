@@ -113,7 +113,7 @@ def test_gitio(mock_requests):
 
     mock_requests.add(
         "POST",
-        "http://git.io",
+        "https://git.io",
         headers={"Location": "https://git.io/foobar"},
         status=requests.codes.created,
     )

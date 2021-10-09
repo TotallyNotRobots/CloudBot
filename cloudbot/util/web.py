@@ -309,7 +309,7 @@ class Gitio(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {"url": url, "code": custom}
         try:
-            r = requests.post("http://git.io", data=p)
+            r = requests.post("https://git.io", data=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
