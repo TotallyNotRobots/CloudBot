@@ -209,7 +209,7 @@ class Holder(Generic[T]):
     """
 
     def __init__(self) -> None:
-        self._item: Optional[T] = None
+        self._item = None  # type: Optional[T]
         self._set = False
 
     def set(self, item: T) -> None:

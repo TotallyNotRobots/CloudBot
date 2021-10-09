@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import cloudbot.clients.irc as irc
 from cloudbot.client import ClientConnectError
+from cloudbot.clients import irc
 from cloudbot.event import Event, EventType
 from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock

@@ -92,6 +92,7 @@ def mock_api_keys():
     mock_bot = MagicMock()
     try:
         bot.set(mock_bot)
+        # pylint: disable=no-member
         mock_bot.config.get_api_key.return_value = "APIKEY"
         yield mock_bot
     finally:

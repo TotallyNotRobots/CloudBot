@@ -62,6 +62,13 @@ confidence=
 # --disable=W".
 disable=invalid-name,
         missing-docstring,
+        consider-using-f-string,
+        consider-using-dict-items,
+        consider-using-with,
+        consider-using-min-builtin,
+        arguments-renamed,
+        use-maxsplit-arg,
+        consider-iterating-dictionary,
         redefined-outer-name,
         unused-argument,
         broad-except,
@@ -87,7 +94,7 @@ disable=invalid-name,
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
-enable=
+enable=c-extension-no-member
 
 
 [REPORTS]
