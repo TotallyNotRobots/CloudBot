@@ -18,5 +18,5 @@ requests == 2.26.0
 tweepy == 3.10.0
 urllib3 == 1.26.6
 venusian == 3.0.0
-watchdog == 2.1.5
+watchdog == 2.1.6
 yarl == 1.7.0
