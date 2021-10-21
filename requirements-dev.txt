@@ -1,4 +1,4 @@
-coverage == 6.0.1
+coverage == 6.0.2
 freezegun == 1.1.0
 mypy == 0.910
 pre-commit == 2.15.0
