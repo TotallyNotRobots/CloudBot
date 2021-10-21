@@ -16,7 +16,7 @@ psutil == 5.8.0
 py-irclib == 0.3.0
 requests == 2.26.0
 tweepy == 3.10.0
-urllib3 == 1.26.6
+urllib3 == 1.26.7
 venusian == 3.0.0
 watchdog == 2.1.5
 yarl == 1.7.0
