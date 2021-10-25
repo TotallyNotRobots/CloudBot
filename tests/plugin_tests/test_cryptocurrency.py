@@ -58,6 +58,7 @@ def init_response(
     check_api_key=False,
     pct_change=18.9,
     show_btc=True,
+    price=50000000000.0,
 ):
     if check_api_key:
         cryptocurrency.init_api(bot.get())
@@ -134,7 +135,7 @@ def init_response(
                 "tags": [],
                 "quote": {
                     "USD": {
-                        "price": 50000000000,
+                        "price": price,
                         "volume_24h": 20,
                         "market_cap": 92,
                         "percent_change_1h": 14.5,
@@ -277,6 +278,24 @@ def test_cache(freeze_time):
     assert c.get("foo").value == "bar"
     freeze_time.tick()
     assert c.get("foo") is None
+
+
+@pytest.mark.parametrize(
+    "price,out",
+    [
+        (1, "1.00"),
+        (50000, "50,000.00"),
+        (10.2548, "10.25"),
+        (0.1, "0.10"),
+        (0.0241, "0.0241"),
+        (0.00241, "0.00241"),
+        (0.000241, "0.000241"),
+        (0.0000241, "0.0000241"),
+        (0.001231549654135151564, "0.0012315497"),
+    ],
+)
+def test_format_price(price, out):
+    assert cryptocurrency.format_price(price) == out
 
 
 def test_crypto_cmd(mock_requests):
