@@ -185,8 +185,11 @@ def get_video_id(text: str) -> str:
 
 
 @hook.regex(youtube_re)
-def youtube_url(match: Match[str]) -> str:
-    return get_video_description(match.group(1))
+def youtube_url(match: Match[str]) -> Optional[str]:
+    try:
+        return get_video_description(match.group(1))
+    except NoResultsError:
+        return None
 
 
 @hook.command("youtube", "you", "yt", "y")
@@ -250,7 +253,7 @@ def youtime(text: str, reply) -> str:
 
 
 @hook.regex(ytpl_re)
-def ytplaylist_url(match: Match[str]) -> str:
+def ytplaylist_url(match: Match[str]) -> Optional[str]:
     location = match.group(4).split("=")[-1]
     request = get_playlist(location, ["contentDetails", "snippet"])
     raise_api_errors(request)
@@ -259,7 +262,7 @@ def ytplaylist_url(match: Match[str]) -> str:
 
     data = json["items"]
     if not data:
-        raise NoResultsError()
+        return None
 
     item = data[0]
     snippet = item["snippet"]
