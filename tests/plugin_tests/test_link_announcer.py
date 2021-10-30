@@ -153,7 +153,7 @@ TESTS = {
     ids=lambda case: str(getattr(case, "string", case))[:100],
 )
 def test_link_announce(match, test_str, res, mock_requests):
-    mock_requests.add("GET", match.string, body=test_str, stream=True)
+    mock_requests.add("GET", match.string, body=test_str)
     mck = MagicMock()
     logger = MagicMock()
 
