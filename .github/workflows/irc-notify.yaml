@@ -5,17 +5,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: irc push
-        uses: rectalogic/notify-irc@v1
-        if: github.event_name == 'push'
-        with:
-          channel: "#gonzobot-dev"
-          nickname: tnr-git
-          server: irc.snoonet.org
-          sasl_password: ${{ secrets.IRC_PASSWORD }}
-          message: |
-            ${{ github.actor }} pushed ${{ github.event.ref }} ${{ github.event.compare }}
-            ${{ join(github.event.commits.*.message) }}
       - name: irc pull request
         uses: rectalogic/notify-irc@v1
         if: github.event_name == 'pull_request'
@@ -25,7 +14,7 @@ jobs:
           server: irc.snoonet.org
           sasl_password: ${{ secrets.IRC_PASSWORD }}
           message: |
-            ${{ github.actor }} opened PR ${{ github.event.html_url }}
+            ${{ github.actor }} opened PR ${{ github.event.pull_request.html_url }}
       - name: irc tag created
         uses: rectalogic/notify-irc@v1
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
