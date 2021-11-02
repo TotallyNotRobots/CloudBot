@@ -12,5 +12,5 @@ types-requests == 2.25.11
 types-setuptools == 57.4.2
 types-six == 1.16.2
 types-toml == 0.10.1
-types-freezegun == 1.1.2
+types-freezegun == 1.1.3
 -r requirements.txt
