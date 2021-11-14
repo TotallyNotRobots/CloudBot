@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import signal
@@ -8,8 +9,7 @@ from pathlib import Path
 from cloudbot.bot import CloudBot
 from cloudbot.util import async_util
 
-
-def main():
+async def async_main():
     # store the original working directory, for use when restarting
     original_wd = Path().resolve()
 
@@ -82,6 +82,10 @@ def main():
     # close logging, and exit the program.
     logger.debug("Stopping logging engine")
     logging.shutdown()
+
+
+def main():
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":
