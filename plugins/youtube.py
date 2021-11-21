@@ -3,6 +3,7 @@ from typing import Iterable, Mapping, Match, Optional, Union
 
 import isodate
 import requests
+from requests import Response
 
 from cloudbot import hook
 from cloudbot.bot import bot
@@ -23,7 +24,9 @@ base_url = "https://www.googleapis.com/youtube/v3/"
 
 
 class APIError(Exception):
-    def __init__(self, message: str, response: Optional[str] = None) -> None:
+    def __init__(
+        self, message: str, response: Optional[Union[str, Response]] = None
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.response = response
@@ -35,8 +38,8 @@ class NoApiKeyError(APIError):
 
 
 class NoResultsError(APIError):
-    def __init__(self) -> None:
-        super().__init__("No results")
+    def __init__(self, response: Response) -> None:
+        super().__init__("No results", response)
 
 
 def raise_api_errors(response: requests.Response) -> None:
@@ -115,7 +118,7 @@ def get_video_description(video_id: str) -> str:
 
     data = json["items"]
     if not data:
-        raise NoResultsError()
+        raise NoResultsError(request)
 
     item = data[0]
     snippet = item["snippet"]
@@ -131,20 +134,21 @@ def get_video_description(video_id: str) -> str:
     out += " - length \x02{}\x02".format(
         timeformat.format_time(int(length.total_seconds()), simple=True)
     )
-    try:
-        total_votes = float(statistics["likeCount"]) + float(
-            statistics["dislikeCount"]
-        )
-    except (LookupError, ValueError):
-        total_votes = 0
 
-    if total_votes != 0:
+    like_data = statistics.get("likeCount")
+    dislike_data = statistics.get("dislikeCount")
+
+    if like_data:
         # format
-        likes = pluralize_suffix(int(statistics["likeCount"]), "like")
-        dislikes = pluralize_suffix(int(statistics["dislikeCount"]), "dislike")
-
-        percent = 100 * float(statistics["likeCount"]) / total_votes
-        out += " - {}, {} (\x02{:.1f}\x02%)".format(likes, dislikes, percent)
+        likes = int(like_data)
+        out += " - {}".format(pluralize_suffix(likes, "like"))
+        if dislike_data:
+            dislikes = int(dislike_data)
+            total_votes = likes + dislikes
+            percent = 100 * likes / total_votes
+            out += ", {} (\x02{:.1f}\x02%)".format(
+                pluralize_suffix(dislikes, "dislike"), percent
+            )
 
     if "viewCount" in statistics:
         views = int(statistics["viewCount"])
@@ -178,7 +182,7 @@ def get_video_id(text: str) -> str:
     json = request.json()
 
     if not json.get("items"):
-        raise NoResultsError()
+        raise NoResultsError(request)
 
     video_id = json["items"][0]["id"]["videoId"]  # type: str
     return video_id

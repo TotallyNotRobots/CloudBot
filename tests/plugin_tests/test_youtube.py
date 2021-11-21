@@ -131,6 +131,25 @@ class TestGetVideoDescription:
 
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
+    def test_success_no_dislikes(self, mock_requests, mock_api_keys):
+        data = deepcopy(video_data)
+        del data["items"][0]["statistics"]["dislikeCount"]
+
+        mock_requests.add(
+            "GET",
+            self.api_url.format(id="phL7P6gtZRM", key="APIKEY"),
+            match_querystring=True,
+            json=data,
+        )
+
+        result = (
+            "\x02some title\x02 - length \x0217m 2s\x02 - 4,633 likes - "
+            "\x0268,905\x02 views - \x02a channel\x02 on "
+            "\x022019.10.10\x02"
+        )
+
+        assert youtube.get_video_description("phL7P6gtZRM") == result
+
     def test_success_nsfw(self, mock_requests, mock_api_keys):
         data = deepcopy(video_data)
         data["items"][0]["contentDetails"]["contentRating"] = {
