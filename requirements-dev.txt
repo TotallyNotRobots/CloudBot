@@ -9,7 +9,7 @@ pytest-cov == 3.0.0
 pytest-random-order == 1.0.4
 responses == 0.16.0
 types-requests == 2.26.0
-types-setuptools == 57.4.2
+types-setuptools == 57.4.5
 types-six == 1.16.2
 types-toml == 0.10.1
 types-freezegun == 1.1.3
