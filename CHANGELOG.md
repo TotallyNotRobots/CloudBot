@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python 3.5 support dropped
 - Removed geoip plugin
 - Removewd yandex translate plugin
+- Removed soundcloud plugin due to API removal
 
 ## [1.3.0] 2020-03-17
 ### Added
