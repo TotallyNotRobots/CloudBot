@@ -1,6 +1,7 @@
 import re
 
 import requests
+from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
@@ -30,12 +31,17 @@ def load_shortcuts(bot):
 
 
 @hook.command("ghissue", "issue")
-def issue_cmd(text):
+def issue_cmd(text, event):
     """<username|repo> [number] - gets issue [number]'s summary, or the open issue count if no issue is specified"""
     args = text.split()
-    owner, repo = parse_url(
-        args[0] if args[0] not in shortcuts else shortcuts[args[0]]
-    )
+    first = args[0]
+    shortcut = shortcuts.get(first)
+    if shortcut:
+        data = shortcut
+    else:
+        data = parse_url(first)
+
+    owner, repo = data
     issue = args[1] if len(args) > 1 else None
 
     if issue:
@@ -44,7 +50,16 @@ def issue_cmd(text):
                 owner, repo, issue
             )
         )
-        r.raise_for_status()
+
+        try:
+            r.raise_for_status()
+        except HTTPError as err:
+            if err.response.status_code == 404:
+                return f"Issue #{issue} doesn't exist in {owner}/{repo}"
+
+            event.reply(str(err))
+            raise
+
         j = r.json()
 
         url = web.try_shorten(j["html_url"], service="git.io")
@@ -61,9 +76,11 @@ def issue_cmd(text):
         return "Issue #{} ({}): {} | {}: {}".format(
             number, state, url, title, summary
         )
+
     r = requests.get(
         "https://api.github.com/repos/{}/{}/issues".format(owner, repo)
     )
+
     r.raise_for_status()
     j = r.json()
 

@@ -22,12 +22,14 @@ def check_for_chan_mode(char, mode_warn, event):
     return False
 
 
-def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
-    """ generic mode setting function """
+def mode_cmd(mode, action, param, event, mode_warn=True):
+    """generic mode setting function"""
+    chan = event.chan
+    nick = event.nick
     if not check_for_chan_mode(mode[1], mode_warn, event):
         return False
 
-    split = text_inp.split(" ")
+    split = param.split(" ")
     if split[0].startswith("#"):
         channel = split[0]
         target = split[1]
@@ -35,11 +37,11 @@ def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
         channel = chan
         target = split[0]
 
-    event.notice("Attempting to {} {} in {}...".format(text, target, channel))
+    event.notice("Attempting to {} {} in {}...".format(action, target, channel))
     event.admin_log(
         MODE_CMD_LOG.format(
             nick=nick,
-            cmd=text,
+            cmd=action,
             mode=mode,
             target=target,
             channel=channel,
@@ -50,22 +52,23 @@ def mode_cmd(mode, text, text_inp, chan, nick, event, mode_warn=True):
     return True
 
 
-def mode_cmd_no_target(mode, text, text_inp, chan, event, mode_warn=True):
-    """ generic mode setting function without a target"""
+def mode_cmd_no_target(mode, action, param, event, mode_warn=True):
+    """generic mode setting function without a target"""
+    chan = event.chan
     if not check_for_chan_mode(mode[1], mode_warn, event):
         return False
 
-    split = text_inp.split(" ")
+    split = param.split(" ")
     if split[0].startswith("#"):
         channel = split[0]
     else:
         channel = chan
 
-    event.notice("Attempting to {} {}...".format(text, channel))
+    event.notice("Attempting to {} {}...".format(action, channel))
     event.admin_log(
         MODE_CMD_NO_TARGET_LOG.format(
             nick=event.nick,
-            cmd=text,
+            cmd=action,
             mode=mode,
             channel=channel,
         )
@@ -74,80 +77,80 @@ def mode_cmd_no_target(mode, text, text_inp, chan, event, mode_warn=True):
     return True
 
 
-def do_extban(char, text, text_inp, chan, nick, event, adding=True):
+def do_extban(char, action, param, event, adding=True):
     serv_info = event.conn.memory["server_info"]
     if char not in serv_info.get("extbans", ""):
         return False
 
     extban_pfx = serv_info["extban_prefix"]
 
-    split = text_inp.split(" ")
+    split = param.split(" ")
     if split[0].startswith("#"):
         channel = split[0]
         target = split[1]
-        text_inp = "{} {}{}:{}".format(channel, extban_pfx, char, target)
+        param = "{} {}{}:{}".format(channel, extban_pfx, char, target)
     else:
         target = split[0]
-        text_inp = "{}{}:{}".format(extban_pfx, char, target)
+        param = "{}{}:{}".format(extban_pfx, char, target)
 
-    mode_cmd("+b" if adding else "-b", text, text_inp, chan, nick, event)
+    mode_cmd("+b" if adding else "-b", action, param, event)
     return True
 
 
 @hook.command(permissions=["op_ban", "op", "chanop"])
-def ban(text, chan, nick, event):
+def ban(text, event):
     """[channel] <user> - bans <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("+b", "ban", text, chan, nick, event)
+    mode_cmd("+b", "ban", text, event)
 
 
 @hook.command(permissions=["op_ban", "op", "chanop"])
-def unban(text, chan, nick, event):
+def unban(text, event):
     """[channel] <user> - unbans <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("-b", "unban", text, chan, nick, event)
+    mode_cmd("-b", "unban", text, event)
 
 
 @hook.command(permissions=["op_quiet", "op", "chanop"])
-def quiet(text, chan, nick, event):
+def quiet(text, event):
     """[channel] <user> - quiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if mode_cmd("+q", "quiet", text, chan, nick, event, False):
+    if mode_cmd("+q", "quiet", text, event, False):
         return
 
-    if not do_extban("m", "quiet", text, chan, nick, event, True):
+    if not do_extban("m", "quiet", text, event, True):
         event.notice("Unable to set +q or a mute extban on this network.")
 
 
 @hook.command(permissions=["op_quiet", "op", "chanop"])
-def unquiet(text, chan, nick, event):
+def unquiet(text, event):
     """[channel] <user> - unquiets <user> in [channel], or in the caller's channel if no channel is specified"""
-    if mode_cmd("-q", "unquiet", text, chan, nick, event, False):
+    if mode_cmd("-q", "unquiet", text, event, False):
         return
 
-    if not do_extban("m", "unquiet", text, chan, nick, event, False):
+    if not do_extban("m", "unquiet", text, event, False):
         event.notice("Unable to unset +q or a mute extban on this network.")
 
 
 @hook.command(permissions=["op_voice", "op", "chanop"])
-def voice(text, chan, nick, event):
+def voice(text, event):
     """[channel] <user> - voices <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("+v", "voice", text, chan, nick, event)
+    mode_cmd("+v", "voice", text, event)
 
 
 @hook.command(permissions=["op_voice", "op", "chanop"])
-def devoice(text, chan, nick, event):
+def devoice(text, event):
     """[channel] <user> - devoices <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("-v", "devoice", text, chan, nick, event)
+    mode_cmd("-v", "devoice", text, event)
 
 
 @hook.command(permissions=["op_op", "op", "chanop"])
-def op(text, chan, nick, event):
+def op(text, event):
     """[channel] <user> - ops <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("+o", "op", text, chan, nick, event)
+    mode_cmd("+o", "op", text, event)
 
 
 @hook.command(permissions=["op_op", "op", "chanop"])
-def deop(text, chan, nick, event):
+def deop(text, event):
     """[channel] <user> - deops <user> in [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd("-o", "deop", text, chan, nick, event)
+    mode_cmd("-o", "deop", text, event)
 
 
 @hook.command(permissions=["op_topic", "op", "chanop"])
@@ -209,24 +212,24 @@ def remove(text, chan, conn, nick, event):
 
 
 @hook.command(permissions=["op_mute", "op", "chanop"], autohelp=False)
-def mute(text, chan, event):
+def mute(text, event):
     """[channel] - mutes [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd_no_target("+m", "mute", text, chan, event)
+    mode_cmd_no_target("+m", "mute", text, event)
 
 
 @hook.command(permissions=["op_mute", "op", "chanop"], autohelp=False)
-def unmute(text, chan, event):
+def unmute(text, event):
     """[channel] - unmutes [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd_no_target("-m", "unmute", text, chan, event)
+    mode_cmd_no_target("-m", "unmute", text, event)
 
 
 @hook.command(permissions=["op_lock", "op", "chanop"], autohelp=False)
-def lock(text, chan, event):
+def lock(text, event):
     """[channel] - locks [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd_no_target("+i", "lock", text, chan, event)
+    mode_cmd_no_target("+i", "lock", text, event)
 
 
 @hook.command(permissions=["op_lock", "op", "chanop"], autohelp=False)
-def unlock(text, chan, event):
+def unlock(text, event):
     """[channel] - unlocks [channel], or in the caller's channel if no channel is specified"""
-    mode_cmd_no_target("-i", "unlock", text, chan, event)
+    mode_cmd_no_target("-i", "unlock", text, event)

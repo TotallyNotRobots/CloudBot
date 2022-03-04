@@ -211,7 +211,7 @@ class CloudBot:
         self.clients[name] = cls
 
     def create_connections(self):
-        """ Create a BotConnection for all the networks defined in the config """
+        """Create a BotConnection for all the networks defined in the config"""
         for config in self.config["connections"]:
             # strip all spaces and capitalization from the connection name
             name = clean_name(config["name"])
@@ -300,7 +300,8 @@ class CloudBot:
         self.observer.start()
 
         for conn in self.connections.values():
-            conn.active = True
+            if conn.config.get("enabled", True):
+                conn.active = True
 
         # Connect to servers
         await asyncio.gather(

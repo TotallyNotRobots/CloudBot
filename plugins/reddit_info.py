@@ -69,7 +69,7 @@ def get_post(post_id):
 
 
 def format_output(item, show_url=False):
-    """ takes a reddit post and returns a formatted string """
+    """takes a reddit post and returns a formatted string"""
     item["title"] = formatting.truncate(item["title"], 70)
     item["link"] = short_url.format(item["id"])
 
@@ -310,8 +310,12 @@ def get_sub_data(url, sub, reply):
     try:
         r.raise_for_status()
     except HTTPError as e:
-        reply(statuscheck(e.response.status_code, "r/" + sub))
-        raise
+        code = e.response.status_code
+        reply(statuscheck(code, "r/" + sub))
+        if code not in (404, 403):
+            raise
+
+        return None
 
     return r.json()
 
@@ -322,6 +326,9 @@ def submods(text, chan, conn, reply):
     sub = get_sub(text)
     url = subreddit_url + "about/moderators.json"
     data = get_sub_data(url, sub, reply)
+    if data is None:
+        return None
+
     moderators = []
     for mod in data["data"]["children"]:
         username = mod["name"]
@@ -349,8 +356,12 @@ def subinfo(text, reply):
     sub = get_sub(text)
     url = subreddit_url + "about.json"
     data = get_sub_data(url, sub, reply)
+    if data is None:
+        return None
+
     if data["kind"] == "Listing":
         return "It appears r/{} does not exist.".format(sub)
+
     name = data["data"]["display_name"]
     title = data["data"]["title"]
     nsfw = data["data"]["over18"]

@@ -11,5 +11,5 @@ def patch_paste():
 
 @pytest.fixture()
 def patch_try_shorten():
-    with patch("cloudbot.util.web.try_shorten", new=lambda x: x):
-        yield
+    with patch("cloudbot.util.web.try_shorten", new=lambda x, **kwargs: x) as p:
+        yield p

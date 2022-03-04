@@ -245,7 +245,7 @@ class Holder(Generic[T]):
         if not self._set:
             raise MissingItem()
 
-        return cast(T, self._item)
+        return self._item
 
 
 class LazyCollection(Sized, Iterable[T], Container[T]):

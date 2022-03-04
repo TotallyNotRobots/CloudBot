@@ -492,7 +492,7 @@ class PluginManager:
             logger.debug("Loaded %r", hook)
 
     def _execute_hook_threaded(self, hook, event):
-        """"""
+        """ """
         event.prepare_threaded()
 
         try:
@@ -501,7 +501,7 @@ class PluginManager:
             event.close_threaded()
 
     async def _execute_hook_sync(self, hook, event):
-        """"""
+        """ """
         await event.prepare()
 
         try:
@@ -570,7 +570,7 @@ class PluginManager:
         return ok
 
     async def _sieve(self, sieve, event, hook):
-        """"""
+        """ """
         if sieve.threaded:
             coro = self.bot.loop.run_in_executor(
                 None, sieve.function, self.bot, event, hook
@@ -659,7 +659,7 @@ class Plugin:
     """
 
     def __init__(self, filepath, filename, title, code):
-        """"""
+        """ """
         self.tasks = []
         self.file_path = filepath
         self.file_name = filename

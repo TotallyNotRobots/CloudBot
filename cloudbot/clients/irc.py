@@ -114,7 +114,7 @@ class IrcClient(Client):
     """
 
     def __init__(self, bot, _type, name, nick, *, channels=None, config=None):
-        """"""
+        """ """
         super().__init__(
             bot, _type, name, nick, channels=channels, config=config
         )
@@ -406,10 +406,10 @@ class IrcClient(Client):
 
 
 class _IrcProtocol(asyncio.Protocol):
-    """"""
+    """ """
 
     def __init__(self, conn):
-        """"""
+        """ """
         self.loop = conn.loop
         self.bot = conn.bot
         self.conn = conn
