@@ -8,7 +8,7 @@ forecastiopy == 0.22
 googlemaps == 4.5.3
 imgurpython == 1.1.7
 isodate == 0.6.0
-lxml == 4.7.1
+lxml == 4.8.0
 mcstatus == 6.5.0
 multidict == 5.2.0
 nltk == 3.6.6
