@@ -3,7 +3,7 @@ from typing import Iterable, Mapping, Match, Optional, Union
 
 import isodate
 import requests
-from requests import Response
+from youtube_search import YoutubeSearch
 
 from cloudbot import hook
 from cloudbot.bot import bot
@@ -24,9 +24,7 @@ base_url = "https://www.googleapis.com/youtube/v3/"
 
 
 class APIError(Exception):
-    def __init__(
-        self, message: str, response: Optional[Union[str, Response]] = None
-    ) -> None:
+    def __init__(self, message: str, response: Optional[str] = None) -> None:
         super().__init__(message)
         self.message = message
         self.response = response
@@ -38,8 +36,8 @@ class NoApiKeyError(APIError):
 
 
 class NoResultsError(APIError):
-    def __init__(self, response: Response) -> None:
-        super().__init__("No results", response)
+    def __init__(self) -> None:
+        super().__init__("No results")
 
 
 def raise_api_errors(response: requests.Response) -> None:
@@ -118,7 +116,7 @@ def get_video_description(video_id: str) -> str:
 
     data = json["items"]
     if not data:
-        raise NoResultsError(request)
+        raise NoResultsError()
 
     item = data[0]
     snippet = item["snippet"]
@@ -134,21 +132,20 @@ def get_video_description(video_id: str) -> str:
     out += " - length \x02{}\x02".format(
         timeformat.format_time(int(length.total_seconds()), simple=True)
     )
+    try:
+        total_votes = float(statistics["likeCount"]) + float(
+            statistics["dislikeCount"]
+        )
+    except (LookupError, ValueError):
+        total_votes = 0
 
-    like_data = statistics.get("likeCount")
-    dislike_data = statistics.get("dislikeCount")
-
-    if like_data:
+    if total_votes != 0:
         # format
-        likes = int(like_data)
-        out += " - {}".format(pluralize_suffix(likes, "like"))
-        if dislike_data:
-            dislikes = int(dislike_data)
-            total_votes = likes + dislikes
-            percent = 100 * likes / total_votes
-            out += ", {} (\x02{:.1f}\x02%)".format(
-                pluralize_suffix(dislikes, "dislike"), percent
-            )
+        likes = pluralize_suffix(int(statistics["likeCount"]), "like")
+        dislikes = pluralize_suffix(int(statistics["dislikeCount"]), "dislike")
+
+        percent = 100 * float(statistics["likeCount"]) / total_votes
+        out += " - {}, {} (\x02{:.1f}\x02%)".format(likes, dislikes, percent)
 
     if "viewCount" in statistics:
         views = int(statistics["viewCount"])
@@ -182,36 +179,46 @@ def get_video_id(text: str) -> str:
     json = request.json()
 
     if not json.get("items"):
-        raise NoResultsError(request)
+        raise NoResultsError()
 
     video_id = json["items"][0]["id"]["videoId"]  # type: str
     return video_id
 
 
 @hook.regex(youtube_re)
-def youtube_url(match: Match[str]) -> Optional[str]:
-    try:
-        return get_video_description(match.group(1))
-    except NoResultsError:
-        return None
+def youtube_url(match: Match[str]) -> str:
+    return get_video_description(match.group(1))
 
+
+user_results = {}
+
+@hook.command("ytn")
+def youtube_next(text: str, nick: str, reply) -> str:
+    global user_results
+    result = user_results[nick].pop(0)
+    return  f"\x02{result['title']}\x02, \x02duration:\x02{result['duration']} - https://www.youtube.com/{result['url_suffix']}"
 
 @hook.command("youtube", "you", "yt", "y")
-def youtube(text: str, reply) -> str:
+def youtube(text: str, nick: str, reply) -> str:
     """<query> - Returns the first YouTube search result for <query>.
 
     :param text: User input
     """
-    try:
-        video_id = get_video_id(text)
-        return (
-            get_video_description(video_id) + " - " + make_short_url(video_id)
-        )
-    except NoResultsError as e:
-        return e.message
-    except APIError as e:
-        reply(e.message)
-        raise
+    global user_results
+    results = YoutubeSearch(text.strip(), max_results=10).to_dict()
+    user_results[nick] = results
+    result = user_results[nick].pop(0)
+    return  f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{result['url_suffix'].split('=')[-1]}"
+    # try:
+    #     video_id = get_video_id(text)
+    #     return (
+    #         get_video_description(video_id) + " - " + make_short_url(video_id)
+    #     )
+    # except NoResultsError as e:
+    #     return e.message
+    # except APIError as e:
+    #     reply(e.message)
+    #     raise
 
 
 @hook.command("youtime", "ytime")
@@ -257,7 +264,7 @@ def youtime(text: str, reply) -> str:
 
 
 @hook.regex(ytpl_re)
-def ytplaylist_url(match: Match[str]) -> Optional[str]:
+def ytplaylist_url(match: Match[str]) -> str:
     location = match.group(4).split("=")[-1]
     request = get_playlist(location, ["contentDetails", "snippet"])
     raise_api_errors(request)
@@ -266,7 +273,7 @@ def ytplaylist_url(match: Match[str]) -> Optional[str]:
 
     data = json["items"]
     if not data:
-        return None
+        raise NoResultsError()
 
     item = data[0]
     snippet = item["snippet"]

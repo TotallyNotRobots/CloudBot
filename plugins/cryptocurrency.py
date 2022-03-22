@@ -12,7 +12,7 @@ License:
 import inspect
 import time
 import warnings
-from decimal import Decimal
+from math import log, floor
 from numbers import Real
 from operator import itemgetter
 from threading import RLock
@@ -629,9 +629,9 @@ def crypto_command(text, event):
     quote = data.quote[currency]
     change = cast(Union[int, float], quote.percent_change_24h)
     if change > 0:
-        change_str = colors.parse("$(dark_green)+{}%$(clear)").format(change)
+        change_str = "$(dark_green)+{}%$(clear)".format(change)
     elif change < 0:
-        change_str = colors.parse("$(dark_red){}%$(clear)").format(change)
+        change_str = "$(dark_red){}%$(clear)".format(change)
     else:
         change_str = "{}%".format(change)
 
@@ -643,29 +643,21 @@ def crypto_command(text, event):
     else:
         btc = ""
 
-    num_format = format_price(quote.price)
-
+    price = float(quote.price)
+    precision = max(floor(log(1 / price if price != 0 else 0.01) / log(10)) + 4, 2)
     return colors.parse(
-        "{} ({}) // $(orange){}{}$(clear) {} " + btc + "// {} change"
-    ).format(
-        data.symbol,
-        data.slug,
-        currency_sign,
-        num_format,
-        currency,
-        change_str,
+        (
+            "{} ({}) // $(orange){}{:,.{}f}$(clear) {} " + btc + "// {} change"
+        ).format(
+            data.symbol,
+            data.slug,
+            currency_sign,
+            price,
+            precision,
+            currency,
+            change_str,
+        )
     )
-
-
-def format_price(price: Union[int, float, Real]) -> str:
-    price = float(price)
-    if price < 1:
-        precision = max(2, min(10, -Decimal(str(price)).as_tuple().exponent))
-        num_format = "{:01,.{}f}".format(price, precision)
-    else:
-        num_format = "{:,.2f}".format(price)
-
-    return num_format
 
 
 @hook.command("currencies", "currencylist", autohelp=False)

@@ -15,6 +15,16 @@ from cloudbot import hook
 from cloudbot.util import formatting, web
 from cloudbot.util.http import parse_soup
 
+import ety
+
+
+@hook.command("etree")
+def etymology_tree(nick, text, reply):
+    """<word> - retrieves etymolocial tree of <word>"""
+    # pager = CommandPager.from_multiline_string(str(ety.tree(text.strip())))
+    for page in str(ety.tree(text.strip())).split("\n"):
+        reply(page)
+
 
 @hook.command("e", "etymology")
 def etymology(text, reply):
