@@ -3,7 +3,8 @@ import re
 from cloudbot import hook
 from cloudbot.util.formatting import ireplace
 
-correction_re = re.compile(r"^[sS]/(?:(.*?)(?<!\\)/(.*?)(?:(?<!\\)/([igx]{,4}))?)\s*$")
+correction_re = re.compile(r"^(?:[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)(?:;\s*?[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)*?$")
+exp_re = re.compile(r"(?:[sS]/(?:((?:\\/|[^/])*)(?<!\\)/((?:\\/|[^/])*)(?:(?<!\\)/([igx]{,4}))?))")
 unescape_re = re.compile(r"\\(.)")
 
 REFLAGS = {
@@ -11,21 +12,24 @@ REFLAGS = {
     "g": re.MULTILINE,
     "x": re.VERBOSE,
 }
+def get_flags(flags, message):
+    re_flags = []
+    for flag in flags:
+        if flag not in "igx":
+            message("Invalid regex flag `{}`. Valid are: [{}]".format(flag, ", ".join(REFLAGS.keys())))
+        re_flags.append(REFLAGS[flag])
+    return re_flags
 
+def paser_sed_exp(groups, message):
+    find = groups[0]
+    replace = groups[1] if groups[1] else ""
+    flags = str(groups[2]) if groups[2] else ""
+    return find, replace, get_flags(flags, message)
 
 @hook.regex(correction_re)
 def correction(match, conn, nick, chan, message):
     # groups = [unescape_re.sub(r"\1", group or "") for group in match.groups()]
-    groups = match.groups()
-    find = groups[0]
-    replace = groups[1] if groups[1] else ""
-    flags = str(groups[2]) if groups[2] else ""
-    re_flags = []
-    for flag in flags:
-        if flag not in "igx":
-            message("Invalid regex flag: {}".format(flag))
-            return
-        re_flags.append(REFLAGS[flag])
+    find, replace, re_flags = paser_sed_exp(match.groups(), message)
 
     max_i = 1000
     i = 0
@@ -51,6 +55,20 @@ def correction(match, conn, nick, chan, message):
             find_esc = re.escape(find)
             replace_esc = re.escape(new)
             mod_msg = unescape_re.sub(r"\1", new)
+            print(f"{exp_re=}")
+            print(f"{match[0]=}")
+            for exp in re.findall(exp_re, match[0])[1:]:
+                if not exp:
+                    continue
+                print(f"{exp=}")
+                find, replace, flags = exp
+                re_flags = get_flags(flags, message)
+                new = re.sub(find, "\x02" + replace + "\x02", mod_msg,
+                             count=re.MULTILINE not in re_flags, flags=sum(re_flags))
+                find_esc = re.escape(find)
+                replace_esc = re.escape(new)
+                mod_msg = unescape_re.sub(r"\1", new)
+
             message("Correction, {}".format(fmt.format(name, mod_msg)))
             if nick.lower() == name.lower():
                 msg = ireplace(re.escape(msg), find_esc, replace_esc)
