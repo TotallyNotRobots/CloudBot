@@ -31,10 +31,10 @@ def correction(match, conn, nick, chan, message):
     # groups = [unescape_re.sub(r"\1", group or "") for group in match.groups()]
     find, replace, re_flags = paser_sed_exp(match.groups(), message)
 
-    max_i = 1000
+    max_i = 5000
     i = 0
 
-    for name, timestamp, msg in reversed(conn.history[chan]):
+    for name, _timestamp, msg in reversed(conn.history[chan]):
         if i >= max_i:
             break
         i += 1
@@ -70,10 +70,10 @@ def correction(match, conn, nick, chan, message):
                 mod_msg = unescape_re.sub(r"\1", new)
 
             message("Correction, {}".format(fmt.format(name, mod_msg)))
-            if nick.lower() == name.lower():
-                msg = ireplace(re.escape(msg), find_esc, replace_esc)
-                msg = unescape_re.sub(r"\1", msg)
-                conn.history[chan].append((name, timestamp, msg))
+            # if nick.lower() == name.lower():
+            #     msg = ireplace(re.escape(msg), find_esc, replace_esc)
+            #     msg = unescape_re.sub(r"\1", msg)
+            #     conn.history[chan].append((name, timestamp, msg))
 
             break
 
