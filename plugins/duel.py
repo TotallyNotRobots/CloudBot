@@ -754,9 +754,12 @@ def duel_tuple(n1, n2):
 
 def clean_duel(n1, n2):
     global current_duels
-    del current_duels[duel_tuple(n1, n2)]
-    del current_duels[n1]
-    del current_duels[n2]
+    if duel_tuple(n1, n2) in current_duels:
+        del current_duels[duel_tuple(n1, n2)]
+    if n1 in current_duels[n1]:
+        del current_duels[n1]
+    if n2 in current_duels[n2]:
+        del current_duels[n2]
 
 @hook.command("duel", autohelp=False)
 def duel(text, nick, chan, message, conn, event):
@@ -769,7 +772,7 @@ def duel(text, nick, chan, message, conn, event):
     if not nick2:
         return "Please specify a user to duel with."
     if not event.is_nick_valid(nick2):
-        return "That's a impossible to use nickname!"
+        return "That nickname is impossible to use!"
     if nick2.casefold() == nick.casefold():
         return "You can't duel yourself."
     if nick2.casefold() in pending and chan in pending[nick2.casefold()]:
@@ -798,8 +801,25 @@ def accept_duel(nick, chan, message, conn):
     current_duels[nick.casefold()] = nick2.casefold()
     current_duels[nick2.casefold()] = nick.casefold()
     delay = random.randrange(3, 12)
-    message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + 3} seconds. Use .bang <user> to shoot. If you shoot too early you loose, whoever shoots first win!")
-    Timer(delay, duel_start_countdown, [3, nick, nick2, chan, message, conn]).start()
+    countdown_start = 3
+    message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + countdown_start} seconds. Use .bang <user> to shoot. If you shoot too early you loose, whoever shoots first win!")
+    Timer(delay, duel_start_countdown, [countdown_start, nick, nick2, chan, message, conn]).start()
+
+@hook.command("duelcancel", autohelp=False)
+def cancel_duel(text, nick, chan, message, conn):
+    """<nick> - Cancels pending duel with user."""
+    global pending, current_duels
+    check = get_state_table(conn.name, chan).game_on
+    if not check:
+        return "Dueling is not currently enabled in {}.".format(chan)
+    nick2 = text.split()[0].strip().casefold()
+    if nick2 not in pending:
+        return "You have no pending duels with that user."
+    if chan not in pending[nick2]:
+        return "You have no pending duels in this channel with that user."
+    clean_duel(nick, nick2)
+    del pending[nick2][chan]
+
 
 def duel_start_countdown(duel_countdown, nick, nick2, chan, message, conn):
     if current_duels[duel_tuple(nick, nick2)]["canceled"]:
