@@ -1,10 +1,12 @@
 """A fork of duckhunt for mexican standoff far west like duels between users."""
+"""Currently a mess"""
 # noqa: D401
 
 import operator
 import random
+import re
 from collections import defaultdict
-from threading import Lock
+from threading import Lock, Timer
 from time import sleep, time
 from typing import Dict, List, NamedTuple, TypeVar
 
@@ -301,38 +303,35 @@ def update_score(nick, chan, db, conn, shoot=0):
     return {"shoot": shoot}
 
 
-def attack(event, nick, chan, db, conn, attack_type):
+def attack(event, nick, chan, db, conn, attack_type, nick2=None):
+    global current_duels
     if is_opt_out(conn.name, chan):
         return None
 
     network = conn.name
     status = get_state_table(network, chan)
 
-    out = ""
     if attack_type == "shoot":
-        miss = [
-            "WHOOSH! You missed the duel completely!",
-            "Your gun jammed!",
-            "Better luck next time.",
-            "WTF?! Who are you, Kim Jong Un firing missiles? You missed.",
-        ]
-        no_duel = "There is no duel! What are you shooting at?"
-        msg = "{} you shot a duel in {:.3f} seconds! You have killed {} in {}."
-        scripter_msg = (
-            "You pulled the trigger in {:.3f} seconds, that's mighty fast. "
-            "Are you sure you aren't a script? Take a 2 hour cool down."
-        )
+        no_duel = "You are not in a duel with that person! You can't shoot at someone just like this. What are you, a criminal?"
+        msg = "{} shot first in {:.3f} seconds! You have killed {} people in {}."
         attack_type = "shoot"
 
     if not status.game_on:
-        return "There is no hunt right now. Use .starthunt to start a game."
+        return "There is no duel right now. Use .startduel to start a game."
 
-    if status.duel_status != 1:
+    if nick2 and nick.casefold() == nick2.casefold():
+        return "http://www.suicide.org/"
+    nick2 = current_duels.get(nick.casefold()) if nick2 is None else nick2
+    if not nick2 or not current_duels.get(nick2):
         return no_duel
-
+    game = current_duels[duel_tuple(nick, nick2)]
     status.shoot_time = time()
+    status.duel_time = game['start_time']
     deploy = status.duel_time
     shoot = status.shoot_time
+    if not game["open"]:
+        game["canceled"] = True
+        return f"<{nick}> You shot too early! You loose!"
     if nick.lower() in scripters:
         if scripters[nick.lower()] > shoot:
             event.notice(
@@ -342,17 +341,8 @@ def attack(event, nick, chan, db, conn, attack_type):
             )
             return None
 
-    chance = hit_or_miss(deploy, shoot)
-    if not random.random() <= chance and chance > 0.05:
-        out = random.choice(miss) + " You can try again in 7 seconds."
-        scripters[nick.lower()] = shoot + 7
-        return out
-
-    if chance == 0.05:
-        out += scripter_msg.format(shoot - deploy)
-        scripters[nick.lower()] = shoot + 7200
-        return random.choice(miss) + " " + out
-
+    clean_duel(nick, nick2)
+    # message(f"<{nick}> Wins the duel shooting in {(shoot - game['start_time']):.3f} seconds!")
     status.duel_status = 2
     try:
         args = {attack_type: 1}
@@ -364,17 +354,21 @@ def attack(event, nick, chan, db, conn, attack_type):
         raise
 
     event.message(
-        msg.format(nick, shoot - deploy, pluralize_auto(score, "duel"), chan)
+        msg.format(nick, shoot - deploy, score, "duel", chan)
     )
     return None
 
 
-@hook.command("shoot", autohelp=False)
-def bang(nick, chan, db, conn, event):
-    """- when there is a duel on the loose use this command to shoot it."""
-    with chan_locks[conn.name][chan.casefold()]:
-        return attack(event, nick, chan, db, conn, "shoot")
+# @hook.command("shoot", autohelp=False)
+# def shoot(nick, chan, db, conn, event):
+#     """- when there is a duel on the loose use this command to shoot it."""
+#     with chan_locks[conn.name][chan.casefold()]:
+#         return attack(event, nick, chan, db, conn, "shoot")
 
+@hook.regex(re.compile(r'^\s*\.bang\s+(\S+)\s*$', re.I))
+def bang(match, nick, chan, db, conn, event):
+    with chan_locks[conn.name][chan.casefold()]:
+        return attack(event, nick, chan, db, conn, "shoot", match[1])
 
 def top_list(prefix, data, join_char=" • "):
     r"""
@@ -521,16 +515,16 @@ def killers(text, event, chan, conn, db):
 @hook.command("duel_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
     """[{add <chan>|remove <chan>|list}] - Running this command without any arguments displays the status of the
-    current channel. hunt_opt_out add #channel will disable all duel hunt commands in the specified channel.
+    current channel. hunt_opt_out add #channel will disable all duel commands in the specified channel.
     hunt_opt_out remove #channel will re-enable the game for the specified channel.
     """
     if not text:
         if is_opt_out(conn.name, chan):
-            return "duel hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(
+            return "duel is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(
                 chan
             )
 
-        return "duel hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(
+        return "duel is enabled in {}. To disable it run .hunt_opt_out add #channel".format(
             chan
         )
 
@@ -547,7 +541,7 @@ def hunt_opt_out(text, chan, db, conn):
 
     if command.lower() == "add":
         if is_opt_out(conn.name, channel):
-            return "duel hunt has already been disabled in {}.".format(channel)
+            return "duel has already been disabled in {}.".format(channel)
 
         query = optout.insert().values(network=conn.name, chan=channel.lower())
         db.execute(query)
@@ -559,7 +553,7 @@ def hunt_opt_out(text, chan, db, conn):
 
     if command.lower() == "remove":
         if not is_opt_out(conn.name, channel):
-            return "duel hunt is already enabled in {}.".format(channel)
+            return "duel is already enabled in {}.".format(channel)
 
         delete = optout.delete(optout.c.chan == channel.lower())
         db.execute(delete)
@@ -686,7 +680,7 @@ def duels_user(text, nick, chan, conn, db, message):
             message(
                 "{} has killed {} people in {}.".format(
                     name,
-                    pluralize_auto(duels["chankilled"], "duel"),
+                    duels["chankilled"],
                     chan,
                 )
             )
@@ -707,7 +701,7 @@ def duels_user(text, nick, chan, conn, db, message):
         )
         return None
 
-    return "It appears {} has not participated in the duel hunt.".format(name)
+    return "It appears {} has not participated in or won any duel".format(name)
 
 
 @hook.command("duelstats", autohelp=False)
@@ -739,8 +733,8 @@ def duel_stats(chan, conn, db, message):
         )[0]
         message(
             "\x02duel Stats:\x02 {:,} killed in \x02{}\x02. "
-            "Across {} \x02{:,}\x02 people have been killed . "
-            "\x02Top Channels:\x02 \x02{}\x02 with {} kills".format(
+            "Across {} \x02{:,}\x02 people have been killed. "
+            "\x02Top Channels:\x02 \x02{}\x02 with {}".format(
                 chan_killed,
                 chan,
                 pluralize_auto(len(chans), "channel"),
@@ -754,28 +748,43 @@ def duel_stats(chan, conn, db, message):
     return "It looks like there has been no duels on this channel"
 
 pending = {}
+current_duels = {}
+def duel_tuple(n1, n2):
+    return tuple(sorted([n1.casefold(), n2.casefold()]))
+
+def clean_duel(n1, n2):
+    global current_duels
+    del current_duels[duel_tuple(n1, n2)]
+    del current_duels[n1]
+    del current_duels[n2]
+
 @hook.command("duel", autohelp=False)
-def duel(text, nick, chan, message, conn):
+def duel(text, nick, chan, message, conn, event):
     """<nick> - Starts a duel with a user."""
-    global pending
+    global pending, current_duels
     check = get_state_table(conn.name, chan).game_on
     if not check:
         return "Dueling is not currently enabled in {}.".format(chan)
-    nick2 = text.split()[0]
+    nick2 = text.split()[0].strip()
+    if not nick2:
+        return "Please specify a user to duel with."
+    if not event.is_nick_valid(nick2):
+        return "That's a impossible to use nickname!"
     if nick2.casefold() == nick.casefold():
         return "You can't duel yourself."
-
     if nick2.casefold() in pending and chan in pending[nick2.casefold()]:
         return f"<{nick}> {nick2} already has a pending duel request here with {pending[nick2.casefold()][chan]}. Please wait for him to accept."
-    message(f"<{nick2}> {nick} has challenged you to a duel! Use .accept to accept it")
+    if duel_tuple(nick, nick2) in current_duels:
+        return f"<{nick}> {nick2} Is already in a duel with you, duh?"
     if nick2.casefold() not in pending:
         pending[nick2.casefold()] = {}
     pending[nick2.casefold()][chan] = nick
+    return f"<{nick2}> {nick} has challenged you to a duel! Use .accept to accept it"
 
 @hook.command("accept", autohelp=False)
-def duel(nick, chan, message, conn):
+def accept_duel(nick, chan, message, conn):
     """- Accepts duel from user."""
-    global pending
+    global pending, current_duels
     check = get_state_table(conn.name, chan).game_on
     if not check:
         return "Dueling is not currently enabled in {}.".format(chan)
@@ -784,4 +793,30 @@ def duel(nick, chan, message, conn):
     if chan not in pending[nick.casefold()]:
         return "You have no pending duels in this channel."
     nick2 = pending[nick.casefold()][chan]
-    return f"<{nick2}> {nick} has accepted your duel request! The duel will begin in 10 seconds."
+    del pending[nick.casefold()][chan]
+    current_duels[duel_tuple(nick, nick2)] = {"chan": chan, "nicks": [nick, nick2], "open": False, "start_time": None, "canceled": False}
+    current_duels[nick.casefold()] = nick2.casefold()
+    current_duels[nick2.casefold()] = nick.casefold()
+    delay = random.randrange(3, 12)
+    message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + 3} seconds. Use .bang <user> to shoot. If you shoot too early you loose, whoever shoots first win!")
+    Timer(delay, duel_start_countdown, [3, nick, nick2, chan, message, conn]).start()
+
+def duel_start_countdown(duel_countdown, nick, nick2, chan, message, conn):
+    if current_duels[duel_tuple(nick, nick2)]["canceled"]:
+        clean_duel(nick, nick2)
+        return
+    if duel_countdown == 0:
+        duel_start(nick, nick2, chan, message, conn)
+        return
+    message(f"<{nick2} {nick}> {duel_countdown}")
+    duel_countdown -= 1
+    Timer(1, duel_start_countdown, [duel_countdown, nick, nick2, chan, message, conn]).start()
+
+def duel_start(nick, nick2, chan, message, conn):
+    global current_duels
+    if current_duels[duel_tuple(nick, nick2)]["canceled"]:
+        clean_duel(nick, nick2)
+        return
+    current_duels[duel_tuple(nick, nick2)]["open"] = True
+    current_duels[duel_tuple(nick, nick2)]["start_time"] = time()
+    message(f"<{nick2} {nick}> SHOOT!")

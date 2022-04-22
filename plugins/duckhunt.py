@@ -1,5 +1,6 @@
 import operator
 import random
+import re
 from collections import defaultdict
 from threading import Lock
 from time import sleep, time
@@ -507,7 +508,8 @@ def attack(event, nick, chan, db, conn, attack_type):
     return None
 
 
-@hook.command("bang", autohelp=False)
+# @hook.command("bang", autohelp=False)
+@hook.regex(re.compile(r'^\s*\.bang\s*$', re.I))
 def bang(nick, chan, db, conn, event):
     """- when there is a duck on the loose use this command to shoot it."""
     with chan_locks[conn.name][chan.casefold()]:
