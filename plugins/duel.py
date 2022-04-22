@@ -5,6 +5,7 @@
 import operator
 import random
 import re
+from cachetools import TTLCache
 from collections import defaultdict
 from threading import Lock, Timer
 from time import sleep, time
@@ -302,11 +303,14 @@ def update_score(nick, chan, db, conn, shoot=0):
     dbadd_entry(nick, chan, db, conn, shoot)
     return {"shoot": shoot}
 
-
+ignorebangs = TTLCache(maxsize=1024, ttl=5)
 def attack(event, nick, chan, db, conn, attack_type, nick2=None):
-    global current_duels
+    global ignorebangs, current_duels
     if is_opt_out(conn.name, chan):
         return None
+
+    if (chan, nick.casefold()) in ignorebangs:
+        return
 
     network = conn.name
     status = get_state_table(network, chan)
@@ -343,6 +347,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
             return None
 
     clean_duel(nick, nick2)
+    ignorebangs[(chan, nick2.casefold())] = True
     # message(f"<{nick}> Wins the duel shooting in {(shoot - game['start_time']):.3f} seconds!")
     status.duel_status = 2
     try:
