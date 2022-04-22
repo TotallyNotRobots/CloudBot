@@ -319,6 +319,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
         no_duel = "You are not in a duel with that person! You can't shoot at someone just like this. What are you, a criminal?"
         msg = "{} shot first in {:.3f} seconds! You have killed {} people in this room."
         attack_type = "shoot"
+        early_msgs = ["His gang instantly revenged by killing you too.", "Lord's wrath might fall over you.", "And you missed! You died for being a fool.", "The sherif killed you then.", "You lost!"]
 
     if not status.game_on:
         return "There is no duel right now. Use .startduel to start a game."
@@ -334,19 +335,15 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
     status.duel_time = game['start_time']
     deploy = status.duel_time
     shoot = status.shoot_time
+    shot_early = False
     if not game["open"]:
         game["canceled"] = True
-        return f"<{nick}> You shot too early! You loose!"
-    if nick.lower() in scripters:
-        if scripters[nick.lower()] > shoot:
-            event.notice(
-                "You are in a cool down period, you can try again in {:.3f} seconds.".format(
-                    scripters[nick.lower()] - shoot
-                )
-            )
-            return None
-
-    clean_duel(nick, nick2)
+        msg = "<{}> You shot too early! " + random.choice(early_msgs) + " {} wins this duel and killed {} on this room"
+        nick, nick2 = nick2, nick
+        deploy = shoot = 0
+        shot_early = True
+    else:
+        clean_duel(nick, nick2)
     ignorebangs[(chan, nick2.casefold())] = True
     # message(f"<{nick}> Wins the duel shooting in {(shoot - game['start_time']):.3f} seconds!")
     status.duel_status = 2
@@ -360,7 +357,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
         raise
 
     event.message(
-        msg.format(nick, shoot - deploy, score, chan)
+        msg.format(nick, shoot - deploy, score, chan) if not shot_early else msg.format(nick2, nick, score, chan)
     )
     return None
 
