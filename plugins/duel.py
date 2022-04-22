@@ -313,7 +313,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
 
     if attack_type == "shoot":
         no_duel = "You are not in a duel with that person! You can't shoot at someone just like this. What are you, a criminal?"
-        msg = "{} shot first in {:.3f} seconds! You have killed {} people in {}."
+        msg = "{} shot first in {:.3f} seconds! You have killed {} people in this room."
         attack_type = "shoot"
 
     if not status.game_on:
@@ -322,6 +322,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
     if nick2 and nick.casefold() == nick2.casefold():
         return "http://www.suicide.org/"
     nick2 = current_duels.get(nick.casefold()) if nick2 is None else nick2
+    nick2 = nick2.casefold()
     if not nick2 or not current_duels.get(nick2):
         return no_duel
     game = current_duels[duel_tuple(nick, nick2)]
@@ -354,7 +355,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
         raise
 
     event.message(
-        msg.format(nick, shoot - deploy, score, "duels", chan)
+        msg.format(nick, shoot - deploy, score, chan)
     )
     return None
 
@@ -752,14 +753,24 @@ current_duels = {}
 def duel_tuple(n1, n2):
     return tuple(sorted([n1.casefold(), n2.casefold()]))
 
-def clean_duel(n1, n2):
+def clean_duel(n1, n2, checkonly=False):
     global current_duels
+    n1 = n1.casefold()
+    n2 = n2.casefold()
+    cancelled = False
     if duel_tuple(n1, n2) in current_duels:
-        del current_duels[duel_tuple(n1, n2)]
-    if n1 in current_duels[n1]:
-        del current_duels[n1]
-    if n2 in current_duels[n2]:
-        del current_duels[n2]
+        if not checkonly:
+            del current_duels[duel_tuple(n1, n2)]
+        cancelled = True
+    if n1 in current_duels:
+        if not checkonly:
+            del current_duels[n1]
+        cancelled = True
+    if n2 in current_duels:
+        if not checkonly:
+            del current_duels[n2]
+        cancelled = True
+    return cancelled
 
 @hook.command("duel", autohelp=False)
 def duel(text, nick, chan, message, conn, event):
@@ -810,15 +821,31 @@ def cancel_duel(text, nick, chan, message, conn):
     """<nick> - Cancels pending duel with user."""
     global pending, current_duels
     check = get_state_table(conn.name, chan).game_on
+    err = ""
     if not check:
         return "Dueling is not currently enabled in {}.".format(chan)
-    nick2 = text.split()[0].strip().casefold()
-    if nick2 not in pending:
-        return "You have no pending duels with that user."
-    if chan not in pending[nick2]:
-        return "You have no pending duels in this channel with that user."
-    clean_duel(nick, nick2)
-    del pending[nick2][chan]
+    if not text:
+        return "Please specify a user to cancel the duel with."
+    nick21 = text.split()[0].strip().casefold()
+    nick22 = pending.get(nick.casefold(), {}).get(chan)
+    is_pending = False
+    if nick21 not in pending and not nick22:
+        err = "You have no pending duels with that user."
+    elif chan not in pending.get(nick21, []) and not nick22:
+        err = "You have no pending duels in this channel with that user."
+    else:
+        is_pending = True
+    nick2 = nick21 or nick22
+    if nick2 and clean_duel(nick, nick2, True):
+        err = ""
+        current_duels[duel_tuple(nick, nick2)]["canceled"] = True
+
+    if not err and is_pending:
+        if nick2.casefold() in pending and chan in pending[nick2.casefold()]:
+            del pending[nick2.casefold()][chan]
+        if nick.casefold() in pending and chan in pending[nick.casefold()]:
+            del pending[nick.casefold()][chan]
+    return f"<{nick}> {nick2} duel has been canceled." if not err else err
 
 
 def duel_start_countdown(duel_countdown, nick, nick2, chan, message, conn):
