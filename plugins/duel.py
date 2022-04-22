@@ -216,7 +216,7 @@ def start_duel(db, chan, message, conn):
         "This is now a self regulated town, eye for eye tooth for tooth."
         "All problems must be solved in a duel."
         "Use .duel [nick] to challenge someone, .accept to accept a duel and"
-        ".shoot to shoot when the time is right.",
+        ".bang <nick> to shoot when the time is right.",
         chan,
     )
     return None
@@ -354,7 +354,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
         raise
 
     event.message(
-        msg.format(nick, shoot - deploy, score, "duel", chan)
+        msg.format(nick, shoot - deploy, score, "duels", chan)
     )
     return None
 
