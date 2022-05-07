@@ -345,6 +345,7 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
     else:
         clean_duel(nick, nick2)
     ignorebangs[(chan, nick2.casefold())] = True
+    ignorebangs[(chan, nick.casefold())] = True
     # message(f"<{nick}> Wins the duel shooting in {(shoot - game['start_time']):.3f} seconds!")
     status.duel_status = 2
     try:

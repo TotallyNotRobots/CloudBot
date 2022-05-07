@@ -6,6 +6,8 @@ from mcstatus.pinger import PingResponse
 from cloudbot import hook
 from cloudbot.util import colors
 
+DEFAULT_SERVER = "minecraft.dot.org.es"
+
 mc_colors = [
     ("\xa7f", "\x0300"),
     ("\xa70", "\x0301"),
@@ -38,9 +40,7 @@ def format_colors(description):
     return description.replace("\xa7k", "")
 
 
-@hook.command("mcping", "mcp")
 def mcping(text):
-    """<server[:port]> - gets info about the Minecraft server at <server[:port]>"""
     try:
         server = MinecraftServer.lookup(text)
     except (IOError, ValueError) as e:
@@ -71,3 +71,14 @@ def mcping(text):
     return output_format.format(
         description, s.version.name, s.latency, s.players.online, s.players.max
     ).replace("\n", colors.parse("$(clear) - "))
+
+
+@hook.command("mc", autohelp=False)
+def d_mcp():
+    "Information about our minecraft server"
+    return mcping(DEFAULT_SERVER)
+
+@hook.command("mcping", "mcp")
+def a_mcp(text):
+    """<server[:port]> - gets info about the Minecraft server at <server[:port]>"""
+    return mcping(text)

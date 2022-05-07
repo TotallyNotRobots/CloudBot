@@ -6,7 +6,7 @@ from lxml import html
 from cloudbot import hook
 
 
-@hook.command("metacritic", "mc")
+@hook.command("metacritic", "meta")
 def metacritic(text, reply):
     """[all|movie|tv|album|x360|ps3|pc|gba|ds|3ds|wii|vita|wiiu|xone|ps4] <title> - gets rating for <title> from
      metacritic on the specified medium"""
