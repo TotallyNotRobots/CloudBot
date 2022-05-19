@@ -38,7 +38,7 @@ def rhyme(text, bot, nick):
 def adj(text, bot, nick):
     """<word> - get adjectives that are often used to describe input word."""
     args = targs(text)
-    return words(rel_rhy=args[0])
+    return words(rel_jjb=args[0])
 
 
 @hook.command()

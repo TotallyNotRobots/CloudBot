@@ -3,6 +3,7 @@ asyncio-dgram==1.2.0
 attrs==21.2.0
 beautifulsoup4==4.10.0
 bs4==0.0.1
+cachetools==5.0.0
 certifi==2020.12.5
 chardet==4.0.0
 charset-normalizer==2.0.12
@@ -10,6 +11,7 @@ cleverwrap==0.3.0.2
 click==7.1.2
 colorama==0.4.4
 colorful==0.5.4
+decorator==5.1.1
 dict.cc.py==3.1.0
 dnspython==2.2.0
 dnspython3==1.15.0
@@ -53,6 +55,7 @@ treelib==1.6.1
 tweepy==3.10.0
 typing-extensions==3.7.4.3
 urllib3==1.26.7
+validators==0.19.0
 venusian==3.0.0
 watchdog==2.1.6
 wrapt==1.12.1
