@@ -31,6 +31,7 @@ def leet(text, chan, bot, conn, message):
             else:
                 mod_msg = msg
                 fmt = "<{}> {}"
-        message(fmt.format(name, leetify(mod_msg)))
-        return
+        if name.casefold() == text.strip().casefold():
+            message(fmt.format(name, leetify(mod_msg)))
+            return
     return leetify(text)
