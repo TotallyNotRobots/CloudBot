@@ -21,6 +21,9 @@ def leet(text, chan, bot, conn, message):
         max_i = 1000
         i = 0
         for name, _timestamp, msg in reversed(conn.history[chan]):
+            if i == 0:
+                i += 1
+                continue
             if i >= max_i:
                 break
             i += 1
