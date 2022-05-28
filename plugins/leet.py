@@ -4,14 +4,33 @@ import unidecode
 origspace = "abcdefghijklmnopqrstuvwxyz"
 keyspace = "4bcd3fg81jk7mn0pqr57uvwxy2"
 
-@hook.command("leet", "leetify", "l33t", "1337")
-def leet(text, bot, nick):
-    """<text> - Converts text to leet"""
-    text = unidecode.unidecode(text)
+def leetify(text):
     out = ""
+    text = unidecode.unidecode(text)
     for origc in text:
         if origc in origspace:
             out += keyspace[origspace.index(origc)]
         else:
             out += origc
     return out
+
+@hook.command("leet", "leetify", "l33t", "1337")
+def leet(text, chan, bot, conn, message):
+    """<text> - Converts text to leet"""
+    if text.strip().split()[0] == text:
+        max_i = 1000
+        i = 0
+        for name, _timestamp, msg in reversed(conn.history[chan]):
+            if i >= max_i:
+                break
+            i += 1
+
+            if msg.startswith("\x01ACTION"):
+                mod_msg = msg[7:].strip(" \x01")
+                fmt = "* {} {}"
+            else:
+                mod_msg = msg
+                fmt = "<{}> {}"
+        message(fmt.format(name, leetify(mod_msg)))
+        return
+    return leetify(text)
