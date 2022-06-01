@@ -2,7 +2,7 @@ from cloudbot import hook
 import unidecode
 
 origspace = "abcdefghijklmnopqrstuvwxyz"
-keyspace = "4bcd3fg81jk7mn0pqr57uvwxy2"
+keyspace = "4bcd3fg8ijk1mn0pqr57uvwxy2"
 
 def leetify(text):
     out = ""
