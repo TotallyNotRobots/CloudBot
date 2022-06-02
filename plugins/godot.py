@@ -1,18 +1,20 @@
 """Maybe more godot relatd stuff in the future."""
-# Depents on htmlq: cargo install htmlq
+
 from cloudbot import hook
 import datetime
-import re
-import subprocess
+from gazpacho import get, Soup
 
 @hook.command(autohelp=False)
 def jamdate(reply):
     """- Next godot jam date"""
-    # TODO scrape like a real person would, using bs4 and requests
-    text = subprocess.check_output("curl -s \"$(curl -s https://godotwildjam.com | htmlq \"a.elementor-button-link\" --attribute href | head -1)\" | htmlq --text \".date_data\"", shell=True).decode().strip()
-    reply(text)
-    from_date = re.search(r'(?<= from )(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', text).group(1)
-    to_date = re.search(r'(?<= to )(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', text).group(1)
+    url_soup = Soup(get("https://godotwildjam.com"))
+    url = url_soup.find("a", {"class": "elementor-button-link"})[0].attrs['href']
+    soup = Soup(get(url))
+    elm = soup.find("div", {"class": "date_data"})
+    text = elm.text
+    from_date = elm.find("span")[0].text
+    to_date = elm.find("span")[1].text
+    reply(f"{text} from {from_date} to {to_date}")
     from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
     to_date = datetime.datetime.strptime(to_date, "%Y-%m-%d %H:%M:%S")
     start_time_left = (from_date - datetime.datetime.utcnow())
