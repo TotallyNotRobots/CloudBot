@@ -65,7 +65,7 @@ def format_output(item, show_url=False):
                " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
 
 
-@hook.regex(reddit_re, singlethread=True)
+# @hook.regex(reddit_re, singlethread=True)
 def reddit_url(match, bot):
     url = match.group()
     url = URL(url).with_scheme("https")
