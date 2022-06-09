@@ -69,12 +69,12 @@ def blackbeard(text, reply):
                 return show
             if show is None:
                 continue
-            shows.append(show)
+            shows.append({**show, **{"provider": prov}})
     else:
         show, ok = search_show(provider, search)
         if not ok:
             return show
-        shows.append(show)
+        shows.append({**show, **{"provider": provider}})
 
     if len(shows) == 0:
         return "No results found"
@@ -87,7 +87,7 @@ def blackbeard(text, reply):
         reply("Description: " + show["Metadata"]["Description"][:454])
         return
 
-    episodes = getJson("episodes", {"provider": provider, "showurl": show["Url"]})
+    episodes = getJson("episodes", {"provider": show["provider"], "showurl": show["Url"]})
     if "error" in episodes:
         return episodes["message"]
 
