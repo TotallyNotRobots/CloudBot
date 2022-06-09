@@ -1,8 +1,9 @@
 import re
 
-from cloudbot import hook
 import requests
 from thefuzz import fuzz
+
+from cloudbot import hook
 
 API = "https://blackbeardapi.herokuapp.com/"
 
@@ -14,20 +15,36 @@ def getJson(path, params={}):
 
 providers = {}
 
+
 @hook.on_start
 def load_providers():
     global providers
     providers = getJson("providers")["providers"]
     providers = [prov["Name"] for prov in providers]
 
+def search_show(provider, search):
+    results = getJson("search", {"provider": provider, "q": search})
+    if "error" in results:
+        return results["message"], False
+
+    shows = results["shows"]
+    if shows is None or len(shows) == 0:
+        return None, True
+    # Find show which the title has the bigger fuzzy ratio with search
+    return max(shows, key=lambda show: fuzz.ratio(
+        show["Title"].strip().casefold(), search.strip().casefold())), True
+
 
 @hook.command("blackbeard", "blb")
 def blackbeard(text, reply):
-    """<provider> <search> -N - searches for <search> on <provider>. If -N is provided, where N is a number
-    , will return the Nth episode"""
+    """
+    [provider] <search> -N - searches for <search> on <provider>. If -N is provided, where N is a number
+    , will return the Nth episode. You can also use `list` to list providers
+    """
+    global providers
     args = text.strip().split()
-    if len(args) < 2:
-        return "Usage: .blackbeard <provider> <search>"
+    if len(args) < 1:
+        return "Usage: .blackbeard [provider] <search> or .blackbeard list"
 
     m = re.match(r"^-(\d+)$", args[-1].strip().casefold())
     episode = None
@@ -37,15 +54,31 @@ def blackbeard(text, reply):
 
     provider = args[0]
     search = " ".join(args[1:])
+    if provider == "list" and len(args) == 1:
+        return "Available providers: " + ", ".join(providers)
+
     if provider not in providers:
-        return "Invalid provider. Valid providers are: " + ", ".join(providers)
+        search = provider + " " + search
+        provider = None
 
-    results = getJson("search", {"provider": provider, "q": search})
-    if "error" in results:
-        return results["message"]
+    shows = []
+    if provider is None:
+        for prov in providers:
+            show, ok = search_show(prov, search)
+            if not ok:
+                return show
+            if show is None:
+                continue
+            shows.append(show)
+    else:
+        show, ok = search_show(provider, search)
+        if not ok:
+            return show
+        shows.append(show)
 
-    shows = results["shows"]
-    # Find show which the title has the bigger fuzzy ratio with search
+    if len(shows) == 0:
+        return "No results found"
+
     show = max(shows, key=lambda show: fuzz.ratio(
         show["Title"].strip().casefold(), search.strip().casefold()))
 
@@ -58,9 +91,10 @@ def blackbeard(text, reply):
     if "error" in episodes:
         return episodes["message"]
 
+    episodes = episodes["episodes"]
     if episode > len(episodes):
         return "Invalid episode number. Max episode is " + str(len(episodes))
 
-    episode = episodes["episodes"][episode]
+    episode = episodes[episode]
     reply(episode["Title"] + " - " + episode["Url"])
     reply("Description: " + episode["Metadata"]["Description"][:454])
