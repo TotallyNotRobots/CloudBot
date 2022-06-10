@@ -13,6 +13,13 @@ def getJson(path, params={}):
     return r.json()
 
 
+def pastebin(text):
+    url = "http://ix.io"
+    payload = {'f:1=<-': text}
+    response = requests.request("POST", url, data=payload)
+    return response.text
+
+
 providers = {}
 
 
@@ -21,6 +28,7 @@ def load_providers():
     global providers
     providers = getJson("providers")["providers"]
     providers = [prov["Name"] for prov in providers]
+
 
 def search_show(provider, search):
     results = getJson("search", {"provider": provider, "q": search})
@@ -82,12 +90,16 @@ def blackbeard(text, reply):
     show = max(shows, key=lambda show: fuzz.ratio(
         show["Title"].strip().casefold(), search.strip().casefold()))
 
-    reply("Show: " + show["Title"] + " - " + show["Url"])
+    reply("Show/Movie: " + show["Title"] + " - " + show["Url"])
     if episode is None:
-        reply("Description: " + show["Metadata"]["Description"][:454])
+        msg = "Description: " + show["Metadata"]["Description"][:400].replace("\n", " ")
+        if len(show["Metadata"]["Description"]) > 512:
+            msg += f' -->  {pastebin(show["Metadata"]["Description"])}'
+        reply(msg)
         return
 
-    episodes = getJson("episodes", {"provider": show["provider"], "showurl": show["Url"]})
+    episodes = getJson(
+        "episodes", {"provider": show["provider"], "showurl": show["Url"]})
     if "error" in episodes:
         return episodes["message"]
 
@@ -96,5 +108,12 @@ def blackbeard(text, reply):
         return "Invalid episode number. Max episode is " + str(len(episodes))
 
     episode = episodes[episode]
-    reply(episode["Title"] + " - " + episode["Url"])
-    reply("Description: " + episode["Metadata"]["Description"][:454])
+    url = episode["Url"]
+    if len(url) > 150:
+        url = pastebin(url)
+    reply("Episode/Video: " + episode["Title"] + " - " + url)
+
+    msg = "Description: " + episode["Metadata"]["Description"][:400].replace("\n", " ")
+    if len(episode["Metadata"]["Description"]) > 512:
+        msg += f' -->  {pastebin(episode["Metadata"]["Description"])}'
+    reply(msg)
