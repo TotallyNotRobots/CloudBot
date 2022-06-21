@@ -18,6 +18,7 @@ pages = {
 
 
 def get_short(link):
+    print(link)
     soup = Soup(get(link))
     text = ""
     for p in soup.find("div", {
