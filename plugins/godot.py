@@ -19,7 +19,7 @@ def jamdate(reply):
         text = elm.text
         from_date = elm.find("span")[0].text
         to_date = elm.find("span")[1].text
-        reply(f"Ich.io Godot {text} from {from_date} to {to_date}")
+        reply(f"itch.io Godot Wild Jam: {text} {from_date} to {to_date}")
         from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d %H:%M:%S")
         to_date = datetime.datetime.strptime(to_date, "%Y-%m-%d %H:%M:%S")
     except Exception:
