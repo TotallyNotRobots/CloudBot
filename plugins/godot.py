@@ -33,8 +33,23 @@ def jamdate(reply):
     start_time_left = (from_date - datetime.datetime.utcnow())
     end_time_left = (to_date - datetime.datetime.utcnow())
 
-    reply(
-        f"Jam starts in {start_time_left.days} days {start_time_left.seconds//3600} hours {(start_time_left.seconds//60)%60} minutes.")
+    if end_time_left.days < 0:
+        reply("This month's Godot Wild Jam is over.")
+        now = datetime.datetime.utcnow()
+        firstday = now.replace(day=1, month=now.month+1)
+        # This is the friday after the 1st weekend
+        friday = 12 - firstday.weekday()
+        from_date = firstday.replace(day=friday, hour=20, minute=0)
+        to_date = from_date + datetime.timedelta(days=7)
+
+        start_time_left = (from_date - datetime.datetime.utcnow())
+        end_time_left = (to_date - datetime.datetime.utcnow())
+
+    if start_time_left.days < 0:
+        reply("Jam has already begun.")
+    else:
+        reply(
+            f"Next Jam starts in {start_time_left.days} days {start_time_left.seconds//3600} hours {(start_time_left.seconds//60)%60} minutes.")
     reply(
         f"Jam ends in {end_time_left.days} days {end_time_left.seconds//3600} hours {(end_time_left.seconds//60)%60} minutes.")
 
