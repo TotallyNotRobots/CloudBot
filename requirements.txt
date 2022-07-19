@@ -42,6 +42,7 @@ py-irclib==0.3.0
 py-open-weather==0.1.3
 pydantic==1.8.1
 pylint==2.7.4
+pymediawiki==0.7.1
 python-Levenshtein==0.12.2
 regex==2022.3.2
 requests==2.27.1

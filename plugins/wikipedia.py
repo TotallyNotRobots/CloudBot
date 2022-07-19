@@ -4,6 +4,7 @@ Scaevolus 2009"""
 import requests
 from requests import RequestException
 from yarl import URL
+from mediawiki import MediaWiki
 
 from cloudbot import hook
 from cloudbot.util import formatting
@@ -23,31 +24,39 @@ def get_info(title):
         return response.json()
 
 
-@hook.command("wiki", "wikipedia", "w")
+@hook.command("wiki", "wikipedia", "w", autohelp=False)
 def wiki(text, reply):
-    """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
+    """<phrase> - Gets first sentence of Wikipedia article on <phrase>. If no <phrase> is given, returns random article."""
 
-    search_params = {"srsearch": text.strip()}
-    try:
-        with requests.get(search_url, params=search_params) as response:
-            response.raise_for_status()
-            data = response.json()
-    except RequestException:
-        reply("Could not get Wikipedia page")
-        raise
+    if text.strip() == "":
+        wikipedia = MediaWiki()
+        title = wikipedia.random()
+        page = wikipedia.page(title)
+        desc = page.summary
+        url = page.url
 
-    for result in data["query"]["search"]:
-        title = result["title"]
-        info = get_info(title)
-        if info["type"] != "standard":
-            continue
-
-        desc = info["extract"]
-        url = info["content_urls"]["desktop"]["page"]
-
-        break
     else:
-        return "No results found."
+        search_params = {"srsearch": text.strip()}
+        try:
+            with requests.get(search_url, params=search_params) as response:
+                response.raise_for_status()
+                data = response.json()
+        except RequestException:
+            reply("Could not get Wikipedia page")
+            raise
+
+        for result in data["query"]["search"]:
+            title = result["title"]
+            info = get_info(title)
+            if info["type"] != "standard":
+                continue
+
+            desc = info["extract"]
+            url = info["content_urls"]["desktop"]["page"]
+
+            break
+        else:
+            return "No results found."
 
     if desc:
         desc = formatting.truncate(desc, 200)
