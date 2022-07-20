@@ -7,6 +7,8 @@ correction_re = re.compile(r"^(?:[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?
 exp_re = re.compile(r"(?:[sS]/(?:((?:\\/|[^/])*)(?<!\\)/((?:\\/|[^/])*)(?:(?<!\\)/([igx]{,4}))?))")
 unescape_re = re.compile(r"\\(.)")
 
+LAMECOUNTER = 15
+
 REFLAGS = {
     "i": re.IGNORECASE,
     "g": re.MULTILINE,
@@ -31,7 +33,7 @@ def correction(match, conn, nick, chan, message):
     # groups = [unescape_re.sub(r"\1", group or "") for group in match.groups()]
     find, replace, re_flags = paser_sed_exp(match.groups(), message)
     # if find doesn't have any special character and find is smaller than replace we yell at the user
-    if not re.search(r"[\.\+\[\]\(\)\{\}\^\$\|]", find) and len(find) + 6 < len(replace):
+    if not re.search(r"[\.\+\[\]\(\)\{\}\^\$\|]", find) and len(find) + LAMECOUNTER < len(replace):
         message(f"<{nick}>: Your find is much shorter than your replace and you didn't even use proper regex. Stop trying to do lame stuff and send a proper message again if you need to!")
         return
 
@@ -75,7 +77,7 @@ def correction(match, conn, nick, chan, message):
                 replace_esc = re.escape(new)
                 mod_msg = unescape_re.sub(r"\1", new)
 
-            message("Correction, {}".format(fmt.format(name, mod_msg)))
+            message("Correction {} messages ago, {}".format(i-1, fmt.format(name, mod_msg)))
             # if nick.lower() == name.lower():
             #     msg = ireplace(re.escape(msg), find_esc, replace_esc)
             #     msg = unescape_re.sub(r"\1", msg)
