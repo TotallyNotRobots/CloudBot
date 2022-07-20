@@ -85,4 +85,4 @@ def correction(match, conn, nick, chan, message):
 
             break
 
-    return None
+    return "No match"
