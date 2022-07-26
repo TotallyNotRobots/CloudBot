@@ -4,6 +4,7 @@ from typing import Iterable, Mapping, Match, Optional, Union
 import isodate
 import requests
 from youtube_search import YoutubeSearch
+from youtubesearchpython import Transcript, Video
 
 from cloudbot import hook
 from cloudbot.bot import bot
@@ -149,7 +150,7 @@ def get_video_description(video_id: str) -> str:
 
     if "viewCount" in statistics:
         views = int(statistics["viewCount"])
-        out += " - \x02{:,}\x02 view{}".format(views, "s"[views == 1 :])
+        out += " - \x02{:,}\x02 view{}".format(views, "s"[views == 1:])
 
     uploader = snippet["channelTitle"]
 
@@ -185,18 +186,34 @@ def get_video_id(text: str) -> str:
     return video_id
 
 
+def get_transcript(url: str, maxlen=200) -> str:
+    transcript = ""
+    for seg in Transcript.get(url).get("segments", []):
+        if seg.get("text"):
+            transcript += seg["text"].replace("\n", " ")
+        if len(transcript) > maxlen:
+            transcript = transcript[:maxlen] + "..."
+    return transcript or '\x02Captions not found\x02'
+
+
 @hook.regex(youtube_re)
 def youtube_url(match: Match[str]) -> str:
-    return get_video_description(match.group(1))
+    result = Video.get(match.group(1))
+    time = timeformat.format_time(int(result['duration']['secondsText']), simple=True)
+    return f"\x02{result['title']}\x02, \x02duration:\x02 {time} - {get_transcript(match.group(1))}"
+    # return get_video_description(match.group(1))
 
 
 user_results = {}
+
 
 @hook.command("ytn")
 def youtube_next(text: str, nick: str, reply) -> str:
     global user_results
     result = user_results[nick].pop(0)
-    return  f"\x02{result['title']}\x02, \x02duration:\x02{result['duration']} - https://www.youtube.com/{result['url_suffix']}"
+    vid_id = result['url_suffix'].split('=')[-1]
+    return f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{vid_id} --- {get_transcript(vid_id)}"
+
 
 @hook.command("youtube", "you", "yt", "y")
 def youtube(text: str, nick: str, reply) -> str:
@@ -207,8 +224,9 @@ def youtube(text: str, nick: str, reply) -> str:
     global user_results
     results = YoutubeSearch(text.strip(), max_results=10).to_dict()
     user_results[nick] = results
-    result = user_results[nick].pop(0)
-    return  f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{result['url_suffix'].split('=')[-1]}"
+    return youtube_next(text, nick, reply)
+    # result = user_results[nick].pop(0)
+    # return f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{result['url_suffix'].split('=')[-1]} --- {get_transcript(result['url_suffix'])}"
     # try:
     #     video_id = get_video_id(text)
     #     return (
@@ -283,6 +301,6 @@ def ytplaylist_url(match: Match[str]) -> str:
     author = snippet["channelTitle"]
     num_videos = int(content_details["itemCount"])
     count_videos = " - \x02{:,}\x02 video{}".format(
-        num_videos, "s"[num_videos == 1 :]
+        num_videos, "s"[num_videos == 1:]
     )
     return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)
