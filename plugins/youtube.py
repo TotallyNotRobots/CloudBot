@@ -190,7 +190,7 @@ def get_transcript(url: str, maxlen=200) -> str:
     transcript = ""
     for seg in Transcript.get(url).get("segments", []):
         if seg.get("text"):
-            transcript += seg["text"].replace("\n", " ")
+            transcript += seg["text"].replace("\n", " ") + " "
         if len(transcript) > maxlen:
             transcript = transcript[:maxlen] + "..."
     return transcript or '\x02Captions not found\x02'
