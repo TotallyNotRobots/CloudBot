@@ -816,7 +816,7 @@ def accept_duel(nick, chan, message, conn):
     current_duels[nick2.casefold()] = nick.casefold()
     delay = random.randrange(3, 12)
     countdown_start = 3
-    message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + countdown_start} seconds. Use .bang <user> to shoot. If you shoot too early you loose, whoever shoots first win!")
+    message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + countdown_start} seconds. Use .bang <user> to shoot. If you shoot too early you lose, whoever shoots first win!")
     Timer(delay, duel_start_countdown, [countdown_start, nick, nick2, chan, message, conn]).start()
 
 @hook.command("duelcancel", autohelp=False)

@@ -1,7 +1,9 @@
+anyio==3.6.1
 astroid==2.5.2
 asyncio-dgram==1.2.0
 attrs==21.2.0
 beautifulsoup4==4.10.0
+Brotli==1.0.9
 bs4==0.0.1
 cachetools==5.0.0
 certifi==2020.12.5
@@ -24,6 +26,9 @@ future==0.18.2
 gazpacho==1.1
 googlemaps==4.5.3
 greenlet==1.0.0
+h11==0.12.0
+httpcore==0.15.0
+httpx==0.23.0
 idna==2.10
 imgurpython==1.1.7
 isodate==0.6.0
@@ -34,12 +39,15 @@ lxml==4.7.1
 mccabe==0.6.1
 mcstatus==6.5.0
 multidict==5.2.0
+mutagen==1.45.1
+mwparserfromhell==0.6.4
 nltk==3.6.6
 oauthlib==3.1.0
 orjson==3.5.1
 psutil==5.8.0
 py-irclib==0.3.0
 py-open-weather==0.1.3
+pycryptodomex==3.15.0
 pydantic==1.8.1
 pylint==2.7.4
 pymediawiki==0.7.1
@@ -47,9 +55,11 @@ python-Levenshtein==0.12.2
 regex==2022.3.2
 requests==2.27.1
 requests-oauthlib==1.3.0
+rfc3986==1.5.0
 rotten-tomatoes-scraper==1.4.0
 sgmllib3k==1.0.0
 six==1.15.0
+sniffio==1.2.0
 soupsieve==2.2.1
 SQLAlchemy==1.4.27
 thefuzz==0.19.0
@@ -63,6 +73,9 @@ urllib3==1.26.7
 validators==0.19.0
 venusian==3.0.0
 watchdog==2.1.6
+websockets==10.3
 wrapt==1.12.1
 yarl==1.7.2
 youtube-search==2.1.0
+youtube-search-python==1.6.6
+yt-dlp==2022.7.18
