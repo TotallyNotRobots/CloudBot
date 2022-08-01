@@ -26,7 +26,7 @@ MAX_SUMMARY = 250
 
 
 @hook.on_start()
-def on_start(*args):
+def on_start():
     global results, API
     results = {}
     for wiki in APIS:
