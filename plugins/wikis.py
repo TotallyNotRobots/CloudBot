@@ -4,7 +4,7 @@
 
 
 import mwparserfromhell
-from mediawiki import MediaWiki
+from mediawiki import MediaWiki, exceptions
 
 from cloudbot import hook
 from cloudbot.util import formatting
@@ -53,8 +53,14 @@ def wikipop(wiki: tuple) -> str:
     wikipedia = APIS[wiki]
     if len(results[wiki]) == 0:
         return "No [more] results found."
-    title = results[wiki].pop(0)
-    page = wikipedia.page(title)
+    i = 0
+    while i < len(results[wiki]):
+        try:
+            title = results[wiki].pop(0)
+            page = wikipedia.page(title)
+            break
+        except exceptions.DisambiguationError:
+            i += 1
 
     # If the api doesn't have the TextExtract extension installed, we need to parse it
     desc = page.summary or summary_from_page(page.wikitext)
