@@ -3,8 +3,8 @@
 # Date: 31/07/2022
 
 
-from mediawiki import MediaWiki
 import mwparserfromhell
+from mediawiki import MediaWiki
 
 from cloudbot import hook
 from cloudbot.util import formatting
@@ -14,14 +14,25 @@ from cloudbot.util import formatting
 # The value is the api url.
 # (commands, tuple, ...): "api_url"
 APIS = {
-    ("wikipedia", "w"): MediaWiki("https://en.wikipedia.org/w/api.php"),
-    ("uncyclopedia", "uw"): MediaWiki("https://uncyclopedia.com/w/api.php"),
-    ("tcrf", "tw"): MediaWiki("https://tcrf.net/api.php"),
+    ("wikipedia", "w"): "https://en.wikipedia.org/w/api.php",
+    ("uncyclopedia", "uw"): "https://uncyclopedia.com/w/api.php",
+    ("tcrf", "tw"): "https://tcrf.net/api.php",
+    ("wikitionary", "wd"): "https://wiktionary.org/w/api.php",
 }
 
 results = {}
 
 MAX_SUMMARY = 250
+
+
+@hook.on_start()
+def on_start(*args):
+    global results, API
+    results = {}
+    for wiki in APIS:
+        results[wiki] = []
+        APIS[wiki] = MediaWiki(APIS[wiki])
+
 
 def summary_from_page(text: str) -> str:
     """Tries to parse a summary out from the wiki markdown."""
@@ -34,6 +45,7 @@ def summary_from_page(text: str) -> str:
             break
     wikicode = mwparserfromhell.parse(summary)
     return wikicode.strip_code()
+
 
 def wikipop(wiki: tuple) -> str:
     """Pops the first result from the list and returns the formated summary."""
