@@ -61,7 +61,7 @@ def gitnext(reply) -> str:
     if len(results) == 0:
         return "No [more] results found."
     r = results.pop(0)
-    for line in r.lines[:3]:
+    for line in [line for line in r.lines[:3] if line.strip()]:
         reply(line)
     reply(f"-->  {r.url}")
 

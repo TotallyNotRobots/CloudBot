@@ -47,7 +47,7 @@ def search(query: str, tag: str = None) -> [Question]:
     query = query.lower().replace("stackoverflow.", "").replace("_", " ")
     params = {
         "order": "desc",
-        "sort": "votes",
+        "sort": "relevance",
         "site": "stackoverflow",
         "intitle": query,
     }
@@ -67,7 +67,7 @@ def search(query: str, tag: str = None) -> [Question]:
         answers=i['answer_count'],
         tags=i['tags'],
     ),
-        filter(lambda i: i["is_answered"], ans["items"])
+        ans["items"]
     ))
 
 
@@ -137,7 +137,7 @@ def sonext(reply) -> str:
     if answer is None:
         return
 
-    lines = answer.code.split("\n")
+    lines = [line for line in answer.code.split("\n") if line.strip()]
 
     for line in lines[:4]:
         reply(line)
