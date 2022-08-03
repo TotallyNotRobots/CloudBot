@@ -16,7 +16,7 @@ from cloudbot.util import formatting
 APIS = {
     ("wikipedia", "w"): "https://en.wikipedia.org/w/api.php",
     ("uncyclopedia", "uw"): "https://uncyclopedia.com/w/api.php",
-    ("tcrf", "tw"): "https://tcrf.net/api.php",
+    ("tcrf", "wt"): "https://tcrf.net/api.php",
     ("wikitionary", "wd"): "https://wiktionary.org/w/api.php",
 }
 
@@ -61,6 +61,8 @@ def wikipop(wiki: tuple) -> str:
             break
         except exceptions.DisambiguationError:
             i += 1
+    else:
+        return "No results found."
 
     # If the api doesn't have the TextExtract extension installed, we need to parse it
     desc = page.summary or summary_from_page(page.wikitext)

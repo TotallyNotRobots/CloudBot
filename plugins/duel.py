@@ -819,7 +819,7 @@ def accept_duel(nick, chan, message, conn):
     message(f"<{nick2}> {nick} has accepted your duel request! The duel will begin in {delay + countdown_start} seconds. Use .bang <user> to shoot. If you shoot too early you lose, whoever shoots first win!")
     Timer(delay, duel_start_countdown, [countdown_start, nick, nick2, chan, message, conn]).start()
 
-@hook.command("duelcancel", autohelp=False)
+@hook.command("duelcancel", "cancel", "cancelduel", autohelp=False)
 def cancel_duel(text, nick, chan, message, conn):
     """<nick> - Cancels pending duel with user."""
     global pending, current_duels
