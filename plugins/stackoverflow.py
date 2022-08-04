@@ -44,18 +44,18 @@ class Answer:
 
 
 def search(query: str, tag: str = None) -> [Question]:
-    query = query.lower().replace("stackoverflow.", "").replace("_", " ")
     params = {
         "order": "desc",
         "sort": "relevance",
         "site": "stackoverflow",
-        "intitle": query,
+        "q": query,
     }
 
     if tag:
         params.update({"tagged": tag})
 
-    ans = requests.get(API_URL + "/search", params).json()
+    req = requests.get(API_URL + "/search/advanced", params)
+    ans = req.json()
 
     if not ans["items"]:
         return []
@@ -125,13 +125,14 @@ def sosearch(query: str, tag: str = None) -> str:
 
 @hook.command("son", autohelp=False)
 def sonext(reply) -> str:
-    """Gets next result in stack overflow and return formated text"""
+    """Gets next result in stack overflow and return formated text."""
     global results
     r, answer = find_best_code()
-    if len(results) == 0 or not r:
+    if len(results) == 0 or r is None:
         return "No [more] results found."
 
-    reply(f"\x02{r.title}\x02 - \x02{r.votes}\x02 votes - \x02{r.answers}\x02 answers - {r.tags}")
+    reply(
+        f"\x02{r.title}\x02 - \x02{r.votes}\x02 votes - \x02{r.answers}\x02 answers - {r.tags}")
     reply(f"{r.url}")
 
     if answer is None:

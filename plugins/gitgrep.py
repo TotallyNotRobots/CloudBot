@@ -2,6 +2,8 @@
 # Author: Matheus Fillipe
 # Date: 02/08/2022
 
+import re
+from copy import deepcopy
 from dataclasses import dataclass
 
 import requests
@@ -19,14 +21,16 @@ class Result:
 
 
 results = []
+langs = []
 
 
-def grep(query: str) -> str:
-    global results
+def grep(query: str, **params) -> str:
+    global results, langs
     results = []
 
     params = {
         'q': query,
+        **params,
     }
 
     response = requests.get(API, params=params)
@@ -53,6 +57,9 @@ def grep(query: str) -> str:
 
         results.append(Result(url, lines))
 
+    langs = [lang["val"]
+             for lang in obj.get("facets", {}).get("lang", {}).get("buckets", [])]
+
 
 @hook.command("gitgrepn", "grepn", autohelp=False)
 def gitnext(reply) -> str:
@@ -68,6 +75,63 @@ def gitnext(reply) -> str:
 
 @hook.command("gitgrep", "grep")
 def gitgrep(text, reply):
-    """gitgrep <query> - Searches for <query> in github using grep.app and returns the first url"""
-    grep(text)
+    """grep <query> - Searches for <query> in github using grep.app and returns the first url.
+    Optional parameters are: -l <lang>: Language filter (you can use multiple),  -w: Match whole words,
+    -i: ignore case, -e: Use regex query
+    """
+    params = {}
+
+    def findargs(text):
+        text = text.strip()
+        match = re.match(r'^-l\s+(\w+)', text)
+        start = 0
+        if match:
+            if 'f.lang' not in params:
+                params['f.lang'] = []
+            params['f.lang'].append(match[1])
+            start = match.end()
+
+        if re.search("^-w ", text):
+            params['words'] = "true"
+            start = 3
+
+        if re.search("^-i ", text):
+            params['case'] = "false"
+            start = 3
+
+        if re.search("^-e ", text):
+            params['regexp'] = "true"
+            start = 3
+
+        if start == 0:
+            return text
+        text = text[start:]
+        return findargs(text)
+
+    text = findargs(text)
+    if 'case' not in params:
+        params['case'] = "true"
+    else:
+        del params['case']
+
+    if 'regexp' in params and 'words' in params:
+        return "You can't use -w and -e at the same time."
+
+    grep(text, **params)
+
+    if len(results) == 0 and "f.lang" in params:
+        if len(langs) == 0:
+            return "No results found."
+        corrected_langs = []
+        for lang in langs:
+            for plang in params['f.lang']:
+                if lang.casefold() == plang.casefold():
+                    corrected_langs.append(lang)
+
+        if len(corrected_langs) == 0:
+            return "No results found. Suggested langs for this query: " + ", ".join(langs)
+
+        params['f.lang'] = corrected_langs
+        grep(text, **params)
+
     return gitnext(reply)
