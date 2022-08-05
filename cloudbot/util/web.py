@@ -26,7 +26,7 @@ from requests import HTTPError, PreparedRequest, RequestException, Response
 DEFAULT_SHORTENER = "is.gd"
 DEFAULT_PASTEBIN = ""
 
-HASTEBIN_SERVER = "https://www.toptal.com/developers/hastebin"
+HASTEBIN_SERVER = "https://hastebin.com"
 
 logger = logging.getLogger("cloudbot")
 

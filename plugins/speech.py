@@ -12,8 +12,10 @@ import requests
 import validators
 
 from cloudbot import hook
+from cloudbot.bot import bot
 
-from plugins.config import API, headers
+API = bot.config["plugins"]["speech"]["api"]
+headers = {"Authorization": "Bearer " + bot.config.get_api_key("speech", "api_key")}
 
 
 def stt_file(file, language):

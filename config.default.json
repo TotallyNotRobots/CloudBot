@@ -98,7 +98,10 @@
         "duckhunt": {
             "minimum_messages": 10,
             "minimum_users": 5
-        }
+        },
+      "speech": {
+          "api": "http://localhost:5000"
+      }
     },
     "api_keys": {
         "tvdb": "",
@@ -126,7 +129,8 @@
         "brewerydb": "",
         "alphavantage": "",
         "coinmarketcap": "",
-        "giphy": ""
+        "giphy": "",
+        "speech": ""
     },
     "database": "sqlite:///cloudbot.db",
     "location_bias_cc": null,
