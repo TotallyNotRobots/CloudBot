@@ -75,7 +75,7 @@ def gitnext(reply) -> str:
 
 @hook.command("gitgrep", "grep")
 def gitgrep(text, reply):
-    """grep <query> - Searches for <query> in github using grep.app and returns the first url.
+    """[args] <query> - Searches for <query> in github using grep.app and returns the first url.
     Optional parameters are: -l <lang>: Language filter (you can use multiple),  -w: Match whole words,
     -i: ignore case, -e: Use regex query
     """
@@ -83,7 +83,7 @@ def gitgrep(text, reply):
 
     def findargs(text):
         text = text.strip()
-        match = re.match(r'^-l\s+(\w+)', text)
+        match = re.match(r'^-l\s+(\S+)', text)
         start = 0
         if match:
             if 'f.lang' not in params:
