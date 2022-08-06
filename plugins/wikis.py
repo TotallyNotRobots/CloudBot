@@ -8,6 +8,7 @@ from mediawiki import MediaWiki, exceptions
 
 from cloudbot import hook
 from cloudbot.util import formatting
+from cloudbot.util.queue import Queue
 
 # List of wikis and their API's
 # The key is a tuple starting with the wiki name all those values will be used as the bot commands.
@@ -30,8 +31,8 @@ def on_start():
     global results, API
     results = {}
     for wiki in APIS:
-        results[wiki] = []
-        APIS[wiki] = MediaWiki(APIS[wiki])
+        results[wiki] = Queue()
+        results[wiki].metadata.wiki = MediaWiki(APIS[wiki])
 
 
 def summary_from_page(text: str) -> str:
@@ -47,16 +48,20 @@ def summary_from_page(text: str) -> str:
     return wikicode.strip_code()
 
 
-def wikipop(wiki: tuple) -> str:
+def wikipop(wiki: tuple, chan, nick, user=None) -> str:
     """Pops the first result from the list and returns the formated summary."""
     global results
-    wikipedia = APIS[wiki]
-    if len(results[wiki]) == 0:
+    if user:
+        queue = results[wiki][chan][user]
+    else:
+        queue = results[wiki][chan][nick]
+    wikipedia = results[wiki].metadata.wiki
+    if len(queue) == 0:
         return "No [more] results found."
     i = 0
-    while i < len(results[wiki]):
+    while i < len(queue):
         try:
-            title = results[wiki].pop(0)
+            title = queue.pop()
             page = wikipedia.page(title)
             break
         except exceptions.DisambiguationError:
@@ -72,31 +77,31 @@ def wikipop(wiki: tuple) -> str:
     return "\x02{}\x02 :: {} :: {}".format(title, desc, url)
 
 
-def search(wiki: tuple, query: str) -> str:
+def search(wiki: tuple, query: str, chan, nick) -> str:
     """Searches for the query and returns the formated summary populating the
     results list."""
     global results
-    wikipedia = APIS[wiki]
-    results[wiki] = wikipedia.search(query)
-    return wikipop(wiki)
+    wikipedia = results[wiki].metadata.wiki
+    results[wiki][chan][nick] = wikipedia.search(query)
+    return wikipop(wiki, chan, nick)
 
 
-def process_irc_input(wiki: tuple, text: str) -> str:
+def process_irc_input(wiki: tuple, text: str, chan, nick) -> str:
     """Processes the input from the irc user and returns a random result from
     the wiki if no arguments is passed, otherwise performs the search."""
     global results
     if text.strip() == "":
-        wikipedia = APIS[wiki]
-        results[wiki] = [wikipedia.random()]
-        return wikipop(wiki)
-    return search(wiki, text)
+        wikipedia = results[wiki].metadata.wiki
+        results[wiki][chan][nick] = [wikipedia.random()]
+        return wikipop(wiki, chan, nick)
+    return search(wiki, text, chan, nick)
 
 
 def make_search_hook(commands):
     name = commands[0]
 
-    def wikisearch(text, bot):
-        return process_irc_input(commands, text)
+    def wikisearch(text, bot, chan, nick):
+        return process_irc_input(commands, text, chan, nick)
     wikisearch.__doc__ = f"<query> - Searches the {name} for <query>. If you don't pass any query, it will return a random result."
     return wikisearch
 
@@ -104,8 +109,15 @@ def make_search_hook(commands):
 def make_next_hook(commands):
     name = commands[0]
 
-    def wikinext(text, bot):
-        return wikipop(commands)
+    def wikinext(text, bot, chan, nick):
+        global results
+        user = text.strip().split()[0] if text.strip() else None
+        if user:
+            if user not in results[commands][chan]:
+                return f"Nick '{user}' has no queue."
+        else:
+            user = None
+        return wikipop(commands, chan, nick, user)
 
     wikinext.__doc__ = f" - Gets the next result from the last {name} search"
     return wikinext

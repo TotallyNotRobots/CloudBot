@@ -3,13 +3,13 @@
 # Date: 02/08/2022
 
 import re
-from copy import deepcopy
 from dataclasses import dataclass
 
 import requests
 from bs4 import BeautifulSoup
 
 from cloudbot import hook
+from cloudbot.util.queue import Queue
 
 API = 'https://grep.app/api/search'
 
@@ -20,14 +20,11 @@ class Result:
     lines: list
 
 
-results = []
-langs = []
+results_queue = Queue()
 
 
-def grep(query: str, **params) -> str:
-    global results, langs
-    results = []
-
+def grep(query: str, **params) -> ([str], [str]):
+    res = []
     params = {
         'q': query,
         **params,
@@ -55,30 +52,42 @@ def grep(query: str, **params) -> str:
             pre.find_all('td')[0].decompose()
             lines.append(pre.text)
 
-        results.append(Result(url, lines))
+        res.append(Result(url, lines))
 
     langs = [lang["val"]
              for lang in obj.get("facets", {}).get("lang", {}).get("buckets", [])]
 
+    return res, langs
+
 
 @hook.command("gitgrepn", "grepn", autohelp=False)
-def gitnext(reply) -> str:
+def gitnext(text, reply, chan, nick) -> str:
     """Gets next result in gitgrep."""
-    global results
+    global results_queue
+    results = results_queue[chan][nick]
+    user = text.strip().split()[0] if text.strip() else ""
+    if user:
+        if user in results_queue[chan]:
+            results = results_queue[chan][user]
+        else:
+            return f"Nick '{user}' has no queue."
+
     if len(results) == 0:
         return "No [more] results found."
-    r = results.pop(0)
+
+    r = results.pop()
     for line in [line for line in r.lines[:3] if line.strip()]:
         reply(line)
     reply(f"-->  {r.url}")
 
 
 @hook.command("gitgrep", "grep")
-def gitgrep(text, reply):
+def gitgrep(text, reply, chan, nick):
     """[args] <query> - Searches for <query> in github using grep.app and returns the first url.
     Optional parameters are: -l <lang>: Language filter (you can use multiple),  -w: Match whole words,
     -i: ignore case, -e: Use regex query
     """
+    global results_queue
     params = {}
 
     def findargs(text):
@@ -117,7 +126,7 @@ def gitgrep(text, reply):
     if 'regexp' in params and 'words' in params:
         return "You can't use -w and -e at the same time."
 
-    grep(text, **params)
+    results, langs = grep(text, **params)
 
     if len(results) == 0 and "f.lang" in params:
         if len(langs) == 0:
@@ -132,6 +141,8 @@ def gitgrep(text, reply):
             return "No results found. Suggested langs for this query: " + ", ".join(langs)
 
         params['f.lang'] = corrected_langs
-        grep(text, **params)
+        results, langs = grep(text, **params)
 
-    return gitnext(reply)
+    results_queue[chan][nick] = results
+    results_queue[chan][nick].metadata.langs = langs
+    return gitnext("", reply, chan, nick)

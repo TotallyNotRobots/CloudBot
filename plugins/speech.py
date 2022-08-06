@@ -15,7 +15,7 @@ from cloudbot import hook
 from cloudbot.bot import bot
 
 API = bot.config["plugins"]["speech"]["api"]
-headers = {"Authorization": "Bearer " + bot.config.get_api_key("speech", "api_key")}
+headers = {"Authorization": "Bearer " + bot.config.get_api_key("speech", "")}
 
 
 def stt_file(file, language):
