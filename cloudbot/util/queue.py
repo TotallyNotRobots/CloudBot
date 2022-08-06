@@ -1,12 +1,15 @@
 # A queue of objects that can be stacked and then popped and are dependent of user nick and channel
 
 from threading import RLock
-import collections
 from typing import Iterable
 
 
 class Dummy:
-    pass
+    def __getattribute__(self, item):
+        try:
+            return super().__getattribute__(item)
+        except AttributeError:
+            return None
 
 class UserQueue(list):
     def __init__(self, _list: Iterable):
@@ -24,6 +27,17 @@ class UserQueue(list):
         with self._lock:
             super().append(item)
 
+    def extend(self, items: Iterable):
+        """Extends the queue with items"""
+        with self._lock:
+            super().extend(items)
+
+    def set(self, items: Iterable):
+        """Sets the queue to items"""
+        with self._lock:
+            super().clear()
+            super().extend(items)
+
 
 class ChannelQueue(dict):
     def __init__(self):
@@ -38,7 +52,7 @@ class ChannelQueue(dict):
             return self[key]
 
     def __setitem__(self, key, value):
-        if not isinstance(value, collections.abc.Iterable):
+        if not isinstance(value, Iterable):
             raise TypeError(f"value must be iterable: {value=}")
         super().__setitem__(key, UserQueue(value))
 
