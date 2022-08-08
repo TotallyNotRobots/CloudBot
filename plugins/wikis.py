@@ -123,7 +123,7 @@ def make_next_hook(commands):
     return wikinext
 
 
-# Store as a dict to avoide repetition and so that the cloudbot hook.command call atually works
+# Store as a dict to avoid repetition and so that the cloudbot hook.command call atually works
 hooks_map = {}
 for commands in APIS:
     hooks_map[tuple(commands)] = make_search_hook(commands)
