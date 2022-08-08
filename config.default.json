@@ -130,7 +130,8 @@
         "alphavantage": "",
         "coinmarketcap": "",
         "giphy": "",
-        "speech": ""
+        "speech": "",
+        "webshare": ""
     },
     "database": "sqlite:///cloudbot.db",
     "location_bias_cc": null,

@@ -1,17 +1,18 @@
 import socket
+from base64 import b64decode
 
 import requests
+import io
 
+from cloudbot.bot import bot
 from cloudbot import hook
-
-from time import sleep
 
 API = "https://api.funtranslations.com/translate"
 
 LANGS = {
     "morse": f"{API}/morse",
     "morse2english": f"{API}/morse2english ",
-    "morseaudio": f"{API}/morse/audio",
+    "morse2audio": f"{API}/morse/audio",
     "valspeak": f"{API}/valspeak",
     "jive": f"{API}/jive",
     "cockney": f"{API}/cockney",
@@ -52,11 +53,19 @@ TOR_PORT = 9051
 TOR_PASSWORD = ""
 
 
+last_proxy = None
+
+
 def tor_check_code(s: socket, failmsg: str):
     c = s.recv(1024).decode().strip().split()[0]
     if str(c) != "250":
         raise Exception(failmsg)
 
+def upload_file(file):
+    url = "http://ttm.sh"
+    payload = {'file': file}
+    response = requests.request("POST", url, files=payload)
+    return response.text.strip()
 
 def tor_refresh():
     # Create tcp socket
@@ -87,11 +96,8 @@ def tor_request_post(*args, **kwargs):
                          **kwargs)
 
 
-def upload_file(file, base64: str):
-    url = "http://ttm.sh"
-    payload = {'file': open(file, "rb")}
-    response = requests.request("POST", url, files=payload)
-    return response.text.strip()
+def proxy_request_post(proxies, *args, **kwargs):
+    return requests.post(*args, proxies=proxies, **kwargs)
 
 
 def torip():
@@ -101,6 +107,7 @@ def torip():
 @hook.command("funtranslate", "tr", autohelp=False)
 def funtranslate(text, reply):
     """<target> <text> - Translates <text> using funtranslations.com"""
+    global last_proxy
     if not text:
         return "No text to translate"
 
@@ -109,7 +116,7 @@ def funtranslate(text, reply):
     if lang not in LANGS:
         if lang == "list":
             return "Available languages: " + ", ".join(LANGS.keys())
-        return "Invalid language, Type .tr list to see available ones"
+        return "Invalid language, Type '.tr list' to see available ones"
 
     # Get text
     text = " ".join(text.split()[1:])
@@ -126,23 +133,74 @@ def funtranslate(text, reply):
     def process_response(response):
         resp = response.json()
         if "error" not in resp:
-            # TODO check for file responses etc
-            return resp['contents']['translated']
-        raise Exception(str(resp['error']))
+            translated = resp.get('contents', {}).get('translated')
+            if translated is None:
+                return "not implemented"
+            if isinstance(translated, str):
+                return translated
+            if isinstance(translated, dict):
+                if "audio" in translated:
+                    b64 = translated["audio"]
+                    b64audio = b64.split(",")[-1]
+                    wave_bytes = b64decode(b64audio)
+                    file = io.BytesIO(wave_bytes)
+                    return upload_file(file)
 
-    reply("Sorry for the delay, im trying a proxy")
-    try:
-        return process_response(response)
-    except Exception:
-        reply(f"Trying with tor proxy: {torip()}")
+    output = process_response(response)
+    if output:
+        return output
+
+    if last_proxy is not None:
+        try:
+            response = proxy_request_post(
+                last_proxy, LANGS[lang], headers=headers, data=data)
+            output = process_response(response)
+            if output:
+                return "p: " + output
+
+        except requests.exceptions.ProxyError:
+            pass
+
+    webshare_key = bot.config.get_api_key("webshare")
+    if webshare_key:
+
+        def mkuri(proxy):
+            addr = proxy['proxy_address']
+            port = proxy['ports']['http']
+            username = proxy['username']
+            password = proxy['password']
+            return f"http://{username}:{password}@{addr}:{port}"
+
+        response = requests.get("https://proxy.webshare.io/api/proxy/list/?page=1",
+                                headers={"Authorization": "Token " + webshare_key})
+        r = response.json().get("results")
+        if r:
+            proxies = [{'http': mkuri(proxy), 'https': mkuri(proxy)} for proxy in r]
+            i = 0
+            while i < len(proxies):
+                i += 1
+                if last_proxy in proxies:
+                    last_proxy = proxies[(proxies.index(last_proxy) + 1) % len(proxies)]
+                else:
+                    last_proxy = proxies[0]
+
+                try:
+                    response = proxy_request_post(
+                        last_proxy, LANGS[lang], headers=headers, data=data)
+                except requests.exceptions.ProxyError:
+                    continue
+
+                output = process_response(response)
+                if output:
+                    return "p: " + output
+
         attempts = 0
         while attempts < 3:
             response = tor_request_post(LANGS[lang], headers=headers, data=data)
-            try:
-                return "--> " + process_response(response)
-            except Exception:
-                attempts += 1
-                reply(f"{torip()} trying new tor circuit")
-                tor_refresh()
+            output = process_response(response)
+            if output:
+                return "t: " + output
+            attempts += 1
+            tor_refresh()
 
-    return "Tried to use tor 3 times, giving up"
+    return "Tried to use proxies and tor 3 times, giving up"
