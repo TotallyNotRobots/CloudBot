@@ -19,6 +19,21 @@ APIS = {
     ("uncyclopedia", "uw"): "https://uncyclopedia.com/w/api.php",
     ("tcrf", "wt"): "https://tcrf.net/api.php",
     ("wikitionary", "wd"): "https://wiktionary.org/w/api.php",
+    ("esolangs", "wel"): "https://esolangs.org/w/api.php",
+    ("archwiki", "warch"): "https://wiki.archlinux.org/api.php",
+    ("gentoo", "wgentoo"): "https://wiki.gentoo.org/api.php",
+    ("animanga", "fa"): "https://animanga.fandom.com/api.php",
+    ("monica", "fmnc"): "https://monica.fandom.com/pt-br/api.php",
+    ("fandomlinux", "flinux"): "https://linux.fandom.com/api.php",
+    ("starwars", "fsw"): "https://starwars.fandom.com/api.php",
+    ("microsoft", "fms"): "https://microsoft.fandom.com/api.php",
+    ("apple", "fapple"): "https://apple.fandom.com/api.php",
+    ("fandomminecraft", "fmc"): "https://minecraft.fandom.com/api.php",
+    ("fandompokemon", "fpkm"): "https://pokemon.fandom.com/api.php",
+    ("digimon", "fdgm"): "https://digimon.fandom.com/api.php",
+    ("roblox", "froblox"): "https://roblox.fandom.com/api.php",
+    ("nitendo", "fnitendo"): "https://nitendo.fandom.com/api.php",
+    ("malware", "wmal"): "https://malwiki.org/api.php",
 }
 
 results = {}
@@ -31,8 +46,12 @@ def on_start():
     global results, API
     results = {}
     for wiki in APIS:
-        results[wiki] = Queue()
-        results[wiki].metadata.wiki = MediaWiki(APIS[wiki])
+        try:
+            results[wiki] = Queue()
+            results[wiki].metadata.wiki = MediaWiki(APIS[wiki])
+        except Exception:
+            print(f"Failed to connect to {APIS[wiki]}")
+            continue
 
 
 def summary_from_page(text: str) -> str:
@@ -102,7 +121,7 @@ def make_search_hook(commands):
 
     def wikisearch(text, bot, chan, nick):
         return process_irc_input(commands, text, chan, nick)
-    wikisearch.__doc__ = f"<query> - Searches the {name} for <query>. If you don't pass any query, it will return a random result."
+    wikisearch.__doc__ = f"<query> - Searches the {name} for <query>. If you don't pass any query, it will return a random result. Use .wikilist to know more wiki commands."
     return wikisearch
 
 
@@ -121,6 +140,11 @@ def make_next_hook(commands):
 
     wikinext.__doc__ = f" - Gets the next result from the last {name} search"
     return wikinext
+
+@hook.command("wikilist", autohelp=False)
+def wikilist(text, bot, chan, nick):
+    """List all wikisi and their commands"""
+    return "Available wikis: " + " - ".join([": ".join(w) for w in APIS.keys()])
 
 
 # Store as a dict to avoid repetition and so that the cloudbot hook.command call atually works
