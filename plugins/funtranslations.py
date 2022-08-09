@@ -134,8 +134,6 @@ def funtranslate(text, reply):
         resp = response.json()
         if "error" not in resp:
             translated = resp.get('contents', {}).get('translated')
-            if translated is None:
-                return "not implemented"
             if isinstance(translated, str):
                 return translated
             if isinstance(translated, dict):
@@ -145,6 +143,9 @@ def funtranslate(text, reply):
                     wave_bytes = b64decode(b64audio)
                     file = io.BytesIO(wave_bytes)
                     return upload_file(file)
+            if isinstance(translated, list):
+                return " ".join(translated)
+            return "Not implemented"
 
     output = process_response(response)
     if output:

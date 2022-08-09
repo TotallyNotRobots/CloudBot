@@ -32,7 +32,7 @@ APIS = {
     ("fandompokemon", "fpkm"): "https://pokemon.fandom.com/api.php",
     ("digimon", "fdgm"): "https://digimon.fandom.com/api.php",
     ("roblox", "froblox"): "https://roblox.fandom.com/api.php",
-    ("nitendo", "fnitendo"): "https://nitendo.fandom.com/api.php",
+    ("nintendo", "fnintendo"): "https://nintendo.fandom.com/api.php",
     ("malware", "wmal"): "https://malwiki.org/api.php",
 }
 
