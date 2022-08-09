@@ -2,12 +2,20 @@
 # Author: Matheus Fillipe
 # Date: 08/07/2022
 
-from base64 import b64decode, b64encode, b85decode, b16decode, b16encode, b32decode, b32encode, b85encode
-from hashlib import md5, sha1, sha224, sha256, sha384, sha512, blake2b, blake2s
 import binascii
+from base64 import (
+    b16decode,
+    b16encode,
+    b32decode,
+    b32encode,
+    b64decode,
+    b64encode,
+    b85decode,
+    b85encode,
+)
+from hashlib import blake2b, blake2s, md5, sha1, sha224, sha256, sha384, sha512
 
 from cloudbot import hook
-
 
 
 def compute_hash(text: str, hash_func) -> str:
@@ -119,3 +127,55 @@ def base16encode(text):
 def base16decode(text):
     """<text> - Decodes <text> from base16."""
     return "Base16: " + base_encode(text, b16decode)
+
+
+@hook.command("bin")
+def mybin(text):
+    """<text> - Converts <text> to binary."""
+    return "Binary: " + " ".join(bin(byte)[2:] for byte in text.encode())
+
+
+@hook.command("bindecode")
+def mybindecode(text):
+    """<text> - Converts <text> from binary."""
+    text = text.replace(" ", "")
+    if len(text) % 7 != 0:
+        return "Invalid binary. Length must be a multiple of 7."
+
+    bytearray = []
+    i = 0
+    for c in text:
+        if c not in "01":
+            return "Invalid binary. Must be 0s and 1s."
+        if i % 7 == 0:
+            bytearray.append("")
+        bytearray[-1] += c
+        i += 1
+
+    return "Binary: " + "".join(chr(int(byte, 2)) for byte in bytearray)
+
+
+@hook.command("hex")
+def myhex(text):
+    """<text> - Converts <text> to hex."""
+    return "Hex: " + " ".join(hex(byte)[2:] for byte in text.encode())
+
+
+@hook.command("hexdecode")
+def myhexdecode(text):
+    """<text> - Converts <text> from hex."""
+    text = text.replace(" ", "")
+    if len(text) % 2 != 0:
+        return "Invalid hex. Length must be a multiple of 2."
+
+    bytearray = []
+    i = 0
+    for c in text:
+        if c not in "0123456789abcdefABCDEF":
+            return "Invalid hex. Must be 0-9, a-f, or A-F."
+        if i % 2 == 0:
+            bytearray.append("")
+        bytearray[-1] += c
+        i += 1
+
+    return "Hex: " + "".join(chr(int(byte, 16)) for byte in bytearray)
