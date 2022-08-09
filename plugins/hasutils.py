@@ -1,0 +1,121 @@
+# Compute common hashes and base64
+# Author: Matheus Fillipe
+# Date: 08/07/2022
+
+from base64 import b64decode, b64encode, b85decode, b16decode, b16encode, b32decode, b32encode, b85encode
+from hashlib import md5, sha1, sha224, sha256, sha384, sha512, blake2b, blake2s
+import binascii
+
+from cloudbot import hook
+
+
+
+def compute_hash(text: str, hash_func) -> str:
+    """Computes a hash of the text using the given hash function."""
+    return hash_func(text.encode("utf-8")).hexdigest()
+
+
+def base_encode(text: str, base_func) -> str:
+    """Encodes the text using the given base."""
+    try:
+        return base_func(text.encode("utf-8")).decode("utf-8")
+    except binascii.Error as e:
+        return "Error: {}".format(e)
+
+
+# TODO convert this to a loop over a map and eval call on hook decorator like in wikis.py. Copilot wrote this all and im too lazy to fix this now
+
+@hook.command("sha384")
+def sha384_hash(text: str) -> str:
+    """<text> - Computes the SHA384 hash of <text>."""
+    return compute_hash(text, sha384)
+
+
+@hook.command("sha512")
+def sha512_hash(text: str) -> str:
+    """<text> - Computes the SHA512 hash of <text>."""
+    return compute_hash(text, sha512)
+
+
+@hook.command("sha256", "sha256sum", "sha256s", "sha256sums", "sha256sumss", "sha256sums", "sha256sumss")
+def sha256sum(text):
+    """<text> - Computes the SHA256 hash of <text>."""
+    return "SHA256: " + compute_hash(text, sha256)
+
+
+@hook.command("sha224", "sha224sum", "sha224s", "sha224sums", "sha224sumss", "sha224sums", "sha224sumss")
+def sha224sum(text):
+    """<text> - Computes the SHA224 hash of <text>."""
+    return "SHA224: " + compute_hash(text, sha224)
+
+
+@hook.command("sha1", "sha1sum", "sha1s", "sha1sums", "sha1sumss", "sha1sums", "sha1sumss")
+def sha1sum(text):
+    """<text> - Computes the SHA1 hash of <text>."""
+    return "SHA1: " + compute_hash(text, sha1)
+
+
+@hook.command("md5", "md5sum", "md5s", "md5sums", "md5sumss", "md5sums", "md5sumss")
+def md5sum(text):
+    """<text> - Computes the MD5 hash of <text>."""
+    return "MD5: " + compute_hash(text, md5)
+
+
+@hook.command("blake2b", "blake2bsum", "blake2bs", "blake2bsums", "blake2bsumss", "blake2bsums", "blake2bsumss")
+def blake2bsum(text):
+    """<text> - Computes the BLAKE2b hash of <text>."""
+    return "BLAKE2b: " + compute_hash(text, blake2b)
+
+
+@hook.command("blake2s", "blake2ssum", "blake2ss", "blake2ssums", "blake2ssumss", "blake2ssums", "blake2ssumss")
+def blake2ssum(text):
+    """<text> - Computes the BLAKE2s hash of <text>."""
+    return "BLAKE2s: " + compute_hash(text, blake2s)
+
+
+@hook.command("b64", "base64", "base64encode", "base64encodes", "base64encodes", "base64encodes", "base64encodes", "base64encodes")
+def base64encode(text):
+    """<text> - Encodes <text> in base64."""
+    return "Base64: " + base_encode(text, b64encode)
+
+
+@hook.command("b64decode", "base64decode", "base64decodes", "base64decodes", "base64decodes", "base64decodes", "base64decodes", "base64decodes")
+def base64decode(text):
+    """<text> - Decodes <text> from base64."""
+    return "Base64: " + base_encode(text, b64decode)
+
+
+@hook.command("b85", "base85", "base85encode", "base85encodes", "base85encodes", "base85encodes", "base85encodes", "base85encodes")
+def base85encode(text):
+    """<text> - Encodes <text> in base85."""
+    return "Base85: " + base_encode(text, b85encode)
+
+
+@hook.command("b85decode", "base85decode", "base85decodes", "base85decodes", "base85decodes", "base85decodes", "base85decodes", "base85decodes")
+def base85decode(text):
+    """<text> - Decodes <text> from base85."""
+    return "Base85: " + base_encode(text, b85decode)
+
+
+@hook.command("b32", "base32", "base32encode", "base32encodes", "base32encodes", "base32encodes", "base32encodes", "base32encodes")
+def base32encode(text):
+    """<text> - Encodes <text> in base32."""
+    return "Base32: " + base_encode(text, b32encode)
+
+
+@hook.command("b32decode", "base32decode", "base32decodes", "base32decodes", "base32decodes", "base32decodes", "base32decodes", "base32decodes")
+def base32decode(text):
+    """<text> - Decodes <text> from base32."""
+    return "Base32: " + base_encode(text, b32decode)
+
+
+@hook.command("b16", "base16", "base16encode", "base16encodes", "base16encodes", "base16encodes", "base16encodes", "base16encodes")
+def base16encode(text):
+    """<text> - Encodes <text> in base16."""
+    return "Base16: " + base_encode(text, b16encode)
+
+
+@hook.command("b16decode", "base16decode", "base16decodes", "base16decodes", "base16decodes", "base16decodes", "base16decodes", "base16decodes")
+def base16decode(text):
+    """<text> - Decodes <text> from base16."""
+    return "Base16: " + base_encode(text, b16decode)
