@@ -17,6 +17,7 @@ from cloudbot.util.queue import Queue
 APIS = {
     ("wikipedia", "w"): "https://en.wikipedia.org/w/api.php",
     ("uncyclopedia", "uw"): "https://uncyclopedia.com/w/api.php",
+    ("desclicopedia", "desc"): "https://desciclopedia.org/api.php",
     ("tcrf", "wt"): "https://tcrf.net/api.php",
     ("wikitionary", "wd"): "https://wiktionary.org/w/api.php",
     ("esolangs", "wel"): "https://esolangs.org/w/api.php",
@@ -155,7 +156,7 @@ for commands in APIS:
     # creates the next commands
     next_cmds = ()
     for command in commands:
-        if len(command) > 2:
+        if len(command) > 4:
             command += "_next"
         else:
             command += "n"
