@@ -42,6 +42,7 @@ class Package:
 
     def __post_init__(self, link: str = None):
         self.link = link or config.link_defualt_format.format(package=self)
+        self.released_date = None
         if self.updated:
             for strfmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]:
                 try:
