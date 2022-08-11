@@ -52,7 +52,10 @@ def forecast(text):
     """<query> - returns the weather forecast result for <query>"""
     response = requests.get(f"http://wttr.in/{'+'.join(text.split())}?format=j1")
     if response.status_code == 200:
-        j = response.json()
+        try:
+            j = response.json()
+        except Exception as e:
+            return "Error: {}".format(e) + " -- " + response.text
         nearest = j['nearest_area'][0]
         area = nearest["areaName"][0]["value"]
         message = [f"{nearest['country'][0]['value']} - {nearest['region'][0]['value']} - {area}, lat: {nearest['latitude']}  long: {nearest['longitude']}"]
@@ -61,7 +64,7 @@ def forecast(text):
         return message
     else:
         return "City not found."
-    
+
 @hook.command("astronomy", "ast")
 def astronomy(text):
     """<query> - returns the astronomy result for <query>"""
