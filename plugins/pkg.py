@@ -42,15 +42,21 @@ class Package:
 
     def __post_init__(self, link: str = None):
         self.link = link or config.link_defualt_format.format(package=self)
-        self.released_date = None
         if self.updated:
-            self.released_date = datetime.strptime(
-                self.updated, "%Y-%m-%dT%H:%M:%S%z"
-            )
+            for strfmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]:
+                try:
+                    self.released_date = datetime.strptime(
+                        self.updated, strfmt
+                    )
+                    break
+                except ValueError:
+                    continue
+            else:
+                self.released_date = self.updated
 
     def released_date_str(self, date_format: str = config.date_format) -> str:
-        """Return the released date as a string formatted according to
-        date_formate ou Config.date_format (default)
+        """Return the released date as a string formatted
+        according to date_formate ou Config.date_format (default)
 
         Returns:
             str: Formatted date string
@@ -138,7 +144,8 @@ def aur_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[0].select_one("a").text.strip()
-            link = columns[0].select_one("a").get("href").strip()
+            link = "https://aur.archlinux.org/" + \
+                columns[0].select_one("a").get("href").strip()
             version = columns[1].text.strip()
             released = ""
             description = columns[4].text.strip()
@@ -157,7 +164,8 @@ def arch_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[2].select_one("a").text.strip()
-            link = columns[2].select_one("a").get("href").strip()
+            link = "https://archlinux.org/packages/" + \
+                columns[2].select_one("a").get("href").strip()
             version = columns[3].text.strip()
             released = ""
             description = columns[4].text.strip()
@@ -166,7 +174,82 @@ def arch_search(query: str) -> Generator[Package, None, None]:
         return
 
 
-REPOS = {"aur": aur_search, "pypi": pypi_search, "arch": arch_search}
+def crates_search(query: str) -> Generator[Package, None, None]:
+    url = "https://crates.io/api/v1/crates"
+    response = requests.get(url, params={"q": query, "per_page": 20, "page": 1})
+    if response.status_code != 200:
+        return
+    data = response.json()
+    for package in data["crates"]:
+        name = package["name"].strip()
+        link = package["repository"].strip()
+        version = package["newest_version"].strip()
+        released = package["updated_at"].strip()
+        description = package["description"].strip()
+        yield Package(name, version, released, description, link)
+
+
+def pubdev_search(query: str) -> Generator[Package, None, None]:
+    url = "https://pub.dev/packages"
+    response = requests.get(url, params={"q": query})
+    if response.status_code != 200:
+        return
+    soup = BeautifulSoup(response.text, "html.parser")
+    for package in soup.select("div.packages-item"):
+        name = package.select_one("h3 a").text.strip()
+        link = "https://pub.dev/" + package.select_one("h3 a").get("href").strip()
+        version = package.select_one("span.packages-metadata-block").text.strip()
+
+        # Remove release date from version
+        version = re.sub(r"\(.+\)", "", version).strip()
+
+        date = package.select_one("a.-x-ago")
+        released = date.text.strip() if date else ""
+        description = package.select_one("p.packages-description").text.strip()
+        platforms = []
+        for m in package.select("div.-pub-tag-badge") or []:
+            m = " ".join([s.text for s in m.select("a.tag-badge-sub")])
+            if m:
+                platforms.append(m)
+        if platforms:
+            description += f" Platforms: {platforms}"
+
+        yield Package(name, version, released, description, link)
+
+
+def ubuntu_search(query: str) -> Generator[Package, None, None]:
+    url = "https://packages.ubuntu.com/search"
+    response = requests.get(
+        url, params={"keywords": query, "searchon": "all", "suite": "all", "section": "all"})
+    if response.status_code != 200:
+        return
+    soup = BeautifulSoup(response.text, "html.parser")
+    soup.select("h3")
+    for name, package in zip(soup.select("h3"), soup.select("h3+ul")):
+        name = name.text.strip().lstrip("Package ")
+        ubuntus = []
+        for li in package.select("li"):
+            ver = li.select_one("a.resultlink").text.strip()
+            link = "https://packages.ubuntu.com" + \
+                li.select_one("a.resultlink").get("href").strip()
+            ubuntus.append(ver)
+
+        rows = li.text.strip().split("\n")
+        description = " ".join(rows[:3]).strip().replace("\t", " ")
+        version = rows[3].strip()
+        released = ""
+
+        yield Package(name, version, released, description, link)
+
+
+REPOS = {
+    "aur": aur_search,
+    "pypi": pypi_search,
+    "arch": arch_search,
+    "crates": crates_search,
+    "pubdev": pubdev_search,
+    "ubuntu": ubuntu_search,
+}
 
 results_queue = Queue()
 
@@ -205,7 +288,6 @@ def pkg(text, bot, chan, nick):
     repo = text.strip().split()[0]
     if repo not in REPOS:
         return f"Repo '{repo}' not found. Use .'pkglist' to see available repos."
-
 
     results_queue[chan][nick] = REPOS[repo](" ".join(text.strip().split()[1:]))
     results = results_queue[chan][nick]
