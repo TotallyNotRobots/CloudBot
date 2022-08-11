@@ -183,10 +183,10 @@ def crates_search(query: str) -> Generator[Package, None, None]:
     data = response.json()
     for package in data["crates"]:
         name = package["name"].strip()
-        link = package["repository"].strip()
-        version = package["newest_version"].strip()
-        released = package["updated_at"].strip()
-        description = package["description"].strip()
+        link = package.get("repository", "").strip()
+        version = package.get("newest_version", "").strip()
+        released = package.get("updated_at", "").strip()
+        description = package.get("description", "").strip()
         yield Package(name, version, released, description, link)
 
 
@@ -238,19 +238,28 @@ def ubuntu_search(query: str) -> Generator[Package, None, None]:
         rows = li.text.strip().split("\n")
         description = " ".join(rows[:3]).strip().replace("\t", " ")
         version = rows[3].strip()
-        released = ""
+        released = str(ubuntus)
 
         yield Package(name, version, released, description, link)
 
 
-REPOS = {
-    "aur": aur_search,
-    "pypi": pypi_search,
-    "arch": arch_search,
-    "crates": crates_search,
-    "pubdev": pubdev_search,
-    "ubuntu": ubuntu_search,
+_REPOS = {
+    ("aur", "yay", "picom"): aur_search,
+    ("pypi", "pip", "python"): pypi_search,
+    ("arch", "pacman"): arch_search,
+    ("crates", "cargo", "rust"): crates_search,
+    ("pubdev", "dart", "flutter", "pub"): pubdev_search,
+    ("ubuntu", "apt"): ubuntu_search,
 }
+
+REPOS = {}
+
+# Flatten keys
+for k, v in _REPOS.items():
+    if isinstance(k, tuple):
+        for i in k:
+            REPOS[i] = v
+
 
 results_queue = Queue()
 
@@ -258,7 +267,7 @@ results_queue = Queue()
 @hook.command("pkglist", autohelp=False)
 def pkglist():
     """List all repos."""
-    return ", ".join(REPOS.keys())
+    return ", ".join(str(k) for k in _REPOS.keys())
 
 
 @hook.command("pkgn", autohelp=False)
