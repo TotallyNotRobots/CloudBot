@@ -56,8 +56,8 @@ class Package:
                 self.released_date = self.updated
 
     def released_date_str(self, date_format: str = config.date_format) -> str:
-        """Return the released date as a string formatted
-        according to date_formate ou Config.date_format (default)
+        """Return the released date as a string formatted according to
+        date_formate ou Config.date_format (default)
 
         Returns:
             str: Formatted date string
@@ -145,7 +145,7 @@ def aur_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[0].select_one("a").text.strip()
-            link = "https://aur.archlinux.org/" + \
+            link = "https://aur.archlinux.org" + \
                 columns[0].select_one("a").get("href").strip()
             version = columns[1].text.strip()
             released = ""
@@ -165,7 +165,7 @@ def arch_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[2].select_one("a").text.strip()
-            link = "https://archlinux.org/packages/" + \
+            link = "https://archlinux.org" + \
                 columns[2].select_one("a").get("href").strip()
             version = columns[3].text.strip()
             released = ""
@@ -182,11 +182,14 @@ def crates_search(query: str) -> Generator[Package, None, None]:
         return
     data = response.json()
     for package in data["crates"]:
-        name = package["name"].strip()
-        link = package.get("repository", "").strip()
-        version = package.get("newest_version", "").strip()
-        released = package.get("updated_at", "").strip()
-        description = package.get("description", "").strip()
+        def safeget(key: str) -> str:
+            return (package.get(key, "") or "").strip()
+
+        name = safeget("name")
+        link = safeget("repository")
+        version = safeget("newest_version")
+        released = safeget("updated_at")
+        description = safeget("description")
         yield Package(name, version, released, description, link)
 
 
@@ -198,7 +201,9 @@ def pubdev_search(query: str) -> Generator[Package, None, None]:
     soup = BeautifulSoup(response.text, "html.parser")
     for package in soup.select("div.packages-item"):
         name = package.select_one("h3 a").text.strip()
-        link = "https://pub.dev/" + package.select_one("h3 a").get("href").strip()
+        link = package.select_one("h3 a").get("href").strip()
+        if link.startswith("/"):
+            link = "https://pub.dev" + link
         version = package.select_one("span.packages-metadata-block").text.strip()
 
         # Remove release date from version
@@ -267,11 +272,19 @@ results_queue = Queue()
 @hook.command("pkglist", autohelp=False)
 def pkglist():
     """List all repos."""
-    return ", ".join(str(k) for k in _REPOS.keys())
+    return ", ".join("/".join(k) for k in _REPOS.keys())
+
+
+def pop3(results, reply):
+    for _ in range(3):
+        try:
+            reply(str(results.pop()))
+        except IndexError:
+            return "No [more] results found."
 
 
 @hook.command("pkgn", autohelp=False)
-def pkgn(text, bot, chan, nick):
+def pkgn(text, bot, chan, nick, reply):
     """<nick> - Returns next search result for pkg command for nick or yours by default"""
     global results_queue
     results = results_queue[chan][nick]
@@ -285,11 +298,11 @@ def pkgn(text, bot, chan, nick):
     if len(results) == 0:
         return "No [more] results found."
 
-    return str(results.pop())
+    return pop3(results, reply)
 
 
 @hook.command("pkg", autohelp=False)
-def pkg(text, bot, chan, nick):
+def pkg(text, bot, chan, nick, reply):
     """<query> - Returns first search result for pkg command"""
     global results_queue
     if not text:
@@ -304,5 +317,4 @@ def pkg(text, bot, chan, nick):
     if results is None or len(results) == 0:
         return "No [more] results found."
 
-    p = results.pop()
-    return str(p)
+    return pop3(results, reply)
