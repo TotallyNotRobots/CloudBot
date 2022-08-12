@@ -23,6 +23,7 @@ fake-useragent==0.1.11
 feedparser==6.0.8
 forecastiopy==0.22
 future==0.18.2
+fuzzywuzzy==0.18.0
 gazpacho==1.1
 googlemaps==4.5.3
 greenlet==1.0.0
@@ -41,6 +42,7 @@ mcstatus==6.5.0
 multidict==5.2.0
 mutagen==1.45.1
 mwparserfromhell==0.6.4
+natsort==8.1.0
 newsapi-python==0.2.6
 nltk==3.6.6
 oauthlib==3.1.0
