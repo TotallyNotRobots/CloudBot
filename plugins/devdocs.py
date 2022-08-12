@@ -44,7 +44,6 @@ class Doc:
     def url(self):
         return f"https://devdocs.io/{self.slug}/{self.path}"
 
-    @property
     def summary(self):
         path = self.path
         if self.path.count("#"):
@@ -55,7 +54,7 @@ class Doc:
             node = soup.find("h1")
         else:
             id = self.path.split("#")[1]
-            node = soup.select_one(f"#{id}")
+            node = soup.find(id=id)
         header = node.text
         # Get more text after it
         return (header + " - " + " - ".join(n.text for n in node.find_next_siblings()[:2])).strip()
@@ -145,4 +144,4 @@ def devdocs(text, chan, nick, reply, notice):
     # reply(f"Searching for '{query}' in slug: '{slug}'...")
     doc = search(slug, query)
     reply(doc.url)
-    reply(truncate_str(doc.summary, 400))
+    reply(truncate_str(doc.summary(), 400))
