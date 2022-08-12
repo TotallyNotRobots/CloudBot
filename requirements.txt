@@ -41,6 +41,7 @@ mcstatus==6.5.0
 multidict==5.2.0
 mutagen==1.45.1
 mwparserfromhell==0.6.4
+newsapi-python==0.2.6
 nltk==3.6.6
 oauthlib==3.1.0
 orjson==3.5.1

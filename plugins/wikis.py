@@ -16,6 +16,7 @@ from cloudbot.util.queue import Queue
 # (commands, tuple, ...): "api_url"
 APIS = {
     ("wikipedia", "w"): "https://en.wikipedia.org/w/api.php",
+    ("wikinews", "wnews"): "https://en.wikinews.org/w/api.php",
     ("uncyclopedia", "uw"): "https://uncyclopedia.com/w/api.php",
     ("desclicopedia", "desc"): "https://desciclopedia.org/api.php",
     ("tcrf", "wt"): "https://tcrf.net/api.php",

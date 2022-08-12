@@ -131,6 +131,7 @@
         "coinmarketcap": "",
         "giphy": "",
         "speech": "",
+        "newsapi": "",
         "webshare": ""
     },
     "database": "sqlite:///cloudbot.db",

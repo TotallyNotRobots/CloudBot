@@ -248,6 +248,36 @@ def ubuntu_search(query: str) -> Generator[Package, None, None]:
         yield Package(name, version, released, description, link)
 
 
+def search_npmjs(query: str) -> Generator[Package, None, None]:
+    url = "https://www.npmjs.com/search"
+    response = requests.get(url, params={"q": query}, headers={'x-spiferack': '1'})
+    if response.status_code != 200:
+        return
+    data = response.json()
+    for package in data["objects"]:
+        package = package["package"]
+
+        def safeget(key: Union[str, list]) -> str:
+            if isinstance(key, str):
+                return (package.get(key, "") or "").strip()
+            if isinstance(key, list):
+                d = package.get(key[0])
+                for k in key[1:]:
+                    d = d.get(k)
+                    if d is None:
+                        break
+                return (str(d) or "").strip()
+            raise ValueError(f"Unknown key type {type(key)}")
+
+        name = safeget("name")
+        link = safeget(["links", "npm"])
+        version = safeget("version")
+        released = package.get("date", {}).get("rel", "").strip()
+        description = safeget("description")
+        yield Package(name, version, released, description, link)
+
+
+
 _REPOS = {
     ("aur", "yay", "picom"): aur_search,
     ("pypi", "pip", "python"): pypi_search,
@@ -255,6 +285,7 @@ _REPOS = {
     ("crates", "cargo", "rust"): crates_search,
     ("pubdev", "dart", "flutter", "pub"): pubdev_search,
     ("ubuntu", "apt"): ubuntu_search,
+    ("npmjs", "npm", "yarn"): search_npmjs,
 }
 
 REPOS = {}

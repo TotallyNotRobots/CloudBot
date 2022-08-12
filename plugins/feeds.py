@@ -48,7 +48,7 @@ def format_item(item):
     return "{} ({})".format(title, url)
 
 
-@hook.command("feed", "rss", "news")
+@hook.command("feed", "rss")
 def rss(text):
     """<feed> - Gets the first three items from the RSS/ATOM feed <feed>."""
     t = text.lower().strip()
