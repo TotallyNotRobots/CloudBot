@@ -3,14 +3,25 @@
 # Date: 11/08/2020
 
 import re
+from dataclasses import dataclass
+from random import choice
 
+import feedparser
+from bs4 import BeautifulSoup
 from newsapi import NewsApiClient, const
 
 from cloudbot import hook
-from cloudbot.util.formatting import truncate
 from cloudbot.bot import bot
+from cloudbot.util.formatting import truncate
 from cloudbot.util.queue import Queue
-from dataclasses import dataclass
+
+fakenews_feeds = [
+    "http://www.theonion.com/feeds/rss",
+    "http://newsthump.com/feed/",
+    "https://www.thepoke.co.uk/category/news/feed/",
+    "http://babylonbee.com/feed",
+    "http://www.theblaze.com/feed/",
+]
 
 
 @dataclass
@@ -43,6 +54,7 @@ class Article:
 
     def __str__(self):
         return self.header
+
 
 results_queue = Queue()
 
@@ -105,5 +117,16 @@ def news(text, chan, nick, reply):
 
     top_headlines = newsapi.get_top_headlines(q=query, category=cat, country=co)
 
-    results_queue[chan][nick] = [Article.from_json(json) for json in top_headlines['articles']]
+    results_queue[chan][nick] = [Article.from_json(
+        json) for json in top_headlines['articles']]
     return pop_many(results_queue[chan][nick], reply)
+
+
+@hook.command("fakenews", autohelp=False)
+def fakenews(text, chan, nick, reply):
+    """Get random news from fake news website."""
+    rss = choice(fakenews_feeds)
+    feed = feedparser.parse(rss)
+    article = choice(feed['entries'])
+    body = BeautifulSoup(article['summary'], "html.parser").text
+    return f"{article['title']} - {article['link']} - {truncate(body, 300)}"
