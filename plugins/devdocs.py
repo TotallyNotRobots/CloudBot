@@ -136,7 +136,7 @@ def devdocs(text, chan, nick, reply, notice):
         else:
             return f"Slug not found: {slug}. Use '.devdocs list' to see available slugs."
 
-    query = text.split(" ", 1)[1] if len(text.split(" ")) > 1 else ""
+    query = " ".join(text.split()[1:])
     if not query:
         p = SLUGS[slug]
         return f"{p['name']} - {p.get('version', '')}: {', '.join(f'{k}: {v}' for k, v in p.get('links', {}).items())}"
