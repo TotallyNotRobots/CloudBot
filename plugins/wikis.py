@@ -166,6 +166,4 @@ for commands in APIS:
     hooks_map[next_cmds] = make_next_hook(commands)
 
 for cmds in hooks_map:
-    # HACK to make the cloudbot hook.command call work
-    locals()[cmds[0]] = hooks_map[cmds]
-    eval(f"hook.command(*cmds, autohelp=False)({cmds[0]})")
+    globals()[cmds[0]] = hook.command(*cmds, autohelp=False)(hooks_map[cmds])
