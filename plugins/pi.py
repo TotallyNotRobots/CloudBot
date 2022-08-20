@@ -20,9 +20,9 @@ def pi(text: str):
     except ValueError:
         start = 0
         if text:
-            size = text
+            start = text
         else:
-            size = MAX_DIGITS
+            start = 0
     try:
         start = int(start)
         size = int(size)
