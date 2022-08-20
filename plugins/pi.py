@@ -18,7 +18,7 @@ def pi(text: str):
     try:
         start, size = text.split()
     except ValueError:
-        start = 0
+        size = MAX_DIGITS
         if text:
             start = text
         else:
