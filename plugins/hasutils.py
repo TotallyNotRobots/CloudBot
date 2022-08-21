@@ -154,6 +154,19 @@ def mybindecode(text):
 
     return "Binary: " + "".join(chr(int(byte, 2)) for byte in bytearray)
 
+@hook.command("dec")
+def mydec(text):
+    """<text> - Converts <text> to decimal."""
+    return "Decimal: " + " ".join(str(ord(c)) for c in text)
+
+@hook.command("decdecode")
+def mydecdecode(text):
+    """<text> - Converts <text> from decimal."""
+    for n in text.split(" "):
+        if not n.isdigit():
+            return f"Invalid decimal: {n}. Must be digits."
+    return "Decimal: " + "".join(chr(int(n)) for n in text.split(" "))
+
 
 @hook.command("hex")
 def myhex(text):
