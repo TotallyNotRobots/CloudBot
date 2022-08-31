@@ -1,35 +1,86 @@
-import requests
-from requests import HTTPError
+import re
+
+from chartlyrics import ChartLyricsClient
+from chartlyrics.lyrics import Strophe
 
 from cloudbot import hook
-from cloudbot.bot import bot
-from cloudbot.util import web
+from cloudbot.util.queue import Queue
 
-#
-api_url = "http://api.lyricsnmusic.com/songs"
+results_queue = Queue()
+poped3 = Queue()
 
+def pop3(results, reply, chan, nick):
+    global poped3
+    songs = []
+    for i in range(3):
+        try:
+            song = results.pop()
+            if isinstance(song, Strophe):
+                reply(str(song).replace('\n', ' - '))
+                return
 
-@hook.command("lyrics")
-def lyricsnmusic(text, reply):
-    """<artist and/or song> - will fetch the first 150 characters of a song and a link to the full lyrics."""
-    api_key = bot.config.get_api_key("lyricsnmusic")
-    params = {"api_key": api_key, "q": text}
-    r = requests.get(api_url, params=params)
-    try:
-        r.raise_for_status()
-    except HTTPError:
-        reply("There was an error returned by the LyricsNMusic API.")
-        raise
+            songs.append(song)
+            reply(f"{i+1}) {song.artist} - {song.song} - {song.songUrl}")
+        except IndexError:
+            return "No [more] results found."
+    poped3[chan][nick] = songs
 
-    if r.status_code != 200:
-        return "There was an error returned by the LyricsNMusic API."
-    json = r.json()
-    data = json[0]
-    snippet = data["snippet"].replace("\r\n", " ")
-    url = web.try_shorten(data["url"])
-    title = data["title"]
-    viewable = data["viewable"]
-    out = "\x02{}\x02 -- {} {}".format(title, snippet, url)
-    if not viewable:
-        out += " Full lyrics not available."
-    return out
+@hook.command("lyricsn", autohelp=False)
+def lyricsn(text, bot, chan, nick, reply):
+    """<nick> - Returns next search result for pkg command for nick or yours by default. Use lyricsn to paginate"""
+    global results_queue
+    results = results_queue[chan][nick]
+    user = text.strip().split()[0] if text.strip() else ""
+    if user:
+        if user in results_queue[chan]:
+            results = results_queue[chan][user]
+        else:
+            return f"Nick '{user}' has no queue."
+
+    if len(results) == 0:
+        return "No [more] results found."
+
+    return pop3(results, reply, chan, nick)
+
+@hook.command("lyrics", autohost=False)
+def lyricsnmusic(text, chan, nick, reply):
+    """<artist> <song> - will fetch the first 150 characters of a song and a link to the full lyrics. Enclose with quotes to deliminate arguments. Use lyricsn to paginate"""
+    global results_queue
+    args = text.split()
+    if len(args) > 2 and "\"" in args:
+        args = re.match(r'\s+"(.+)"\s+"(.+)"\s+', text).groups()
+    if len(args) != 2:
+        return "Usage: .lyrics <artist> <song>"
+    client = ChartLyricsClient()
+    results_queue[chan][nick] = list(client.search_artist_and_song(args[0], args[1]))
+    return pop3(results_queue[chan][nick], reply, chan, nick)
+
+@hook.command("lysearch", autohelp=False)
+def lysearch(text, chan, nick, reply):
+    """<search_queue> - Searches for a song from its lyrics. Use lyricsn to paginate"""
+    global results_queue
+    if len(text.strip()) == 0:
+        return "Usage: .lysearch <search_queue>"
+    client = ChartLyricsClient()
+    results_queue[chan][nick] = list(client.search_text(text))
+    return pop3(results_queue[chan][nick], reply, chan, nick)
+
+@hook.command("getlyrics", autohelp=False)
+def getlyrics(text, chan, nick, reply):
+    """<num> - will fetch the first verse of a song where 'num' is the number on the last list. Use 'lyricsn' to paginate."""
+    global poped3
+    global results_queue
+    if len(text.strip()) == 0:
+        return "Usage: .getlyrics <num>"
+    if not text.strip().isdigit():
+        return "Invalid number"
+    num = int(text.strip())
+    if num > len(poped3[chan][nick]):
+        return "Number too big"
+    i = 1
+    while i <= num:
+        song = poped3[chan][nick].pop()
+        i += 1
+
+    results_queue[chan][nick] = list(song.lyrics_object)  # list of strophes
+    return pop3(results_queue[chan][nick], reply, chan, nick)
