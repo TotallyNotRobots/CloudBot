@@ -22,10 +22,11 @@ def pop3(results, reply, chan, nick):
             songs.append(song)
             reply(f"{i+1}) {song.artist} - {song.song} - {song.songUrl}")
         except IndexError:
-            return "No [more] results found."
+            reply("No [more] results found.")
+            break
     poped3[chan][nick] = songs
 
-@hook.command("lyricsn", autohelp=False)
+@hook.command("lyricsn", "lyn", autohelp=False)
 def lyricsn(text, bot, chan, nick, reply):
     """<nick> - Returns next search result for pkg command for nick or yours by default. Use lyricsn to paginate"""
     global results_queue
@@ -42,14 +43,26 @@ def lyricsn(text, bot, chan, nick, reply):
 
     return pop3(results, reply, chan, nick)
 
+
+def parse_args(text: str):
+    args = re.match(r'\s*"(.+)"\s+"(.+)"\s*', text)
+    if args:
+        return args.groups()
+    args = re.match(r'\s*(.+)\s+"(.+)"\s*', text)
+    if args:
+        return args.groups()
+    args = re.match(r'\s*"(.+)"\s+(.+)\s*', text)
+    if args:
+        return args.groups()
+
 @hook.command("lyrics", autohost=False)
 def lyricsnmusic(text, chan, nick, reply):
     """<artist> <song> - will fetch the first 150 characters of a song and a link to the full lyrics. Enclose with quotes to deliminate arguments. Use lyricsn to paginate"""
     global results_queue
     args = text.split()
-    if len(args) > 2 and "\"" in args:
-        args = re.match(r'\s+"(.+)"\s+"(.+)"\s+', text).groups()
-    if len(args) != 2:
+    if len(args) > 2 and "\"" in text:
+        args = parse_args(text)
+    if args is None or len(args) != 2:
         return "Usage: .lyrics <artist> <song>"
     client = ChartLyricsClient()
     results_queue[chan][nick] = list(client.search_artist_and_song(args[0], args[1]))
@@ -68,17 +81,19 @@ def lysearch(text, chan, nick, reply):
 @hook.command("getlyrics", autohelp=False)
 def getlyrics(text, chan, nick, reply):
     """<num> - will fetch the first verse of a song where 'num' is the number on the last list. Use 'lyricsn' to paginate."""
-    global poped3
-    global results_queue
+    global poped3, results_queue
     if len(text.strip()) == 0:
         return "Usage: .getlyrics <num>"
     if not text.strip().isdigit():
         return "Invalid number"
     num = int(text.strip())
+    if num < 0:
+        return "Number is too small"
     if num > len(poped3[chan][nick]):
         return "Number too big"
     i = 1
-    while i <= num:
+    song = poped3[chan][nick].pop()
+    while i < num:
         song = poped3[chan][nick].pop()
         i += 1
 
