@@ -83,3 +83,12 @@ def godocs(text, reply):
         i += 1
         used.add(item['path'])
         reply(f"{item['title']}: {description} - {item['domain'] + item['path']}")
+
+
+@hook.command("theme", autohelp=False)
+def theme(reply):
+    """- Current godot wild jam theme"""
+    soup = Soup(get("https://godotwildjam.com"))
+    elm = soup.find("div", {"class": "page-content"})
+    title = elm.find("h1", {"class": "elementor-heading-title elementor-size-default"})[0].text
+    reply(title)
