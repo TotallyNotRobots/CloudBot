@@ -3,7 +3,10 @@
 import datetime
 import urllib.parse
 
+import pyocr.builders
+import requests
 from gazpacho import Soup, get
+from PIL import Image
 
 from cloudbot import hook
 
@@ -36,7 +39,7 @@ def jamdate(reply):
     if end_time_left.days < 0:
         reply("This month's Godot Wild Jam is over.")
         now = datetime.datetime.utcnow()
-        firstday = now.replace(day=1, month=now.month+1)
+        firstday = now.replace(day=1, month=now.month + 1)
         # This is the friday after the 1st weekend
         friday = 12 - firstday.weekday()
         from_date = firstday.replace(day=friday, hour=20, minute=0)
@@ -85,10 +88,58 @@ def godocs(text, reply):
         reply(f"{item['title']}: {description} - {item['domain'] + item['path']}")
 
 
+def capitalize(word: str) -> str:
+    return word[0].upper() + word[1:]
+
+
+class WildJamCardPaser:
+    def __init__(self, theme_url, cards_url):
+        self.tool = pyocr.tesseract
+        self.theme_url = theme_url
+        self.cards_url = cards_url
+
+    def orc_image(self, img):
+        txt = self.tool.image_to_string(
+            img, lang="eng", builder=pyocr.builders.TextBuilder())
+        return txt.strip().lower().replace("\n", " ")
+
+    def get_cards(self):
+        img = Image.open(requests.get(self.cards_url, stream=True).raw)
+
+        # Split img horizontally into 3 parts
+        width, height = img.size
+        img1 = img.crop((0, 0, width / 3, height))
+        img2 = img.crop((width / 3, 0, width * 2 / 3, height))
+        img3 = img.crop((width * 2 / 3, 0, width, height))
+        return [
+            capitalize(self.orc_image(img1)),
+            capitalize(self.orc_image(img2)),
+            capitalize(self.orc_image(img3)),
+        ]
+
+    def get_theme(self):
+        img = Image.open(requests.get(self.theme_url, stream=True).raw)
+        return capitalize(self.orc_image(img).split()[-1])
+
+
 @hook.command("theme", autohelp=False)
 def theme(reply):
     """- Current godot wild jam theme"""
     soup = Soup(get("https://godotwildjam.com"))
     elm = soup.find("div", {"class": "page-content"})
-    title = elm.find("h1", {"class": "elementor-heading-title elementor-size-default"})[0].text
-    reply(title)
+    title = elm.find(
+        "h1", {"class": "elementor-heading-title elementor-size-default"})[0].text
+
+    not_started = "theme to be announced" in title.lower()
+    if not_started:
+        reply(title)
+        return
+
+    elms = soup.find('div', {'class': 'elementor-widget-image'}, mode='all')
+    theme_url = elms[1].find('img').attrs['src']
+    cards_url = elms[2].find('img').attrs['src']
+    parser = WildJamCardPaser(theme_url, cards_url)
+    theme = parser.get_theme()
+    cards = parser.get_cards()
+
+    reply(f"\x02{title}\x02: {theme} - \x02CARDS: \x02{cards[0]}, {cards[1]}, {cards[2]}")
