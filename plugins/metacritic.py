@@ -1,7 +1,8 @@
 import re
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 import requests
-from dataclasses import dataclass
 from lxml import html
 
 from cloudbot import hook
@@ -16,11 +17,18 @@ headers = {
     "Referer": "http://www.metacritic.com/",
 }
 
+
 @dataclass
 class Result:
     result: html.HtmlElement
     platform: str
 
+
+def get_first_of_class(node, class_name):
+    obj = node.find_class(class_name)
+    if obj:
+        return obj[0].text_content().strip()
+    return ""
 
 
 @hook.command("metan", autohelp=False)
@@ -44,6 +52,8 @@ def metan(chan, nick):
     link = "http://metacritic.com" + product_title.find("a").attrib["href"]
 
     release = None
+    user_score = ""
+    cowntdown_date = ""
     try:
         request = requests.get(link, headers=headers)
         request.raise_for_status()
@@ -58,24 +68,41 @@ def metan(chan, nick):
                     .find_class("data")[0]
                     .text_content()
                 )
-
-                # strip extra spaces out of the release date
-                release = re.sub(r"\s{2,}", " ", release).strip()
             except IndexError:
-                pass
+                release = None
 
-    try:
-        score = result.find_class("metascore_w")[0].text_content()
-    except IndexError:
-        score = ""
+            # strip extra spaces out of the release date
+            release = re.sub(r"\s{2,}", " ", release).strip()
 
-    return "[{}] {} - \x02{}/100\x02, {} - {}".format(
+            user_score = get_first_of_class(doc, "metascore_w user")
+            countdown = doc.find_class("product_countdown")
+            if countdown:
+                try:
+                    script = countdown[0].find_class("countdown_holder")[0].find(
+                        "span").find("script").text_content()
+                except IndexError:
+                    pass
+                else:
+                    match = re.match(r'^.+(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d).+', script)
+                    if match:
+                        cowntdown_date = match.group(1)
+                        # Get time delta
+                        cowntdown_date = datetime.strptime(cowntdown_date, "%Y-%m-%d %H:%M:%S")
+                        cowntdown_date = cowntdown_date - datetime.now()
+                        cowntdown_date = str(cowntdown_date).split(".")[0]
+
+    score = get_first_of_class(result, "metascore_w")
+
+    return "[{}] {} - \x02{}/100\x02, {}{}{} - {}".format(
         plat.upper().strip(),
         name.strip(),
         score.strip() or "no score",
-        "release: \x02%s\x02" % release if release else "",
+        f"user score: \x02{user_score}/10\x02, " if user_score else "",
+        f"release: \x02{release}\x02, " if release and not cowntdown_date else "",
+        f"releases in: \x02{cowntdown_date}\x02" if cowntdown_date else "",
         link,
     )
+
 
 @hook.command("metacritic", "meta")
 def metacritic(text, reply, chan, nick):
@@ -96,7 +123,7 @@ def metacritic(text, reply, chan, nick):
         "vita",
         "wiiu",
         "xone",
-        "xbsz",
+        "xbsx",
         "ps4",
         "ps5",
     )
@@ -121,7 +148,6 @@ def metacritic(text, reply, chan, nick):
     title_safe = requests.utils.quote(title)
 
     url = "http://www.metacritic.com/search/{}/{}/results".format(cat, title_safe)
-
 
     try:
         request = requests.get(url, headers=headers)
