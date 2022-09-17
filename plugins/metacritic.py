@@ -67,7 +67,7 @@ def metan(chan, nick):
     try:
         score = result.find_class("metascore_w")[0].text_content()
     except IndexError:
-        score = None
+        score = ""
 
     return "[{}] {} - \x02{}/100\x02, {} - {}".format(
         plat.upper().strip(),
