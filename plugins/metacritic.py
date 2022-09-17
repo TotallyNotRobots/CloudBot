@@ -70,9 +70,9 @@ def metan(chan, nick):
                 )
             except IndexError:
                 release = None
-
-            # strip extra spaces out of the release date
-            release = re.sub(r"\s{2,}", " ", release).strip()
+            else:
+                # strip extra spaces out of the release date
+                release = re.sub(r"\s{2,}", " ", release).strip()
 
             user_score = get_first_of_class(doc, "metascore_w user")
             countdown = doc.find_class("product_countdown")
