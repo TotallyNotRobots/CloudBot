@@ -79,7 +79,7 @@ def metan(chan, nick):
 
 @hook.command("metacritic", "meta")
 def metacritic(text, reply, chan, nick):
-    """[all|movie|tv|album|x360|ps3|pc|gba|ds|3ds|wii|vita|wiiu|xone|xbsx|ps4|ps5] <title> - gets rating for <title> from
+    """[list|all|movie|tv|album|x360|ps3|pc|gba|ds|3ds|wii|vita|wiiu|xone|xbsx|ps4|ps5] <title> - gets rating for <title> from
     metacritic on the specified medium"""
     global results_queue
 
@@ -102,6 +102,8 @@ def metacritic(text, reply, chan, nick):
     )
 
     all_platforms = game_platforms + ("all", "movie", "tv", "album")
+    if args.strip().casefold() == "list".casefold():
+        return "Platforms: {}".format(", ".join(all_platforms))
 
     try:
         plat, title = args.split(" ", 1)
