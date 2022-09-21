@@ -108,7 +108,7 @@ def seen(text, nick, chan, db, event, is_nick_valid):
 
     last_seen = db.execute(
         select([table.c.name, table.c.time, table.c.quote])
-            .where(table.c.name == text.lower()).where(table.c.chan == chan)
+        .where(table.c.name == text.lower()).where(table.c.chan == chan)
     ).fetchone()
 
     if last_seen:
@@ -119,3 +119,28 @@ def seen(text, nick, chan, db, event, is_nick_valid):
             return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
     else:
         return "I've never seen {} talking in this channel.".format(text)
+
+
+@hook.command("lastlink", "ll", "lasturl", autohelp=False)
+def lastlink(text, chan, conn):
+    """[<nick>] - gets the last link posted by a user or in the channel if no argument is supplied"""
+    try:
+        history = reversed(conn.history[chan])
+    except KeyError:
+        return "There is no history for this channel."
+
+    pattern = "\\b(https?:\\/\\/)?(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)\\b"
+
+    i = 0
+    max_i = 5000
+
+    for nick, message_time, message in history:
+        if i > max_i:
+            break
+        i += 1
+        if nick == text or not text:
+            if re.match(pattern, message):
+                if message.startswith("http") or len(message.split(".")) > 2:
+                    return "{}: {}".format(nick, message)
+
+    return "No links found" if text else f"No links found for nick: {text}"
