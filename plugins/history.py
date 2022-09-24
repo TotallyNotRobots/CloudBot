@@ -143,4 +143,4 @@ def lastlink(text, chan, conn):
                 if message.startswith("http") or len(message.split(".")) > 2:
                     return "{}: {}".format(nick, message)
 
-    return "No links found" if text else f"No links found for nick: {text}"
+    return "No links found" if not text else f"No links found for nick: {text}"
