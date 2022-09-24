@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 from cloudbot.util import queue
 
-BASE_URL = "https://store.playstation.com"
+BASE_URL = "https://store.playstation.com/"
 LANG = 'en-us'
 SEARCH_URL = BASE_URL + "{}/search/{}"
 GAME_URL = BASE_URL + "{}/product/{}"
