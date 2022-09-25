@@ -38,10 +38,12 @@ def search_game(query: str, lang: str) -> List[Game]:
     url = SEARCH_URL.format(lang, quote(query))
     r = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(r.text, 'html.parser')
-    grid = soup.find('ul', class_="psw-grid-list psw-l-grid").find_all('li')
+    grid = soup.find('ul', class_="psw-grid-list psw-l-grid")
+    if not grid:
+        return []
     games = []
     i = 0
-    for game in grid:
+    for game in grid.find_all('li') or []:
         section = game.find("section")
         name = section.find("span", {"data-qa": f"search#productTile{i}#product-name"}).text.strip()
         price = section.find("span", {"data-qa": f"search#productTile{i}#price#display-price"}).text.strip()
