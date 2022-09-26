@@ -1,5 +1,3 @@
-# This project is now maintained by Snoonet at https://github.com/snoonetIRC/CloudBot
-
 # CloudBot
 ![Python application](https://github.com/TotallyNotRobots/CloudBot/workflows/Python%20application/badge.svg)
 [![CodeFactor](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/badge/main)](https://www.codefactor.io/repository/github/totallynotrobots/cloudbot/overview/main)
