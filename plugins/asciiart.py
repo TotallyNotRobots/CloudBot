@@ -19,7 +19,7 @@ URL = "https://www.asciiart.eu"
 FILE = "plugins/asciiart.json"
 THRESHOLD = 0.7
 MAX_PER_MINUTE = 2
-MAX_PER_HOUR = 10
+MAX_PER_HOUR = 5
 
 
 @dataclass

@@ -1,5 +1,8 @@
+aiohttp==3.8.3
+aiosignal==1.2.0
 anyio==3.6.1
 astroid==2.5.2
+async-timeout==4.0.2
 asyncio-dgram==1.2.0
 attrs==21.2.0
 beautifulsoup4==4.10.0
@@ -23,9 +26,11 @@ ety==1.3.3
 fake-useragent==0.1.11
 feedparser==6.0.8
 forecastiopy==0.22
+frozenlist==1.3.1
 future==0.18.2
 fuzzywuzzy==0.18.0
 gazpacho==1.1
+geoip2==4.6.0
 googlemaps==4.5.3
 greenlet==1.0.0
 h11==0.12.0
@@ -38,6 +43,7 @@ isort==5.8.0
 joblib==1.0.1
 lazy-object-proxy==1.6.0
 lxml==4.9.1
+maxminddb==2.2.0
 mccabe==0.6.1
 mcstatus==6.5.0
 multidict==5.2.0
