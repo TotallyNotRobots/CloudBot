@@ -70,6 +70,11 @@ def hltbn(text, nick, chan):
     """Displays next game in queue for nick."""
     global results_queue
 
+    if text:
+        nick = text.strip().split()[0]
+        if nick not in results_queue[chan]:
+            return f"{nick} has no hltb game in queue."
+
     if len(results_queue[chan][nick]) == 0:
         return 'No [more] results for you'
 
