@@ -13,6 +13,8 @@ def geoip(text, loop, reply):
     """<host|ip> - Looks up the physical location of <host|ip> using Maxmind GeoLite """
     if re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text):
         ip = text
+    elif re.match(r"(([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4})", text):
+        ip = text
     else:
         try:
             ip = socket.gethostbyname(text)
