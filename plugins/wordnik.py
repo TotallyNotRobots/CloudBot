@@ -4,6 +4,7 @@ import re
 import urllib.parse
 from json import JSONDecodeError
 from typing import Any, Dict, Iterable, List, Optional, Tuple, cast
+from bs4 import BeautifulSoup
 
 import requests
 
@@ -258,6 +259,7 @@ def define(text, event):
 
     data["url"] = web.try_shorten(WEB_URL.format(data["word"]))
     data["attrib"] = format_attrib(data["sourceDictionary"])
+    data['text'] = BeautifulSoup(data['text']).text  # Make sure to remove xml tags
 
     return colors.parse("$(b){word}$(b): {text} - {url} ({attrib})").format_map(
         data
