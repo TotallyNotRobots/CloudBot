@@ -12,7 +12,7 @@ GETS = {
     ("dogfact", "df"): {"url": "https://dog-api.kinduff.com/api/facts", "key": "facts"},
     ("chucknorris", "cn"): {"url": "https://api.chucknorris.io/jokes/random", "key": "value"},
     ("insult", "i"): {"url": "https://evilinsult.com/generate_insult.php?lang=en&type=json", "key": "insult"},
-    ("joke", "j"): {"url": "https://official-joke-api.appspot.com/random_joke", "key": "setup"},
+    ("joke", "j"): {"url": "https://official-joke-api.appspot.com/random_joke", "key": "setup punchline"},
     ("yomama", "ym"): {"url": "http://api.yomomma.info/", "key": "joke"},
     ("xkcd", "x"): {"url": "https://xkcd.com/info.0.json", "key": "img"},
     ("quote", "q"): {"url": "https://api.quotable.io/random", "key": "content"},
@@ -29,12 +29,13 @@ GETS = {
 def get_json(key, url):
     r = requests.get(url)
     r = r.json()
-    return r[key]
+    for key in key.split():
+        yield r[key]
 
 def make_hook(commands):
     name = commands[0]
-    def _hook(text, bot, chan, nick):
-        return get_json(**GETS[commands])
+    def _hook(text, bot, chan, nick, reply):
+        return list(get_json(**GETS[commands]))
 
     _hook.__doc__ = f"- returns a {name}"
     return _hook
