@@ -16,12 +16,12 @@ GETS = {
     ("yomama", "ym"): {"url": "http://api.yomomma.info/", "key": "joke"},
     ("xkcd", "x"): {"url": "https://xkcd.com/info.0.json", "key": "img"},
     ("quote", "q"): {"url": "https://api.quotable.io/random", "key": "content"},
-    ("cat", "c"): {"url": "https://api.thecatapi.com/v1/images/search", "key": "url"},
-    ("dog", "d"): {"url": "https://dog.ceo/api/breeds/image/random", "key": "message"},
-    ("bird", "b"): {"url": "https://some-random-api.ml/img/birb", "key": "link"},
-    ("fox", "f"): {"url": "https://some-random-api.ml/img/fox", "key": "link"},
-    ("koala", "k"): {"url": "https://some-random-api.ml/img/koala", "key": "link"},
-    ("panda", "p"): {"url": "https://some-random-api.ml/img/panda", "key": "link"},
+    ("catpic", "c"): {"url": "https://api.thecatapi.com/v1/images/search", "key": "url"},
+    ("dogpic", "d"): {"url": "https://dog.ceo/api/breeds/image/random", "key": "message"},
+    ("birdpic", "b"): {"url": "https://some-random-api.ml/img/bird", "key": "link"},
+    ("foxpic", "f"): {"url": "https://some-random-api.ml/img/fox", "key": "link"},
+    ("koalapic", "k"): {"url": "https://some-random-api.ml/img/koala", "key": "link"},
+    ("pandapic", "p"): {"url": "https://some-random-api.ml/img/panda", "key": "link"},
     ("redpanda", "rp"): {"url": "https://some-random-api.ml/img/red_panda", "key": "link"},
 }
 
@@ -29,14 +29,18 @@ GETS = {
 def get_json(key, url):
     r = requests.get(url)
     r = r.json()
+    if isinstance(r, list):
+        r = r[0]
     for key in key.split():
         d = r[key]
         if isinstance(d, list) and len(d) > 0:
             yield d[0]
+        else:
+            yield d
 
 def make_hook(commands):
     name = commands[0]
-    def _hook(text, bot, chan, nick, reply):
+    def _hook():
         return list(get_json(**GETS[commands]))
 
     _hook.__doc__ = f"- returns a {name}"
