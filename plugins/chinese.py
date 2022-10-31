@@ -39,13 +39,13 @@ def chinese(text):
 
     if cmd == "help":
         if len(text.split()) == 1:
-            return "Commands: " + ", ".join(commands.keys())
+            return "Commands: " + ", ".join(commands.keys() + " https://ctext.org/plugins/apilist/")
         else:
             cmd = text.split()[1]
             fmtstr = commands[cmd]
             field_names = [name for text, name, spec,
                            conv in string.Formatter().parse(fmtstr) if name is not None]
-            return f"Usage: .chinese {cmd} " + " ".join(field_names)
+            return f"Usage: .chinese {cmd} [" + "] [".join(field_names).rstrip(" [")
 
     fmtstr = commands[cmd]
     field_names = [name for text, name, spec,
