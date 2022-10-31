@@ -30,7 +30,9 @@ def get_json(key, url):
     r = requests.get(url)
     r = r.json()
     for key in key.split():
-        yield r[key]
+        d = r[key]
+        if isinstance(d, list) and len(d) > 0:
+            yield d[0]
 
 def make_hook(commands):
     name = commands[0]
