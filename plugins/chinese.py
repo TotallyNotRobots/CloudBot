@@ -9,6 +9,8 @@ from urllib.parse import quote
 
 from cloudbot import hook
 
+from google.transliteration import transliterate_text
+
 API = "https://api.ctext.org/"
 
 commands = {
@@ -62,3 +64,16 @@ def chinese(text):
         return [";\t".join(_list[i:i + n]) for i in range(0, len(_list), n)][:8]
     else:
         return "Error: " + r.status_code
+
+
+@hook.command("transliterate", autohelp=False)
+def transliterate(text):
+    """<source> <text> - Transliterate text"""
+    if not text:
+        return "Usage: .transliterate <source> <text>"
+
+    try:
+        source, text = text.split(maxsplit=1)
+        return transliterate_text(text, lang_code=source)
+    except ValueError:
+        return "Usage: .transliterate <source> <text>"
