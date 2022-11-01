@@ -10,6 +10,7 @@ from urllib.parse import quote
 from cloudbot import hook
 
 from google.transliteration import transliterate_text
+from google.transliteration.numerals import LANG2SCRIPT
 
 API = "https://api.ctext.org/"
 
@@ -71,6 +72,12 @@ def transliterate(text):
     """<source> <text> - Transliterate text"""
     if not text:
         return "Usage: .transliterate <source> <text>"
+
+    if text == "list":
+        _list = pretty_dict(LANG2SCRIPT).split("\n")
+        # Join every n elements
+        n = 8
+        return [";\t".join(_list[i:i + n]) for i in range(0, len(_list), n)]
 
     try:
         source, text = text.split(maxsplit=1)
