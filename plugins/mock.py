@@ -1,10 +1,16 @@
 from cloudbot import hook
 
 
-def get_latest_line(conn, chan, nick):
+def get_latest_line(text, conn, chan, nick):
     for name, _, msg in reversed(conn.history.get(chan.casefold(), [])):
         if nick.casefold() == name.casefold():
-            return msg
+            # Ignore commands
+            if msg.startswith(conn.config["command_prefix"]):
+                continue
+            if not text:
+                return msg
+            elif text in msg:
+                return msg
 
     return None
 
@@ -12,10 +18,13 @@ def get_latest_line(conn, chan, nick):
 @hook.command()
 def mock(text, chan, conn, message):
     """<nick> - turn <user>'s last message in to aLtErNaTiNg cApS"""
-    nick = text.strip()
-    line = get_latest_line(conn, chan, nick)
+    nick, text, *_ = text.strip().split(None, 1) + ['', '']
+    line = get_latest_line(text, conn, chan, nick)
     if line is None:
-        return "Nothing found in recent history for {}".format(nick)
+        if not text:
+            return "Nothing found in recent history for {}".format(nick)
+        else:
+            return "Nothing found in recent history for {} containing '{}'".format(nick, text)
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"

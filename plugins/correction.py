@@ -3,8 +3,10 @@ import re
 from cloudbot import hook
 from cloudbot.util.formatting import ireplace
 
-correction_re = re.compile(r"^(?:[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)(?:;\s*?[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)*?$")
-exp_re = re.compile(r"(?:[sS]/(?:((?:\\/|[^/])*)(?<!\\)/((?:\\/|[^/])*)(?:(?<!\\)/([igx]{,4}))?))")
+correction_re = re.compile(
+    r"^(?:[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)(?:;\s*?[sS]/(?:((?:\\/|[^/])*?)(?<!\\)/((?:\\/|[^/])*?)(?:(?<!\\)/([igx]{,4}))?)\s*?;*?)*?$")
+exp_re = re.compile(
+    r"(?:[sS]/(?:((?:\\/|[^/])*)(?<!\\)/((?:\\/|[^/])*)(?:(?<!\\)/([igx]{,4}))?))")
 unescape_re = re.compile(r"\\(.)")
 
 LAMESIZE = 15
@@ -14,19 +16,24 @@ REFLAGS = {
     "g": re.MULTILINE,
     "x": re.VERBOSE,
 }
+
+
 def get_flags(flags, message):
     re_flags = []
     for flag in flags:
         if flag not in "igx":
-            message("Invalid regex flag `{}`. Valid are: [{}]".format(flag, ", ".join(REFLAGS.keys())))
+            message("Invalid regex flag `{}`. Valid are: [{}]".format(
+                flag, ", ".join(REFLAGS.keys())))
         re_flags.append(REFLAGS[flag])
     return re_flags
+
 
 def paser_sed_exp(groups, message):
     find = groups[0]
     replace = groups[1] if groups[1] else ""
     flags = str(groups[2]) if groups[2] else ""
     return find, replace, get_flags(flags, message)
+
 
 @hook.regex(correction_re)
 def correction(match, conn, nick, chan, message):
@@ -77,7 +84,8 @@ def correction(match, conn, nick, chan, message):
                 replace_esc = re.escape(new)
                 mod_msg = unescape_re.sub(r"\1", new)
 
-            message("Correction {} messages ago, {}".format(i-1, fmt.format(name, mod_msg)))
+            message("Correction {} messages ago, {}".format(
+                i-1, fmt.format(name, mod_msg)))
             # if nick.lower() == name.lower():
             #     msg = ireplace(re.escape(msg), find_esc, replace_esc)
             #     msg = unescape_re.sub(r"\1", msg)
