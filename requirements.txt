@@ -96,3 +96,4 @@ youtube-search==2.1.0
 youtube-search-python==1.6.6
 yt-dlp==2022.7.18
 google-transliteration-api==1.0.3
+pydub==0.25.1
