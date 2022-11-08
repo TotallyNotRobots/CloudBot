@@ -211,7 +211,8 @@ def pubdev_search(query: str) -> Generator[Package, None, None]:
 
         date = package.select_one("a.-x-ago")
         released = date.text.strip() if date else ""
-        description = package.select_one("p.packages-description").text.strip()
+        description = package.select_one("div.packages-description")
+        description = description.text.strip() if description else ""
         platforms = []
         for m in package.select("div.-pub-tag-badge") or []:
             m = " ".join([s.text for s in m.select("a.tag-badge-sub")])
