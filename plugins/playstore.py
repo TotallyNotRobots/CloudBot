@@ -16,13 +16,18 @@ from cloudbot.util.queue import Queue
 class App(BaseModel):
     appId: str
     title: str
-    score: float
+    score: Optional[float]
     genre: str
     price: float
     currency: str
     description: str
     installs: str
     url: Optional[str] = Field(alias="_url")
+
+    @validator("score", always=True)
+    def set_score(cls, v, values, **kwargs):
+        if v is not None:
+            return round(v, 2)
 
     @validator("description", always=True)
     def set_description(cls, v, values, **kwargs):
@@ -38,7 +43,7 @@ class App(BaseModel):
         return app(values["appId"])["url"]
 
     def __str__(self):
-        return f"{self.title} - {self.price}{self.currency} - \x02Score:\x02 {round(self.score, 2)} - \x02Genre:\x02 {self.genre} - \x02Downloads:\x02 {self.installs} - {formatting.truncate(self.description, 100)} - {self.url}"
+        return f"{self.title} - {self.price}{self.currency} - \x02Score:\x02 {self.score} - \x02Genre:\x02 {self.genre} - \x02Downloads:\x02 {self.installs} - {formatting.truncate(self.description, 100)} - {self.url}"
 
 
 results_queue = Queue()
