@@ -41,7 +41,7 @@ def pastebin(text):
     return response.text
 
 def upload_file(file):
-    url = "http://ttm.sh"
+    url = "https://ttm.sh"
     payload = {'file': open(file, "rb")}
     response = requests.request("POST", url, files=payload)
     return response.text.strip()

@@ -79,7 +79,7 @@ def fart_sentence(audio: str, sentence: str) -> AudioSegment:
 
 
 def upload_file(file):
-    url = "http://ttm.sh"
+    url = "https://ttm.sh"
     payload = {'file': file}
     response = requests.request("POST", url, files=payload)
     return response.text.strip()
