@@ -25,8 +25,11 @@ def cup(text):
         if date > now + delta or date < now - delta:
             continue
         prepend = ""
+        append = ''
         if match["time_elapsed"] not in ["notstarted", "finished"]:
             prepend = "⚽️ "
-        matches_result.append(f'{prepend}{match["local_date"]}  {match["home_team_en"]} vs {match["away_team_en"]}    score: {match["home_score"]} - {match["away_score"]}      time: {match["time_elapsed"]}')
+            append = f'  time: {match["time_elapsed"]}'
+
+        matches_result.append(f'{prepend}{match["local_date"]}  {match["home_team_en"]} vs {match["away_team_en"]}    score: {match["home_score"]} - {match["away_score"]}{append}')
 
     return matches_result
