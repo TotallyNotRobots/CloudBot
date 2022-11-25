@@ -69,4 +69,4 @@ def cup(text):
         matches_result.append(
             f'{prepend}{match["local_date"]}  {match["home_team_en"]} vs {match["away_team_en"]}    score: {match["home_score"]} - {match["away_score"]}{append}')
 
-    return ["Legend: 🏟 future game, ⚽️ live game, 🏁 finished gam -times: h1 | hf | h2 "] + matches_result
+    return ["Legend: 🏟 future game, ⚽️ live game, 🏁 finished gae -times: h1 | hf | h2 "] + matches_result
