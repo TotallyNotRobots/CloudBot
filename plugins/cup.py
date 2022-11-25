@@ -12,7 +12,7 @@ def get(url, bearer):
     try:
         return response.json()
     except:
-        return response.text
+        raise Exception(response.text)
 
 
 def get_token(email, password):
@@ -22,15 +22,28 @@ def get_token(email, password):
     }
 
     response = requests.post('http://api.cup2022.ir/api/v1/user/login', json=json_data)
-    return response.json()['data']['token']
+    try:
+        return response.json()['data']['token']
+    except:
+        raise Exception(response.text)
 
 
-@hook.command("cup")
+@hook.command("cup", autohelp=False)
 def cup(text):
+    """"<n> number of days window"""
+
+    try:
+        days = float(text) if text else 1
+    except ValueError:
+        return "Invalid number of days. Can be integer or float"
+
     email = bot.config.get_api_key("cup_api_email")
     password = bot.config.get_api_key("cup_api_password")
-    api = get_token(email, password)
-    matches = get(API.format("match"), api)['data']
+    try:
+        api = get_token(email, password)
+        matches = get(API.format("match"), api)['data']
+    except Exception as e:
+        return "Error: {}".format(e)
     matches_result = []
     # sort matches by date
     dateformat = "%m/%d/%Y %H:%M"
@@ -39,19 +52,21 @@ def cup(text):
     for match in matches:
         # only get matches that are in 2 days range
         date = datetime.strptime(match["local_date"], dateformat)
-        delta = timedelta(days=2)
+        delta = timedelta(days=days)
         now = datetime.now()
         if date > now + delta or date < now - delta:
             continue
         prepend = ""
         append = ''
-        if match["time_elapsed"] not in ["notstarted", "finished"]:
+        if match["time_elapsed"] == "notstarted":
+            prepend = "🏟  "
+        elif match["time_elapsed"] == "finished":
+            prepend = "🏁 "
+        else:
             prepend = "⚽️ "
             append = f'  time: {match["time_elapsed"]}'
-        if match["time_elapsed"] == "finished":
-            prepend = "🏁 "
 
         matches_result.append(
             f'{prepend}{match["local_date"]}  {match["home_team_en"]} vs {match["away_team_en"]}    score: {match["home_score"]} - {match["away_score"]}{append}')
 
-    return matches_result
+    return ["Legend: 🏟 future game, ⚽️ live game, 🏁 finished game"] + matches_result
