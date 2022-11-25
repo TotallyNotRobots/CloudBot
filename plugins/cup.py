@@ -8,7 +8,11 @@ API = "http://api.cup2022.ir/api/v1/{}"
 
 
 def get(url, bearer):
-    return requests.get(url, headers={"Authorization": "Bearer " + bearer, "Content-Type": "application/json"}).json()
+    response = requests.get(url, headers={"Authorization": "Bearer " + bearer, "Content-Type": "application/json"})
+    try:
+        return response.json()
+    except:
+        return response.text
 
 
 def get_token(email, password):
