@@ -61,7 +61,7 @@ def cup(text):
         if match["time_elapsed"] == "notstarted":
             prepend = "🏟  "
         elif match["time_elapsed"] == "finished":
-            prepend = "🏁 "
+            prepend = "✔️  "
         else:
             prepend = "⚽️ "
             append = f'  time: {match["time_elapsed"]}'
@@ -69,4 +69,4 @@ def cup(text):
         matches_result.append(
             f'{prepend}{match["local_date"]}  {match["home_team_en"]} vs {match["away_team_en"]}    score: {match["home_score"]} - {match["away_score"]}{append}')
 
-    return ["Legend: 🏟 future game, ⚽️ live game, 🏁 finished game"] + matches_result
+    return ["Legend: 🏟 future game, ⚽️ live game, 🏁 finished gam -times: h1 | hf | h2 "] + matches_result
