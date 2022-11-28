@@ -5,7 +5,7 @@ from thefuzz import fuzz
 
 from cloudbot import hook
 
-API = "https://blackbeardapi.herokuapp.com/"
+API = "https://blackbeard.fly.dev/"
 
 
 def getJson(path, params={}):
