@@ -98,3 +98,4 @@ yt-dlp==2022.7.18
 google-transliteration-api==1.0.3
 pydub==0.25.1
 google-play-scraper==1.2.2
+koo-api
