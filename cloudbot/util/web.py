@@ -340,7 +340,7 @@ class Hastebin(Pastebin):
 
         try:
             r = requests.post(self.url + "/documents", data=encoded)
-            r.raise_for_status()
+            # r.raise_for_status()
         except HTTPError as e:
             r = e.response
             raise ServiceHTTPError(r.reason, r) from e
