@@ -9,7 +9,7 @@ from tests.util.mock_conn import MockConn
 
 def init_tables(mock_db):
     db_engine = mock_db.engine
-    tell.table.create(db_engine)
+    tell.TellMessage.__table__.create(db_engine)
     tell.disable_table.create(db_engine)
     tell.ignore_table.create(db_engine)
     session = mock_db.session()
@@ -109,8 +109,9 @@ def test_showtells(mock_db, freeze_time):
     event = MagicMock()
     tell.add_tell(mock_db.session(), server, sender, target, message)
 
-    assert mock_db.get_data(tell.table) == [
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
         (
+            1,
             "testconn",
             "foo",
             "other",
@@ -127,8 +128,9 @@ def test_showtells(mock_db, freeze_time):
     assert event.mock_calls == [
         call.notice("foo sent you a message 60 seconds ago: bar")
     ]
-    assert mock_db.get_data(tell.table) == [
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
         (
+            1,
             "testconn",
             "foo",
             "other",
@@ -203,6 +205,75 @@ def test_tellinput(mock_db, freeze_time):
     assert res is None
     assert event.mock_calls == [
         call.notice("foo sent you a message 0 minutes ago: bar")
+    ]
+
+
+def test_read_tell_spam(mock_db, freeze_time):
+    init_tables(mock_db)
+    db = mock_db.session()
+    conn = MockConn()
+    conn.config["command_prefix"] = "."
+    sender = "foo"
+    nick = "other"
+    message = "bar"
+    message2 = "baraa"
+    event = MagicMock()
+    content = "aa"
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message2)
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
+        (
+            2,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 37),
+            None,
+        ),
+        (
+            3,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 38),
+            None,
+        ),
+        (
+            4,
+            "testconn",
+            sender,
+            nick,
+            message2,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 39),
+            None,
+        ),
+    ]
+    res = tell.tellinput(conn, db, nick, event.notice, content)
+    assert res is None
+    assert event.mock_calls == [
+        call.notice(
+            "foo sent you a message 3 seconds ago: bar (+3 more, .showtells to view)"
+        )
     ]
 
 
