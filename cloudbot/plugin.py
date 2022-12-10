@@ -6,7 +6,7 @@ from collections import defaultdict
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional
+from typing import Dict, List, MutableMapping, Optional, Type, cast
 from weakref import WeakValueDictionary
 
 import sqlalchemy
@@ -54,6 +54,9 @@ def find_tables(code):
         ):
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
+        elif isinstance(obj, type) and issubclass(obj, database.Base):
+            obj = cast(Type[database.Base], obj)
+            tables.append(obj.__table__)
 
     return tables
 
