@@ -1,8 +1,10 @@
 import datetime
 from unittest.mock import MagicMock, call, patch
 
+import sqlalchemy as sa
 from irclib.parser import Prefix
 
+from cloudbot.util import database
 from plugins import tell
 from tests.util.mock_conn import MockConn
 
@@ -16,6 +18,65 @@ def init_tables(mock_db):
     tell.load_cache(session)
     tell.load_disabled(session)
     tell.load_ignores(session)
+
+
+def test_migrate_db(mock_db, freeze_time):
+    init_tables(mock_db)
+    session = mock_db.session()
+
+    tbl = sa.Table(
+        "tells",
+        database.metadata,
+        sa.Column("connection", sa.String),
+        sa.Column("sender", sa.String),
+        sa.Column("target", sa.String),
+        sa.Column("message", sa.String),
+        sa.Column("is_read", sa.Boolean),
+        sa.Column("time_sent", sa.DateTime),
+        sa.Column("time_read", sa.DateTime),
+    )
+
+    tbl.create(mock_db.engine)
+    mock_db.add_row(
+        tbl,
+        connection="conn",
+        sender="foo",
+        target="bar",
+        message="foobar",
+        is_read=False,
+        time_sent=datetime.datetime.now(),
+        time_read=None,
+    )
+
+    database.metadata.clear()
+
+    assert mock_db.get_data(tbl) == [
+        (
+            "conn",
+            "foo",
+            "bar",
+            "foobar",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        )
+    ]
+
+    tell.migrate_tables(session)
+
+    assert not sa.inspect(mock_db.engine).has_table(tbl.name)
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "conn",
+            "foo",
+            "bar",
+            "foobar",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        )
+    ]
 
 
 def test_tellcmd(mock_db):

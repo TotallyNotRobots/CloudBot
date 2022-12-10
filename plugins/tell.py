@@ -78,29 +78,31 @@ tell_cache: List[Tuple[str, str]] = []
 
 @hook.on_start(priority=Priority.HIGHEST)
 def migrate_tables(db):
-    table = Table(
-        "tells",
-        database.metadata,
-        Column("connection", String),
-        Column("sender", String),
-        Column("target", String),
-        Column("message", String),
-        Column("is_read", Boolean),
-        Column("time_sent", DateTime),
-        Column("time_read", DateTime),
-    )
-
-    if not table.exists(db.bind):
+    inspector = sa.inspect(db.bind)
+    if not inspector.has_table("tells"):
         return
 
-    if TellMessage.__table__.exists(db.bin):
+    table = sa.Table(
+        "tells",
+        database.metadata,
+        autoload_with=db.bind,
+    )
+
+    if (
+        inspector.has_table(TellMessage.__tablename__)
+        and db.query(TellMessage).count() > 0
+    ):
         raise Exception(
-            f"Can't migrate table {table.name} to {TellMessage.__table__.name}, destination already exists"
+            f"Can't migrate table {table.name} to {TellMessage.__tablename__}, destination already exists"
         )
 
-    data = db.execute(table.select())
+    data = [dict(row) for row in db.execute(table.select())]
+    for item in data:
+        item["conn"] = item.pop("connection")
+
     db.bulk_insert_mappings(TellMessage, data, return_defaults=True)
     db.commit()
+
     table.drop(db.bind)
 
 
