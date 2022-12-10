@@ -8,30 +8,46 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Integer,
     PrimaryKeyConstraint,
     String,
     Table,
     and_,
     not_,
+    update,
 )
 from sqlalchemy.sql import select
 
 from cloudbot import hook
 from cloudbot.event import EventType
+from cloudbot.hook import Priority
 from cloudbot.util import database, timeformat, web
 from cloudbot.util.formatting import gen_markdown_table
 
-table = Table(
-    "tells",
-    database.metadata,
-    Column("connection", String),
-    Column("sender", String),
-    Column("target", String),
-    Column("message", String),
-    Column("is_read", Boolean),
-    Column("time_sent", DateTime),
-    Column("time_read", DateTime),
-)
+
+class TellMessage(database.Base):
+    __tablename__ = "tell_messages"
+
+    msg_id = Column(Integer, primary_key=True, autoincrement=True)
+    conn = Column(String, index=True)
+    sender = Column(String)
+    target = Column(String, index=True)
+    message = Column(String)
+    is_read = Column(Boolean, default=False, index=True)
+    time_sent = Column(DateTime)
+    time_read = Column(DateTime)
+
+    def format_for_message(self):
+        reltime = timeformat.time_since(self.time_sent)
+        return f"{self.sender} sent you a message {reltime} ago: {self.message}"
+
+    def mark_read(self, now=None):
+        if now is None:
+            now = datetime.now()
+
+        self.is_read = True
+        self.time_read = now
+
 
 disable_table = Table(
     "tell_ignores",
@@ -60,12 +76,44 @@ ignore_cache: Dict[str, Dict[str, List[str]]] = defaultdict(
 tell_cache: List[Tuple[str, str]] = []
 
 
+@hook.on_start(priority=Priority.HIGHEST)
+def migrate_tables(db):
+    inspector = sa.inspect(db.bind)
+    if not inspector.has_table("tells"):
+        return
+
+    table = sa.Table(
+        "tells",
+        database.metadata,
+        autoload_with=db.bind,
+    )
+
+    if (
+        inspector.has_table(TellMessage.__tablename__)
+        and db.query(TellMessage).count() > 0
+    ):
+        raise Exception(
+            f"Can't migrate table {table.name} to {TellMessage.__tablename__}, destination already exists"
+        )
+
+    data = [dict(row) for row in db.execute(table.select())]
+    for item in data:
+        item["conn"] = item.pop("connection")
+
+    db.bulk_insert_mappings(TellMessage, data, return_defaults=True)
+    db.commit()
+
+    table.drop(db.bind)
+
+
 @hook.on_start()
 def load_cache(db):
     new_cache = []
-    for row in db.execute(table.select().where(not_(table.c.is_read))):
-        conn = row["connection"]
-        target = row["target"]
+    for conn, target in db.execute(
+        select(
+            [TellMessage.conn, TellMessage.target], not_(TellMessage.is_read)
+        )
+    ):
         new_cache.append((conn, target))
 
     tell_cache.clear()
@@ -183,24 +231,24 @@ def list_ignores(conn, nick):
         yield mask
 
 
-def get_unread(db, server, target):
+def get_unread(db, server, target) -> List[TellMessage]:
     query = (
-        select([table.c.sender, table.c.message, table.c.time_sent])
-        .where(table.c.connection == server.lower())
-        .where(table.c.target == target.lower())
-        .where(not_(table.c.is_read))
-        .order_by(table.c.time_sent)
+        select(TellMessage)
+        .where(not_(TellMessage.is_read))
+        .where(TellMessage.conn == server)
+        .where(TellMessage.target == target.lower())
+        .order_by(TellMessage.time_sent)
     )
-    return db.execute(query).fetchall()
+
+    return db.execute(query).scalars().all()
 
 
 def count_unread(db, server, target):
     query = (
-        select([sa.func.count()])
-        .select_from(table)
-        .where(table.c.connection == server.lower())
-        .where(table.c.target == target.lower())
-        .where(not_(table.c.is_read))
+        select(sa.func.count(TellMessage.msg_id))
+        .where(TellMessage.conn == server.lower())
+        .where(TellMessage.target == target.lower())
+        .where(not_(TellMessage.is_read))
     )
 
     return db.execute(query).fetchone()[0]
@@ -208,23 +256,10 @@ def count_unread(db, server, target):
 
 def read_all_tells(db, server, target):
     query = (
-        table.update()
-        .where(table.c.connection == server.lower())
-        .where(table.c.target == target.lower())
-        .where(not_(table.c.is_read))
-        .values(is_read=True)
-    )
-    db.execute(query)
-    db.commit()
-    load_cache(db)
-
-
-def read_tell(db, server, target, message):
-    query = (
-        table.update()
-        .where(table.c.connection == server.lower())
-        .where(table.c.target == target.lower())
-        .where(table.c.message == message)
+        update(TellMessage)
+        .where(TellMessage.conn == server.lower())
+        .where(TellMessage.target == target.lower())
+        .where(TellMessage.is_read.is_(False))
         .values(is_read=True)
     )
     db.execute(query)
@@ -233,15 +268,14 @@ def read_tell(db, server, target, message):
 
 
 def add_tell(db, server, sender, target, message):
-    query = table.insert().values(
-        connection=server.lower(),
+    new_tell = TellMessage(
+        conn=server.lower(),
         sender=sender.lower(),
         target=target.lower(),
         message=message,
-        is_read=False,
-        time_sent=datetime.today(),
+        time_sent=datetime.now(),
     )
-    db.execute(query)
+    db.add(new_tell)
     db.commit()
     load_cache(db)
 
@@ -267,19 +301,17 @@ def tellinput(conn, db, nick, notice, content):
     if not tells:
         return
 
-    user_from, message, time_sent = tells[0]
-    reltime = timeformat.time_since(time_sent)
-    reply = "{} sent you a message {} ago: {}".format(
-        user_from, reltime, message
-    )
+    first_tell = tells[0]
+    reply = first_tell.format_for_message()
 
     if len(tells) > 1:
         reply += " (+{} more, {}showtells to view)".format(
             len(tells) - 1, conn.config["command_prefix"][0]
         )
 
-    read_tell(db, conn.name, nick, message)
     notice(reply)
+
+    first_tell.mark_read()
 
 
 @hook.command(autohelp=False)
@@ -293,9 +325,7 @@ def showtells(nick, notice, db, conn):
         return
 
     for tell in tells:
-        sender, message, time_sent = tell
-        past = timeformat.time_since(time_sent)
-        notice("{} sent you a message {} ago: {}".format(sender, past, message))
+        notice(tell.format_for_message())
 
     read_all_tells(db, conn.name, nick)
 

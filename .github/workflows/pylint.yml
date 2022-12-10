@@ -24,7 +24,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
     - name: Install apt deps
-      run: sudo apt-get update && sudo apt-get install -qq -y libenchant-dev libxml2-dev libxslt1-dev
+      run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
     - name: Install dependencies
       run: pip install -Ur requirements-dev.txt
     - name: Run pylint
