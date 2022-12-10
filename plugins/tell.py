@@ -312,6 +312,8 @@ def tellinput(conn, db, nick, notice, content):
     notice(reply)
 
     first_tell.mark_read()
+    db.commit()
+    load_cache(db)
 
 
 @hook.command(autohelp=False)

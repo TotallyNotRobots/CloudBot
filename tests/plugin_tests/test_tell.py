@@ -358,6 +358,38 @@ def test_tellinput_multiple(mock_db, freeze_time):
             "foo sent you a message 0 minutes ago: bar (+2 more, .showtells to view)"
         )
     ]
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "testconn",
+            "foo",
+            "other",
+            "bar",
+            True,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+        ),
+        (
+            2,
+            "testconn",
+            "foo",
+            "other",
+            "test",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
+        (
+            3,
+            "testconn",
+            "foo",
+            "other",
+            "z",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
+    ]
 
 
 def test_can_send_to_user(mock_db, freeze_time):
