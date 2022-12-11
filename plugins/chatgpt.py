@@ -12,7 +12,7 @@ from time import time
 
 RATELIMIT = True
 MAX_PER_MINUTE = 2
-MAX_PER_HOUR = 10
+MAX_PER_HOUR = 30
 
 
 uses = {}
@@ -30,15 +30,17 @@ class Bot:
 
 
 @lru_cache(maxsize=1)
-def get_bot():
-    api = bot.config.get_api_key("revchatgpt")
+def _get_bot(api):
     chatbot = Bot(Chatbot({"session_token": api, 'Authorization': ''}))
     return chatbot
 
+def get_bot(api):
+    api = bot.config.get_api_key("revchatgpt")
+    return _get_bot(api)
 
 @hook.on_start()
 async def start_chatbot(async_call, db):
-    get_bot()
+    get_bot(api)
 
 
 @hook.command("gpt", "chat", autohelp=False)
@@ -60,7 +62,12 @@ async def chatgpt(text, message, chan, nick):
         uses[chan].append(time())
 
     bot = get_bot()
-    response = bot.query(text)
+    try:
+        response = bot.query(text)
+    except Exception:
+        bot.refresh()
+        response = bot.query(text)
+
     output_lines = []
     for line in response.split("\n"):
         output_lines.extend([line[i:i + 500] for i in range(0, len(line), 500)])
