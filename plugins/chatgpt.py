@@ -11,8 +11,8 @@ from cloudbot.bot import bot
 from time import time
 
 RATELIMIT = True
-MAX_PER_MINUTE = 3
-MAX_PER_HOUR = 20
+MAX_PER_MINUTE = 2
+MAX_PER_HOUR = 10
 
 
 uses = {}
@@ -61,11 +61,10 @@ async def chatgpt(text, message, chan, nick):
 
     bot = get_bot()
     response = bot.query(text)
-    response = ["".join(response[i:i + 500]) for i in range(0, len(response), 500)]
-    lines = []
-    for line in [n.split("\n") for n in response]:
-        lines.extend(line)
-    return lines
+    output_lines = []
+    for line in response.split("\n"):
+        output_lines.extend([line[i:i + 500] for i in range(0, len(line), 500)])
+    return output_lines
 
 
 @hook.command("gptrefresh", "chatrefresh", autohelp=False)
