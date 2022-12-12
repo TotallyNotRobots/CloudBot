@@ -3,14 +3,14 @@
 # Date: 31/07/2022
 
 from functools import lru_cache
+from time import time
 
 from revChatGPT.revChatGPT import Chatbot
 
 from cloudbot import hook
 from cloudbot.bot import bot
-from time import time
 
-RATELIMIT = True
+RATELIMIT = False
 MAX_PER_MINUTE = 2
 MAX_PER_HOUR = 30
 
@@ -30,17 +30,19 @@ class Bot:
 
 
 @lru_cache(maxsize=1)
-def _get_bot(api):
-    chatbot = Bot(Chatbot({"session_token": api, 'Authorization': ''}))
+def _get_bot(**config):
+    chatbot = Bot(Chatbot(config=config))
     return chatbot
 
-def get_bot(api):
-    api = bot.config.get_api_key("revchatgpt")
-    return _get_bot(api)
 
-@hook.on_start()
-async def start_chatbot(async_call, db):
-    get_bot(api)
+def get_bot():
+    api = bot.config.get_api_key("revchatgpt")
+    user_agent = bot.config.get_api_key("user_agent")
+    cf_clearance = bot.config.get_api_key("cf_clearance")
+
+    config = {"session_token": api, 'Authorization': '',
+              "cf_clearance": cf_clearance, "user_agent": user_agent}
+    return _get_bot(**config)
 
 
 @hook.command("gpt", "chat", autohelp=False)
