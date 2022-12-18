@@ -210,9 +210,14 @@ def on_names(conn, irc_paramlist, irc_command):
     chan_data = conn.memory["chan_data"].getchan(chan)
     if irc_command == '366':
         chan_data["receiving_names"] = False
-        replace_user_data(conn, chan_data)
+        try:
+            replace_user_data(conn, chan_data)
+        except AttributeError:
+            pass
         return
 
+    if not hasattr(chan_data, "setdefault"):
+        return
     users = chan_data.setdefault("new_users", [])
     if not chan_data.get("receiving_names"):
         chan_data["receiving_names"] = True
