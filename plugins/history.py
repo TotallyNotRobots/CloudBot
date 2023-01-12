@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import re
 import time
 from collections import deque
@@ -129,18 +130,62 @@ def lastlink(text, chan, conn):
     except KeyError:
         return "There is no history for this channel."
 
-    pattern = "\\b(https?:\\/\\/)?(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)\\b"
+    pattern = ".*\\b(https?:\\/\\/)?(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)\\b.*"
 
     i = 0
-    max_i = 5000
+    max_i = 50000
 
     for nick, message_time, message in history:
         if i > max_i:
             break
         i += 1
         if nick == text or not text:
-            if re.match(pattern, message):
-                if message.startswith("http") or len(message.split(".")) > 2:
-                    return "{}: {}".format(nick, message)
+            match = re.match(pattern, message)
+            if match:
+                date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
+                return "{} {}: {}".format(date, nick, message)
 
     return "No links found" if not text else f"No links found for nick: {text}"
+
+
+@hook.command("said", autohelp=False)
+def searchword(text, chan, conn):
+    """[<nick>] <text> - gets the last message sen't by the nick that contains the [text] string"""
+    try:
+        history = reversed(conn.history[chan])
+    except KeyError:
+        return "There is no history for this channel."
+
+    text = text.strip()
+    if not text or len(text.split()) < 2:
+        return "Please provide a nick and a search string."
+
+    search_nick = text.split()[0]
+    text = text[len(search_nick):].strip()
+
+    i = 0
+    max_i = 50000
+
+    history.__next__()
+    for nick, message_time, message in history:
+        if i > max_i:
+            break
+        i += 1
+        if nick == search_nick or not text:
+            if text in message:
+                date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
+                message = message.replace("\x01ACTION ", "* ").replace("\x01", "")
+                message = message.replace(text, "\x02{}\x02".format(text))
+                return "{} {}: {}".format(date, nick, message)
+
+    return "Seems like {} hasn't said anything containing '{}' recently".format(search_nick, text)
+
+@hook.command("now", autohelp=False)
+def now(text, chan, conn):
+    """Returns now in local time"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+@hook.command("utc", autohelp=False)
+def utc(text, chan, conn):
+    """Returns now in UTC"""
+    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

@@ -44,7 +44,7 @@ def correction(match, conn, nick, chan, message):
         message(f"<{nick}>: Your find is much shorter than your replace and you didn't even use proper regex. Stop trying to do lame stuff and send a proper message again if you need to!")
         return
 
-    max_i = 5000
+    max_i = 50000
     i = 0
 
     for name, _timestamp, msg in reversed(conn.history[chan]):
