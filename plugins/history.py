@@ -171,7 +171,7 @@ def searchword(text, chan, conn):
         if i > max_i:
             break
         i += 1
-        if nick == search_nick or not text:
+        if nick == search_nick or not text or search_nick == "*":
             if text in message:
                 date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
                 message = message.replace("\x01ACTION ", "* ").replace("\x01", "")
