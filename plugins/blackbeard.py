@@ -117,3 +117,12 @@ def blackbeard(text, reply):
     if len(episode["Metadata"]["Description"]) > 512:
         msg += f' -->  {pastebin(episode["Metadata"]["Description"])}'
     reply(msg)
+
+    video = getJson("video", {"provider": show["provider"], "epurl": episode["Url"]})
+    url = video.get("Request", {}).get("Url")
+    cmd = video.get("Metadata", {}).get("CurlCommand")
+    if cmd:
+        cmd = f"{cmd} --compressed | mpv -"
+        reply(f"Run with curl and mpv: {pastebin(cmd)}")
+    if url:
+        reply(f"Direct url: {pastebin(url)}")
