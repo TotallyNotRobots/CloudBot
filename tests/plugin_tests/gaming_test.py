@@ -49,7 +49,7 @@ def test_dice_overflow():
     random.seed(1)
     event = MagicMock()
     with pytest.raises(OverflowError):
-        gaming.dice((str(10 ** 308)) + "d9", event)
+        gaming.dice((str(10**308)) + "d9", event)
 
     assert event.mock_calls == [
         call.reply("Thanks for overflowing a float, jerk >:[")
