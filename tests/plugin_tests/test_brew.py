@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
@@ -108,7 +109,7 @@ def test_results(
     if website:
         brewery["website"] = website
 
-    beer = {
+    beer: Dict[str, Any] = {
         "breweries": [
             brewery,
         ],
