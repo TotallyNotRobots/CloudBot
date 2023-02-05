@@ -38,9 +38,6 @@ python3 -m cloudbot
 
 The CloudBot documentation is currently somewhat outdated and may not be correct. If you need any help, please visit our [IRC channel](#support) and we will be happy to assist you.
 
-To write your own plugins, visit the [Plugins Wiki Page](https://github.com/TotallyNotRobots/CloudBot/wiki/Writing-your-first-command-plugin).
-
-More at the [Wiki Main Page](https://github.com/TotallyNotRobots/CloudBot/wiki).
 
 ### Support
 
