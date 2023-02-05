@@ -22,11 +22,15 @@ class MockBot:
     ):
         self.old_db = None
         self.do_db_migrate = False
+        self.loop = loop
         self.base_dir = base_dir
         self.data_path = self.base_dir / "data"
         self.data_dir = str(self.data_path)
         self.plugin_dir = self.base_dir / "plugins"
-        self.stopped_future: Awaitable[bool] = create_future()
+        if self.loop:
+            self.stopped_future: Awaitable[bool] = create_future(self.loop)
+        else:
+            self.stopped_future = None
 
         if db:
             self.db_engine = db.engine
@@ -35,7 +39,6 @@ class MockBot:
 
         self.running = True
         self.logger = logging.getLogger("cloudbot")
-        self.loop = loop
         self.config = MockConfig(self)
 
         if config is not None:
