@@ -2,11 +2,12 @@ import asyncio
 import importlib
 import logging
 import sys
+import typing
 from collections import defaultdict
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional, Type, cast
+from typing import Dict, List, MutableMapping, Optional, Tuple, Type, cast
 from weakref import WeakValueDictionary
 
 import sqlalchemy
@@ -19,6 +20,7 @@ from cloudbot.plugin_hooks import (
     ConfigHook,
     EventHook,
     RawHook,
+    RegexHook,
     hook_name_to_plugin,
 )
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
@@ -92,7 +94,7 @@ class PluginManager:
         self.event_type_hooks: Dict[EventType, List[EventHook]] = defaultdict(
             list
         )
-        self.regex_hooks = []
+        self.regex_hooks: List[Tuple[typing.Pattern, RegexHook]] = []
         self.sieves = []
         self.cap_hooks: Dict[str, Dict[str, List[CapHook]]] = {
             "on_available": defaultdict(list),

@@ -6,7 +6,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 from asyncio.tasks import Task
 from functools import partial
-from typing import List
+from typing import List, cast
 
 from cloudbot.util.func_utils import call_with_args
 
@@ -58,7 +58,7 @@ def run_coroutine_threadsafe(coro, loop):
     asyncio.run_coroutine_threadsafe(coro, loop)
 
 
-def create_future(loop) -> asyncio.Future:
+def create_future(loop):
     return loop.create_future()
 
 
@@ -66,4 +66,4 @@ def get_all_tasks(loop: AbstractEventLoop = None) -> List[Task]:
     """
     Get a list of all tasks for the current loop
     """
-    return _asyncio_get_tasks(loop)
+    return cast(List[Task], _asyncio_get_tasks(loop))

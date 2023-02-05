@@ -42,20 +42,12 @@ from plugins import flip
         (
             "5318008",
             "#fpp",
-            [
-                call.message(
-                    "(\u256f\xb0\u25a1\xb0\uff09" "\u256f \ufe35 BOOBIES"
-                )
-            ],
+            [call.message("(\u256f\xb0\u25a1\xb0\uff09\u256f \ufe35 BOOBIES")],
         ),
         (
             "BOOBIES",
             "#fpp",
-            [
-                call.message(
-                    "(\u256f\xb0\u25a1\xb0\uff09" "\u256f \ufe35 5318008"
-                )
-            ],
+            [call.message("(\u256f\xb0\u25a1\xb0\uff09\u256f \ufe35 5318008")],
         ),
     ],
 )
