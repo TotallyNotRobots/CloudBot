@@ -4,8 +4,6 @@ import logging
 import random
 from typing import Any, Dict
 
-import venusian
-
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import async_util
 
@@ -14,10 +12,7 @@ logger = logging.getLogger("cloudbot")
 
 def client(_type):
     def _decorate(cls):
-        def callback_cb(context, name, obj):
-            context.bot.register_client(_type, cls)
-
-        venusian.attach(cls, callback_cb, category="cloudbot.client")
+        cls._cloudbot_client = _type
         return cls
 
     return _decorate

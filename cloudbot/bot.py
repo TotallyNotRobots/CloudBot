@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import gc
+import importlib
 import logging
 import re
 import time
@@ -10,13 +11,12 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from sqlalchemy import Table, create_engine, inspect
+from sqlalchemy import Table, create_engine
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
-from venusian import Scanner
 from watchdog.observers import Observer
 
-from cloudbot import clients
 from cloudbot.client import Client
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
@@ -315,8 +315,21 @@ class CloudBot:
         """
         Load all clients from the "clients" directory
         """
-        scanner = Scanner(bot=self)
-        scanner.scan(clients, categories=["cloudbot.client"])
+        for file in (Path(__file__).parent / "clients").rglob("*.py"):
+            if file.name.startswith("_"):
+                continue
+
+            mod = importlib.import_module("cloudbot.clients." + file.stem)
+            for _, obj in vars(mod).items():
+                if not isinstance(obj, type):
+                    continue
+
+                try:
+                    _type = obj._cloudbot_client  # type: ignore
+                except AttributeError:
+                    continue
+
+                self.register_client(_type, obj)
 
     async def process(self, event):
         run_before_tasks = []
@@ -466,7 +479,7 @@ class CloudBot:
         old_session: Session = scoped_session(sessionmaker(bind=engine))()
         new_session: Session = database.Session()
         table: Table
-        inspector = inspect(engine)
+        inspector = sa_inspect(engine)
         for table in database.metadata.tables.values():
             logger.info("Migrating table %s", table.name)
             if not inspector.has_table(table.name):
