@@ -24,5 +24,15 @@
 	// "customizations": {},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "root"
+	"remoteUser": "root",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"tamasfe.even-better-toml",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"EditorConfig.EditorConfig"
+			]
+		}
+	}
 }

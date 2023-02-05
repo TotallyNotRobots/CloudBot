@@ -37,10 +37,14 @@ line-length = 80
 [tool.pylint.main]
 analyse-fallback-blocks = true
 py-version = "3.7"
+extension-pkg-allow-list=["lxml"]
 
 [tool.pylint.messages_control]
 disable = [
   "raw-checker-failed",
+  "no-else-return",
+  "nested-min-max",
+  "bad-mcs-classmethod-argument",
   "bad-inline-option",
   "locally-disabled",
   "file-ignored",
@@ -89,6 +93,7 @@ disable = [
   "too-many-return-statements",
   "line-too-long",
   "too-many-instance-attributes",
+  "broad-exception-raised",
   "use-implicit-booleaness-not-comparison",
 ]
 
