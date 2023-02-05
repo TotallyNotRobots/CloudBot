@@ -1,6 +1,14 @@
 import weakref
 from collections import defaultdict
-from typing import TYPE_CHECKING, Generic, MutableMapping, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    Optional,
+    Protocol,
+    TypeVar,
+    Union,
+    cast,
+)
 
 __all__ = (
     "KeyFoldDict",
@@ -10,51 +18,73 @@ __all__ = (
 )
 
 
-K = TypeVar("K", bound=str)
+K_contra = TypeVar("K_contra", bound=str, contravariant=True)
 V = TypeVar("V")
+T = TypeVar("T")
+
 
 if TYPE_CHECKING:
 
-    class MapBase(MutableMapping[K, V]):
-        ...
+    class MapBase(Protocol[K_contra, V]):
+        def __getitem__(self, item: K_contra) -> V:
+            ...
+
+        def __delitem__(self, item: K_contra) -> None:
+            ...
+
+        def __setitem__(self, item: K_contra, value: V) -> None:
+            ...
+
+        def get(self, item: K_contra, default: V = None) -> Optional[V]:
+            ...
+
+        def setdefault(
+            self, key: K_contra, default: Union[V, T] = None
+        ) -> Union[V, T]:
+            ...
+
+        def pop(
+            self, key: K_contra, default: Union[V, T] = None
+        ) -> Union[V, T]:
+            ...
 
 else:
 
-    class MapBase(Generic[K, V]):
+    class MapBase(Generic[K_contra, V]):
         ...
 
 
-class KeyFoldMixin(MapBase[K, V]):
+class KeyFoldMixin(MapBase[K_contra, V]):
     """
     A mixin for Mapping to allow for case-insensitive keys
     """
 
-    def __getitem__(self, item: K) -> V:
-        return super().__getitem__(cast(K, item.casefold()))
+    def __getitem__(self, item: K_contra) -> V:
+        return super().__getitem__(cast(K_contra, item.casefold()))
 
-    def __setitem__(self, key: K, value: V) -> None:
-        return super().__setitem__(cast(K, key.casefold()), value)
+    def __setitem__(self, key: K_contra, value: V) -> None:
+        return super().__setitem__(cast(K_contra, key.casefold()), value)
 
-    def __delitem__(self, key: K) -> None:
-        return super().__delitem__(cast(K, key.casefold()))
+    def __delitem__(self, key: K_contra) -> None:
+        return super().__delitem__(cast(K_contra, key.casefold()))
 
-    def pop(self, key: K, *args) -> V:
+    def pop(self, key: K_contra, *args) -> V:
         """
         Wraps `dict.pop`
         """
-        return super().pop(cast(K, key.casefold()), *args)
+        return super().pop(cast(K_contra, key.casefold()), *args)
 
-    def get(self, key: K, default=None):
+    def get(self, key: K_contra, default=None):
         """
         Wrap `dict.get`
         """
-        return super().get(cast(K, key.casefold()), default)
+        return super().get(cast(K_contra, key.casefold()), default)
 
-    def setdefault(self, key: K, default=None):
+    def setdefault(self, key: K_contra, default=None):
         """
         Wrap `dict.setdefault`
         """
-        return super().setdefault(cast(K, key.casefold()), default)
+        return super().setdefault(cast(K_contra, key.casefold()), default)
 
     def update(self, *args, **kwargs):
         """
