@@ -9,6 +9,7 @@ from pathlib import Path
 from cloudbot.bot import CloudBot
 from cloudbot.util import async_util
 
+
 async def async_main():
     # store the original working directory, for use when restarting
     original_wd = Path().resolve()
@@ -55,7 +56,7 @@ async def async_main():
     # start the bot
 
     # CloudBot.run() will return True if it should restart, False otherwise
-    restart = _bot.run()
+    restart = await _bot.run()
 
     # the bot has stopped, do we want to restart?
     if restart:

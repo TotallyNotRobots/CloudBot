@@ -186,7 +186,7 @@ class CloudBot:
         )
         return str(self.data_path)
 
-    def run(self):
+    async def run(self):
         """
         Starts CloudBot.
         This will load plugins, connect to IRC, and process input.
@@ -194,14 +194,13 @@ class CloudBot:
         """
         self.loop.set_default_executor(self.executor)
         # Initializes the bot, plugins and connections
-        self.loop.run_until_complete(self._init_routine())
+        await self._init_routine()
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
         logger.debug("Init done")
-        restart = self.loop.run_until_complete(self.stopped_future)
+        restart = await self.stopped_future
         logger.debug("Waiting for plugin unload")
-        self.loop.run_until_complete(self.plugin_manager.unload_all())
+        await self.plugin_manager.unload_all()
         logger.debug("Unload complete")
-        self.loop.close()
         return restart
 
     def get_client(self, name: str) -> Type[Client]:
