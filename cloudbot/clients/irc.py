@@ -8,7 +8,7 @@ import traceback
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Mapping, Optional, Tuple, Union
+from typing import Dict, Mapping, Optional, Tuple, Union, cast
 
 from irclib.parser import Message
 
@@ -102,7 +102,7 @@ def _get_param(msg: Message, index_map: Mapping[str, int]) -> Optional[str]:
     if msg.command in index_map:
         idx = index_map[msg.command]
         if idx < len(msg.parameters):
-            return msg.parameters[idx]
+            return cast(str, msg.parameters[idx])
 
     return None
 
@@ -147,7 +147,7 @@ class IrcClient(Client):
 
         self._connecting = False
 
-        self._channel_keys = {}
+        self._channel_keys: Dict[str, str] = {}
 
     def set_channel_key(
         self, channel: str, key: str, *, override: bool = True

@@ -2,7 +2,7 @@ import json
 import logging
 import logging.config
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 version = (1, 3, 0)
 __version__ = ".".join(str(i) for i in version)
@@ -27,10 +27,10 @@ __all__ = (
 class LoggingInfo:
     dir = Path("logs")
 
-    def make_dir(self):
+    def make_dir(self) -> None:
         self.dir.mkdir(exist_ok=True, parents=True)
 
-    def add_path(self, *paths) -> str:
+    def add_path(self, *paths: str) -> str:
         p = self.dir
         for part in paths:
             p = p / part
@@ -41,7 +41,7 @@ class LoggingInfo:
 logging_info = LoggingInfo()
 
 
-def _setup(base_path=None):
+def _setup(base_path: Optional[Path] = None) -> None:
     base_path = base_path or Path().resolve()
     cfg_file = base_path / "config.json"
     if cfg_file.exists():

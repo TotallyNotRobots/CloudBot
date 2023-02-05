@@ -1,14 +1,14 @@
 [tool.isort]
-line_length=80
-multi_line_output=3
-include_trailing_comma=true
-use_parentheses=true
-known_first_party=["cloudbot", "plugins", "tests"]
-float_to_top=true
+line_length = 80
+multi_line_output = 3
+include_trailing_comma = true
+use_parentheses = true
+known_first_party = ["cloudbot", "plugins", "tests"]
+float_to_top = true
 
 [tool.black]
 line-length = 80
-target-version = ['py36']
+target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''
 (
@@ -27,3 +27,90 @@ exclude = '''
   )/
 )
 '''
+
+[tool.darker]
+src = ["cloudbot", "plugins", "tests"]
+flynt = true
+lint = ["pylint"]
+line-length = 80
+
+[tool.pylint.main]
+analyse-fallback-blocks = true
+py-version = "3.7"
+
+[tool.pylint.messages_control]
+disable = [
+  "raw-checker-failed",
+  "bad-inline-option",
+  "locally-disabled",
+  "file-ignored",
+  "suppressed-message",
+  "useless-suppression",
+  "deprecated-pragma",
+  "use-symbolic-message-instead",
+  "invalid-name",
+  "duplicate-string-formatting-argument",
+  "missing-module-docstring",
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "consider-using-f-string",
+  "consider-using-dict-items",
+  "consider-using-with",
+  "consider-using-min-builtin",
+  "arguments-renamed",
+  "use-maxsplit-arg",
+  "consider-iterating-dictionary",
+  "redefined-outer-name",
+  "unused-argument",
+  "broad-except",
+  "ungrouped-imports",
+  "wrong-import-position",
+  "arguments-differ",
+  "too-many-arguments",
+  "too-many-locals",
+  "too-many-statements",
+  "too-many-branches",
+  "protected-access",
+  "duplicate-code",
+  "no-else-raise",
+  "arguments-out-of-order",
+  "redefined-builtin",
+  "no-else-continue",
+  "unnecessary-comprehension",
+  "no-value-for-parameter",
+  "too-few-public-methods",
+  "fixme",
+  "too-many-public-methods",
+  "missing-timeout",
+  "not-callable",
+  "unnecessary-lambda-assignment",
+  "abstract-method",
+  "consider-using-generator",
+  "too-many-return-statements",
+  "line-too-long",
+  "too-many-instance-attributes",
+  "use-implicit-booleaness-not-comparison",
+]
+
+enable = ["c-extension-no-member"]
+
+[tool.pylint.typecheck]
+generated-members = "(requests\\.)?codes\\.[a-zA-Z0-9_]+"
+
+[tool.mypy]
+namespace_packages = true
+python_version = "3.7"
+warn_unused_configs = true
+strict = false
+strict_optional = false
+ignore_missing_imports = true
+check_untyped_defs = true
+show_error_codes = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# strict_equality = true
+
+[[tool.mypy.overrides]]
+module = 'cloudbot.*'
+check_untyped_defs = true
+warn_return_any = true

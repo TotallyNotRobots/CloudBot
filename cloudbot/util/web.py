@@ -17,7 +17,7 @@ import json
 import logging
 import time
 from operator import attrgetter
-from typing import Optional
+from typing import Dict, Optional
 
 import requests
 from requests import HTTPError, PreparedRequest, RequestException, Response
@@ -61,7 +61,7 @@ class Registry:
             return False
 
     def __init__(self):
-        self._items = {}
+        self._items: Dict[str, "Registry.Item"] = {}
 
     def register(self, name, item):
         if name in self._items:
