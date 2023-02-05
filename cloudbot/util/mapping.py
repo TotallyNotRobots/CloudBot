@@ -1,14 +1,6 @@
 import weakref
 from collections import defaultdict
-from typing import (
-    TYPE_CHECKING,
-    Generic,
-    Optional,
-    Protocol,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Generic, Optional, TypeVar, Union, cast
 
 __all__ = (
     "KeyFoldDict",
@@ -24,6 +16,7 @@ T = TypeVar("T")
 
 
 if TYPE_CHECKING:
+    from typing import Protocol
 
     class MapBase(Protocol[K_contra, V]):
         def __getitem__(self, item: K_contra) -> V:
