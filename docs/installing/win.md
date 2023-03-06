@@ -11,7 +11,7 @@ You can usually install `pip` via the following python command in cmd:
 python3 -m ensurepip
 ```
 
-If that doesn't work, follow [this guide](http://simpledeveloper.com/how-to-install-easy_install/) and then run `easy_install pip` in cmd.
+If that doesn't work, follow [this guide](https://simpledeveloper.com/how-to-install-easy_install/) and then run `easy_install pip` in cmd.
 
 ### Downloading
 
@@ -27,4 +27,4 @@ These can be installed with `pip` (The Python package manager) by running the fo
 
     pip install -r requirements.txt
 
-Because installing `lxml` can be quite difficult on Windows (you may get errors running the command above) due to it requiring compilation, you can find a pre-built distribution at [http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml](http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml)
+Because installing `lxml` can be quite difficult on Windows (you may get errors running the command above) due to it requiring compilation, you can find a pre-built distribution at [https://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml](https://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml)

@@ -65,7 +65,7 @@ def raise_api_errors(response: requests.Response) -> None:
 
 
 def make_short_url(video_id: str) -> str:
-    return "http://youtu.be/{}".format(video_id)
+    return "https://youtu.be/{}".format(video_id)
 
 
 ParamValues = Union[int, str]

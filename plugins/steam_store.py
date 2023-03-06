@@ -9,8 +9,8 @@ from cloudbot.util.http import parse_soup
 # CONSTANTS
 steam_re = re.compile(r".*://store.steampowered.com/app/([0-9]+)?.*", re.I)
 
-API_URL = "http://store.steampowered.com/api/appdetails/"
-STORE_URL = "http://store.steampowered.com/app/{}/"
+API_URL = "https://store.steampowered.com/api/appdetails/"
+STORE_URL = "https://store.steampowered.com/app/{}/"
 
 
 # OTHER FUNCTIONS
@@ -88,7 +88,7 @@ def steam(text, reply):
 
     try:
         request = requests.get(
-            "http://store.steampowered.com/search/", params=params
+            "https://store.steampowered.com/search/", params=params
         )
         request.raise_for_status()
     except requests.RequestException as e:

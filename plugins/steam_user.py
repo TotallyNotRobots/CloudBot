@@ -6,7 +6,7 @@ from cloudbot import hook
 from cloudbot.util import formatting
 from cloudbot.util.http import parse_xml
 
-API_URL = "http://steamcommunity.com/id/{}/"
+API_URL = "https://steamcommunity.com/id/{}/"
 ID_BASE = 76561197960265728
 
 headers: Dict[str, str] = {}

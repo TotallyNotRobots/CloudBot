@@ -8,7 +8,7 @@ from requests import HTTPError
 from cloudbot import hook
 from cloudbot.util.http import parse_soup
 
-scrape_url = "http://www.myfitnesspal.com/food/diary/{}"
+scrape_url = "https://www.myfitnesspal.com/food/diary/{}"
 
 
 @hook.command("mfp", "myfitnesspal")

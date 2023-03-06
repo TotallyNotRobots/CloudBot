@@ -118,7 +118,7 @@ def awesome(text, is_nick_valid):
     target = text.split(" ")[0]
     if not is_nick_valid(target):
         return "Sorry I can't tell {} how awesome they are.".format(target)
-    link = "http://{}.is-awesome.cool/".format(target)
+    link = "https://{}.is-awesome.cool/".format(target)
     return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(
         target, link
     )

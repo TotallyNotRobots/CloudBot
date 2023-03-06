@@ -8,8 +8,8 @@ from cloudbot import hook
 from cloudbot.util import formatting, web
 from cloudbot.util.http import parse_xml
 
-api_url = "http://api.wolframalpha.com/v2/query"
-query_url = "http://www.wolframalpha.com/input/?i={}"
+api_url = "https://api.wolframalpha.com/v2/query"
+query_url = "https://www.wolframalpha.com/input/?i={}"
 
 
 @hook.command("wolframalpha", "wa", "calc", "ca", "math", "convert")

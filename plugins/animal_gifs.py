@@ -1,5 +1,5 @@
 """
-All GIFs courtesy of http://bestanimations.com/
+All GIFs courtesy of https://bestanimations.com/
 """
 import random
 from urllib.parse import urljoin
@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from cloudbot import hook
 from cloudbot.util.http import get_soup
 
-BASE_URL = "http://bestanimations.com/Animals/Mammals/Dogs/"
+BASE_URL = "https://bestanimations.com/Animals/Mammals/Dogs/"
 DOG_PAGES = (
     "Dogs.html",
     "Dogs2.html",  # Pugs
@@ -35,7 +35,7 @@ def get_random_gif(url):
 
 @hook.command(autohelp=False)
 def doggifs(reply):
-    """- Returns a random dog GIF from http://bestanimations.com/"""
+    """- Returns a random dog GIF from https://bestanimations.com/"""
     page = random.choice(DOG_PAGES)
     url = urljoin(BASE_URL, page)
     try:

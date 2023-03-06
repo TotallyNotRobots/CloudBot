@@ -3,7 +3,7 @@ The following guidelines for contribution should be followed if you want to
 submit a pull request.
 
 ## Basic Overview
-1. Read [Github documentation](http://help.github.com/) and [Pull Request documentation](http://help.github.com/send-pull-requests/)
+1. Read [Github documentation](https://help.github.com/) and [Pull Request documentation](https://help.github.com/send-pull-requests/)
 2. Fork the repository
 3. Create a new branch with a descriptive name for your feature
 4. Edit the files, add new files
@@ -26,8 +26,8 @@ This project uses [pre-commit]
 4. Join the [IRC channel] if you have any questions or concerns, or if you just want to talk with other devs
 
 # Additional Resources
-* [General GitHub documentation](http://help.github.com/)
-* [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
+* [General GitHub documentation](https://help.github.com/)
+* [GitHub pull request documentation](https://help.github.com/send-pull-requests/)
 * [Read the Issue Guidelines by @necolas](https://github.com/necolas/issue-guidelines/blob/master/CONTRIBUTING.md) for more details
 * [This CONTRIBUTING.md from here](https://github.com/anselmh/CONTRIBUTING.md)
 

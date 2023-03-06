@@ -118,7 +118,7 @@ def imgur(text):
 
     # if the search was a subreddit search, add the reddit comment link
     if is_reddit:
-        reddit_url = web.try_shorten("http://reddit.com" + item.reddit_comments)
+        reddit_url = web.try_shorten("https://reddit.com" + item.reddit_comments)
         url = "{} ({})".format(item.link, reddit_url)
     else:
         url = "{}".format(item.link)

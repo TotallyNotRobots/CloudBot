@@ -224,7 +224,7 @@ class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {"url": url, "shorturl": custom, "format": "json"}
         try:
-            r = requests.get("http://is.gd/create.php", params=p)
+            r = requests.get("https://is.gd/create.php", params=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
@@ -242,7 +242,7 @@ class Isgd(Shortener):
     def expand(self, url):
         p = {"shorturl": url, "format": "json"}
         try:
-            r = requests.get("http://is.gd/forward.php", params=p)
+            r = requests.get("https://is.gd/forward.php", params=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response

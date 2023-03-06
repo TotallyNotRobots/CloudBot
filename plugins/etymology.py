@@ -20,7 +20,7 @@ from cloudbot.util.http import parse_soup
 def etymology(text, reply):
     """<word> - retrieves the etymology of <word>"""
 
-    url = "http://www.etymonline.com/index.php"
+    url = "https://www.etymonline.com/index.php"
 
     response = requests.get(url, params={"term": text})
 

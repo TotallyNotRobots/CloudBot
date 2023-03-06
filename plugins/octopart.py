@@ -18,7 +18,7 @@ import requests
 from cloudbot import hook
 from cloudbot.bot import bot
 
-API_URL = "http://octopart.com/api/v3/parts/search"
+API_URL = "https://octopart.com/api/v3/parts/search"
 
 
 @hook.command("octopart", "octo")

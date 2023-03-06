@@ -8,7 +8,7 @@ Created By:
     - Luke Rogers <https://github.com/lukeroge>
 
 Special Thanks:
-    - http://www.rrrather.com/ for adding extra features to their API to make this command possible
+    - https://www.rrrather.com/ for adding extra features to their API to make this command possible
 
 License:
     BSD 3-Clause License

@@ -13,7 +13,7 @@ def suggest(text, reply):
 
     try:
         request = requests.get(
-            "http://google.com/complete/search", params=params
+            "https://google.com/complete/search", params=params
         )
         request.raise_for_status()
     except (

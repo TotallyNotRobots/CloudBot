@@ -46,7 +46,7 @@ Select to create a ***Server Key***
 
 ![GDC Server Key](img/gdev_6.png?raw=true "Server Key")
 
-Enter the Public IPs of the Cloudbot instance you plan to assign to this key. If you don't know it, running `wget -qO- http://icanhazip.com/` within your terminal should return it. Click ***Create***.
+Enter the Public IPs of the Cloudbot instance you plan to assign to this key. If you don't know it, running `wget -qO- https://icanhazip.com/` within your terminal should return it. Click ***Create***.
 
 ![GDC Enter IPs](img/gdev_7.png?raw=true "Enter IPs")
 

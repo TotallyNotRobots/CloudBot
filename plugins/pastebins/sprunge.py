@@ -43,7 +43,7 @@ class Sprunge(Pastebin):
 
 @hook.on_start()
 def register():
-    pastebins.register("sprunge", Sprunge("http://sprunge.us"))
+    pastebins.register("sprunge", Sprunge("https://sprunge.us"))
 
 
 @hook.on_stop()

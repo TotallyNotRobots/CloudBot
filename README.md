@@ -24,7 +24,7 @@ To install CloudBot on Windows, see [here](docs/installing/win.md)
 
 ### Running CloudBot
 
-Before you run the bot, rename `config.default.json` to `config.json` and edit it with your preferred settings. You can check if your JSON is valid using [jsonlint.com](http://jsonlint.com/)!
+Before you run the bot, rename `config.default.json` to `config.json` and edit it with your preferred settings. You can check if your JSON is valid using [jsonlint.com](https://jsonlint.com/)!
 
 Once you have installed the required dependencies and renamed the config file, you can run the bot! Make sure you are in the correct folder and run the following command:
 
@@ -74,13 +74,13 @@ CloudBot is **licensed** under the **GPL v3** license. The terms are as follows.
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with CloudBot.  If not, see <http://www.gnu.org/licenses/>.
+    along with CloudBot.  If not, see <https://www.gnu.org/licenses/>.
 
 ![Powered by wordnik](https://www.wordnik.com/img/wordnik_badge_a1.png)
 
 TV information is provided by [TheTVDB.com], but we are not endorsed or certified by [TheTVDB.com] or its affiliates.
 
-This product uses data from <a href="http://wordnik.com">http://wordnik.com</a> in accordance with the wordnik.com API <a href="http://developer.wordnik.com/#!/terms">terms of service</a>.
+This product uses data from <a href="https://wordnik.com">https://wordnik.com</a> in accordance with the wordnik.com API <a href="https://developer.wordnik.com/#!/terms">terms of service</a>.
 
 [latest source]: https://github.com/TotallyNotRobots/CloudBot/archive/main.zip
 [latest release]: https://github.com/TotallyNotRobots/CloudBot/releases/latest

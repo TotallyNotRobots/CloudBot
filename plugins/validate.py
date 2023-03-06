@@ -17,7 +17,7 @@ def validate(text):
     text = text.strip()
 
     if not urllib.parse.urlparse(text).scheme:
-        text = "http://" + text
+        text = "https://" + text
 
     url = api_url + "?uri=" + text
     url = web.try_shorten(url)
