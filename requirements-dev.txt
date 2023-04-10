@@ -1,4 +1,4 @@
-coverage == 6.1.2
+coverage == 7.2.3
 darker == 1.6.1
 freezegun == 1.1.0
 mypy == 0.910
