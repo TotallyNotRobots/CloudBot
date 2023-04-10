@@ -7,6 +7,7 @@ from cloudbot.util.func_utils import call_with_args
 __all__ = (
     "HookResult",
     "wrap_hook_response",
+    "get_data_file",
 )
 
 

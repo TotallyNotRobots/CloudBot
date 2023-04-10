@@ -6,12 +6,11 @@ import googlemaps
 import pyowm
 from pyowm import OWM
 from googlemaps.exceptions import ApiError
-from pyowm.weatherapi25.one_call import OneCall
 from pyowm.weatherapi25.weather import Weather
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
-from cloudbot.util import colors, database, web
+from cloudbot.util import colors, database
 
 Api = Optional[googlemaps.Client]
 
@@ -227,8 +226,6 @@ def weather(reply, db, triggered_prefix, event):
         return err
 
     location_data, owm = res
-
-    owm: OneCall
     daily_conditions: List[Weather] = owm.forecast_daily
     current: Weather = owm.current
     today = daily_conditions[0]
