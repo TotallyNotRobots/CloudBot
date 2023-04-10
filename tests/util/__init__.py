@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from pathlib import Path
 from unittest.mock import patch
 
 from cloudbot.util.func_utils import call_with_args
@@ -6,6 +7,7 @@ from cloudbot.util.func_utils import call_with_args
 __all__ = (
     "HookResult",
     "wrap_hook_response",
+    "get_data_file",
 )
 
 
@@ -74,3 +76,11 @@ def wrap_hook_response(func, event, results=None):
             add_result("return", res)
 
     return results
+
+
+def get_data_path() -> Path:
+    return Path(__file__).parent.parent / 'data'
+
+
+def get_data_file(name: str) -> Path:
+    return get_data_path() / name
