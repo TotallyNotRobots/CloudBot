@@ -4,7 +4,6 @@ beautifulsoup4 == 4.10.0
 chardet == 4.0.0
 cleverwrap == 0.3.0.2
 feedparser == 6.0.8
-forecastiopy == 0.22
 googlemaps == 4.5.3
 imgurpython == 1.1.7
 isodate == 0.6.0
@@ -14,6 +13,7 @@ multidict == 5.2.0
 nltk == 3.6.6
 psutil == 5.8.0
 py-irclib == 0.3.0
+pyowm == 3.3.0
 requests == 2.27.1
 tweepy == 3.10.0
 urllib3 == 1.26.7
