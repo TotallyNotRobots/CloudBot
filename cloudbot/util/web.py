@@ -222,9 +222,12 @@ pastebins = Registry()
 
 class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
-        p = {"url": url, "shorturl": custom, "format": "json"}
+        p = {"url": url, "format": "json"}
+        if custom:
+            p['shorturl'] = custom
+
         try:
-            r = requests.get("http://is.gd/create.php", params=p)
+            r = requests.get("https://is.gd/create.php", params=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
@@ -232,7 +235,10 @@ class Isgd(Shortener):
         except RequestException as e:
             raise ServiceError(e.request, "Connection error occurred") from e
 
-        j = r.json()
+        try:
+            j = r.json()
+        except requests.exceptions.JSONDecodeError as e:
+            raise ServiceError(r.request, str(e))
 
         if "shorturl" in j:
             return j["shorturl"]
