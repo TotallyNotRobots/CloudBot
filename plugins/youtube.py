@@ -3,9 +3,7 @@ from typing import Iterable, Mapping, Match, Optional, Union
 
 import isodate
 import requests
-import urllib
-from youtube_search import YoutubeSearch as OldYoutubeSearch
-from youtubesearchpython import Transcript, Video
+import yt_dlp
 
 from cloudbot import hook
 from cloudbot.bot import bot
@@ -24,41 +22,136 @@ ytpl_re = re.compile(
 
 base_url = "https://www.googleapis.com/youtube/v3/"
 
+def remove_tags(text):
+    """Remove vtt markup tags."""
+    tags = [
+        r"</c>",
+        r"<c(\.color\w+)?>",
+        r"<\d{2}:\d{2}:\d{2}\.\d{3}>",
+    ]
 
-class YoutubeSearch(OldYoutubeSearch):
-    def __init__(self, search_terms: str, max_results=None, language=None, region=None):
-        self.session = requests.Session()
-        self.search_terms = search_terms
-        self.max_results = max_results
-        self.language = language
-        self.region = region
-        if self.language:
-            language = f"hl={self.language}"
-        if self.region:
-            region = f"gl={self.region}"
-        # Join the language and region params if they exist with a &
-        pref = "&".join(filter(None, [language, region]))
-        self.session.cookies.set(
-            "PREF",
-            pref,
-            domain=".youtube.com"
-        )
-        self.videos = self._search()
+    for pat in tags:
+        text = re.sub(pat, "", text)
 
-    def _search(self):
-        encoded_search = urllib.parse.quote_plus(self.search_terms)
-        BASE_URL = "https://youtube.com"
-        url = f"{BASE_URL}/results?search_query={encoded_search}"
-        response = requests.get(url).text
+    text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3} --> .* align:start position:0%", r"\g<1>", text)
+    # Remove HH:MM:.* lines completely
+    text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3} --> ", "", text)
+    text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3}", "", text)
+    text = re.sub(r"^\s*\d{2}:\d{2}\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s+$", "", text, flags=re.MULTILINE)
+    return text
 
-        response = self.session.get(url).text
-        while "ytInitialData" not in response:
-            response = requests.get(url).text
-            response = self.session.get(url).text
-        results = self._parse_html(response)
-        if self.max_results is not None and len(results) > self.max_results:
-            return results[: self.max_results]
-        return results
+
+def remove_header(lines):
+    """Remove vtt file header."""
+    pos = -1
+    for mark in (
+        "##",
+        "Language: en",
+    ):
+        if mark in lines:
+            pos = lines.index(mark)
+    lines = lines[pos + 1 :]
+    return lines
+
+
+def merge_duplicates(lines):
+    """Remove duplicated subtitles.
+
+    Duplacates are always adjacent.
+    """
+    last_timestamp = ""
+    last_cap = ""
+    for line in lines:
+        if line == "":
+            continue
+        if re.match(r"^\d{2}:\d{2}$", line):
+            if line != last_timestamp:
+                yield line
+                last_timestamp = line
+        else:
+            if line != last_cap:
+                yield line
+                last_cap = line
+
+
+def merge_short_lines(lines):
+    buffer = ""
+    for line in lines:
+        if line == "" or re.match(r"^\d{2}:\d{2}$", line):
+            yield "\n" + line
+            continue
+
+        if len(line + buffer) < 80:
+            buffer += " " + line
+        else:
+            yield buffer.strip()
+            buffer = line
+    yield buffer
+
+
+def vtt2plantext(text: str) -> str:
+    text = remove_tags(text)
+    lines = text.splitlines()
+    lines = remove_header(lines)
+    lines = merge_duplicates(lines)
+    lines = list(lines)
+    lines = merge_short_lines(lines)
+    lines = list(lines)
+    return " ".join(lines)
+
+
+def get_video_info(video_url) -> "dict[str, str]":
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "force_generic_extractor": True,  # Use generic extractor to get info
+        "simulate": True,  # Don't download, just simulate
+        "format": "best",  # Choose the best available format
+        "writesubtitles": True,  # Request subtitles
+        "allsubtitles": True,
+        "writeautomaticsub": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(video_url, download=False) or {}
+        video_info = {
+            "title": info_dict.get("title", "Title not available"),
+            "duration": info_dict.get("duration", "Duration not available"),
+            "transcript": "",
+        }
+
+        subtitles = info_dict.get("requested_subtitles")
+        if subtitles:
+            language = "en" if "en" in subtitles else list(subtitles.keys())[0]
+            transcript_url = subtitles[language]["url"]
+            response = requests.get(transcript_url, stream=True)
+            if response.ok:
+                video_info["transcript"] = vtt2plantext(response.text)
+
+        return video_info
+
+def search_youtube_videos(query, max_results=10) -> "list[str]":
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'force_generic_extractor': True,  # Use generic extractor to get info
+        'extract_flat': True,  # Extract flat JSON structure
+        'default_search': 'auto',  # Use the best search method supported by yt-dlp
+        'max_results': max_results,
+        'format': 'best', # Choose the best available format
+        'noplaylist': True,  # Do not extract playlists
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        search_results = ydl.extract_info(f'ytsearch{max_results}:{query}', download=False) or {}
+        video_urls = []
+        for result in search_results.get('entries', []):
+            if result:
+                video_urls.append(result['url'])
+        return video_urls
+
+
 
 class APIError(Exception):
     def __init__(self, message: str, response: Optional[str] = None) -> None:
@@ -222,22 +315,11 @@ def get_video_id(text: str) -> str:
     return video_id
 
 
-def get_transcript(url: str, maxlen=200) -> str:
-    transcript = ""
-    for seg in Transcript.get(url).get("segments", []):
-        if seg.get("text"):
-            transcript += seg["text"].replace("\n", " ") + " "
-        if len(transcript) > maxlen:
-            transcript = transcript[:maxlen] + "..."
-    return transcript or '\x02Captions not found\x02'
-
-
 @hook.regex(youtube_re)
 def youtube_url(match: Match[str]) -> str:
-    result = Video.get(match.group(1))
-    time = timeformat.format_time(int(result['duration']['secondsText']), simple=True)
-    return f"\x02{result['title']}\x02, \x02duration:\x02 {time} - {get_transcript(match.group(1))}"
-    # return get_video_description(match.group(1))
+    result = get_video_info(match.group(1))
+    time = timeformat.format_time(int(result['duration']), simple=True)
+    return f"\x02{result['title']}\x02, \x02duration:\x02 {time} - {result['transcript']}"
 
 
 user_results = {}
@@ -246,9 +328,10 @@ user_results = {}
 @hook.command("ytn")
 def youtube_next(text: str, nick: str, reply) -> str:
     global user_results
-    result = user_results[nick].pop(0)
-    vid_id = result['url_suffix'].split('=')[-1]
-    return f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{vid_id} --- {get_transcript(vid_id)}"
+    url = user_results[nick].pop(0)
+    result = get_video_info(url)
+    time = timeformat.format_time(int(result['duration']), simple=True)
+    return f"{url}  -  \x02{result['title']}\x02, \x02duration:\x02 {time} - {result['transcript']}"
 
 
 @hook.command("youtube", "you", "yt", "y")
@@ -258,21 +341,9 @@ def youtube(text: str, nick: str, reply) -> str:
     :param text: User input
     """
     global user_results
-    results = YoutubeSearch(text.strip(), max_results=10, language="en").to_dict()
+    results = search_youtube_videos(text)
     user_results[nick] = results
     return youtube_next(text, nick, reply)
-    # result = user_results[nick].pop(0)
-    # return f"\x02{result['title']}\x02, \x02duration: \x02{result['duration']} - https://youtu.be/{result['url_suffix'].split('=')[-1]} --- {get_transcript(result['url_suffix'])}"
-    # try:
-    #     video_id = get_video_id(text)
-    #     return (
-    #         get_video_description(video_id) + " - " + make_short_url(video_id)
-    #     )
-    # except NoResultsError as e:
-    #     return e.message
-    # except APIError as e:
-    #     reply(e.message)
-    #     raise
 
 
 @hook.command("youtime", "ytime")

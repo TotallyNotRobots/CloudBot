@@ -65,7 +65,7 @@ async def perm_sieve(
                 break
 
         if not allowed:
-            event.notice("Sorry, you are not allowed to use this command.")
+            event.notice("Sorry, you are not allowed to use this command!")
             return None
 
     return event

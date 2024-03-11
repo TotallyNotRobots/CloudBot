@@ -92,9 +92,7 @@ watchdog==2.1.6
 websockets==10.3
 wrapt==1.12.1
 yarl==1.7.2
-youtube-search==2.1.0
-youtube-search-python==1.6.6
-yt-dlp==2022.7.18
+yt-dlp==2024.3.10
 google-transliteration-api==1.0.3
 pydub==0.25.1
 google-play-scraper==1.2.2
