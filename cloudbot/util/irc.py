@@ -45,8 +45,11 @@ class ModeChange:
     info = attr.ib(type=ChannelMode)
 
     @property
-    def is_status(self):
-        return self.info.type is ModeType.Status
+    def is_status(self) -> bool:
+        if not self.info:
+            return False
+
+        return self.info.type == ModeType.Status
 
 
 @attr.s(hash=True)
@@ -78,6 +81,9 @@ def parse_mode_string(
             adding = False
         else:
             mode_info = server_modes.get(c)
+            if not mode_info:
+                logger.warning("No ModeInfo found for %s", c)
+
             if mode_info and mode_info.has_param(adding):
                 param = params.pop(0)
             else:
