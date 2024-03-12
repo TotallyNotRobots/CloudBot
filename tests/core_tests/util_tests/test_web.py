@@ -73,7 +73,7 @@ def test_registry_item_working(freeze_time):
 def test_shorten(mock_requests):
     mock_requests.add(
         "GET",
-        "http://is.gd/create.php",
+        "https://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
 
@@ -151,7 +151,7 @@ def test_shorten(mock_requests):
 
 
 def test_isgd_errors(mock_requests):
-    mock_requests.add("GET", "http://is.gd/create.php", status=429)
+    mock_requests.add("GET", "https://is.gd/create.php", status=429)
 
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="is.gd")
@@ -164,7 +164,7 @@ def test_isgd_errors(mock_requests):
 def test_try_shorten(mock_requests):
     mock_requests.add(
         "GET",
-        "http://is.gd/create.php",
+        "https://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
 
@@ -175,7 +175,7 @@ def test_try_shorten(mock_requests):
 
     mock_requests.replace(
         "GET",
-        "http://is.gd/create.php",
+        "https://is.gd/create.php",
         json={"errormessage": "Error occurred"},
     )
     assert (
@@ -187,7 +187,7 @@ def test_try_shorten(mock_requests):
 def test_expand(mock_requests):
     mock_requests.add(
         "GET",
-        "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
+        "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
 
@@ -199,7 +199,7 @@ def test_expand(mock_requests):
 
     mock_requests.replace(
         "GET",
-        "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
+        "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         status=404,
     )
 
@@ -208,7 +208,7 @@ def test_expand(mock_requests):
 
     mock_requests.replace(
         "GET",
-        "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
+        "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"errormessage": "Error"},
     )
 

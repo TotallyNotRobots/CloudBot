@@ -16,7 +16,7 @@ def test_shorten(mock_requests):
 
     mock_requests.add(
         "GET",
-        "http://is.gd/create.php",
+        "https://is.gd/create.php",
         json={"shorturl": "https://is.gd/foobar"},
     )
     assert (
@@ -32,7 +32,7 @@ def test_expand(mock_requests):
 
     mock_requests.add(
         "GET",
-        "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
+        "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
     assert (
@@ -51,14 +51,14 @@ def test_isgd(mock_requests):
 
     mock_requests.add(
         "GET",
-        "http://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
+        "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",
         json={"url": "https://example.com"},
     )
     assert shorten.isgd("https://is.gd/foobar", reply) == "https://example.com"
 
     mock_requests.add(
         "GET",
-        "http://is.gd/create.php?url=https%3A%2F%2Fexample.com&format=json",
+        "https://is.gd/create.php?url=https%3A%2F%2Fexample.com&format=json",
         json={"shorturl": "https://is.gd/foobar"},
     )
     assert shorten.isgd("https://example.com", reply) == "https://is.gd/foobar"
