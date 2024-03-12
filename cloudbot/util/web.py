@@ -238,7 +238,7 @@ class Isgd(Shortener):
         try:
             j = r.json()
         except requests.exceptions.JSONDecodeError as e:
-            raise ServiceError(r.request, str(e))
+            raise ServiceError(r.request, str(e)) from e
 
         if "shorturl" in j:
             return j["shorturl"]
