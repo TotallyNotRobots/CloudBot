@@ -84,7 +84,17 @@ def test_getartisttags(mock_requests, mock_api_keys):
         json={
             "toptags": {},
         },
-        match=[query_param_matcher({'format':'json','artist':'foobar','autocorrect':1,'method':'artist.getTopTags','api_key':'APIKEY'})],
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": "foobar",
+                    "autocorrect": 1,
+                    "method": "artist.getTopTags",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
     )
     res = lastfm.getartisttags("foobar")
     assert res == "no tags"
@@ -94,7 +104,13 @@ class TestGetArtistTags:
     url = "http://ws.audioscrobbler.com/2.0/"
 
     def get_params(self):
-        return {"format":"json","artist":"foobar","autocorrect":"1","method":"artist.getTopTags","api_key":"APIKEY"}
+        return {
+            "format": "json",
+            "artist": "foobar",
+            "autocorrect": "1",
+            "method": "artist.getTopTags",
+            "api_key": "APIKEY",
+        }
 
     def get_tags(self):
         return lastfm.getartisttags("foobar")
@@ -165,7 +181,18 @@ def test_gettracktags(mock_requests, mock_api_keys):
         "GET",
         url,
         json={"toptags": {}},
-            match=[query_param_matcher({"format":"json","artist":"foobar", "autocorrect":1,"track":"foobaz","method":"track.getTopTags","api_key":"APIKEY"})],
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": "foobar",
+                    "autocorrect": 1,
+                    "track": "foobaz",
+                    "method": "track.getTopTags",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
     )
     res = lastfm.gettracktags("foobar", "foobaz")
     assert res == "no tags"
@@ -216,7 +243,18 @@ class TestTopArtists:
         mock_requests.add(
             "GET",
             "http://ws.audioscrobbler.com/2.0/",
-            match=[query_param_matcher({"format":"json","user":"bar","limit":"10", "period": "7day","method":"user.gettopartists","api_key":"APIKEY"})],
+            match=[
+                query_param_matcher(
+                    {
+                        "format": "json",
+                        "user": "bar",
+                        "limit": "10",
+                        "period": "7day",
+                        "method": "user.gettopartists",
+                        "api_key": "APIKEY",
+                    }
+                )
+            ],
             json={
                 "topartists": {
                     "artist": [
@@ -241,7 +279,17 @@ class TestTopTrack:
         mock_requests.add(
             "GET",
             "http://ws.audioscrobbler.com/2.0/",
-            match=[query_param_matcher({"format":"json","user":"bar","limit":"5","method":"user.gettoptracks","api_key":"APIKEY"})],
+            match=[
+                query_param_matcher(
+                    {
+                        "format": "json",
+                        "user": "bar",
+                        "limit": "5",
+                        "method": "user.gettoptracks",
+                        "api_key": "APIKEY",
+                    }
+                )
+            ],
             json={
                 "toptracks": {
                     "track": [

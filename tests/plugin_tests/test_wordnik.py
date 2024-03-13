@@ -27,20 +27,20 @@ class WordTestBase:
         raise NotImplementedError
 
     @classmethod
-    def get_params(cls)->Dict[str, Any]:
+    def get_params(cls) -> Dict[str, Any]:
         return {}
 
     @classmethod
-    def get_result_limit(cls)->int:
+    def get_result_limit(cls) -> int:
         return 5
 
     @classmethod
-    def make_query_params(cls, params: Optional[Dict[str, Any]]=None):
+    def make_query_params(cls, params: Optional[Dict[str, Any]] = None):
         out = {}
-        if (limit:=cls.get_result_limit()):
-            out['limit'] = limit
+        if limit := cls.get_result_limit():
+            out["limit"] = limit
 
-        out['api_key'] = 'APIKEY'
+        out["api_key"] = "APIKEY"
         params = params or cls.get_params()
         if params:
             out.update(params)
@@ -405,9 +405,7 @@ class TestSynonym(WordTestBase):
 
     @classmethod
     def get_params(cls) -> Dict[str, Any]:
-        return {
-            "relationshipTypes":"synonym","limitPerRelationshipType":"5"
-            }
+        return {"relationshipTypes": "synonym", "limitPerRelationshipType": "5"}
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -457,7 +455,11 @@ class TestAntonym(WordTestBase):
 
     @classmethod
     def get_params(cls) -> Dict[str, Any]:
-        return {"relationshipTypes":"antonym","limitPerRelationshipType":"5","useCanonical":"false"}
+        return {
+            "relationshipTypes": "antonym",
+            "limitPerRelationshipType": "5",
+            "useCanonical": "false",
+        }
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -676,7 +678,11 @@ class TestWOTD(WordsTestBase):
         mock_requests.add(
             "GET",
             self.build_url(),
-            match=[query_param_matcher(self.make_query_params({'date':'2018-11-21'}))],
+            match=[
+                query_param_matcher(
+                    self.make_query_params({"date": "2018-11-21"})
+                )
+            ],
             json={
                 "_id": "5c60c1a77c27cbdb29216227",
                 "word": "sangaree",
@@ -710,8 +716,8 @@ class TestRandomWord(WordsTestBase):
     @classmethod
     def get_params(cls) -> Dict[str, Any]:
         return {
-            "hasDictionarydef":"true",
-            "vulgar":"true",
+            "hasDictionarydef": "true",
+            "vulgar": "true",
         }
 
     @classmethod

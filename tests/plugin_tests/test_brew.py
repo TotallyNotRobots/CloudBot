@@ -28,13 +28,17 @@ def test_empty_body(mock_bot_factory, mock_requests, unset_bot, event_loop):
         "GET",
         "http://api.brewerydb.com/v2/search",
         json={},
-        match=[query_param_matcher({
-            'format': 'json',
-            'key': 'APIKEY',
-            'type': 'beer',
-            'withBreweries': 'Y',
-            'q': 'some text',
-        })]
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "key": "APIKEY",
+                    "type": "beer",
+                    "withBreweries": "Y",
+                    "q": "some text",
+                }
+            )
+        ],
     )
 
     reply = MagicMock()
@@ -53,16 +57,19 @@ def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
     )
     mock_requests.add(
         "GET",
-        "http://api.brewerydb.com/v2/search"
-,
-        match=[query_param_matcher({
-            'format': 'json',
-            'key': 'APIKEY',
-            'type': 'beer',
-            'withBreweries': 'Y',
-            'q': 'some text',
-        })],
-                        json={"totalResults": 0},
+        "http://api.brewerydb.com/v2/search",
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "key": "APIKEY",
+                    "type": "beer",
+                    "withBreweries": "Y",
+                    "q": "some text",
+                }
+            )
+        ],
+        json={"totalResults": 0},
     )
 
     reply = MagicMock()
@@ -135,15 +142,18 @@ def test_results(
 
     mock_requests.add(
         "GET",
-        "http://api.brewerydb.com/v2/search"
-,
-        match=[query_param_matcher({
-            'format': 'json',
-            'key': 'APIKEY',
-            'type': 'beer',
-            'withBreweries': 'Y',
-            'q': 'some text',
-        })],
+        "http://api.brewerydb.com/v2/search",
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "key": "APIKEY",
+                    "type": "beer",
+                    "withBreweries": "Y",
+                    "q": "some text",
+                }
+            )
+        ],
         json={
             "totalResults": 1,
             "data": [beer],

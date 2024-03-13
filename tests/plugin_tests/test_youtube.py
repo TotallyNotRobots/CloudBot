@@ -54,13 +54,14 @@ video_data: Dict[str, Any] = {
 
 class TestGetVideoDescription:
     base_url = "https://www.googleapis.com/youtube/v3/"
-    api_url = base_url + (
-        "videos"
-    )
+    api_url = base_url + ("videos")
 
     def get_params(self, id, key):
         return {
-            "maxResults":"1","id":id,"part":"statistics,contentDetails,snippet","key":key
+            "maxResults": "1",
+            "id": id,
+            "part": "statistics,contentDetails,snippet",
+            "key": key,
         }
 
     def test_no_key(self, mock_requests, mock_api_keys):
@@ -73,7 +74,9 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="foobar", key="APIKEY"))],
+            match=[
+                query_param_matcher(self.get_params(id="foobar", key="APIKEY"))
+            ],
             json={
                 "error": {
                     "code": 500,
@@ -90,7 +93,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=video_data,
         )
 
@@ -109,7 +116,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=data,
         )
 
@@ -124,7 +135,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=data,
         )
 
@@ -142,7 +157,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=data,
         )
 
@@ -163,7 +182,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=data,
         )
 
@@ -183,7 +206,11 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="phL7P6gtZRM", key="APIKEY"))],
+            match=[
+                query_param_matcher(
+                    self.get_params(id="phL7P6gtZRM", key="APIKEY")
+                )
+            ],
             json=data,
         )
 
@@ -203,7 +230,9 @@ class TestGetVideoDescription:
         mock_requests.add(
             "GET",
             self.api_url,
-            match=[query_param_matcher(self.get_params(id="foobar", key="APIKEY"))],
+            match=[
+                query_param_matcher(self.get_params(id="foobar", key="APIKEY"))
+            ],
             json={
                 "error": {
                     "code": 500,

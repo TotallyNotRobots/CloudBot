@@ -7,8 +7,10 @@ from responses.matchers import query_param_matcher
 from plugins import horoscope
 from tests.util.mock_db import MockDB
 
-BASE_URL =     "http://www.horoscope.com/us/horoscopes/general/"\
+BASE_URL = (
+    "http://www.horoscope.com/us/horoscopes/general/"
     "horoscope-general-daily-today.aspx"
+)
 
 URL = (
     "http://www.horoscope.com/us/horoscopes/general/"
@@ -35,9 +37,7 @@ def test_horoscope(mock_requests: RequestsMock, mock_db: MockDB):
             <p>Some horoscope text</p>
         </div>
         """,
-match=[
-    query_param_matcher({'sign': 1})
-],
+        match=[query_param_matcher({"sign": 1})],
     )
 
     event = MagicMock()
@@ -72,16 +72,14 @@ def test_database_read(mock_requests: RequestsMock, mock_db: MockDB):
 
     mock_requests.add(
         "GET",
-BASE_URL,
+        BASE_URL,
         headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
             <p>Some horoscope text</p>
         </div>
         """,
-        match=[
-            query_param_matcher({'sign':4})
-        ],
+        match=[query_param_matcher({"sign": 4})],
     )
 
     mock_db.add_row(horoscope.table, nick="some_user", sign="cancer")
@@ -108,7 +106,7 @@ def test_parse_fail(mock_requests: RequestsMock, mock_db: MockDB):
         <div class="main-horoscope">
         </div>
         """,
-match=[query_param_matcher({'sign':4})],
+        match=[query_param_matcher({"sign": 4})],
     )
 
     event = MagicMock()

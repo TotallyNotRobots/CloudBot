@@ -97,7 +97,7 @@ def generate_pages(mock_requests, url, count=5, per_page=5):
         mock_requests.add(
             "GET",
             url,
-            match=[query_param_matcher({'page':i})],
+            match=[query_param_matcher({"page": i})],
             json={
                 "data": [{"id": "{}.{}".format(i, j)} for j in range(per_page)],
                 "links": links,
@@ -195,7 +195,7 @@ class _Base(ABC):
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=404,
         )
 
@@ -206,7 +206,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=502,
         )
 
@@ -234,7 +234,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -250,7 +250,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [],
             },
@@ -263,7 +263,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -279,7 +279,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [],
             },
@@ -294,7 +294,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -310,7 +310,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={},
             status=503,
         )
@@ -327,7 +327,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -343,7 +343,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -372,7 +372,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -388,7 +388,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -420,7 +420,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -436,7 +436,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -489,7 +489,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -506,7 +506,7 @@ match=[query_param_matcher({'name':'Foo'})],
             mock_requests.add(
                 "GET",
                 "https://api.thetvdb.com/series/5/episodes",
-                match=[query_param_matcher({'page':1})],
+                match=[query_param_matcher({"page": 1})],
                 json={
                     "data": [
                         {
@@ -533,7 +533,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
-            match=[query_param_matcher({'name':'Foo'})],
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -549,7 +549,7 @@ match=[query_param_matcher({'name':'Foo'})],
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
-            match=[query_param_matcher({'page':1})],
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {

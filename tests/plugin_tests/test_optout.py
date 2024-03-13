@@ -56,5 +56,6 @@ def test_match():
         res = optout.optout_sieve(bot, event, _hook)
         assert res is None
 
+
 def test_get_channel_optouts():
     pass
