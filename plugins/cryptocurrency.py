@@ -9,6 +9,7 @@ Created By:
 License:
     GPL v3
 """
+
 import inspect
 import time
 import warnings
@@ -660,7 +661,7 @@ def crypto_command(text, event):
 def format_price(price: Union[int, float, Real]) -> str:
     price = float(price)
     if price < 1:
-        precision = max(2, min(10, -Decimal(str(price)).as_tuple().exponent))
+        precision = max(2, min(10, len(str(Decimal(str(price)))) - 2))
         num_format = "{:01,.{}f}".format(price, precision)
     else:
         num_format = "{:,.2f}".format(price)
