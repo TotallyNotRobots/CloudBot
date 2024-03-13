@@ -504,9 +504,7 @@ class WordsTestBase(WordTestBase):
     def build_url(cls, word=None, op=None):
         base = "http://api.wordnik.com/v4/words.json"
         url = base + "/" + (op or cls.get_op())
-        return (
-            url
-        )
+        return url
 
 
 class TestWOTD(WordsTestBase):

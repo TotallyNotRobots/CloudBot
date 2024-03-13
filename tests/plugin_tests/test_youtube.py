@@ -1,5 +1,4 @@
 from copy import deepcopy
-from re import match
 from typing import Any, Dict
 from unittest.mock import MagicMock
 
@@ -51,6 +50,7 @@ video_data: Dict[str, Any] = {
         }
     ],
 }
+
 
 class TestGetVideoDescription:
     base_url = "https://www.googleapis.com/youtube/v3/"

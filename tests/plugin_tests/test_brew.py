@@ -2,7 +2,6 @@ from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
-import responses
 from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot

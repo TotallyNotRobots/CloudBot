@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-import responses
 from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot
