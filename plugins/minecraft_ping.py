@@ -2,7 +2,7 @@ import socket
 
 # TODO(linuxdaemon): Implement bedrock support
 from mcstatus import JavaServer as MinecraftServer
-from mcstatus.pinger import PingResponse
+from mcstatus.status_response import JavaStatusResponse
 
 from cloudbot import hook
 from cloudbot.util import colors
@@ -48,7 +48,7 @@ def mcping(text):
         return str(e)
 
     try:
-        s = server.status()  # type: PingResponse
+        s: JavaStatusResponse = server.status()
     except socket.gaierror:
         return "Invalid hostname"
     except socket.timeout:
