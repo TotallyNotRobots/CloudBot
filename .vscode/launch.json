@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Run CloudBot",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "cloudbot",
             "justMyCode": true

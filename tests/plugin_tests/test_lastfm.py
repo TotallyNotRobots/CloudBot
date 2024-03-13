@@ -7,7 +7,7 @@ from responses import RequestsMock
 
 from cloudbot.bot import bot
 from plugins import lastfm
-
+from responses.matchers import query_param_matcher
 
 def test_get_account(mock_db, mock_requests):
     lastfm.table.create(mock_db.engine)
@@ -77,21 +77,24 @@ def test_api_error_message(mock_requests, mock_api_keys):
 
 
 def test_getartisttags(mock_requests, mock_api_keys):
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    url = "http://ws.audioscrobbler.com/2.0/"
     mock_requests.add(
         "GET",
         url,
         json={
             "toptags": {},
         },
-        match_querystring=True,
+        match=[query_param_matcher({'format':'json','artist':'foobar','autocorrect':1,'method':'artist.getTopTags','api_key':'APIKEY'})],
     )
     res = lastfm.getartisttags("foobar")
     assert res == "no tags"
 
 
 class TestGetArtistTags:
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&method=artist.getTopTags&api_key=APIKEY"
+    url = "http://ws.audioscrobbler.com/2.0/"
+
+    def get_params(self):
+        return {"format":"json","artist":"foobar","autocorrect":"1","method":"artist.getTopTags","api_key":"APIKEY"}
 
     def get_tags(self):
         return lastfm.getartisttags("foobar")
@@ -103,7 +106,7 @@ class TestGetArtistTags:
             json={
                 "toptags": {},
             },
-            match_querystring=True,
+            match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
         assert res == "no tags"
@@ -115,7 +118,7 @@ class TestGetArtistTags:
             json={
                 "toptags": {"tags": []},
             },
-            match_querystring=True,
+            match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
         assert res == "no tags"
@@ -125,7 +128,7 @@ class TestGetArtistTags:
             "GET",
             self.url,
             json={"error": 6, "message": "Missing artist."},
-            match_querystring=True,
+            match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
         assert res == "no tags"
@@ -150,19 +153,19 @@ class TestGetArtistTags:
                     ]
                 },
             },
-            match_querystring=True,
+            match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
         assert res == "tag2, tag4, tag5, tag6"
 
 
 def test_gettracktags(mock_requests, mock_api_keys):
-    url = "http://ws.audioscrobbler.com/2.0/?format=json&artist=foobar&autocorrect=1&track=foobaz&method=track.getTopTags&api_key=APIKEY"
+    url = "http://ws.audioscrobbler.com/2.0/"
     mock_requests.add(
         "GET",
         url,
         json={"toptags": {}},
-        match_querystring=True,
+            match=[query_param_matcher({"format":"json","artist":"foobar", "autocorrect":1,"track":"foobaz","method":"track.getTopTags","api_key":"APIKEY"})],
     )
     res = lastfm.gettracktags("foobar", "foobaz")
     assert res == "no tags"
@@ -212,8 +215,8 @@ class TestTopArtists:
 
         mock_requests.add(
             "GET",
-            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar&limit=10&period=7day&method=user.gettopartists&api_key=APIKEY",
-            match_querystring=True,
+            "http://ws.audioscrobbler.com/2.0/",
+            match=[query_param_matcher({"format":"json","user":"bar","limit":"10", "period": "7day","method":"user.gettopartists","api_key":"APIKEY"})],
             json={
                 "topartists": {
                     "artist": [
@@ -237,8 +240,8 @@ class TestTopTrack:
 
         mock_requests.add(
             "GET",
-            "http://ws.audioscrobbler.com/2.0/?format=json&user=bar&limit=5&method=user.gettoptracks&api_key=APIKEY",
-            match_querystring=True,
+            "http://ws.audioscrobbler.com/2.0/",
+            match=[query_param_matcher({"format":"json","user":"bar","limit":"5","method":"user.gettoptracks","api_key":"APIKEY"})],
             json={
                 "toptracks": {
                     "track": [
