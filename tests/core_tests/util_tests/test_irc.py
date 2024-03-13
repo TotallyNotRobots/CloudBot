@@ -26,3 +26,5 @@ def test_mode_parse_missing_mode():
         irc.ModeChange("d", True, "bar", mode_info["d"]),
         irc.ModeChange("x", True, None, None),
     ]
+
+    assert [m.is_status for m in parsed] == [True, False, False]
