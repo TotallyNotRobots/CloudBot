@@ -21,19 +21,16 @@ jobs:
         - '3.11'
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
       with:
-        fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-ver }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-ver }}
-    - uses: actions/cache@v3.3.1
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-${{ matrix.python-ver }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.python-ver }}-pip-
+        python-version: "${{matrix.python-version}}"
+        cache: "pip"
+        cache-dependency-path: |
+          **/*requirements*.txt
+
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
     - name: Install dependencies
@@ -43,7 +40,8 @@ jobs:
       env:
         PYTHONDEVMODE: 1
         PYTHONPATH: .
-    - uses: codecov/codecov-action@v3.1.1
+    - uses: codecov/codecov-action@v4
       with:
         name: build-${{ matrix.python-ver }}
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
