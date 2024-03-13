@@ -37,7 +37,7 @@ class WordTestBase:
 
     @classmethod
     def make_query_params(cls, params: Optional[Dict[str, Any]] = None):
-        out = {}
+        out: Dict[str, Any] = {}
         if limit := cls.get_result_limit():
             out["limit"] = limit
 
