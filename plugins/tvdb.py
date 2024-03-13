@@ -270,6 +270,17 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     Traceback (most recent call last):
         ...
     IndexError: list index out of range
+    >>> col = LazyCollection(['a'])
+    >>> 'c' in col
+    False
+    >>> col = LazyCollection(['a', 'b', 'c'])
+    >>> list(col)
+    ['a', 'b', 'c']
+    >>> col = LazyCollection(['a'])
+    >>> col[0]
+    'a'
+    >>> col[0]
+    'a'
     """
 
     def __init__(self, it: Iterable[T]) -> None:
@@ -295,10 +306,10 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
         yield from self._data
         while True:
             holder = self._get_next()
-            if holder.exists():
-                yield holder.get()
-            else:
+            if not holder.exists():
                 break
+
+            yield holder.get()
 
     def __contains__(self, needle: object) -> bool:
         if needle in self._data:
