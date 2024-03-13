@@ -4,9 +4,10 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
+from responses.matchers import query_param_matcher
 
 from plugins import wordnik
-from responses.matchers import query_param_matcher
+
 
 @pytest.mark.parametrize(
     "source,name",

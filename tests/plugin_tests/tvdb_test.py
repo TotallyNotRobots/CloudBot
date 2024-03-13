@@ -5,12 +5,13 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 import responses
+from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot
 from cloudbot.event import CommandEvent
 from plugins import tvdb
 from tests.util import HookResult, wrap_hook_response
-from responses.matchers import query_param_matcher
+
 
 @pytest.fixture()
 def reset_api():

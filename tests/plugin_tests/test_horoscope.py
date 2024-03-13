@@ -4,6 +4,7 @@ import pytest
 import requests
 from responses import RequestsMock
 from responses.matchers import query_param_matcher
+
 from plugins import horoscope
 from tests.util.mock_db import MockDB
 

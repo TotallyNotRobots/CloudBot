@@ -4,9 +4,9 @@ from typing import Any, Dict
 from unittest.mock import MagicMock
 
 import pytest
+from responses.matchers import query_param_matcher
 
 from plugins import youtube
-from responses.matchers import query_param_matcher
 
 video_data: Dict[str, Any] = {
     "kind": "youtube#videoListResponse",

@@ -4,10 +4,11 @@ import pytest
 import requests
 from requests import HTTPError
 from responses import RequestsMock
+from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot
 from plugins import lastfm
-from responses.matchers import query_param_matcher
+
 
 def test_get_account(mock_db, mock_requests):
     lastfm.table.create(mock_db.engine)
