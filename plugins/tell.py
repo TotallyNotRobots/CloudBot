@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from fnmatch import fnmatch
-from typing import Dict, List, Set, Tuple
+from typing import Dict, Iterable, List, Set, Tuple
 
 import sqlalchemy as sa
 from sqlalchemy import (
@@ -226,9 +226,8 @@ def del_ignore(db, conn, nick, mask):
     load_ignores(db)
 
 
-def list_ignores(conn, nick):
-    for mask in ignore_cache[conn.name.lower()][nick.lower()]:
-        yield mask
+def list_ignores(conn, nick: str) -> Iterable[str]:
+    yield from ignore_cache[conn.name.lower()][nick.lower()]
 
 
 def get_unread(db, server, target) -> List[TellMessage]:
