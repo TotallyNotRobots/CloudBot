@@ -6,6 +6,7 @@ Authors:
     - Scaevolus
     - linuxdaemon <linuxdaemon@snoonet.org>
 """
+
 import re
 
 import requests

@@ -4,6 +4,7 @@ Store and retrieve channel keys in a database table
 Author:
 - linuxdaemon
 """
+
 from itertools import zip_longest
 from typing import Any, Dict, List, Optional
 

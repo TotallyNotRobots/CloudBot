@@ -85,9 +85,9 @@ class PluginManager:
         self.bot = bot
 
         self.plugins: Dict[str, Plugin] = {}
-        self._plugin_name_map: MutableMapping[
-            str, Plugin
-        ] = WeakValueDictionary()
+        self._plugin_name_map: MutableMapping[str, Plugin] = (
+            WeakValueDictionary()
+        )
         self.commands: Dict[str, CommandHook] = {}
         self.raw_triggers: Dict[str, List[RawHook]] = defaultdict(list)
         self.catch_all_triggers: List[RawHook] = []

@@ -79,7 +79,7 @@ def wrap_hook_response(func, event, results=None):
 
 
 def get_data_path() -> Path:
-    return Path(__file__).parent.parent / 'data'
+    return Path(__file__).parent.parent / "data"
 
 
 def get_data_file(name: str) -> Path:

@@ -1,6 +1,7 @@
 """
 Notes/todo list
 """
+
 from datetime import datetime
 
 from sqlalchemy import (

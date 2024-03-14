@@ -4,6 +4,7 @@ Gets basic stock stats from the AlphaVantage API
 Authors:
     - linuxdaemon <linuxdaemon@snoonet.org>
 """
+
 import math
 from decimal import Decimal
 
@@ -93,7 +94,7 @@ def format_money(n):
     c = number_suffixes[idx]
     if c:
         exp = idx * 3
-        n = n / (10 ** exp)
+        n = n / (10**exp)
 
     return "{:,.2f}{}".format(n, c)
 

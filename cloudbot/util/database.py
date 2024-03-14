@@ -1,6 +1,7 @@
 """
 database - contains variables set by cloudbot to be easily access
 """
+
 from sqlalchemy import MetaData
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base

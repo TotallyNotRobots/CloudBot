@@ -9,7 +9,7 @@ from googlemaps.exceptions import ApiError
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
-from tests.util import HookResult, wrap_hook_response, get_data_file
+from tests.util import HookResult, get_data_file, wrap_hook_response
 
 
 @pytest.mark.parametrize(
@@ -66,9 +66,12 @@ def test_temp_convert(temp_f, temp_c):
 def test_mph_to_kph(mph, kph):
     assert weather.mph_to_kph(mph) == kph
 
+
 def get_test_data():
     return {
-        'json': json.loads(get_data_file('owm.json').read_text(encoding='utf-8'))
+        "json": json.loads(
+            get_data_file("owm.json").read_text(encoding="utf-8")
+        )
     }
 
 
@@ -248,7 +251,7 @@ def test_find_location(
                 "Humidity: 45%; Wind: 15MPH/24KPH SE | "
                 "\x02Tomorrow\x02: foobar; High: 64F/18C; "
                 "Low: 57F/14C; Humidity: 45%; Wind: 15MPH/24KPH SE "
-                "-- 123 Test St, Example City, CA"
+                "-- 123 Test St, Example City, CA",
             ),
             {},
         )

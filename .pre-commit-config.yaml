@@ -2,6 +2,7 @@ ci:
   skip:
   - pylint
   - mypy
+exclude: ^\.vscode/.*$
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: c4a0b883114b00d8d76b479c820ce7950211c99b  # frozen: v4.5.0

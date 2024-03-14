@@ -224,7 +224,7 @@ class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
         p = {"url": url, "format": "json"}
         if custom:
-            p['shorturl'] = custom
+            p["shorturl"] = custom
 
         try:
             r = requests.get("https://is.gd/create.php", params=p)

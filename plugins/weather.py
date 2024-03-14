@@ -4,8 +4,8 @@ from typing import List, Optional, Tuple
 
 import googlemaps
 import pyowm
-from pyowm import OWM
 from googlemaps.exceptions import ApiError
+from pyowm import OWM
 from pyowm.weatherapi25.weather import Weather
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
@@ -210,9 +210,7 @@ def check_and_parse(event, db):
     owm_api = data.owm_api
     wm = owm_api.weather_manager()
     conditions = wm.one_call(
-        location_data['lat'],
-        location_data['lng'],
-        exclude="minutely,hourly"
+        location_data["lat"], location_data["lng"], exclude="minutely,hourly"
     )
 
     return (location_data, conditions), None
@@ -229,25 +227,25 @@ def weather(reply, db, triggered_prefix, event):
     daily_conditions: List[Weather] = owm.forecast_daily
     current: Weather = owm.current
     today = daily_conditions[0]
-    wind_mph = current.wind('miles_hour')
-    wind_speed = wind_mph['speed']
-    today_temp = today.temperature('fahrenheit')
-    today_high = today_temp['max']
-    today_low = today_temp['min']
-    current_temperature = current.temperature('fahrenheit')['temp']
+    wind_mph = current.wind("miles_hour")
+    wind_speed = wind_mph["speed"]
+    today_temp = today.temperature("fahrenheit")
+    today_high = today_temp["max"]
+    today_low = today_temp["min"]
+    current_temperature = current.temperature("fahrenheit")["temp"]
     current_data = {
-        'name': "Current",
-        'wind_direction': bearing_to_card(wind_mph['deg']),
-        'wind_speed_mph': wind_speed,
-        'wind_speed_kph': mph_to_kph(wind_speed),
-        'summary': current.status,
-        'temp_f': round_temp(current_temperature),
-        'temp_c': round_temp(convert_f2c(current_temperature)),
-        'temp_high_f': round_temp(today_high),
-        'temp_high_c': round_temp(convert_f2c(today_high)),
-        'temp_low_f': round_temp(today_low),
-        'temp_low_c': round_temp(convert_f2c(today_low)),
-        'humidity': current.humidity / 100,
+        "name": "Current",
+        "wind_direction": bearing_to_card(wind_mph["deg"]),
+        "wind_speed_mph": wind_speed,
+        "wind_speed_kph": mph_to_kph(wind_speed),
+        "summary": current.status,
+        "temp_f": round_temp(current_temperature),
+        "temp_c": round_temp(convert_f2c(current_temperature)),
+        "temp_high_f": round_temp(today_high),
+        "temp_high_c": round_temp(convert_f2c(today_high)),
+        "temp_low_f": round_temp(today_low),
+        "temp_low_c": round_temp(convert_f2c(today_low)),
+        "humidity": current.humidity / 100,
     }
 
     parts = [
@@ -295,34 +293,32 @@ def forecast(reply, db, event):
     today, tomorrow, *three_days = daily_conditions[:5]
 
     today_data = {
-        'data': today,
+        "data": today,
     }
-    tomorrow_data = {
-        'data': tomorrow
-    }
-    three_days_data = [{'data': d} for d in three_days]
+    tomorrow_data = {"data": tomorrow}
+    three_days_data = [{"data": d} for d in three_days]
     today_data["name"] = "Today"
     tomorrow_data["name"] = "Tomorrow"
 
     for day_fc in (today_data, tomorrow_data):
-        wind_speed = day_fc['data'].wind('miles_hour')
+        wind_speed = day_fc["data"].wind("miles_hour")
         day_fc.update(
-            wind_direction=bearing_to_card(wind_speed['deg']),
-            wind_speed_mph=wind_speed['speed'],
-            wind_speed_kph=mph_to_kph(wind_speed['speed']),
-            summary=day_fc['data'].status,
+            wind_direction=bearing_to_card(wind_speed["deg"]),
+            wind_speed_mph=wind_speed["speed"],
+            wind_speed_kph=mph_to_kph(wind_speed["speed"]),
+            summary=day_fc["data"].status,
         )
 
     for fc_data in (today_data, tomorrow_data, *three_days_data):
-        temp = fc_data['data'].temperature('fahrenheit')
-        high = temp['max']
-        low = temp['min']
+        temp = fc_data["data"].temperature("fahrenheit")
+        high = temp["max"]
+        low = temp["min"]
         fc_data.update(
             temp_high_f=round_temp(high),
             temp_high_c=round_temp(convert_f2c(high)),
             temp_low_f=round_temp(low),
             temp_low_c=round_temp(convert_f2c(low)),
-            humidity=fc_data['data'].humidity / 100,
+            humidity=fc_data["data"].humidity / 100,
         )
 
     parts = [

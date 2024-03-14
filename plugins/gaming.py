@@ -9,6 +9,7 @@ Modified By:
 License:
     GPL v3
 """
+
 import random
 import re
 
@@ -50,7 +51,7 @@ def approximate(count, n):
     # Calculate a random sum approximated using a randomized normal variate with the midpoint used as the mu
     # and an approximated standard deviation based on variance as the sigma
     mid = 0.5 * (n + 1) * count
-    var = (n ** 2 - 1) / 12
+    var = (n**2 - 1) / 12
     adj_var = (var * count) ** 0.5
     normalvariate = random.normalvariate(mid, adj_var)
     return normalvariate

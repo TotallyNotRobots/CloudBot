@@ -1,6 +1,7 @@
 """
 All GIFs courtesy of http://bestanimations.com/
 """
+
 import random
 from urllib.parse import urljoin
 

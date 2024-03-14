@@ -76,7 +76,7 @@ def gitio(text, reply):
     custom = args[1] if len(args) > 1 else None
 
     try:
-        if URL(url).host == 'git.io':
+        if URL(url).host == "git.io":
             return web.expand(url, "git.io")
 
         return web.shorten(url, custom=custom, service="git.io")

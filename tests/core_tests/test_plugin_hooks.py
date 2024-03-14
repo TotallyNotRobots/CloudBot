@@ -1,6 +1,7 @@
 """
 Validates all hook registrations in all plugins
 """
+
 import asyncio
 import importlib
 import inspect

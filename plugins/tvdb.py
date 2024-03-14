@@ -346,12 +346,10 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
             self._gen_to_index(i)
 
     @overload
-    def __getitem__(self, item: int) -> T:
-        ...
+    def __getitem__(self, item: int) -> T: ...
 
     @overload
-    def __getitem__(self, item: slice) -> List[T]:
-        ...
+    def __getitem__(self, item: slice) -> List[T]: ...
 
     def __getitem__(self, item: Union[int, slice]) -> Union[T, List[T]]:
         if isinstance(item, slice):
