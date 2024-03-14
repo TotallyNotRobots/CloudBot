@@ -12,6 +12,7 @@ License:
 
 import inspect
 import time
+import typing
 import warnings
 from decimal import Decimal
 from numbers import Real
@@ -342,12 +343,9 @@ def _hydrate_object(_value, _cls):
         _assert_type(_value, dict)
         return read_data(_value, _cls)
 
-    try:
-        typing_cls = _cls.__origin__  # type: ignore[union-attr]
-    except AttributeError:
-        pass
-    else:
-        type_args = _cls.__args__  # type: ignore[union-attr]
+    typing_cls = typing.get_origin(_cls)
+    if typing_cls is not None:
+        type_args = typing.get_args(_cls)
         if issubclass(typing_cls, list):
             _assert_type(_value, list, _cls)
 

@@ -30,7 +30,6 @@ exclude = '''
 
 [tool.darker]
 src = ["cloudbot", "plugins", "tests"]
-flynt = true
 isort = true
 lint = ["pylint"]
 line-length = 80
