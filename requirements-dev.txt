@@ -1,4 +1,4 @@
-darker[flynt,isort] == 1.6.1
+darker[flynt,isort] == 2.0.0
 freezegun == 1.1.0
 mypy == 1.0.0
 pre-commit == 3.3.3
