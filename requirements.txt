@@ -16,5 +16,5 @@ py-irclib == 0.3.0
 pyowm == 3.3.0
 requests == 2.31.0
 urllib3 == 2.2.1
-watchdog == 2.1.6
+watchdog == 4.0.0
 yarl == 1.9.4
