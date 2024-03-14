@@ -11,7 +11,7 @@ from cloudbot import hook
 from cloudbot.bot import bot
 from cloudbot.util import database, timeformat, web
 
-api_url = "http://ws.audioscrobbler.com/2.0/?format=json"
+api_url = "https://ws.audioscrobbler.com/2.0/?format=json"
 
 table = Table(
     "lastfm",

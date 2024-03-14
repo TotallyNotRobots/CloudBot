@@ -8,7 +8,7 @@ from yarl import URL
 from cloudbot import hook
 from cloudbot.util import formatting
 
-api_prefix = "http://en.wikipedia.org/w/api.php"
+api_prefix = "https://en.wikipedia.org/w/api.php"
 query_url = api_prefix + "?action=query&format=json"
 search_url = query_url + "&list=search&redirect=1"
 wp_api_url = URL("https://en.wikipedia.org/api/rest_v1/")

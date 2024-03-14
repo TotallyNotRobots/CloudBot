@@ -11,8 +11,8 @@ class FeedAlias:
 
 
 ALIASES = {
-    "xkcd": FeedAlias("http://xkcd.com/rss.xml"),
-    "ars": FeedAlias("http://feeds.arstechnica.com/arstechnica/index"),
+    "xkcd": FeedAlias("https://xkcd.com/rss.xml"),
+    "ars": FeedAlias("https://feeds.arstechnica.com/arstechnica/index"),
     "pip": FeedAlias("https://pypi.python.org/pypi?%3Aaction=rss", 6),
     "pypi": FeedAlias("https://pypi.python.org/pypi?%3Aaction=rss", 6),
     "py": FeedAlias("https://pypi.python.org/pypi?%3Aaction=rss", 6),
@@ -37,8 +37,8 @@ ALIASES = {
     "nz": FeedAlias(
         "https://news.google.com/news?pz=1&cf=all&ned=nz&hl=en&topic=n&output=rss"
     ),
-    "anand": FeedAlias("http://www.anandtech.com/rss/"),
-    "anandtech": FeedAlias("http://www.anandtech.com/rss/"),
+    "anand": FeedAlias("https://www.anandtech.com/rss/"),
+    "anandtech": FeedAlias("https://www.anandtech.com/rss/"),
 }
 
 

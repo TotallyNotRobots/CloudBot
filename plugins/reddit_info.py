@@ -17,8 +17,8 @@ search_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
 user_re = re.compile(r"^(?:/?(?:u(?:ser)?/)?)?(?P<name>.+?)/?$", re.IGNORECASE)
 sub_re = re.compile(r"^(?:/?(?:r/)?)?(?P<name>.+?)/?$", re.IGNORECASE)
 
-user_url = "http://reddit.com/user/{}/"
-subreddit_url = "http://reddit.com/r/{}/"
+user_url = "https://reddit.com/user/{}/"
+subreddit_url = "https://reddit.com/r/{}/"
 short_url = "https://redd.it/{}"
 post_url = "https://reddit.com/comments/{}.json"
 # This agent should be unique for your cloudbot instance

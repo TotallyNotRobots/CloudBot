@@ -85,7 +85,7 @@ def qrcode(text):
 
     argstring = urllib.parse.urlencode(args)
 
-    link = "http://chart.googleapis.com/chart?{}".format(argstring)
+    link = "https://chart.googleapis.com/chart?{}".format(argstring)
     return web.try_shorten(link)
 
 

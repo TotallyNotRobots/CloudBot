@@ -18,7 +18,7 @@ def get_soup(url):
 @hook.on_start()
 async def refresh_fml_cache(loop):
     """gets a page of random FMLs and puts them into a dictionary"""
-    url = "http://www.fmylife.com/random"
+    url = "https://www.fmylife.com/random"
     soup = await loop.run_in_executor(None, get_soup, url)
 
     # the /today bit is there to exclude fml news etc.

@@ -6,7 +6,7 @@ from cloudbot.bot import bot
 from cloudbot.util import web
 
 #
-api_url = "http://api.lyricsnmusic.com/songs"
+api_url = "https://api.lyricsnmusic.com/songs"
 
 
 @hook.command("lyrics")

@@ -14,7 +14,7 @@ table = Table(
     Column("sign", String),
 )
 
-BASE_URL = URL("http://www.horoscope.com/us/horoscopes/general/")
+BASE_URL = URL("https://www.horoscope.com/us/horoscopes/general/")
 DAILY_URL = BASE_URL / "horoscope-general-daily-today.aspx"
 
 SIGN_MAP = {

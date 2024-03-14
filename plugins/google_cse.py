@@ -5,7 +5,7 @@ Originally for RoboCop 2, a replacement after Google's deprecation of Google Web
 Module requires a Google Custom Search API key and a Custom Search Engine ID in order to function.
 
 Created By:
-    - Foxlet <http://furcode.tk/>
+    - Foxlet <https://furcode.tk/>
 
 License:
     GNU General Public License (Version 3)

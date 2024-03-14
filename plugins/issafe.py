@@ -4,7 +4,7 @@ issafe.py
 Check the Google Safe Browsing list to see a website's safety rating.
 
 Created By:
-    - Foxlet <http://furcode.tk/>
+    - Foxlet <https://furcode.tk/>
 
 License:
     GNU General Public License (Version 3)

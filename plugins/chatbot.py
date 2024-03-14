@@ -21,6 +21,6 @@ def make_api(bot):
 def chitchat(text):
     """<text> - chat with cleverbot.com"""
     if not container.api:
-        return "Please add an API key from http://www.cleverbot.com/api to enable this feature."
+        return "Please add an API key from https://www.cleverbot.com/api to enable this feature."
 
     return container.api.say(text)

@@ -9,8 +9,8 @@ from cloudbot.util.http import parse_soup
 
 xkcd_re = re.compile(r"(.*:)//(www.xkcd.com|xkcd.com)(.*)", re.I)
 
-XKCD_URL = URL("http://www.xkcd.com/")
-ONR_URL = URL("http://www.ohnorobot.com/")
+XKCD_URL = URL("https://www.xkcd.com/")
+ONR_URL = URL("https://www.ohnorobot.com/")
 
 
 def xkcd_info(xkcd_id, url=False):

@@ -5,7 +5,7 @@ import requests
 from cloudbot import hook
 from cloudbot.util import formatting
 
-base_url = "http://api.urbandictionary.com/v0"
+base_url = "https://api.urbandictionary.com/v0"
 define_url = base_url + "/define"
 random_url = base_url + "/random"
 
@@ -14,7 +14,7 @@ random_url = base_url + "/random"
 def urban(text, reply):
     """<phrase> [id] - Looks up <phrase> on urbandictionary.com."""
 
-    headers = {"Referer": "http://m.urbandictionary.com"}
+    headers = {"Referer": "https://m.urbandictionary.com"}
 
     if text:
         # clean and split the input

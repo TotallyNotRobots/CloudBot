@@ -12,9 +12,9 @@ def down(text):
     """<url> - checks if <url> is online or offline"""
 
     if "://" not in text:
-        text = "http://" + text
+        text = "https://" + text
 
-    text = "http://" + urllib.parse.urlparse(text).netloc
+    text = "https://" + urllib.parse.urlparse(text).netloc
 
     try:
         r = requests.get(text)
@@ -36,7 +36,7 @@ def isup(text):
     domain = auth or path
 
     try:
-        response = requests.get("http://isup.me/" + domain)
+        response = requests.get("https://isup.me/" + domain)
         response.raise_for_status()
     except requests.exceptions.ConnectionError:
         return "Failed to get status."

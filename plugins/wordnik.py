@@ -14,7 +14,7 @@ from cloudbot.util.http import GetParams
 
 logger = logging.getLogger("cloudbot")
 
-API_URL = "http://api.wordnik.com/v4/"
+API_URL = "https://api.wordnik.com/v4/"
 WEB_URL = "https://www.wordnik.com/words/{}"
 
 ATTRIB_NAMES = {
