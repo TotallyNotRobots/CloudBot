@@ -10,7 +10,7 @@ pytest-random-order == 1.0.4
 responses == 0.25.0
 typing_extensions == 4.10.0
 types-requests == 2.27.7
-types-setuptools == 57.4.7
+types-setuptools == 69.1.0.20240310
 types-six == 1.16.2
 types-toml == 0.10.3
 types-freezegun == 1.1.3
