@@ -4,7 +4,7 @@ beautifulsoup4 == 4.12.3
 chardet == 5.2.0
 cleverwrap == 0.3.0.2
 feedparser == 6.0.11
-googlemaps == 4.5.3
+googlemaps == 4.10.0
 imgurpython == 1.1.7
 isodate == 0.6.0
 lxml == 4.9.2
