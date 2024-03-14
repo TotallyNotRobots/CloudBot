@@ -138,6 +138,8 @@ def test_can_load(mock_manager):
 
 
 def test_plugin_load(mock_manager, patch_import_module, patch_import_reload):
+    patch_import_module.reset_mock()
+    patch_import_reload.reset_mock()
     patch_import_module.return_value = mod = MockModule()
     mock_manager.bot.loop.run_until_complete(
         mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
