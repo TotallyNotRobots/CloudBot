@@ -15,6 +15,6 @@ psutil == 5.9.8
 py-irclib == 0.3.0
 pyowm == 3.3.0
 requests == 2.31.0
-urllib3 == 1.26.18
+urllib3 == 2.2.1
 watchdog == 2.1.6
 yarl == 1.9.4
