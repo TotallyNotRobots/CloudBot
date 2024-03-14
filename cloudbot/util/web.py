@@ -20,8 +20,13 @@ from operator import attrgetter
 from typing import Dict, Optional, Union
 
 import requests
-from requests import HTTPError, PreparedRequest, RequestException, Response
-from requests import Request
+from requests import (
+    HTTPError,
+    PreparedRequest,
+    Request,
+    RequestException,
+    Response,
+)
 
 # Constants
 DEFAULT_SHORTENER = "is.gd"
@@ -163,7 +168,9 @@ def paste(data, ext="txt", service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
 
 
 class ServiceError(Exception):
-    def __init__(self, request: Union[Request, PreparedRequest], message: str) -> None:
+    def __init__(
+        self, request: Union[Request, PreparedRequest], message: str
+    ) -> None:
         super().__init__(message)
         self.request = request
 

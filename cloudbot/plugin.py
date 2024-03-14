@@ -7,7 +7,16 @@ from collections import defaultdict
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional, Tuple, Type, cast
+from typing import (
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    cast,
+)
 from weakref import WeakValueDictionary
 
 import sqlalchemy
@@ -19,8 +28,18 @@ from cloudbot.plugin_hooks import (
     CommandHook,
     ConfigHook,
     EventHook,
+    IrcOutHook,
+    OnCapAckHook,
+    OnCapAvaliableHook,
+    OnConnectHook,
+    OnStartHook,
+    OnStopHook,
+    PeriodicHook,
+    PermHook,
+    PostHookHook,
     RawHook,
     RegexHook,
+    SieveHook,
     hook_name_to_plugin,
 )
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
@@ -29,7 +48,25 @@ from cloudbot.util.func_utils import call_with_args
 logger = logging.getLogger("cloudbot")
 
 
-def find_hooks(parent, module):
+class HookDict(TypedDict):
+    command: List[CommandHook]
+    on_connect: List[OnConnectHook]
+    on_start: List[OnStartHook]
+    on_stop: List[OnStopHook]
+    on_cap_available: List[OnCapAvaliableHook]
+    on_cap_ack: List[OnCapAckHook]
+    sieve: List[SieveHook]
+    event: List[EventHook]
+    regex: List[RegexHook]
+    periodic: List[PeriodicHook]
+    irc_raw: List[RawHook]
+    irc_out: List[IrcOutHook]
+    post_hook: List[PostHookHook]
+    config: List[ConfigHook]
+    perm_check: List[PermHook]
+
+
+def find_hooks(parent, module) -> HookDict:
     hooks = defaultdict(list)
     for func in module.__dict__.values():
         if hasattr(func, HOOK_ATTR) and not hasattr(func, "_not_" + HOOK_ATTR):
@@ -44,7 +81,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             delattr(func, HOOK_ATTR)
 
-    return hooks
+    return cast(HookDict, hooks)
 
 
 def find_tables(code):
@@ -351,7 +388,7 @@ class PluginManager:
         self._sort_hooks()
 
         # we don't need this anymore
-        del plugin.hooks["on_start"]
+        plugin.hooks["on_start"].clear()
 
     def _sort_hooks(self) -> None:
         def _sort_list(hooks):
