@@ -129,5 +129,5 @@ def print_url_title(message, match, logger):
         if len(title) > MAX_TITLE:
             title = title[:MAX_TITLE] + " ... [trunc]"
 
-        out = "Title: \x02{}\x02".format(title)
+        out = f"Title: \x02{title}\x02"
         message(out)

@@ -61,11 +61,11 @@ def raise_api_errors(response: requests.Response) -> None:
         first_error = errors[0]
         domain = first_error["domain"]
         reason = first_error["reason"]
-        raise APIError("API Error ({}/{})".format(domain, reason), data) from e
+        raise APIError(f"API Error ({domain}/{reason})", data) from e
 
 
 def make_short_url(video_id: str) -> str:
-    return "http://youtu.be/{}".format(video_id)
+    return f"http://youtu.be/{video_id}"
 
 
 ParamValues = Union[int, str]
@@ -278,4 +278,4 @@ def ytplaylist_url(match: Match[str]) -> Optional[str]:
     count_videos = " - \x02{:,}\x02 video{}".format(
         num_videos, "s"[num_videos == 1 :]
     )
-    return "\x02{}\x02 {} - \x02{}\x02".format(title, count_videos, author)
+    return f"\x02{title}\x02 {count_videos} - \x02{author}\x02"

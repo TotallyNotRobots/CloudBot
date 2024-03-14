@@ -48,14 +48,14 @@ class AVApi:
         self, func, symbol, data_type="json", output_size="compact"
     ):
         _data = self._request(
-            function="time_series_{}".format(func).upper(),
+            function=f"time_series_{func}".upper(),
             symbol=symbol,
             outputsize=output_size,
             datatype=data_type,
         )
         try:
             return (
-                _data["Time Series ({})".format(func.title())],
+                _data[f"Time Series ({func.title()})"],
                 _data["Meta Data"]["2. Symbol"],
             )
         except LookupError as e:
@@ -96,7 +96,7 @@ def format_money(n):
         exp = idx * 3
         n = n / (10**exp)
 
-    return "{:,.2f}{}".format(n, c)
+    return f"{n:,.2f}{c}"
 
 
 @hook.on_start()
@@ -116,7 +116,7 @@ def stock(text):
     try:
         data = api.lookup(symbol)
     except StockSymbolNotFoundError as e:
-        return "Unknown stock symbol {!r}".format(e.symbol)
+        return f"Unknown stock symbol {e.symbol!r}"
 
     out = "$(bold){symbol}$(bold):"
 

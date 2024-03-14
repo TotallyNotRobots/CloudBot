@@ -71,4 +71,4 @@ def locate(text):
 
     tags = ", ".join(tags).replace("_", " ")
 
-    return "\x02{}\x02 - {} ({})".format(location_name, url, tags)
+    return f"\x02{location_name}\x02 - {url} ({tags})"

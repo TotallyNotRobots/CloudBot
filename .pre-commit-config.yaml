@@ -48,6 +48,13 @@ repos:
   hooks:
   - id: python-no-eval
   - id: python-no-log-warn
+- repo: https://github.com/asottile/pyupgrade
+  rev: df17dfa3911b81b4a27190b0eea5b1debc7ffa0a  # frozen: v3.15.1
+  hooks:
+  - id: pyupgrade
+    args:
+    - "--py38-plus"
+
 - repo: local
   hooks:
   - id: mypy

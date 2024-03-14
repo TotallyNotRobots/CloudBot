@@ -54,4 +54,4 @@ def wiki(text, reply):
     else:
         desc = "(No Summary)"
 
-    return "{} :: {} :: {}".format(title, desc, url)
+    return f"{title} :: {desc} :: {url}"

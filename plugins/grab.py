@@ -127,10 +127,10 @@ def format_grab(name, quote):
     name = "{}{}{}".format(name[0], "\u200B", name[1:])
     if quote.startswith("\x01ACTION") or quote.startswith("*"):
         quote = quote.replace("\x01ACTION", "").replace("\x01", "")
-        out = "* {}{}".format(name, quote)
+        out = f"* {name}{quote}"
         return out
 
-    out = "<{}> {}".format(name, quote)
+    out = f"<{name}> {quote}"
     return out
 
 
@@ -141,7 +141,7 @@ def lastgrab(text, chan, message):
         with cache_lock:
             lgrab = grab_cache[chan][text.lower()][-1]
     except (KeyError, IndexError):
-        return "{} has never been grabbed.".format(text)
+        return f"{text} has never been grabbed."
 
     if lgrab:
         message(format_grab(text, lgrab), chan)
@@ -156,7 +156,7 @@ def grabrandom(text, chan, message):
         try:
             chan_grabs = grab_cache[chan]
         except KeyError:
-            return "I couldn't find any grabs in {}.".format(chan)
+            return f"I couldn't find any grabs in {chan}."
 
         matching_quotes: List[Tuple[str, str]] = []
 
@@ -176,7 +176,7 @@ def grabrandom(text, chan, message):
             )
 
     if not matching_quotes:
-        return "I couldn't find any grabs in {}.".format(chan)
+        return f"I couldn't find any grabs in {chan}."
 
     name, quote_text = random.choice(matching_quotes)
 
@@ -193,7 +193,7 @@ def grabsearch(text, chan, conn):
         try:
             chan_grabs = grab_cache[chan]
         except LookupError:
-            return "I couldn't find any grabs in {}.".format(chan)
+            return f"I couldn't find any grabs in {chan}."
 
         try:
             quotes = chan_grabs[lower_text]
@@ -211,7 +211,7 @@ def grabsearch(text, chan, conn):
                 )
 
     if not result:
-        return "I couldn't find any matches for {}.".format(text)
+        return f"I couldn't find any matches for {text}."
 
     grabs = []
     for name, quote in result:

@@ -40,7 +40,7 @@ def convert_id3(id_64):
     else:
         _id += 1
     actual = str(_id // 2)
-    return "U:1:{}".format(actual)
+    return f"U:1:{actual}"
 
 
 def get_data(user):
@@ -62,7 +62,7 @@ def get_data(user):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        raise SteamError("Could not get user info: {}".format(e)) from e
+        raise SteamError(f"Could not get user info: {e}") from e
 
     profile = parse_xml(request.content)
 
@@ -96,7 +96,7 @@ def steamid(text, reply):
     try:
         data = get_data(text)
     except SteamError as e:
-        reply("{}".format(e))
+        reply(f"{e}")
         raise
 
     return "{name} ({state}): \x02ID64:\x02 {id_64}, \x02ID32:\x02 {id_32}, \x02ID3:\x02 {id_3}".format(

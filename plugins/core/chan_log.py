@@ -169,7 +169,7 @@ def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
     :return: An iterable of lines of formatted data
     """
     for k, v in dump_attrs(obj, ignore_dunder=ignore_dunder):
-        yield "{} = {!r}".format(k, v)
+        yield f"{k} = {v!r}"
 
 
 @hook.post_hook()
@@ -190,16 +190,14 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
         messages.append(last_line.strip())
     except Exception:
         msg = traceback.format_exc()[-1]
-        messages.append("Error occurred while formatting error {}".format(msg))
+        messages.append(f"Error occurred while formatting error {msg}")
     else:
         try:
             url = web.paste("\n".join(lines))
             messages.append("Traceback: " + url)
         except Exception:
             msg = traceback.format_exc()[-1]
-            messages.append(
-                "Error occurred while gathering traceback {}".format(msg)
-            )
+            messages.append(f"Error occurred while gathering traceback {msg}")
 
     try:
         lines = ["Event Data:"]
@@ -214,9 +212,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
         messages.append("Event: " + url)
     except Exception:
         msg = traceback.format_exc()[-1]
-        messages.append(
-            "Error occurred while gathering error data {}".format(msg)
-        )
+        messages.append(f"Error occurred while gathering error data {msg}")
 
     for message in messages:
         admin_log(message, should_broadcast)

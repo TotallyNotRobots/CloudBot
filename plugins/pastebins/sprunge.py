@@ -36,7 +36,7 @@ class Sprunge(Pastebin):
             raise ServiceError(e.request, "Connection error occurred") from e
 
         if ext:
-            url += "?{}".format(ext)
+            url += f"?{ext}"
 
         return url
 

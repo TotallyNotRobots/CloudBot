@@ -56,7 +56,7 @@ def get_name(thread_id):
     else:
         name = "Unknown thread"
 
-    name = "{} ({})".format(name, thread_id)
+    name = f"{name} ({thread_id})"
     if is_current:
         name += " - Current thread"
 
@@ -70,11 +70,11 @@ def get_thread_dump():
         for thread_id, stack in sys._current_frames().items()
     ]
     for thread_name, stack in threads:
-        code.append("# {}".format(thread_name))
+        code.append(f"# {thread_name}")
         for filename, line_num, name, line in stack:
-            code.append("{}:{} - {}".format(filename, line_num, name))
+            code.append(f"{filename}:{line_num} - {name}")
             if line:
-                code.append("    {}".format(line.strip()))
+                code.append(f"    {line.strip()}")
         code.append("")  # new line
     return web.paste("\n".join(code), ext="txt")
 

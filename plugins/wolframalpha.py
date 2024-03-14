@@ -25,11 +25,11 @@ def wolframalpha(text, bot, reply):
     try:
         request.raise_for_status()
     except HTTPError as e:
-        reply("Error getting query: {}".format(e.response.status_code))
+        reply(f"Error getting query: {e.response.status_code}")
         raise
 
     if request.status_code != requests.codes.ok:
-        return "Error getting query: {}".format(request.status_code)
+        return f"Error getting query: {request.status_code}"
 
     result = parse_xml(request.content)
 
@@ -63,4 +63,4 @@ def wolframalpha(text, bot, reply):
     if not ret:
         return "No results."
 
-    return "{} - {}".format(ret, short_url)
+    return f"{ret} - {short_url}"

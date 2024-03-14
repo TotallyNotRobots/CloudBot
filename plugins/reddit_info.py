@@ -100,15 +100,15 @@ def format_output(item, show_url=False):
 def statuscheck(status, item):
     """since we are doing this a lot might as well return something more meaningful"""
     if status == 404:
-        out = "It appears {} does not exist.".format(item)
+        out = f"It appears {item} does not exist."
     elif status == 403:
-        out = "Sorry {} is set to private and I cannot access it.".format(item)
+        out = f"Sorry {item} is set to private and I cannot access it."
     elif status == 429:
         out = "Reddit appears to be rate-limiting me. Please try again in a few minutes."
     elif status == 503:
         out = "Reddit is having problems, it would be best to check back later."
     else:
-        out = "Reddit returned an error, response: {}".format(status)
+        out = f"Reddit returned an error, response: {status}"
     return out
 
 
@@ -205,9 +205,7 @@ def moderates(text, chan, conn, reply):
 
     data = r.json()
     subs = data["data"]
-    out = colors.parse(
-        "$(b){}$(b) moderates these public subreddits: ".format(user)
-    )
+    out = colors.parse(f"$(b){user}$(b) moderates these public subreddits: ")
     pager = paginated_list([sub["sr"] for sub in subs], pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()
@@ -237,7 +235,7 @@ def karma(text, reply):
     data = get_user_data("about.json", user, reply)
     data = data["data"]
 
-    out = "$(b){}$(b) ".format(user)
+    out = f"$(b){user}$(b) "
 
     parts = [
         "$(b){:,}$(b) link karma and $(b){:,}$(b) comment karma".format(
@@ -267,7 +265,7 @@ def karma(text, reply):
         age //= 365
         age_unit = "year"
 
-    parts.append("redditor for {}.".format(pluralize_auto(age, age_unit)))
+    parts.append(f"redditor for {pluralize_auto(age, age_unit)}.")
     return colors.parse(out + " | ".join(parts))
 
 
@@ -276,7 +274,7 @@ def cake_day(text, reply):
     """<reddituser> - will return the cakeday for the given reddit username."""
     user = get_user(text)
     data = get_user_data("about.json", user, reply)
-    out = colors.parse("$(b){}'s$(b) ".format(user))
+    out = colors.parse(f"$(b){user}'s$(b) ")
     out += "cake day is {}, ".format(
         datetime.fromtimestamp(data["data"]["created_utc"]).strftime("%B %d")
     )
@@ -336,7 +334,7 @@ def submods(text, chan, conn, reply):
         # if you want to show this information add modtime.days to out below
         _modtime = datetime.now() - datetime.fromtimestamp(mod["date"])
         modtime = time_format(_modtime.days)
-        moderators.append("{} ({}{})".format(username, modtime[0], modtime[1]))
+        moderators.append(f"{username} ({modtime[0]}{modtime[1]})")
 
     pager = paginated_list(moderators, pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
@@ -344,7 +342,7 @@ def submods(text, chan, conn, reply):
     if len(pager) > 1:
         page[-1] += " .moremod"
 
-    out = colors.parse("/r/$(b){}$(b) mods: ".format(sub))
+    out = colors.parse(f"/r/$(b){sub}$(b) mods: ")
     page[0] = out + page[0]
 
     return page
@@ -360,7 +358,7 @@ def subinfo(text, reply):
         return None
 
     if data["kind"] == "Listing":
-        return "It appears r/{} does not exist.".format(sub)
+        return f"It appears r/{sub} does not exist."
 
     name = data["data"]["display_name"]
     title = data["data"]["title"]

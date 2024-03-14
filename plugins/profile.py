@@ -11,7 +11,7 @@ from cloudbot.util import database
 from cloudbot.util.pager import CommandPager, paginated_list
 
 category_re = r"[A-Za-z0-9]+"
-data_re = re.compile(r"({})\s(.+)".format(category_re))
+data_re = re.compile(rf"({category_re})\s(.+)")
 
 # borrowed pagination code from grab.py
 cat_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
@@ -47,7 +47,7 @@ def load_cache(db):
 def format_profile(nick, category, text):
     # Add zwsp to avoid pinging users
     nick = "{}{}{}".format(nick[0], "\u200B", nick[1:])
-    msg = "{}->{}: {}".format(nick, category, text)
+    msg = f"{nick}->{category}: {text}"
     return msg
 
 
@@ -87,9 +87,7 @@ def profile(text, chan, notice, nick):
     pnick_cf = pnick.casefold()
     user_profile = chan_profiles.get(pnick_cf, {})
     if not user_profile:
-        notice(
-            "User {} has no profile data saved in this channel".format(pnick)
-        )
+        notice(f"User {pnick} has no profile data saved in this channel")
         return None
 
     # Check if the caller specified a profile category, if not, send a NOTICE with the users registered categories
@@ -99,7 +97,7 @@ def profile(text, chan, notice, nick):
         pager = paginated_list(cats, ", ", pager_cls=CommandPager)
         cat_pages[chan_cf][nick_cf] = pager
         page = pager.next()
-        page[0] = "Categories: {}".format(page[0])
+        page[0] = f"Categories: {page[0]}"
         if len(pager) > 1:
             page[-1] += " .moreprofile"
 
@@ -148,24 +146,22 @@ def profileadd(text, chan, nick, notice, db):
         )
         db.commit()
         load_cache(db)
-        return "Created new profile category {}".format(cat)
+        return f"Created new profile category {cat}"
 
     db.execute(
         table.update()
         .values(text=data)
         .where(
-            (
-                and_(
-                    table.c.nick == nick.casefold(),
-                    table.c.chan == chan.casefold(),
-                    table.c.category == cat.casefold(),
-                )
+            and_(
+                table.c.nick == nick.casefold(),
+                table.c.chan == chan.casefold(),
+                table.c.category == cat.casefold(),
             )
         )
     )
     db.commit()
     load_cache(db)
-    return "Updated profile category {}".format(cat)
+    return f"Updated profile category {cat}"
 
 
 @hook.command()
@@ -184,18 +180,16 @@ def profiledel(nick, chan, text, notice, db):
 
     db.execute(
         table.delete().where(
-            (
-                and_(
-                    table.c.nick == nick.casefold(),
-                    table.c.chan == chan.casefold(),
-                    table.c.category == category.casefold(),
-                )
+            and_(
+                table.c.nick == nick.casefold(),
+                table.c.chan == chan.casefold(),
+                table.c.category == category.casefold(),
             )
         )
     )
     db.commit()
     load_cache(db)
-    return "Deleted profile category {}".format(category)
+    return f"Deleted profile category {category}"
 
 
 @hook.command(autohelp=False)
@@ -212,17 +206,15 @@ def profileclear(nick, chan, text, notice, db):
             del confirm_keys[chan.casefold()][nick.casefold()]
             db.execute(
                 table.delete().where(
-                    (
-                        and_(
-                            table.c.nick == nick.casefold(),
-                            table.c.chan == chan.casefold(),
-                        )
+                    and_(
+                        table.c.nick == nick.casefold(),
+                        table.c.chan == chan.casefold(),
                     )
                 )
             )
             db.commit()
             load_cache(db)
-            return "Profile data cleared for {}.".format(nick)
+            return f"Profile data cleared for {nick}."
 
         notice("Invalid confirm key")
         return None

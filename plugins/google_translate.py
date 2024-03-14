@@ -73,7 +73,7 @@ def translate(text):
                     return goog_trans(args[1] + " " + args[2], sl, "en")
                 return goog_trans(args[2], sl, tl)
         return goog_trans(text, "", "en")
-    except IOError as e:
+    except OSError as e:
         return e
 
 

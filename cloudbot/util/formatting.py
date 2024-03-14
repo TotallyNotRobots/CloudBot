@@ -265,7 +265,7 @@ pluralise_suffix = pluralize_suffix
 
 
 def pluralize_select(count, single, plural):
-    return "{:,} {}".format(count, single if count == 1 else plural)
+    return f"{count:,} {single if count == 1 else plural}"
 
 
 pluralise_select = pluralize_select
@@ -369,7 +369,7 @@ def get_text_list(list_, last_word="or"):
     if len(list_) == 1:
         return list_[0]
 
-    return "%s %s %s" % (
+    return "{} {} {}".format(
         # Translators: This string is used as a separator between list elements
         ", ".join([i for i in list_][:-1]),
         last_word,

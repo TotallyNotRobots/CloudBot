@@ -23,10 +23,10 @@ def mcwiki(text, reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Error fetching search results: {}".format(e))
+        reply(f"Error fetching search results: {e}")
         raise
     except ValueError as e:
-        reply("Error reading search results: {}".format(e))
+        reply(f"Error reading search results: {e}")
         raise
 
     if not j[1]:
@@ -52,7 +52,7 @@ def mcwiki(text, reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Error fetching wiki page: {}".format(e))
+        reply(f"Error fetching wiki page: {e}")
         raise
 
     page = html.fromstring(request_.text)
@@ -62,7 +62,7 @@ def mcwiki(text, reply):
             summary = " ".join(p.text_content().splitlines())
             summary = re.sub(r"\[\d+\]", "", summary)
             summary = formatting.truncate(summary, 200)
-            return "{} :: {}".format(summary, url)
+            return f"{summary} :: {url}"
 
     # this shouldn't happen
     return "Unknown Error."

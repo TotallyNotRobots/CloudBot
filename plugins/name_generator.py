@@ -58,13 +58,13 @@ def namegen(text, bot, notice):
     try:
         path = module_map[selected_module]
     except KeyError:
-        return "{} is not a valid name generator.".format(inp)
+        return f"{inp} is not a valid name generator."
 
     with open(path, encoding="utf-8") as f:
         try:
             generator = get_generator(f.read())
         except ValueError as error:
-            return "Unable to read name file: {}".format(error)
+            return f"Unable to read name file: {error}"
 
     # time to generate some names
     name_list = generator.generate_strings(10)

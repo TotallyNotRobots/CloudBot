@@ -19,13 +19,13 @@ def mfp(text, reply):
     try:
         request.raise_for_status()
     except HTTPError as e:
-        reply("Failed to fetch info ({})".format(e.response.status_code))
+        reply(f"Failed to fetch info ({e.response.status_code})")
         raise
 
     if request.status_code != requests.codes.ok:
-        return "Failed to fetch info ({})".format(request.status_code)
+        return f"Failed to fetch info ({request.status_code})"
 
-    output = "Diary for {}: ".format(text)
+    output = f"Diary for {text}: "
 
     try:
         soup = parse_soup(request.text)
@@ -33,9 +33,9 @@ def mfp(text, reply):
         title = soup.find("h1", {"class": "main-title"})
         if title:
             if title.text == "This Food Diary is Private":
-                return "{}'s food diary is private.".format(text)
+                return f"{text}'s food diary is private."
             if title.text == "This Username is Invalid":
-                return "User {} does not exist.".format(text)
+                return f"User {text} does not exist."
 
         # the output of table depends on the user's MFP profile configuration
         headers = get_headers(soup)
@@ -55,7 +55,7 @@ def mfp(text, reply):
                 **kwargs
             )
 
-        output += " ({})".format(scrape_url.format(text))
+        output += f" ({scrape_url.format(text)})"
 
     except Exception:
         reply("Error parsing results.")

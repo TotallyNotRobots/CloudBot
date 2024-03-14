@@ -27,7 +27,7 @@ async def help_command(
     if text:
         cmds = list(get_potential_commands(bot, text))
         if not cmds:
-            notice("Unknown command '{}'".format(text))
+            notice(f"Unknown command '{text}'")
             return
 
         if len(cmds) > 1:
@@ -43,7 +43,7 @@ async def help_command(
         doc = cmds[0][1].doc
 
         if doc:
-            notice("{}{} {}".format(triggered_prefix, searching_for, doc))
+            notice(f"{triggered_prefix}{searching_for} {doc}")
         else:
             notice(
                 "Command {} has no additional documentation.".format(
@@ -100,7 +100,7 @@ async def cmdinfo(text, bot, notice):
     name = text.split()[0]
     cmds = list(get_potential_commands(bot, name))
     if not cmds:
-        notice("Unknown command: '{}'".format(name))
+        notice(f"Unknown command: '{name}'")
         return
 
     if len(cmds) > 1:
@@ -129,7 +129,7 @@ async def cmdinfo(text, bot, notice):
 @hook.command(permissions=["botcontrol"], autohelp=False)
 def generatehelp(conn, bot):
     """- Dumps a list of commands with their help text to the docs directory formatted using markdown."""
-    message = "{} Command list\n".format(conn.nick)
+    message = f"{conn.nick} Command list\n"
     message += "------\n"
     for plugin in sorted(
         set(bot.plugin_manager.commands.values()), key=attrgetter("name")
@@ -156,16 +156,16 @@ def generatehelp(conn, bot):
                 .replace("]", "&gt;")
             )
             if aliases:
-                message += "**{} ({}):** {}\n\n".format(command, aliases, doc)
+                message += f"**{command} ({aliases}):** {doc}\n\n"
             else:
                 # No aliases so just print the commands
-                message += "**{}**: {}\n\n".format(command, doc)
+                message += f"**{command}**: {doc}\n\n"
         else:
             message += "**{}**: Command has no documentation.\n\n".format(
                 command
             )
         if permission:
             message = message[:-2]
-            message += " ( *Permission required:* {})\n\n".format(permission)
+            message += f" ( *Permission required:* {permission})\n\n"
     # toss the markdown text into a paste
     return web.paste(message)

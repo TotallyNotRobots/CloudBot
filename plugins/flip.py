@@ -73,7 +73,7 @@ replacements = {
 
 
 # append an inverted form of replacements to itself, so flipping works both ways
-replacements.update(dict((v, k) for k, v in replacements.items()))
+replacements.update({v: k for k, v in replacements.items()})
 
 flippers = [
     "( \uff89\u2299\ufe35\u2299\uff09\uff89",

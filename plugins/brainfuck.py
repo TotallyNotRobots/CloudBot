@@ -125,7 +125,7 @@ def bf(text):
             if not program.output:
                 program.output = "(no output)"
 
-            program.output += "(exceeded {} iterations)".format(MAX_STEPS)
+            program.output += f"(exceeded {MAX_STEPS} iterations)"
             break
 
     stripped_output = re.sub(r"[\x00-\x1F]", "", program.output)

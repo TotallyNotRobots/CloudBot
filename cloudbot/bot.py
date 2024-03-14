@@ -431,9 +431,7 @@ class CloudBot:
                                 command for command, plugin in potential_matches
                             )
                             txt_list = formatting.get_text_list(commands)
-                            event.notice(
-                                "Possible matches: {}".format(txt_list)
-                            )
+                            event.notice(f"Possible matches: {txt_list}")
 
         if event.type in (EventType.message, EventType.action):
             # Regex hooks

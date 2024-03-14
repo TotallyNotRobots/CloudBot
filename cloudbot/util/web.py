@@ -171,7 +171,7 @@ class ServiceHTTPError(ServiceError):
     def __init__(self, message: str, response: Response):
         super().__init__(
             response.request,
-            "[HTTP {}] {}".format(response.status_code, message),
+            f"[HTTP {response.status_code}] {message}",
         )
         self.message = message
         self.response = response

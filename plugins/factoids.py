@@ -98,7 +98,7 @@ def remember(text, nick, db, chan, notice, event):
             data = old_data + new_data
         else:
             data = old_data + " " + new_data
-        notice("Appending \x02{}\x02 to \x02{}\x02".format(new_data, old_data))
+        notice(f"Appending \x02{new_data}\x02 to \x02{old_data}\x02")
     else:
         notice(
             "Remembering \x02{0}\x02 for \x02{1}\x02. Type {2}{1} to see it.".format(
@@ -106,7 +106,7 @@ def remember(text, nick, db, chan, notice, event):
             )
         )
         if old_data:
-            notice("Previous data was \x02{}\x02".format(old_data))
+            notice(f"Previous data was \x02{old_data}\x02")
 
     add_factoid(db, word, chan, data, nick)
 
@@ -137,7 +137,7 @@ def remove_fact(chan, names, db, notice):
 
     if found:
         try:
-            notice("Removed Data: {}".format(paste_facts(found, True)))
+            notice(f"Removed Data: {paste_facts(found, True)}")
         except NoPasteException:
             notice("Unable to paste removed data, not removing facts")
             return
@@ -172,7 +172,7 @@ def info(text, chan, notice):
         notice("Unknown Factoid.")
 
 
-factoid_re = re.compile(r"^{} ?(.+)".format(re.escape(FACTOID_CHAR)), re.I)
+factoid_re = re.compile(rf"^{re.escape(FACTOID_CHAR)} ?(.+)", re.I)
 
 
 @hook.regex(factoid_re)

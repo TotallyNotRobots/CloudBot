@@ -29,14 +29,12 @@ def etymology(text, reply):
         response.raise_for_status()
     except HTTPError as e:
         if e.response.status_code == 404:
-            return "No etymology found for {} :(".format(text)
-        reply(
-            "Error reaching etymonline.com: {}".format(e.response.status_code)
-        )
+            return f"No etymology found for {text} :("
+        reply(f"Error reaching etymonline.com: {e.response.status_code}")
         raise
 
     if response.status_code != requests.codes.ok:
-        return "Error reaching etymonline.com: {}".format(response.status_code)
+        return f"Error reaching etymonline.com: {response.status_code}"
 
     soup = parse_soup(response.text)
 

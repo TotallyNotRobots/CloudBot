@@ -21,14 +21,12 @@ logger = logging.getLogger("cloudbot")
 irc_nick_re = re.compile(r"[A-Za-z0-9^{}\[\]\-`_|\\]+")
 
 irc_bad_chars = "".join(
-    (
-        c
-        for c in (chr(x) for x in chain(range(0, 32), range(127, 160)))
-        if c not in colors.IRC_FORMATTING_DICT.values() and c != "\1"
-    )
+    c
+    for c in (chr(x) for x in chain(range(0, 32), range(127, 160)))
+    if c not in colors.IRC_FORMATTING_DICT.values() and c != "\1"
 )
 
-irc_clean_re = re.compile("[{}]".format(re.escape(irc_bad_chars)))
+irc_clean_re = re.compile(f"[{re.escape(irc_bad_chars)}]")
 
 
 def irc_clean(dirty: str) -> str:
@@ -205,9 +203,9 @@ class IrcClient(Client):
 
     def describe_server(self):
         if self.use_ssl:
-            return "+{}:{}".format(self.server, self.port)
+            return f"+{self.server}:{self.port}"
 
-        return "{}:{}".format(self.server, self.port)
+        return f"{self.server}:{self.port}"
 
     async def auto_reconnect(self):
         """
@@ -232,7 +230,7 @@ class IrcClient(Client):
                     self.name,
                     self.describe_server(),
                 )
-            except (socket.error, socket.gaierror, OSError, ssl.SSLError):
+            except (OSError, socket.gaierror, ssl.SSLError):
                 logger.error(
                     "[%s] Error occurred while connecting to %s (%s)",
                     self.name,
@@ -365,7 +363,7 @@ class IrcClient(Client):
         """
         Makes the bot send a PRIVMSG CTCP of type <ctcp_type> to the target
         """
-        out = "\x01{} {}\x01".format(ctcp_type, text)
+        out = f"\x01{ctcp_type} {text}\x01"
         self.cmd("PRIVMSG", target, out)
 
     def cmd(self, command, *params):

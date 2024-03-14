@@ -45,7 +45,7 @@ def yomomma(text, nick, conn, is_nick_valid):
     if not is_nick_valid(target) or target.lower() == conn.nick.lower():
         target = nick
     joke = random.choice(joke_lines["yo_momma"]).lower()
-    return "{}, {}".format(target, joke)
+    return f"{target}, {joke}"
 
 
 @hook.command(autohelp=False)
@@ -66,7 +66,7 @@ def confucious(message):
     (Note that the spelling is deliberate: https://www.urbandictionary.com/define.php?term=Confucious)
     """
     saying = random.choice(joke_lines["confucious"]).lower()
-    message("Confucious say {}".format(saying))
+    message(f"Confucious say {saying}")
 
 
 @hook.command(autohelp=False)
@@ -117,8 +117,8 @@ def awesome(text, is_nick_valid):
     """
     target = text.split(" ")[0]
     if not is_nick_valid(target):
-        return "Sorry I can't tell {} how awesome they are.".format(target)
-    link = "http://{}.is-awesome.cool/".format(target)
+        return f"Sorry I can't tell {target} how awesome they are."
+    link = f"http://{target}.is-awesome.cool/"
     return "{}: I am blown away by your recent awesome action(s). Please read \x02{}\x02".format(
         target, link
     )

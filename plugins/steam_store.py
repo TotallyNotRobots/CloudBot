@@ -26,7 +26,7 @@ def format_game(app_id, show_url=True):
         request = requests.get(API_URL, params=params, timeout=15)
         request.raise_for_status()
     except requests.RequestException as e:
-        return "Could not get game info: {}".format(e)
+        return f"Could not get game info: {e}"
 
     data = request.json()
     game = data[app_id]["data"]
@@ -40,7 +40,7 @@ def format_game(app_id, show_url=True):
     # genres
     try:
         genres = ", ".join([g["description"] for g in game["genres"]])
-        out.append("\x02{}\x02".format(genres))
+        out.append(f"\x02{genres}\x02")
     except KeyError:
         # some things have no genre
         pass
@@ -67,9 +67,7 @@ def format_game(app_id, show_url=True):
             price_now = "$%d.%02d" % divmod(price["final"], 100)
             price_original = "$%d.%02d" % divmod(price["initial"], 100)
 
-            out.append(
-                "\x02{}\x02 (was \x02{}\x02)".format(price_now, price_original)
-            )
+            out.append(f"\x02{price_now}\x02 (was \x02{price_original}\x02)")
 
     if show_url:
         url = web.try_shorten(STORE_URL.format(game["steam_appid"]))
@@ -92,7 +90,7 @@ def steam(text, reply):
         )
         request.raise_for_status()
     except requests.RequestException as e:
-        reply("Could not get game info: {}".format(e))
+        reply(f"Could not get game info: {e}")
         raise
 
     soup = parse_soup(request.text, from_encoding="utf-8")

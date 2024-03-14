@@ -20,9 +20,9 @@ def down(text):
         r = requests.get(text)
         r.raise_for_status()
     except requests.exceptions.ConnectionError:
-        return "{} seems to be down".format(text)
+        return f"{text} seems to be down"
     else:
-        return "{} seems to be up".format(text)
+        return f"{text} seems to be up"
 
 
 @hook.command()
@@ -53,6 +53,6 @@ def isup(text):
         )
 
     if "is up" in content:
-        return "It's just you. {} is \x02\x033up\x02\x0f.".format(url)
+        return f"It's just you. {url} is \x02\x033up\x02\x0f."
 
     return "Huh? That doesn't look like a site on the interweb."

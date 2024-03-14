@@ -81,7 +81,7 @@ def load_plugin(plugin_path):
     plugin_path = file_path.relative_to(Path().resolve())
     title = ".".join(plugin_path.parts[1:]).rsplit(".", 1)[0]
 
-    module_name = "plugins.{}".format(title)
+    module_name = f"plugins.{title}"
 
     plugin_module = importlib.import_module(module_name)
 
@@ -116,10 +116,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             "hook",
             hooks,
-            ids=[
-                "{}.{}".format(hook.plugin.title, hook.function_name)
-                for hook in hooks
-            ],
+            ids=[f"{hook.plugin.title}.{hook.function_name}" for hook in hooks],
         )
 
 
@@ -188,7 +185,7 @@ def test_hook_doc(hook):
 
         assert DOC_RE.match(
             hook.doc
-        ), "Invalid docstring '{}' format for command hook".format(hook.doc)
+        ), f"Invalid docstring '{hook.doc}' format for command hook"
 
         found_blank = False
         for line in hook.function.__doc__.strip().splitlines():
@@ -226,12 +223,12 @@ def test_hook_args(hook, mock_bot):
     elif hook.type == "sieve":
         return
     else:  # pragma: no cover
-        assert False, "Unhandled hook type '{}' in tests".format(hook.type)
+        assert False, f"Unhandled hook type '{hook.type}' in tests"
 
     for arg in hook.required_args:
         assert hasattr(
             event, arg
-        ), "Undefined parameter '{}' for hook function".format(arg)
+        ), f"Undefined parameter '{arg}' for hook function"
 
 
 def test_coroutine_hooks(hook):

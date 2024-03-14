@@ -42,7 +42,7 @@ async def async_main():
             stopped_while_restarting = True
         else:
             async_util.run_coroutine_threadsafe(
-                _bot.stop("Killed (Received SIGINT {})".format(signum)),
+                _bot.stop(f"Killed (Received SIGINT {signum})"),
                 _bot.loop,
             )
 

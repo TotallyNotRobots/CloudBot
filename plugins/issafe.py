@@ -41,7 +41,7 @@ def issafe(text):
     parsed.raise_for_status()
 
     if parsed.status_code == 204:
-        condition = "\x02{}\x02 is safe.".format(text)
+        condition = f"\x02{text}\x02 is safe."
     else:
         condition = "\x02{}\x02 is known to contain: {}".format(
             text, parsed.text

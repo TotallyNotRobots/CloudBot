@@ -29,7 +29,7 @@ def lyricsnmusic(text, reply):
     url = web.try_shorten(data["url"])
     title = data["title"]
     viewable = data["viewable"]
-    out = "\x02{}\x02 -- {} {}".format(title, snippet, url)
+    out = f"\x02{title}\x02 -- {snippet} {url}"
     if not viewable:
         out += " Full lyrics not available."
     return out

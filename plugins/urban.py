@@ -40,7 +40,7 @@ def urban(text, reply):
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
         ) as e:
-            reply("Could not get definition: {}".format(e))
+            reply(f"Could not get definition: {e}")
             raise
 
         page = request.json()
@@ -53,7 +53,7 @@ def urban(text, reply):
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
         ) as e:
-            reply("Could not get definition: {}".format(e))
+            reply(f"Could not get definition: {e}")
             raise
 
         page = request.json()
@@ -90,6 +90,6 @@ def urban(text, reply):
 
         name = definition["word"]
         url = definition["permalink"]
-        output = "\x02{}\x02: {} - {}".format(name, def_text, url)
+        output = f"\x02{name}\x02: {def_text} - {url}"
 
     return output

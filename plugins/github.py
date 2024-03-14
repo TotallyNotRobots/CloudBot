@@ -77,9 +77,7 @@ def issue_cmd(text, event):
             number, state, url, title, summary
         )
 
-    r = requests.get(
-        "https://api.github.com/repos/{}/{}/issues".format(owner, repo)
-    )
+    r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/issues")
 
     r.raise_for_status()
     j = r.json()
@@ -88,4 +86,4 @@ def issue_cmd(text, event):
     if count == 0:
         return "Repository has no open issues."
 
-    return "Repository has {} open issues.".format(count)
+    return f"Repository has {count} open issues."

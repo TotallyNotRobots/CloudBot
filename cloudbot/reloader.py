@@ -74,9 +74,7 @@ class PluginReloader(Reloader):
 
 class ConfigReloader(Reloader):
     def __init__(self, bot):
-        super().__init__(
-            bot, ConfigEventHandler, "*{}".format(bot.config.filename)
-        )
+        super().__init__(bot, ConfigEventHandler, f"*{bot.config.filename}")
 
     def reload(self, path):
         if self.bot.running:

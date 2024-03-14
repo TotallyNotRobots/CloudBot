@@ -44,7 +44,7 @@ def mcping(text):
     """<server[:port]> - gets info about the Minecraft server at <server[:port]>"""
     try:
         server = MinecraftServer.lookup(text)
-    except (IOError, ValueError) as e:
+    except (OSError, ValueError) as e:
         return str(e)
 
     try:
@@ -57,8 +57,8 @@ def mcping(text):
         return "Connection refused"
     except ConnectionError:
         return "Connection error"
-    except (IOError, ValueError) as e:
-        return "Error pinging server: {}".format(e)
+    except (OSError, ValueError) as e:
+        return f"Error pinging server: {e}"
 
     motd = s.motd.to_minecraft()
 

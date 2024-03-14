@@ -147,7 +147,7 @@ class TimeUnit:
 
     def format(self, count, simple=True):
         if simple:
-            return "{:,}{}".format(count, self.short_name)
+            return f"{count:,}{self.short_name}"
 
         return pluralize_select(count, self.long_name, self.long_name_plural)
 

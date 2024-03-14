@@ -22,6 +22,6 @@ def load_responses(bot: CloudBot) -> None:
 async def eightball(action):
     """<question> - asks the all knowing magic electronic eight ball <question>"""
     magic = random.choice(responses)
-    message = colors.parse("shakes the magic 8 ball... {}".format(magic))
+    message = colors.parse(f"shakes the magic 8 ball... {magic}")
 
     action(message)

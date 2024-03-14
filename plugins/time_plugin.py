@@ -75,7 +75,7 @@ def time_command(text, reply):
             formatted_time = datetime.datetime.strftime(
                 tztime, "%I:%M %p, %A, %B %d, %Y"
             )
-            return "\x02{}\x02 ({})".format(formatted_time, timezone)
+            return f"\x02{formatted_time}\x02 ({timezone})"
 
     # Use the Geocoding API to get co-ordinates from the input
     params = {"address": text, "key": dev_key}

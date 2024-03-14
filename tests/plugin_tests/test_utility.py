@@ -137,11 +137,11 @@ def test_swapcase(text, output):
 @pytest.mark.parametrize(
     "text,output",
     [
-        ("foo", "ｆｏｏ"),
-        ("foo bar", "ｆｏｏ ｂａｒ"),
-        ("Foo", "Ｆｏｏ"),
-        ("fOO", "ｆＯＯ"),
-        ("FOO", "ＦＯＯ"),
+        ("foo", "\uff46\uff4f\uff4f"),
+        ("foo bar", "\uff46\uff4f\uff4f\u3000\uff42\uff41\uff52"),
+        ("Foo", "\uff26\uff4f\uff4f"),
+        ("fOO", "\uff46\uff2f\uff2f"),
+        ("FOO", "\uff26\uff2f\uff2f"),
     ],
 )
 def test_fullwidth(text, output):
@@ -215,9 +215,9 @@ def test_base64_decode(text, out):
 def test_base64_check(text, valid):
     ret = utility.base64_check(text)
     if valid:
-        assert ret == "'{}' is a valid base64 encoded string".format(text)
+        assert ret == f"'{text}' is a valid base64 encoded string"
     else:
-        assert ret == "'{}' is not a valid base64 encoded string".format(text)
+        assert ret == f"'{text}' is not a valid base64 encoded string"
 
 
 @pytest.mark.parametrize("text,output", ESCAPE_DATA)
@@ -257,9 +257,10 @@ def test_reverse(text, output):
     ],
 )
 def test_length(text, text_length):
-    assert utility.length(
-        text
-    ) == "The length of that string is {} characters.".format(text_length)
+    assert (
+        utility.length(text)
+        == f"The length of that string is {text_length} characters."
+    )
 
 
 @pytest.mark.parametrize(

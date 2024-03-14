@@ -26,7 +26,7 @@ async def do_reconnect(conn, auto=True):
 
         return "Connection timed out"
 
-    return "Reconnected to '{}'".format(conn.name)
+    return f"Reconnected to '{conn.name}'"
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"], singlethread=True)
@@ -38,7 +38,7 @@ async def reconnect(conn, text, bot):
         try:
             to_reconnect = bot.connections[text.lower()]
         except KeyError:
-            return "Connection '{}' not found".format(text)
+            return f"Connection '{text}' not found"
 
     return await do_reconnect(to_reconnect, False)
 
@@ -76,7 +76,7 @@ def format_conn(conn):
 def list_conns(bot):
     """- Lists all current connections and their status"""
     conns = ", ".join(map(format_conn, bot.connections.values()))
-    return "Current connections: {}".format(conns)
+    return f"Current connections: {conns}"
 
 
 @hook.connect()
@@ -119,7 +119,7 @@ def lag_check(bot, admin_log):
             if lag > timeout and last_act > timeout:
                 conn.memory["needs_reconnect"] = True
             elif ping_diff >= interval:
-                conn.send("PING :LAGCHECK{}".format(now))
+                conn.send(f"PING :LAGCHECK{now}")
                 if not conn.memory["lag_sent"]:
                     conn.memory["lag_sent"] = now
 

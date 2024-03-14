@@ -71,4 +71,4 @@ def dogpile(text):
     result_description = result.find(
         "span", {"class": "web-bing__description"}
     ).text
-    return "{} -- \x02{}\x02".format(result_url, result_description)
+    return f"{result_url} -- \x02{result_description}\x02"

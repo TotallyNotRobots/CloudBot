@@ -8,6 +8,6 @@ from cloudbot.util import web
 def lmgtfy(text):
     """[phrase] - gets a lmgtfy.com link for the specified phrase"""
 
-    link = "http://lmgtfy.com/?q={}".format(quote(text))
+    link = f"http://lmgtfy.com/?q={quote(text)}"
 
     return web.try_shorten(link)

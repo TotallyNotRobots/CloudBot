@@ -21,7 +21,7 @@ def track_history(event, message_time, conn):
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def chat_tracker(event, conn):
     if event.type is EventType.action:
-        event.content = "\x01ACTION {}\x01".format(event.content)
+        event.content = f"\x01ACTION {event.content}\x01"
 
     message_time = time.time()
     track_history(event, message_time, conn)

@@ -47,7 +47,7 @@ def ping(text, reply):
     else:
         args = ["ping", "-c", str(count), host]
 
-    reply("Attempting to ping {} {} times...".format(host, count))
+    reply(f"Attempting to ping {host} {count} times...")
     try:
         pingcmd = subprocess.check_output(args).decode("utf-8")
     except subprocess.CalledProcessError:
@@ -59,7 +59,7 @@ def ping(text, reply):
     if IS_WINDOWS:
         m = re.search(win_ping_regex, pingcmd)
         r = int(m.group(2)) - int(m.group(1))
-        return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" % (
+        return "min: {}ms, max: {}ms, average: {}ms, range: {}ms, count: {}".format(
             m.group(1),
             m.group(2),
             m.group(3),
@@ -68,7 +68,7 @@ def ping(text, reply):
         )
 
     m = re.search(unix_ping_regex, pingcmd)
-    return "min: %sms, max: %sms, average: %sms, range: %sms, count: %s" % (
+    return "min: {}ms, max: {}ms, average: {}ms, range: {}ms, count: {}".format(
         m.group(1),
         m.group(3),
         m.group(2),

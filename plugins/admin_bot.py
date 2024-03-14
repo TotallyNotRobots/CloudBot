@@ -16,7 +16,7 @@ from cloudbot.util import formatting
 )
 async def get_permission_groups(conn):
     """- lists all valid groups"""
-    return "Valid groups: {}".format(conn.permissions.get_groups())
+    return f"Valid groups: {conn.permissions.get_groups()}"
 
 
 @hook.command("gperms", permissions=["permissions_users"])
@@ -25,14 +25,14 @@ async def get_group_permissions(text, conn, notice):
     group = text.strip()
     permission_manager = conn.permissions
     if not permission_manager.group_exists(group):
-        notice("Unknown group '{}'".format(group))
+        notice(f"Unknown group '{group}'")
         return None
 
     group_permissions = permission_manager.get_group_permissions(group.lower())
     if group_permissions:
-        return "Group {} has permissions {}".format(group, group_permissions)
+        return f"Group {group} has permissions {group_permissions}"
 
-    return "Group {} exists, but has no permissions".format(group)
+    return f"Group {group} exists, but has no permissions"
 
 
 @hook.command("gusers", permissions=["permissions_users"])
@@ -41,14 +41,14 @@ async def get_group_users(text, conn, notice):
     group = text.strip()
     permission_manager = conn.permissions
     if not permission_manager.group_exists(group):
-        notice("Unknown group '{}'".format(group))
+        notice(f"Unknown group '{group}'")
         return None
 
     group_users = permission_manager.get_group_users(group.lower())
     if group_users:
-        return "Group {} has members: {}".format(group, group_users)
+        return f"Group {group} has members: {group_users}"
 
-    return "Group {} exists, but has no members".format(group)
+    return f"Group {group} exists, but has no members"
 
 
 def parse_self(event):
@@ -75,9 +75,9 @@ async def get_user_permissions(event):
 
     user_permissions = permission_manager.get_user_permissions(user.lower())
     if user_permissions:
-        return "User {} has permissions: {}".format(user, user_permissions)
+        return f"User {user} has permissions: {user_permissions}"
 
-    return "User {} has no elevated permissions".format(user)
+    return f"User {user} has no elevated permissions"
 
 
 @hook.command("ugroups", autohelp=False)
@@ -91,9 +91,9 @@ async def get_user_groups(event):
 
     user_groups = permission_manager.get_user_groups(user.lower())
     if user_groups:
-        return "User {} is in groups: {}".format(user, user_groups)
+        return f"User {user} is in groups: {user_groups}"
 
-    return "User {} is in no permission groups".format(user)
+    return f"User {user} is in no permission groups"
 
 
 def remove_user_from_group(user, group, event):
@@ -103,7 +103,7 @@ def remove_user_from_group(user, group, event):
     )
 
     mask_list = formatting.get_text_list(changed_masks, "and")
-    event.reply("Removed {} from {}".format(mask_list, group))
+    event.reply(f"Removed {mask_list} from {group}")
     event.admin_log(
         "{} used deluser remove {} from {}.".format(
             event.nick, mask_list, group
@@ -131,7 +131,7 @@ async def remove_permission_user(text, event, bot, conn, notice, reply):
         group = split[1]
 
         if group and not perm_manager.group_exists(group.lower()):
-            notice("Unknown group '{}'".format(group))
+            notice(f"Unknown group '{group}'")
             return
 
         groups = [group] if perm_manager.user_in_group(user, group) else []
@@ -140,7 +140,7 @@ async def remove_permission_user(text, event, bot, conn, notice, reply):
         groups = perm_manager.get_user_groups(user.lower())
 
     if not groups:
-        reply("No masks with elevated permissions matched {}".format(user))
+        reply(f"No masks with elevated permissions matched {user}")
         return
 
     changed = False
@@ -178,14 +178,14 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
     group_exists = permission_manager.group_exists(group)
 
     if not permission_manager.add_user_to_group(user.lower(), group.lower()):
-        reply("User {} is already matched in group {}".format(user, group))
+        reply(f"User {user} is already matched in group {group}")
         return None
 
     if group_exists:
-        reply("User {} added to group {}".format(user, group))
-        admin_log("{} used adduser to add {} to {}.".format(nick, user, group))
+        reply(f"User {user} added to group {group}")
+        admin_log(f"{nick} used adduser to add {user} to {group}.")
     else:
-        reply("Group {} created with user {}".format(group, user))
+        reply(f"Group {group} created with user {user}")
         admin_log(
             "{} used adduser to create group {} and add {} to it.".format(
                 nick, group, user
@@ -233,10 +233,10 @@ async def join(text, conn, nick, notice, admin_log):
         key = None
 
     if not target.startswith("#"):
-        target = "#{}".format(target)
+        target = f"#{target}"
 
-    admin_log("{} used JOIN to make me join {}.".format(nick, target))
-    notice("Attempting to join {}...".format(target))
+    admin_log(f"{nick} used JOIN to make me join {target}.")
+    notice(f"Attempting to join {target}...")
     conn.join(target, key)
 
 
@@ -253,8 +253,8 @@ def parse_targets(text, chan):
 async def part(text, conn, nick, chan, notice, admin_log):
     """[#channel] - parts [#channel], or the caller's channel if no channel is specified"""
     for target in parse_targets(text, chan):
-        admin_log("{} used PART to make me leave {}.".format(nick, target))
-        notice("Attempting to leave {}...".format(target))
+        admin_log(f"{nick} used PART to make me leave {target}.")
+        notice(f"Attempting to leave {target}...")
         conn.part(target)
 
 
@@ -262,7 +262,7 @@ async def part(text, conn, nick, chan, notice, admin_log):
 async def cycle(text, conn, chan, notice):
     """[#channel] - cycles [#channel], or the caller's channel if no channel is specified"""
     for target in parse_targets(text, chan):
-        notice("Attempting to cycle {}...".format(target))
+        notice(f"Attempting to cycle {target}...")
         conn.part(target)
         conn.join(target)
 
@@ -271,10 +271,10 @@ async def cycle(text, conn, chan, notice):
 async def change_nick(text, conn, notice, is_nick_valid):
     """<nick> - changes my nickname to <nick>"""
     if not is_nick_valid(text):
-        notice("Invalid username '{}'".format(text))
+        notice(f"Invalid username '{text}'")
         return
 
-    notice("Attempting to change nick to '{}'...".format(text))
+    notice(f"Attempting to change nick to '{text}'...")
     conn.target_nick = text
     conn.set_nick(text)
 
@@ -298,9 +298,7 @@ def get_chan(chan, text):
 async def say(text, conn, chan, nick, admin_log):
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified"""
     channel, text = get_chan(chan, text)
-    admin_log(
-        '{} used SAY to make me SAY "{}" in {}.'.format(nick, text, channel)
-    )
+    admin_log(f'{nick} used SAY to make me SAY "{text}" in {channel}.')
     conn.message(channel, text)
 
 
@@ -310,9 +308,7 @@ async def send_message(text, conn, nick, admin_log):
     split = text.split(None, 1)
     channel = split[0]
     text = split[1]
-    admin_log(
-        '{} used MESSAGE to make me SAY "{}" in {}.'.format(nick, text, channel)
-    )
+    admin_log(f'{nick} used MESSAGE to make me SAY "{text}" in {channel}.')
     conn.message(channel, text)
 
 
@@ -324,9 +320,7 @@ async def me(
     [#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
     """
     channel, text = get_chan(chan, text)
-    event.admin_log(
-        '{} used ME to make me ACT "{}" in {}.'.format(nick, text, channel)
-    )
+    event.admin_log(f'{nick} used ME to make me ACT "{text}" in {channel}.')
     conn.ctcp(channel, "ACTION", text)
 
 
@@ -334,7 +328,7 @@ async def me(
 async def listchans(conn, chan, message, notice):
     """- Lists the current channels the bot is in"""
     chans = ", ".join(sorted(conn.channels, key=lambda x: x.strip("#").lower()))
-    lines = formatting.chunk_str("I am currently in: {}".format(chans))
+    lines = formatting.chunk_str(f"I am currently in: {chans}")
     func = notice if chan[:1] == "#" else message
     for line in lines:
         func(line)

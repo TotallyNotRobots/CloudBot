@@ -15,7 +15,7 @@ def get_files():
 
 
 def load_data(xkcd_id):
-    file = DATA_PATH / "{}.json".format(xkcd_id)
+    file = DATA_PATH / f"{xkcd_id}.json"
 
     with file.open(encoding="utf-8") as f:
         return json.load(f)
@@ -26,7 +26,7 @@ def test_info(xkcd_id, mock_requests):
     data = load_data(xkcd_id)
     mock_requests.add(
         "GET",
-        "http://www.xkcd.com/{}/info.0.json".format(xkcd_id),
+        f"http://www.xkcd.com/{xkcd_id}/info.0.json",
         json=data,
     )
 
@@ -38,7 +38,7 @@ def test_info(xkcd_id, mock_requests):
 
     no_url = "xkcd: \x02{}\x02 ({:%d %B %Y})".format(data["title"], date)
 
-    with_url = no_url + " | http://www.xkcd.com/{}".format(xkcd_id)
+    with_url = no_url + f" | http://www.xkcd.com/{xkcd_id}"
 
     assert xkcd.xkcd_info(str(xkcd_id)) == no_url
     assert xkcd.xkcd_info(str(xkcd_id), True) == with_url

@@ -7,11 +7,11 @@ from cloudbot import hook
 def statuscheck(status, item):
     """since we are doing this a lot might as well return something more meaningful"""
     if status == 404:
-        out = "It appears {} does not exist.".format(item)
+        out = f"It appears {item} does not exist."
     elif status == 503:
         out = "Qur'an API is having problems, it would be best to check back later."
     else:
-        out = "Qur'an API returned an error, response: {}".format(status)
+        out = f"Qur'an API returned an error, response: {status}"
     return out
 
 
@@ -54,7 +54,7 @@ def quran(text, message, reply):
 
     data = r.json()
     data2 = r2.json()
-    out = "\x02{}\x02: ".format(text)
+    out = f"\x02{text}\x02: "
     verse = data["Text"]
     out += verse
     message(out)

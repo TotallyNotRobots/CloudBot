@@ -114,7 +114,7 @@ def test_encoding_parse():
         if encoding is None:
             assert (
                 enc is None
-            ), "Got empty encoding from {!r} expected {!r}".format(text, enc)
+            ), f"Got empty encoding from {text!r} expected {enc!r}"
             continue
 
         enc_obj = codecs.lookup(encoding)

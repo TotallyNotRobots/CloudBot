@@ -69,7 +69,7 @@ def chainallow(text, db, notice_doc, bot):
     name = args.pop(0)
     _hook = get_hook_from_command(bot, name)
     if _hook is None:
-        return "Unable to find command '{}'".format(name)
+        return f"Unable to find command '{name}'"
 
     hook_name = format_hook_name(_hook)
 
@@ -104,9 +104,9 @@ def chainallow(text, db, notice_doc, bot):
             )
 
         if allow_cache.get(hook_name):
-            return "Added '{}' as an allowed command".format(hook_name)
+            return f"Added '{hook_name}' as an allowed command"
 
-        return "Added '{}' as a denied command".format(hook_name)
+        return f"Added '{hook_name}' as a denied command"
 
     if subcmd == "del":
         res = db.execute(commands.delete().where(commands.c.hook == hook_name))
@@ -153,7 +153,7 @@ async def chain(text, bot, event):
 
     for name, _hook, _ in cmds:
         if _hook is None:
-            return "Unable to find command '{}'".format(name)
+            return f"Unable to find command '{name}'"
 
         if not is_hook_allowed(_hook):
             event.notice(

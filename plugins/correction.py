@@ -46,7 +46,7 @@ def correction(match, conn, nick, chan, message):
 
             mod_msg = unescape_re.sub(r"\1", mod_msg)
 
-            message("Correction, {}".format(fmt.format(name, mod_msg)))
+            message(f"Correction, {fmt.format(name, mod_msg)}")
 
             if nick.lower() == name.lower():
                 msg = ireplace(re.escape(msg), find_esc, replace_esc)

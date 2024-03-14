@@ -1,5 +1,4 @@
 import asyncio
-import socket
 from asyncio import CancelledError
 from typing import TYPE_CHECKING, Any, Dict
 from unittest.mock import MagicMock
@@ -469,7 +468,7 @@ class TestConnect:
                 return
 
             runs += 1
-            raise socket.error("foo")
+            raise OSError("foo")
 
         client.connect = connect  # type: ignore
         await client.try_connect()

@@ -28,11 +28,11 @@ def dragonsearch(text, reply):
     try:
         r.raise_for_status()
     except HTTPError:
-        reply("The API returned error code {}.".format(r.status_code))
+        reply(f"The API returned error code {r.status_code}.")
         raise
 
     if not r.status_code == 200:
-        return "The API returned error code {}.".format(r.status_code)
+        return f"The API returned error code {r.status_code}."
 
     data = r.json()["items"][0]
     out = "\x02{}\x02 -- {}: {}".format(

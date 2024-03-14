@@ -58,7 +58,7 @@ class Poll:
 
         output = []
         for o in self.options.values():
-            string = "{}: {}".format(o.title, o.votes)
+            string = f"{o.title}: {o.votes}"
             output.append(string)
 
         return ", ".join(output)
@@ -114,7 +114,7 @@ def poll(text, conn, nick, chan, message, reply):
             _poll.question, option_str
         )
     )
-    message("Use .vote {} <option> to vote on this poll!".format(nick.lower()))
+    message(f"Use .vote {nick.lower()} <option> to vote on this poll!")
     return None
 
 
@@ -140,7 +140,7 @@ def vote(text, nick, conn, chan, notice):
     except PollError as e:
         return str(e)
 
-    notice('Voted \x02"{}"\x02 on {}\'s poll!'.format(o.title, p.creator))
+    notice(f'Voted \x02"{o.title}"\x02 on {p.creator}\'s poll!')
     return None
 
 
@@ -158,8 +158,6 @@ def results(text, conn, chan, nick, message, reply):
 
     p = polls.get(uid)
 
-    reply(
-        'Results for \x02"{}"\x02 by \x02{}\x02:'.format(p.question, p.creator)
-    )
+    reply(f'Results for \x02"{p.question}"\x02 by \x02{p.creator}\x02:')
     message(p.format_results())
     return None

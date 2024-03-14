@@ -61,7 +61,7 @@ def track_seen(event, db):
 @hook.event([EventType.message, EventType.action], singlethread=True)
 def chat_tracker(event, db):
     if event.type is EventType.action:
-        event.content = "\x01ACTION {}\x01".format(event.content)
+        event.content = f"\x01ACTION {event.content}\x01"
 
     track_seen(event, db)
 
@@ -86,7 +86,7 @@ def seen(text, nick, chan, db, event):
     ).fetchone()
 
     if not last_seen:
-        return "I've never seen {} talking in this channel.".format(text)
+        return f"I've never seen {text} talking in this channel."
 
     reltime = timeformat.time_since(last_seen[1])
     msg = last_seen[2]
@@ -96,4 +96,4 @@ def seen(text, nick, chan, db, event):
             text, reltime, text, stripped
         )
 
-    return "{} was last seen {} ago saying: {}".format(text, reltime, msg)
+    return f"{text} was last seen {reltime} ago saying: {msg}"

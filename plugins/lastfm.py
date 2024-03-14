@@ -219,11 +219,11 @@ def _topartists(text, nick, period=None, limit=10):
 
     artists = data["topartists"]["artist"][:limit]
 
-    out = "{}'s favorite artists: ".format(format_user(username))
+    out = f"{format_user(username)}'s favorite artists: "
     for artist in artists:
         artist_name = artist["name"]
         play_count = artist["playcount"]
-        out += "{} [{:,}] ".format(artist_name, int(play_count))
+        out += f"{artist_name} [{int(play_count):,}] "
     return out
 
 
@@ -255,7 +255,7 @@ def lastfm(event, db, text, nick):
         "track" not in response["recenttracks"]
         or not response["recenttracks"]["track"]
     ):
-        return 'No recent tracks for user "{}" found.'.format(format_user(user))
+        return f'No recent tracks for user "{format_user(user)}" found.'
 
     tracks = response["recenttracks"]["track"]
 
@@ -279,7 +279,7 @@ def lastfm(event, db, text, nick):
             # lets see how long ago they listened to it
             time_listened = datetime.fromtimestamp(int(track["date"]["uts"]))
             time_since = timeformat.time_since(time_listened)
-            ending = " ({} ago)".format(time_since)
+            ending = f" ({time_since} ago)"
     else:
         return "error: could not parse track listing"
 
@@ -294,19 +294,19 @@ def lastfm(event, db, text, nick):
 
     playcount = getusertrackplaycount(artist, title, user)
 
-    out = '{} {} "{}"'.format(format_user(user), status, title)
+    out = f'{format_user(user)} {status} "{title}"'
     if artist:
-        out += " by \x02{}\x0f".format(artist)
+        out += f" by \x02{artist}\x0f"
     if album:
-        out += " from the album \x02{}\x0f".format(album)
+        out += f" from the album \x02{album}\x0f"
     if playcount:
-        out += " [playcount: {}]".format(playcount)
+        out += f" [playcount: {playcount}]"
     else:
         out += " [playcount: 0]"
     if url:
-        out += " {}".format(url)
+        out += f" {url}"
 
-    out += " ({})".format(tags)
+    out += f" ({tags})"
 
     # append ending based on what type it was
     out += ending
@@ -345,7 +345,7 @@ def getuserartistplaycount(event, text, nick):
         return "No such artist."
 
     if "userplaycount" not in artist_info["artist"]["stats"]:
-        return '"{}" has never listened to {}.'.format(format_user(user), text)
+        return f'"{format_user(user)}" has never listened to {text}.'
 
     playcount = artist_info["artist"]["stats"]["userplaycount"]
 
@@ -375,7 +375,7 @@ def displaybandinfo(text):
     out = "{} has {:,} plays and {:,} listeners.".format(
         text, int(a["stats"]["playcount"]), int(a["stats"]["listeners"])
     )
-    out += " Similar artists include {}. Tags: ({}).".format(similar, tags)
+    out += f" Similar artists include {similar}. Tags: ({tags})."
 
     return out
 
@@ -418,7 +418,7 @@ def lastfmcompare(text, nick):
         return err
 
     score = float(data["comparison"]["result"]["score"])
-    score = float("{:.3f}".format(score * 100))
+    score = float(f"{score * 100:.3f}")
     if score == 0:
         return "{} and {} have no common listening history.".format(
             format_user(user2), format_user(user1)
@@ -470,7 +470,7 @@ def toptrack(text, nick):
         return err
 
     songs = data["toptracks"]["track"][:5]
-    out = "{}'s favorite songs: ".format(format_user(username))
+    out = f"{format_user(username)}'s favorite songs: "
     for song in songs:
         track_name = song["name"]
         artist_name = song["artist"]["name"]

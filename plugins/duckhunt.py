@@ -247,7 +247,7 @@ def start_hunt(db, chan, message, conn):
 
     check = get_state_table(conn.name, chan).game_on
     if check:
-        return "there is already a game running in {}.".format(chan)
+        return f"there is already a game running in {chan}."
 
     set_game_state(db, conn, chan, active=True)
     set_ducktime(chan, conn.name)
@@ -284,7 +284,7 @@ def stop_hunt(db, chan, conn):
         set_game_state(db, conn, chan, active=False)
         return "the game has been stopped."
 
-    return "There is no game running in {}.".format(chan)
+    return f"There is no game running in {chan}."
 
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
@@ -345,7 +345,7 @@ def deploy_duck(bot):
             status.duck_status = 1
             status.duck_time = time()
             dtail, dbody, dnoise = generate_duck()
-            conn.message(chan, "{}{}{}".format(dtail, dbody, dnoise))
+            conn.message(chan, f"{dtail}{dbody}{dnoise}")
 
 
 def hit_or_miss(deploy, shoot):
@@ -714,7 +714,7 @@ def hunt_opt_out(text, chan, db, conn):
 
     if command.lower() == "add":
         if is_opt_out(conn.name, channel):
-            return "Duck hunt has already been disabled in {}.".format(channel)
+            return f"Duck hunt has already been disabled in {channel}."
 
         query = optout.insert().values(network=conn.name, chan=channel.lower())
         db.execute(query)
@@ -726,7 +726,7 @@ def hunt_opt_out(text, chan, db, conn):
 
     if command.lower() == "remove":
         if not is_opt_out(conn.name, channel):
-            return "Duck hunt is already enabled in {}.".format(channel)
+            return f"Duck hunt is already enabled in {channel}."
 
         delete = optout.delete(optout.c.chan == channel.lower())
         db.execute(delete)
@@ -762,7 +762,7 @@ def duck_merge(text, conn, db, message):
     total_friends = 0
     channelkey: Dict[str, List[str]] = {"update": [], "insert": []}
     if not oldnickscore:
-        return "There are no duck scores to migrate from {}".format(oldnick)
+        return f"There are no duck scores to migrate from {oldnick}"
 
     new_chans = []
 
@@ -889,7 +889,7 @@ def ducks_user(text, nick, chan, conn, db, message):
         )
         return None
 
-    return "It appears {} has not participated in the duck hunt.".format(name)
+    return f"It appears {name} has not participated in the duck hunt."
 
 
 @hook.command("duckstats", autohelp=False)

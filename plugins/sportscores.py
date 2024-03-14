@@ -59,14 +59,14 @@ def scrape_scores(conn, chan, game, text):
         text = " "
 
     response = http.get_html(
-        "http://scores.espn.go.com/{}/bottomline/scores".format(game),
+        f"http://scores.espn.go.com/{game}/bottomline/scores",
         decode=False,
     )
     score = response.text_content()
     raw = score.replace("%20", " ")
     raw = raw.replace("^", "")
     raw = raw.replace("&", "\n")
-    pattern = re.compile(r"{}_s_left\d+=(.*)".format(game))
+    pattern = re.compile(rf"{game}_s_left\d+=(.*)")
     scores = []
     for match in re.findall(pattern, raw):
         if text.lower() in match.lower():
@@ -79,7 +79,7 @@ def score_hook(game):
     def func(conn, chan, text):
         return scrape_scores(conn, chan, game.name, text)
 
-    func.__name__ = "{}_scores".format(game.name)
+    func.__name__ = f"{game.name}_scores"
     func.__doc__ = (
         "[team city] - gets the score or next scheduled game for the specified team. "
         "If no team is specified all games will be included."
