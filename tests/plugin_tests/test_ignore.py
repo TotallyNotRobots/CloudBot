@@ -93,7 +93,7 @@ def test_ignore_case(mock_db):
 
 
 @pytest.mark.asyncio
-async def test_ignore_sieve(mock_db, event_loop):
+async def test_ignore_sieve(mock_db):
     setup_db(mock_db)
 
     sess = mock_db.session()

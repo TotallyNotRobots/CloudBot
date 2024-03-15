@@ -208,10 +208,9 @@ class TestCheckReminders:
         mock_db,
         setup_db,
         freeze_time,
-        event_loop,
     ):
         await remind.load_cache(async_call, mock_db.session())
-        bot = mock_bot_factory(loop=event_loop)
+        bot = mock_bot_factory()
         bot.connections = {}
         mock_conn = MagicMock()
         mock_conn.name = "test"
@@ -239,10 +238,9 @@ class TestCheckReminders:
         mock_db,
         setup_db,
         freeze_time,
-        event_loop,
     ):
         await remind.load_cache(async_call, mock_db.session())
-        bot = mock_bot_factory(loop=event_loop)
+        bot = mock_bot_factory()
         mock_conn = MagicMock()
         mock_conn.name = "test"
         mock_conn.ready = False
@@ -270,10 +268,9 @@ class TestCheckReminders:
         mock_db,
         setup_db,
         freeze_time,
-        event_loop,
     ):
         await remind.load_cache(async_call, mock_db.session())
-        bot = mock_bot_factory(loop=event_loop)
+        bot = mock_bot_factory()
         mock_conn = MagicMock()
         mock_conn.name = "test"
         mock_conn.ready = True
@@ -303,10 +300,9 @@ class TestCheckReminders:
         mock_db,
         setup_db,
         freeze_time,
-        event_loop,
     ):
         await remind.load_cache(async_call, mock_db.session())
-        bot = mock_bot_factory(loop=event_loop)
+        bot = mock_bot_factory()
         mock_conn = MagicMock()
         mock_conn.name = "test"
         mock_conn.ready = True

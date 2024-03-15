@@ -35,7 +35,7 @@ async def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
         ]
         results = await asyncio.gather(*tasks)
         if any(ok and (res or res is None) for ok, res in results):
-            cap_queue[name_cf] = async_util.create_future(conn.loop)
+            cap_queue[name_cf] = conn.loop.create_future()
             conn.cmd("CAP", "REQ", name)
 
     if irc_paramlist[2] != "*":

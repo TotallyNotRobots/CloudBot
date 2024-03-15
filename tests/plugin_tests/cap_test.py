@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -7,19 +8,12 @@ from irclib.parser import ParamList
 from cloudbot import hook
 from cloudbot.event import Event
 from cloudbot.plugin import PluginManager
-from cloudbot.util import async_util
 from plugins.core import cap
 from tests.util.mock_module import MockModule
 
 
-@pytest.fixture()
-def patch_import_module():
-    with patch("importlib.import_module") as mocked:
-        yield mocked
-
-
 @pytest.mark.asyncio()
-async def test_cap_req(patch_import_module, event_loop):
+async def test_cap_req(patch_import_module):
     caps = [
         "some-cap",
         "another-cap",
@@ -35,7 +29,7 @@ async def test_cap_req(patch_import_module, event_loop):
         bot=MagicMock(),
         conn=MagicMock(),
     )
-    event.conn.loop = event.bot.loop = event_loop
+    event.conn.loop = event.bot.loop = asyncio.get_running_loop()
     event.bot.config = {}
     event.conn.type = "irc"
     event.bot.base_dir = Path(".").resolve()
@@ -71,7 +65,7 @@ async def test_cap_req(patch_import_module, event_loop):
             bot=event.bot,
             conn=event.conn,
         )
-        async_util.wrap_future(cap.on_cap(p, cmd_event), loop=event.loop)
+        asyncio.ensure_future(cap.on_cap(p, cmd_event), loop=event.loop)
 
     with patch.object(event.conn, "cmd", new=cmd):
         res = await cap.on_cap(params, event)
