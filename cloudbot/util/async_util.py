@@ -3,27 +3,9 @@ Wraps various asyncio functions
 """
 
 import asyncio
-from asyncio import AbstractEventLoop
-from asyncio.tasks import Task
 from functools import partial
-from typing import List, Optional, cast
 
 from cloudbot.util.func_utils import call_with_args
-
-try:
-    _asyncio_get_tasks = getattr(asyncio, "all_tasks")
-except AttributeError:
-    _asyncio_get_tasks = getattr(Task, "all_tasks")
-
-
-def wrap_future(fut, *, loop=None):
-    """
-    Wraps asyncio.ensure_future()
-    :param fut: The awaitable, future, or coroutine to wrap
-    :param loop: The loop to run in
-    :return: The wrapped future
-    """
-    return asyncio.ensure_future(fut, loop=loop)
 
 
 async def run_func(loop, func, *args, **kwargs):
@@ -56,14 +38,3 @@ def run_coroutine_threadsafe(coro, loop):
         raise TypeError("A coroutine object is required")
 
     asyncio.run_coroutine_threadsafe(coro, loop)
-
-
-def create_future(loop):
-    return loop.create_future()
-
-
-def get_all_tasks(loop: Optional[AbstractEventLoop] = None) -> List[Task]:
-    """
-    Get a list of all tasks for the current loop
-    """
-    return cast(List[Task], _asyncio_get_tasks(loop))

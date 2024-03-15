@@ -8,7 +8,6 @@ import pytest
 from cloudbot.client import ClientConnectError
 from cloudbot.clients import irc
 from cloudbot.event import Event, EventType
-from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock
 
 if TYPE_CHECKING:
@@ -53,7 +52,7 @@ def test_send_closed(event_loop):
 class TestLineParsing:
     @staticmethod
     def wait_tasks(conn, cancel=False):
-        tasks = async_util.get_all_tasks(conn.loop)
+        tasks = asyncio.all_tasks(conn.loop)
         if cancel:
             for task in tasks:
                 task.cancel()
@@ -675,7 +674,7 @@ class TestSend:
         sieve = object()
         proto.bot.plugin_manager.out_sieves = [sieve]
         proto.bot.plugin_manager.internal_launch = launch = MagicMock()
-        fut = async_util.create_future(proto.loop)
+        fut = proto.loop.create_future()
         fut.set_result((False, None))
         launch.return_value = fut
 
