@@ -16,11 +16,11 @@ from tests.util.mock_module import MockModule
 
 
 @pytest.fixture()
-def mock_bot(mock_bot_factory, event_loop, tmp_path):
+def mock_bot(mock_bot_factory, tmp_path):
     tmp_base = tmp_path / "tmp"
     tmp_base.mkdir(exist_ok=True)
 
-    yield mock_bot_factory(base_dir=tmp_base, loop=event_loop)
+    yield mock_bot_factory(base_dir=tmp_base)
 
 
 @pytest.fixture()
@@ -766,11 +766,9 @@ async def test_launch_async(
 
 
 @pytest.mark.asyncio
-async def test_create_tables(
-    mock_bot_factory, caplog_bot, tmp_path, event_loop, mock_db
-):
+async def test_create_tables(mock_bot_factory, caplog_bot, tmp_path, mock_db):
     db = mock_db
-    bot = mock_bot_factory(db=db, loop=event_loop)
+    bot = mock_bot_factory(db=db)
     table = Table(
         "test",
         database.metadata,

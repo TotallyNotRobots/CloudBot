@@ -34,7 +34,7 @@ from cloudbot.plugin_hooks import (
     SieveHook,
     hook_name_to_plugin,
 )
-from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
+from cloudbot.util import HOOK_ATTR, LOADED_ATTR, database
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
@@ -302,7 +302,7 @@ class PluginManager:
             self._log_hook(on_cap_ack_hook)
 
         for periodic_hook in plugin.hooks["periodic"]:
-            task = async_util.wrap_future(self._start_periodic(periodic_hook))
+            task = asyncio.ensure_future(self._start_periodic(periodic_hook))
             plugin.tasks.append(task)
             self._log_hook(periodic_hook)
 
@@ -558,7 +558,7 @@ class PluginManager:
         else:
             coro = self._execute_hook_sync(hook, event)
 
-        task = async_util.wrap_future(coro)
+        task = asyncio.ensure_future(coro)
         hook.plugin.tasks.append(task)
         try:
             out = await task
@@ -613,7 +613,7 @@ class PluginManager:
             coro = sieve.function(self.bot, event, hook)
 
         result, error = None, None
-        task = async_util.wrap_future(coro)
+        task = asyncio.ensure_future(coro)
         sieve.plugin.tasks.append(task)
         try:
             result = await task

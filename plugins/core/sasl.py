@@ -2,7 +2,6 @@ import base64
 import logging
 
 from cloudbot import hook
-from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -18,14 +17,14 @@ async def sasl_ack(conn):
     sasl_auth = conn.config.get("sasl")
     if sasl_auth and sasl_auth.get("enabled", True):
         sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()
-        auth_fut = async_util.create_future(conn.loop)
+        auth_fut = conn.loop.create_future()
         conn.memory["sasl_auth_future"] = auth_fut
         conn.cmd("AUTHENTICATE", sasl_mech)
         cmd, arg = await auth_fut
         if cmd == "908":
             logger.warning("[%s|sasl] SASL mechanism not supported", conn.name)
         elif cmd == "AUTHENTICATE" and arg[0] == "+":
-            num_fut = async_util.create_future(conn.loop)
+            num_fut = conn.loop.create_future()
             conn.memory["sasl_numeric_future"] = num_fut
             if sasl_mech == "PLAIN":
                 auth_str = "{user}\0{user}\0{passwd}".format(

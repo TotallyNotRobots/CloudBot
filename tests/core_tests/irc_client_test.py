@@ -8,7 +8,6 @@ import pytest
 from cloudbot.client import ClientConnectError
 from cloudbot.clients import irc
 from cloudbot.event import Event, EventType
-from cloudbot.util import async_util
 from tests.util.async_mock import AsyncMock
 
 if TYPE_CHECKING:
@@ -53,7 +52,7 @@ def test_send_closed(event_loop):
 class TestLineParsing:
     @staticmethod
     def wait_tasks(conn, cancel=False):
-        tasks = async_util.get_all_tasks(conn.loop)
+        tasks = asyncio.all_tasks(conn.loop)
         if cancel:
             for task in tasks:
                 task.cancel()
@@ -440,8 +439,8 @@ class TestLineParsing:
 
 
 class TestConnect:
-    async def make_client(self, event_loop) -> irc.IrcClient:
-        bot = MagicMock(loop=event_loop, config={})
+    async def make_client(self) -> irc.IrcClient:
+        bot = MagicMock(loop=asyncio.get_running_loop(), config={})
         conn_config = {
             "connection": {
                 "server": "host.invalid",
@@ -457,8 +456,8 @@ class TestConnect:
         return client
 
     @pytest.mark.asyncio()
-    async def test_exc(self, caplog_bot, event_loop):
-        client = await self.make_client(event_loop)
+    async def test_exc(self, caplog_bot):
+        client = await self.make_client()
         runs = 0
 
         async def connect(timeout):
@@ -519,8 +518,8 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_timeout_exc(self, caplog_bot, event_loop):
-        client = await self.make_client(event_loop)
+    async def test_timeout_exc(self, caplog_bot):
+        client = await self.make_client()
         runs = 0
 
         async def connect(timeout):
@@ -576,8 +575,8 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_other_exc(self, caplog_bot, event_loop):
-        client = await self.make_client(event_loop)
+    async def test_other_exc(self, caplog_bot):
+        client = await self.make_client()
 
         client.connect = AsyncMock()  # type: ignore
         client.connect.side_effect = Exception("foo")
@@ -603,8 +602,8 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_one_connect(self, caplog_bot, event_loop):
-        client = await self.make_client(event_loop)
+    async def test_one_connect(self, caplog_bot):
+        client = await self.make_client()
 
         async def _connect(timeout=5):
             await asyncio.sleep(timeout)
@@ -634,8 +633,8 @@ class TestConnect:
         assert client.bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_create_socket(self, caplog_bot, event_loop):
-        client = await self.make_client(event_loop)
+    async def test_create_socket(self, caplog_bot):
+        client = await self.make_client()
         client.loop.create_connection = mock = MagicMock()
         fut: "Future[Tuple[None, None]]" = asyncio.Future(loop=client.loop)
         fut.set_result((None, None))
@@ -666,14 +665,14 @@ class TestConnect:
 
 class TestSend:
     @pytest.mark.asyncio()
-    async def test_send_sieve_error(self, caplog_bot, event_loop):
-        conn = make_mock_conn(event_loop=event_loop)
+    async def test_send_sieve_error(self, caplog_bot):
+        conn = make_mock_conn(event_loop=asyncio.get_running_loop())
         proto = irc._IrcProtocol(conn)
         proto.connection_made(MagicMock())
         sieve = object()
         proto.bot.plugin_manager.out_sieves = [sieve]
         proto.bot.plugin_manager.internal_launch = launch = MagicMock()
-        fut = async_util.create_future(proto.loop)
+        fut = proto.loop.create_future()
         fut.set_result((False, None))
         launch.return_value = fut
 
