@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -12,14 +13,8 @@ from plugins.core import cap
 from tests.util.mock_module import MockModule
 
 
-@pytest.fixture()
-def patch_import_module():
-    with patch("importlib.import_module") as mocked:
-        yield mocked
-
-
 @pytest.mark.asyncio()
-async def test_cap_req(patch_import_module, event_loop):
+async def test_cap_req(patch_import_module):
     caps = [
         "some-cap",
         "another-cap",
@@ -35,7 +30,7 @@ async def test_cap_req(patch_import_module, event_loop):
         bot=MagicMock(),
         conn=MagicMock(),
     )
-    event.conn.loop = event.bot.loop = event_loop
+    event.conn.loop = event.bot.loop = asyncio.get_running_loop()
     event.bot.config = {}
     event.conn.type = "irc"
     event.bot.base_dir = Path(".").resolve()
