@@ -19,6 +19,7 @@ jobs:
         - '3.9'
         - '3.10'
         - '3.11'
+        - '3.12'
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -33,13 +34,18 @@ jobs:
 
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
+
     - name: Install dependencies
-      run: pip install -Ur requirements-dev.txt
+      run: |
+        pip install -U pip wheel
+        pip install -Ur requirements-dev.txt
+
     - name: Test with pytest
       run: pytest
       env:
         PYTHONDEVMODE: 1
         PYTHONPATH: .
+
     - uses: codecov/codecov-action@v4
       with:
         name: build-${{ matrix.python-ver }}

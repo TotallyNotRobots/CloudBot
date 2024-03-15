@@ -62,14 +62,6 @@ repos:
     entry: mypy
     language: system
     types: [python]
-  - id: darker
-    name: darker
-    entry: darker
-    args:
-    - -r
-    - ':PRE-COMMIT:'
-    language: system
-    types: [python]
   - id: pylint
     name: pylint
     entry: pylint

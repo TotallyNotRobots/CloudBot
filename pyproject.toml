@@ -28,12 +28,6 @@ exclude = '''
 )
 '''
 
-[tool.darker]
-src = ["cloudbot", "plugins", "tests"]
-isort = true
-lint = ["pylint"]
-line-length = 80
-
 [tool.pylint.main]
 analyse-fallback-blocks = true
 py-version = "3.8"
