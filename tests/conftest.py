@@ -1,4 +1,5 @@
 import datetime
+import importlib
 import logging
 from typing import List
 from unittest.mock import MagicMock, patch
@@ -30,13 +31,13 @@ def caplog_bot(caplog):
 
 @pytest.fixture()
 def patch_import_module():
-    with patch("importlib.import_module") as mocked:
+    with patch.object(importlib, "import_module") as mocked:
         yield mocked
 
 
 @pytest.fixture()
 def patch_import_reload():
-    with patch("importlib.reload") as mocked:
+    with patch.object(importlib, "reload") as mocked:
         yield mocked
 
 
