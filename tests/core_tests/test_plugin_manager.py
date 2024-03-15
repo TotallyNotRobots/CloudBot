@@ -14,7 +14,6 @@ from cloudbot.plugin import Plugin
 from cloudbot.util import database
 from tests.util.mock_module import MockModule
 
-
 @pytest.fixture()
 def mock_bot(mock_bot_factory, event_loop, tmp_path):
     tmp_base = tmp_path / "tmp"
@@ -221,6 +220,8 @@ def test_plugin_with_objs_full_dict_attr(mock_manager, patch_import_module):
 def test_plugin_load_disabled(
     mock_manager, patch_import_module, patch_import_reload
 ):
+    patch_import_module.reset_mock()
+    patch_import_reload.reset_mock()
     patch_import_module.return_value = MockModule()
     mock_manager.bot.config.update(
         {
