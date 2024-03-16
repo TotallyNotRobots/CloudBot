@@ -35,9 +35,9 @@ def load_cache(db):
     new_cache = grab_cache.copy()
     new_cache.clear()
     for row in db.execute(table.select().order_by(table.c.time)):
-        name = row["name"].lower()
-        quote = row["quote"]
-        chan = row["chan"]
+        name = row.name.lower()
+        quote = row.quote
+        chan = row.chan
         new_cache.setdefault(chan, {}).setdefault(name, []).append(quote)
 
     with cache_lock:

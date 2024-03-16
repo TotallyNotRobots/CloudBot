@@ -96,7 +96,7 @@ def migrate_tables(db):
             f"Can't migrate table {table.name} to {TellMessage.__tablename__}, destination already exists"
         )
 
-    data = [dict(row) for row in db.execute(table.select())]
+    data = [dict(row) for row in db.execute(table.select()).mappings()]
     for item in data:
         item["conn"] = item.pop("connection")
 
@@ -110,8 +110,8 @@ def migrate_tables(db):
 def load_cache(db):
     new_cache = []
     for conn, target in db.execute(
-        select(
-            [TellMessage.conn, TellMessage.target], not_(TellMessage.is_read)
+        select(TellMessage.conn, TellMessage.target).where(
+            not_(TellMessage.is_read)
         )
     ):
         new_cache.append((conn, target))
@@ -124,7 +124,7 @@ def load_cache(db):
 def load_disabled(db):
     new_cache = defaultdict(set)
     for row in db.execute(disable_table.select()):
-        new_cache[row["conn"]].add(row["target"].lower())
+        new_cache[row.conn].add(row.target.lower())
 
     disable_cache.clear()
     disable_cache.update(new_cache)
@@ -135,7 +135,7 @@ def load_ignores(db):
     new_cache = ignore_cache.copy()
     new_cache.clear()
     for row in db.execute(ignore_table.select()):
-        new_cache[row["conn"].lower()][row["nick"].lower()].append(row["mask"])
+        new_cache[row.conn.lower()][row.nick.lower()].append(row.mask)
 
     ignore_cache.clear()
     ignore_cache.update(new_cache)
@@ -193,7 +193,7 @@ def list_disabled(db, conn):
     for row in db.execute(
         disable_table.select().where(disable_table.c.conn == conn.name.lower())
     ):
-        yield (row["conn"], row["target"], row["setter"], row["set_at"].ctime())
+        yield (row.conn, row.target, row.setter, row.set_at.ctime())
 
 
 def add_ignore(db, conn, nick, mask, now=None):

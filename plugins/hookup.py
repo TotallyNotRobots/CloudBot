@@ -36,10 +36,11 @@ def hookup(db, chan):
 
     times = time.time() - 86400
     results = db.execute(
-        select(
-            [seen_table.c.name],
+        select(seen_table.c.name)
+        .where(
             and_(seen_table.c.chan == chan, seen_table.c.time > times),
-        ).order_by(seen_table.c.time)
+        )
+        .order_by(seen_table.c.time)
     ).fetchall()
 
     if not results or len(results) < 2:

@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import requests
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
+from sqlalchemy.orm import Session
 
 from cloudbot import hook
 from cloudbot.util import database, timeformat, web
@@ -35,12 +36,10 @@ def api_request(method, **params):
 
 
 @hook.on_start()
-def load_cache(db):
+def load_cache(db: Session):
     new_cache = []
     for row in db.execute(table.select()):
-        nick = row["nick"]
-        account = row["acc"]
-        new_cache.append((nick, account))
+        new_cache.append((row.nick, row.acc))
 
     last_cache.clear()
     last_cache.extend(new_cache)

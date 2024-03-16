@@ -44,7 +44,7 @@ def where_user(server, user):
 
 
 def read_all_notes(db, server, user, show_deleted=False):
-    query = select([table.c.note_id, table.c.text, table.c.added]).where(
+    query = select(table.c.note_id, table.c.text, table.c.added).where(
         where_user(server, user)
     )
 
@@ -64,7 +64,7 @@ def delete_all_notes(db, server, user):
 
 def read_note(db, server, user, note_id):
     query = (
-        select([table.c.note_id, table.c.text, table.c.added])
+        select(table.c.note_id, table.c.text, table.c.added)
         .where(where_user(server, user))
         .where(table.c.note_id == note_id)
     )
@@ -83,7 +83,7 @@ def delete_note(db, server, user, note_id):
 
 
 def add_note(db, server, user, text):
-    id_query = select([func.max(table.c.note_id).label("maxid")]).where(
+    id_query = select(func.max(table.c.note_id).label("maxid")).where(
         where_user(server, user)
     )
     max_id = db.execute(id_query).scalar()

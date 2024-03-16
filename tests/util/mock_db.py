@@ -10,7 +10,9 @@ class MockDB:
     def __init__(self, path="sqlite:///:memory:", force_session=False):
         self.engine = create_engine(path)
         if force_session:
-            self.session = scoped_session(sessionmaker(bind=self.engine))
+            self.session = scoped_session(
+                sessionmaker(bind=self.engine, future=True)
+            )
         else:
             self.session = Session
 

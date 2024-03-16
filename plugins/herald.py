@@ -54,7 +54,7 @@ def load_cache(db):
     new_cache = herald_cache.copy()
     new_cache.clear()
     for row in db.execute(table.select()):
-        new_cache[row["chan"]][row["name"]] = row["quote"]
+        new_cache[row.chan][row.name] = row.quote
 
     herald_cache.clear()
     herald_cache.update(new_cache)

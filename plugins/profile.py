@@ -34,10 +34,10 @@ def load_cache(db):
     new_cache = profile_cache.copy()
     new_cache.clear()
     for row in db.execute(table.select().order_by(table.c.category)):
-        nick = row["nick"].lower()
-        cat = row["category"]
-        text = row["text"]
-        chan = row["chan"]
+        nick = row.nick.lower()
+        cat = row.category
+        text = row.text
+        chan = row.chan
         new_cache.setdefault(chan, {}).setdefault(nick, {})[cat] = text
 
     profile_cache.clear()
