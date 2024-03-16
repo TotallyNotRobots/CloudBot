@@ -14,6 +14,7 @@ from cloudbot.plugin import Plugin
 from cloudbot.util import database
 from tests.util.mock_module import MockModule
 
+
 @pytest.fixture()
 def mock_bot(mock_bot_factory, event_loop, tmp_path):
     tmp_base = tmp_path / "tmp"
