@@ -15,11 +15,14 @@ table = Table(
     UniqueConstraint("connection", "channel"),
 )
 
+ENABLED = "ENABLED"
+DISABLED = "DISABLED"
+
 # Default value.
 # If True, all channels without a setting will have regex enabled
 # If False, all channels without a setting will have regex disabled
 default_enabled = True
-status_cache: Dict[Tuple[str, str], str] = {}
+status_cache: Dict[Tuple[str, str], bool] = {}
 logger = logging.getLogger("cloudbot")
 
 
@@ -30,27 +33,44 @@ def load_cache(db):
         conn = row["connection"]
         chan = row["channel"]
         status = row["status"]
-        new_cache[(conn, chan)] = status
+        if status == ENABLED:
+            value = True
+        elif status == DISABLED:
+            value = False
+        else:
+            # Unknown values just use the default (existing behavior)
+            logger.warning(
+                "[regex_chans] Unknown status: %s, falling back to default",
+                tuple(row),
+            )
+            continue
+
+        new_cache[(conn, chan)] = value
 
     status_cache.clear()
     status_cache.update(new_cache)
 
 
-def set_status(db, conn, chan, status):
+def set_status(db, conn, chan, status: bool):
+    status_value = ENABLED if status else DISABLED
     if (conn, chan) in status_cache:
         # if we have a set value, update
         db.execute(
             table.update()
-            .values(status=status)
+            .values(status=status_value)
             .where(table.c.connection == conn)
             .where(table.c.channel == chan)
         )
     else:
         # otherwise, insert
         db.execute(
-            table.insert().values(connection=conn, channel=chan, status=status)
+            table.insert().values(
+                connection=conn, channel=chan, status=status_value
+            )
         )
+
     db.commit()
+    load_cache(db)
 
 
 def delete_status(db, conn, chan):
@@ -59,7 +79,9 @@ def delete_status(db, conn, chan):
         .where(table.c.connection == conn)
         .where(table.c.channel == chan)
     )
+
     db.commit()
+    load_cache(db)
 
 
 @hook.sieve()
@@ -69,10 +91,10 @@ def sieve_regex(bot, event, _hook):
         and event.chan.startswith("#")
         and _hook.plugin.title != "factoids"
     ):
-        status = status_cache.get((event.conn.name, event.chan))
-        if status != "ENABLED" and (
-            status == "DISABLED" or not default_enabled
-        ):
+        status = status_cache.get(
+            (event.conn.name, event.chan), default_enabled
+        )
+        if not status:
             logger.info(
                 "[%s] Denying %s from %s",
                 event.conn.name,
@@ -80,6 +102,7 @@ def sieve_regex(bot, event, _hook):
                 event.chan,
             )
             return None
+
         logger.info(
             "[%s] Allowing %s to %s",
             event.conn.name,
@@ -90,15 +113,20 @@ def sieve_regex(bot, event, _hook):
     return event
 
 
-def change_status(db, event, status):
-    text = event.text.strip().lower()
+def parse_args(text: str, chan: str) -> str:
+    text = text.strip().lower()
     if not text:
-        channel = event.chan
+        channel = chan
     elif text.startswith("#"):
         channel = text
     else:
         channel = f"#{text}"
 
+    return channel
+
+
+def change_status(db, event, status):
+    channel = parse_args(event.text, event.chan)
     action = "Enabling" if status else "Disabling"
     event.message(
         "{} regex matching (youtube, etc) (issued by {})".format(
@@ -106,11 +134,9 @@ def change_status(db, event, status):
         ),
         target=channel,
     )
+
     event.notice(f"{action} regex matching (youtube, etc) in channel {channel}")
-    set_status(
-        db, event.conn.name, channel, "ENABLED" if status else "DISABLED"
-    )
-    load_cache(db)
+    set_status(db, event.conn.name, channel, status)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -128,46 +154,29 @@ def disableregex(db, event):
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def resetregex(text, db, conn, chan, nick, message, notice):
     """[chan] - Reset regex hook status in [chan] (default: current channel)"""
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = f"#{text}"
-
+    channel = parse_args(text, chan)
     message(
         "Resetting regex matching setting (youtube, etc) (issued by {})".format(
             nick
         ),
         target=channel,
     )
+
     notice(
         "Resetting regex matching setting (youtube, etc) in channel {}".format(
             channel
         )
     )
+
     delete_status(db, conn.name, channel)
-    load_cache(db)
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
 def regexstatus(text, conn, chan):
     """[chan] - Get status of regex hooks in [chan] (default: current channel)"""
-    text = text.strip().lower()
-    if not text:
-        channel = chan
-    elif text.startswith("#"):
-        channel = text
-    else:
-        channel = f"#{text}"
-    status = status_cache.get((conn.name, chan))
-    if status is None:
-        if default_enabled:
-            status = "ENABLED"
-        else:
-            status = "DISABLED"
-    return f"Regex status for {channel}: {status}"
+    channel = parse_args(text, chan)
+    status = status_cache.get((conn.name, chan), default_enabled)
+    return f"Regex status for {channel}: {ENABLED if status else DISABLED}"
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -177,5 +186,7 @@ def listregex(conn):
     for (conn_name, chan), status in status_cache.items():
         if conn_name != conn.name:
             continue
-        values.append(f"{chan}: {status}")
+
+        values.append(f"{chan}: {ENABLED if status else DISABLED}")
+
     return ", ".join(values)
