@@ -31,7 +31,7 @@ table = Table(
 def load_cache(db):
     new_cache = factoid_cache.copy()
     new_cache.clear()
-    for row in db.execute(table.select()):
+    for row in db.execute(table.select()).mappings():
         # assign variables
         chan = row["chan"]
         word = row["word"]

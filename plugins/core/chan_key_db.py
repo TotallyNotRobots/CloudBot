@@ -35,12 +35,12 @@ def load_keys(conn: IrcClient, db) -> None:
     """
     Load channel keys to the client
     """
-    query = select(
-        [table.c.chan, table.c.key], table.c.conn == conn.name.lower()
+    query = select(table.c.chan, table.c.key).where(
+        table.c.conn == conn.name.lower()
     )
     conn.clear_channel_keys()
     for row in db.execute(query):
-        conn.set_channel_key(row["chan"], row["key"])
+        conn.set_channel_key(row.chan, row.key)
 
 
 @hook.irc_raw("MODE")

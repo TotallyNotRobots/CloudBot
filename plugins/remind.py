@@ -99,11 +99,11 @@ def _load_cache_db(db):
     query = db.execute(table.select())
     return [
         (
-            row["network"],
-            row["remind_time"],
-            row["added_time"],
-            row["added_user"],
-            row["message"],
+            row.network,
+            row.remind_time,
+            row.added_time,
+            row.added_user,
+            row.message,
         )
         for row in query
     ]

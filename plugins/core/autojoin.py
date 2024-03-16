@@ -26,7 +26,7 @@ db_lock = RLock()
 def load_cache(db):
     new_cache = defaultdict(set)
     for row in db.execute(table.select()):
-        new_cache[row["conn"]].add(row["chan"])
+        new_cache[row.conn].add(row.chan)
 
     with db_lock:
         chan_cache.clear()

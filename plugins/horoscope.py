@@ -35,7 +35,7 @@ SIGN_MAP = {
 
 def get_sign(db, nick):
     row = db.execute(
-        select([table.c.sign]).where(table.c.nick == nick.lower())
+        select(table.c.sign).where(table.c.nick == nick.lower())
     ).fetchone()
     if not row:
         return None

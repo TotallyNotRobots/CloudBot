@@ -132,7 +132,7 @@ def add_location(nick, location, db):
 @hook.on_start()
 def load_cache(db):
     new_cache = []
-    for row in db.execute(table.select()):
+    for row in db.execute(table.select()).mappings():
         nick = row["nick"]
         location = row["loc"]
         new_cache.append((nick, location))

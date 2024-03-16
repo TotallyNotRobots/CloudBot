@@ -36,9 +36,9 @@ logger = logging.getLogger("cloudbot")
 def load_cache(db):
     new_cache = {}
     for row in db.execute(table.select()):
-        conn = row["connection"]
-        chan = row["channel"]
-        status = row["status"]
+        conn = row.connection
+        chan = row.channel
+        status = row.status
         if status == ENABLED:
             value = True
         elif status == DISABLED:

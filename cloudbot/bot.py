@@ -483,7 +483,7 @@ class CloudBot:
             if not inspector.has_table(table.name):
                 continue
 
-            old_data = old_session.execute(table.select()).fetchall()
+            old_data = old_session.execute(table.select()).mappings().fetchall()
             if not old_data:
                 continue
 

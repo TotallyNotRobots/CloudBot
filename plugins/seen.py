@@ -80,7 +80,7 @@ def seen(text, nick, chan, db, event):
         return "I can't look up that name, its impossible to use!"
 
     last_seen = db.execute(
-        select([table.c.name, table.c.time, table.c.quote]).where(
+        select(table.c.name, table.c.time, table.c.quote).where(
             and_(table.c.name == text.lower(), table.c.chan == chan)
         )
     ).fetchone()

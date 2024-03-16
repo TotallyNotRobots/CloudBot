@@ -23,7 +23,7 @@ allow_cache: Dict[str, bool] = {}
 def load_cache(db):
     new_cache = {}
     for row in db.execute(commands.select()):
-        new_cache[row["hook"]] = row["allowed"]
+        new_cache[row.hook] = row.allowed
 
     allow_cache.clear()
     allow_cache.update(new_cache)

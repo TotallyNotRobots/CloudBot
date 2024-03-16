@@ -34,7 +34,7 @@ logger = logging.getLogger("cloudbot")
 def load_cache(db):
     new_cache = grab_cache.copy()
     new_cache.clear()
-    for row in db.execute(table.select().order_by(table.c.time)):
+    for row in db.execute(table.select().order_by(table.c.time)).mappings():
         name = row["name"].lower()
         quote = row["quote"]
         chan = row["chan"]

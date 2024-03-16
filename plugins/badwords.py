@@ -33,7 +33,7 @@ def load_bad(db):
     """- Should run on start of bot to load the existing words into the regex"""
     words = []
     new_cache = defaultdict(list)
-    for chan, word in db.execute(select([table.c.chan, table.c.word])):
+    for chan, word in db.execute(select(table.c.chan, table.c.word)):
         new_cache[chan.casefold()].append(word)
         words.append(word)
 

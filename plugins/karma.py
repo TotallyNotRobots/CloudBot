@@ -54,10 +54,10 @@ def update_score(nick, chan, thing, score, db):
         karma_table.c.chan == chan,
         karma_table.c.thing == thing.lower(),
     )
-    karma = db.execute(select([karma_table.c.score]).where(clause)).fetchone()
+    karma = db.execute(select(karma_table.c.score).where(clause)).fetchone()
     query: Executable
     if karma:
-        score += karma["score"]
+        score += karma.score
         query = karma_table.update().values(score=score).where(clause)
     else:
         query = karma_table.insert().values(
@@ -102,10 +102,11 @@ def pluspts(nick, chan, db):
         karma_table.c.score >= 0,
     )
     query = (
-        select([karma_table.c.thing, karma_table.c.score])
+        select(karma_table.c.thing, karma_table.c.score)
         .where(clause)
         .order_by(karma_table.c.score.desc())
     )
+
     likes = db.execute(query).fetchall()
 
     for like in likes:
@@ -124,7 +125,7 @@ def minuspts(nick, chan, db):
         karma_table.c.score <= 0,
     )
     query = (
-        select([karma_table.c.thing, karma_table.c.score])
+        select(karma_table.c.thing, karma_table.c.score)
         .where(clause)
         .order_by(karma_table.c.score)
     )
@@ -155,13 +156,13 @@ def points_cmd(text, chan, db):
     thing = ""
     if text.endswith(("-global", " global")):
         thing = text[:-7].strip()
-        query = select([karma_table.c.score]).where(
+        query = select(karma_table.c.score).where(
             karma_table.c.thing == thing.lower()
         )
     else:
         text = text.strip()
         query = (
-            select([karma_table.c.score])
+            select(karma_table.c.score)
             .where(karma_table.c.thing == text.lower())
             .where(karma_table.c.chan == chan)
         )
@@ -190,12 +191,12 @@ def points_cmd(text, chan, db):
 def parse_lookup(text, db, chan, name):
     if text in ("global", "-global"):
         items = db.execute(
-            select([karma_table.c.thing, karma_table.c.score])
+            select(karma_table.c.thing, karma_table.c.score)
         ).fetchall()
         out = f"The {{}} most {name} things in all channels are: "
     else:
         items = db.execute(
-            select([karma_table.c.thing, karma_table.c.score]).where(
+            select(karma_table.c.thing, karma_table.c.score).where(
                 karma_table.c.chan == chan
             )
         ).fetchall()

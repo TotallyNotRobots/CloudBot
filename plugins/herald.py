@@ -53,7 +53,7 @@ herald_cache: Dict[str, Dict[str, str]] = defaultdict(dict)
 def load_cache(db):
     new_cache = herald_cache.copy()
     new_cache.clear()
-    for row in db.execute(table.select()):
+    for row in db.execute(table.select()).mappings():
         new_cache[row["chan"]][row["name"]] = row["quote"]
 
     herald_cache.clear()

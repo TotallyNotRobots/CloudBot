@@ -75,7 +75,7 @@ last_cache: Dict[str, str] = {}
 @hook.on_start()
 def load_cache(db):
     new_cache = {}
-    for row in db.execute(table.select()):
+    for row in db.execute(table.select()).mappings():
         nick = row["nick"]
         account = row["acc"]
         new_cache[nick] = account
