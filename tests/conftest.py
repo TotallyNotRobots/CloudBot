@@ -17,6 +17,13 @@ from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
 
 
+@pytest.fixture(autouse=True)
+def clear_metadata():
+    database.metadata.clear()
+    yield
+    database.metadata.clear()
+
+
 @pytest.fixture()
 def tmp_logs(tmp_path):
     cloudbot._setup(tmp_path)

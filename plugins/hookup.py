@@ -39,21 +39,23 @@ def hookup(db, chan):
         select(
             [seen_table.c.name],
             and_(seen_table.c.chan == chan, seen_table.c.time > times),
-        )
+        ).order_by(seen_table.c.time)
     ).fetchall()
 
     if not results or len(results) < 2:
         return "something went wrong"
 
     # Make sure the list of people is unique
-    people = list({row[0] for row in results})
+    people = sorted({row[0] for row in results})
     random.shuffle(people)
     person1, person2 = people[:2]
     variables = {
         "user1": person1,
         "user2": person2,
     }
+
     generator = TextGenerator(
         hookups["templates"], hookups["parts"], variables=variables
     )
+
     return generator.generate_string()
