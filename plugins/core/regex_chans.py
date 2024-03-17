@@ -1,10 +1,16 @@
 import logging
-from typing import Dict, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 from sqlalchemy import Column, String, Table, UniqueConstraint
 
 from cloudbot import hook
 from cloudbot.util import database
+
+if TYPE_CHECKING:
+    from cloudbot.bot import CloudBot
+    from cloudbot.client import Client
+    from cloudbot.event import Event
+    from cloudbot.plugin_hooks import Hook
 
 table = Table(
     "regex_chans",
@@ -84,33 +90,8 @@ def delete_status(db, conn, chan):
     load_cache(db)
 
 
-@hook.sieve()
-def sieve_regex(bot, event, _hook):
-    if (
-        _hook.type == "regex"
-        and event.chan.startswith("#")
-        and _hook.plugin.title != "factoids"
-    ):
-        status = status_cache.get(
-            (event.conn.name, event.chan), default_enabled
-        )
-        if not status:
-            logger.info(
-                "[%s] Denying %s from %s",
-                event.conn.name,
-                _hook.function_name,
-                event.chan,
-            )
-            return None
-
-        logger.info(
-            "[%s] Allowing %s to %s",
-            event.conn.name,
-            _hook.function_name,
-            event.chan,
-        )
-
-    return event
+def get_status(conn: "Client", chan: str) -> bool:
+    return status_cache.get((conn.name, chan), default_enabled)
 
 
 def parse_args(text: str, chan: str) -> str:
@@ -137,6 +118,34 @@ def change_status(db, event, status):
 
     event.notice(f"{action} regex matching (youtube, etc) in channel {channel}")
     set_status(db, event.conn.name, channel, status)
+
+
+@hook.sieve()
+def sieve_regex(
+    bot: "CloudBot", event: "Event", _hook: "Hook"
+) -> Optional["Event"]:
+    if (
+        _hook.type == "regex"
+        and event.chan.startswith("#")
+        and _hook.plugin.title != "factoids"
+    ):
+        if not get_status(event.conn, event.chan):
+            logger.info(
+                "[%s] Denying %s from %s",
+                event.conn.name,
+                _hook.function_name,
+                event.chan,
+            )
+            return None
+
+        logger.info(
+            "[%s] Allowing %s to %s",
+            event.conn.name,
+            _hook.function_name,
+            event.chan,
+        )
+
+    return event
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -172,15 +181,15 @@ def resetregex(text, db, conn, chan, nick, message, notice):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def regexstatus(text, conn, chan):
+def regexstatus(text: str, conn: "Client", chan: str) -> str:
     """[chan] - Get status of regex hooks in [chan] (default: current channel)"""
     channel = parse_args(text, chan)
-    status = status_cache.get((conn.name, chan), default_enabled)
+    status = get_status(conn, channel)
     return f"Regex status for {channel}: {ENABLED if status else DISABLED}"
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def listregex(conn):
+def listregex(conn: "Client") -> str:
     """- List non-default regex statuses for channels"""
     values = []
     for (conn_name, chan), status in status_cache.items():
