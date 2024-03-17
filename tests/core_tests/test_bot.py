@@ -35,6 +35,13 @@ async def test_migrate_db(
         Column("b", String, default="bar"),
     )
 
+    _ = Table(
+        "foobar2",
+        database.metadata,
+        Column("a", String, primary_key=True),
+        Column("b", String, default="bar"),
+    )
+
     table.create(old_db.engine)
     other_table.create(old_db.engine)
     mock_bot = mock_bot_factory(
