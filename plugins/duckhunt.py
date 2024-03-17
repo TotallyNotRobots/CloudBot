@@ -629,7 +629,9 @@ def display_scores(score_type: ScoreType, event, text, chan, conn, db):
     chan_pfx = "Duck {noun} scores in {chan}: ".format(
         noun=score_type.noun, chan=chan
     )
-    no_ducks = "It appears no one has {verb} any ducks yet."
+    no_ducks = "It appears no one has {verb} any ducks yet.".format(
+        verb=score_type.verb
+    )
 
     out = global_pfx if text else chan_pfx
 
