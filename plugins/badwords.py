@@ -38,7 +38,7 @@ def load_bad(db):
         words.append(word)
 
     new_regex = re.compile(
-        r"(\s|^|[^\w\s])({})(\s|$|[^\w\s])".format("|".join(words)),
+        r"(?:\s|^|[^\w\s])({})(?:\s|$|[^\w\s])".format("|".join(words)),
         re.IGNORECASE,
     )
 
