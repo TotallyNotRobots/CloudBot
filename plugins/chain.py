@@ -57,13 +57,60 @@ def get_hook_from_command(bot, hook_name):
     return possible[0] if len(possible) == 1 else None
 
 
+def handle_chainallow_add(args, notice_doc, hook_name, db):
+    values = {"hook": hook_name}
+    if args:
+        allow = args.pop(0).lower()
+        if allow == "allow":
+            allow = True
+        elif allow == "deny":
+            allow = False
+        else:
+            return notice_doc()
+
+        values["allowed"] = allow
+
+    updated = True
+    res = db.execute(
+        commands.update().values(**values).where(commands.c.hook == hook_name)
+    )
+    if res.rowcount == 0:
+        updated = False
+        db.execute(commands.insert().values(**values))
+
+    db.commit()
+    load_cache(db)
+    if updated:
+        return "Updated state of '{}' in chainallow to allowed={}".format(
+            hook_name, allow_cache.get(hook_name)
+        )
+
+    if allow_cache.get(hook_name):
+        return f"Added '{hook_name}' as an allowed command"
+
+    return f"Added '{hook_name}' as a denied command"
+
+
+def handle_chainallow_del(args, notice_doc, hook_name, db):
+    res = db.execute(commands.delete().where(commands.c.hook == hook_name))
+    db.commit()
+    load_cache(db)
+    return "Deleted {}.".format(pluralize_auto(res.rowcount, "row"))
+
+
+chainallow_subcmds = {
+    "add": handle_chainallow_add,
+    "del": handle_chainallow_del,
+}
+
+
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 def chainallow(text, db, notice_doc, bot):
     """{add [hook] [{allow|deny}]|del [hook]} - Manage the allowed list fo comands for the chain command"""
     args = text.split()
     subcmd = args.pop(0).lower()
 
-    if not args:
+    if not args or subcmd not in chainallow_subcmds:
         return notice_doc()
 
     name = args.pop(0)
@@ -73,48 +120,7 @@ def chainallow(text, db, notice_doc, bot):
 
     hook_name = format_hook_name(_hook)
 
-    if subcmd == "add":
-        values = {"hook": hook_name}
-        if args:
-            allow = args.pop(0).lower()
-            if allow == "allow":
-                allow = True
-            elif allow == "deny":
-                allow = False
-            else:
-                return notice_doc()
-
-            values["allowed"] = allow
-
-        updated = True
-        res = db.execute(
-            commands.update()
-            .values(**values)
-            .where(commands.c.hook == hook_name)
-        )
-        if res.rowcount == 0:
-            updated = False
-            db.execute(commands.insert().values(**values))
-
-        db.commit()
-        load_cache(db)
-        if updated:
-            return "Updated state of '{}' in chainallow to allowed={}".format(
-                hook_name, allow_cache.get(hook_name)
-            )
-
-        if allow_cache.get(hook_name):
-            return f"Added '{hook_name}' as an allowed command"
-
-        return f"Added '{hook_name}' as a denied command"
-
-    if subcmd == "del":
-        res = db.execute(commands.delete().where(commands.c.hook == hook_name))
-        db.commit()
-        load_cache(db)
-        return "Deleted {}.".format(pluralize_auto(res.rowcount, "row"))
-
-    return notice_doc()
+    return chainallow_subcmds[subcmd](args, notice_doc, hook_name, db)
 
 
 def parse_chain(text, bot):
