@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     Table,
     func,
+    inspect,
     not_,
     select,
 )
@@ -44,8 +45,9 @@ def migrate_table(db, logger):
         Column("deleted", String(5), default=0),
         PrimaryKeyConstraint("chan", "nick", "time"),
     )
+    inspector = inspect(db.bind)
 
-    if not old_table.exists():
+    if not inspector.has_table(old_table.name):
         database.metadata.remove(old_table)
         return
 
@@ -104,19 +106,6 @@ def add_quote(db, chan, target, sender, message):
     except IntegrityError:
         return "Message already stored, doing nothing."
     return "Quote added."
-
-
-def del_quote(db, nick, msg):
-    """Deletes a quote from a nick"""
-    query = (
-        qtable.update()
-        .where(qtable.c.chan == 1)
-        .where(qtable.c.nick == nick.lower())
-        .where(qtable.c.msg == msg)
-        .values(deleted=True)
-    )
-    db.execute(query)
-    db.commit()
 
 
 def get_quote_num(num, count, name):

@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -22,6 +23,25 @@ from tests.util.mock_conn import MockConn
 )
 def test_top_list(prefix, items, result, mock_db):
     assert duckhunt.top_list(prefix, items.items()) == result
+
+
+def test_update_score(mock_db):
+    duckhunt.table.create(mock_db.engine)
+    mock_db.add_row(
+        duckhunt.table,
+        network="net",
+        chan="#chan",
+        name="nick",
+        shot=1,
+        befriend=3,
+    )
+    session = mock_db.session()
+
+    conn = MockConn(name="net")
+    chan = "#chan"
+    res = duckhunt.update_score("nick", chan, session, conn, shoot=1)
+    assert res == {"shoot": 2, "friend": 3}
+    assert mock_db.get_data(duckhunt.table) == [("net", "nick", 2, 3, "#chan")]
 
 
 def test_display_scores(mock_db):
@@ -310,3 +330,260 @@ def test_duck_stats_no_data(mock_db):
         == "It looks like there has been no duck activity on this channel or network."
     )
     assert event.mock_calls == []
+
+
+class TestOptOut:
+    def test_opt_out(self, mock_db):
+        duckhunt.optout.create(mock_db.engine)
+        mock_db.add_row(duckhunt.optout, network="net", chan="#chan")
+        duckhunt.load_optout(mock_db.session())
+        assert duckhunt.is_opt_out("net", "#chan")
+        assert not duckhunt.is_opt_out("net2", "#chan")
+
+    def test_set_opt_out_on(self, mock_db):
+        duckhunt.table.create(mock_db.engine)
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.status_table.create(mock_db.engine)
+
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.load_status(mock_db.session())
+
+        conn = MockConn(name="net")
+        res = duckhunt.hunt_opt_out(
+            "add #chan", "#chan", mock_db.session(), conn
+        )
+        assert res == "The duckhunt has been successfully disabled in #chan."
+        assert mock_db.get_data(duckhunt.optout) == [("net", "#chan")]
+
+    def test_set_opt_out_off(self, mock_db):
+        duckhunt.table.create(mock_db.engine)
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.status_table.create(mock_db.engine)
+        mock_db.add_row(duckhunt.optout, chan="#chan", network="net")
+
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.load_status(mock_db.session())
+
+        conn = MockConn(name="net")
+        assert duckhunt.is_opt_out("net", "#chan")
+        res = duckhunt.hunt_opt_out(
+            "remove #chan", "#chan", mock_db.session(), conn
+        )
+        assert res is None
+        assert mock_db.get_data(duckhunt.optout) == []
+
+
+class TestStatus:
+    def test_load(self, mock_db):
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        mock_db.add_row(
+            duckhunt.status_table,
+            network="net",
+            chan="#chan",
+            active=True,
+            duck_kick=True,
+        )
+        duckhunt.load_status(mock_db.session())
+        state = duckhunt.get_state_table("net", "#chan")
+        assert state.game_on
+        assert state.no_duck_kick
+
+    def test_save_and_load(self, mock_db):
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        duckhunt.load_status(mock_db.session())
+        conn = MockConn(name="net")
+        duckhunt.set_game_state(mock_db.session(), conn, "#foo", active=True)
+        state = duckhunt.get_state_table("net", "#foo")
+        assert state.game_on
+        assert not state.no_duck_kick
+
+    def test_save_all(self, mock_db):
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        duckhunt.load_status(mock_db.session())
+        duckhunt.game_status["net"]["#chan"] = state = duckhunt.ChannelState()
+        state.next_duck_time = 7
+        state.no_duck_kick = True
+        duckhunt.save_status(mock_db.session(), _sleep=False)
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", False, True),
+        ]
+
+    def test_save_on_exit(self, mock_db):
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        duckhunt.load_status(mock_db.session())
+        duckhunt.game_status["net"]["#chan"] = state = duckhunt.ChannelState()
+        state.next_duck_time = 7
+        state.no_duck_kick = True
+        duckhunt.save_on_exit(mock_db.session())
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", False, True),
+        ]
+
+
+class TestStartHunt:
+    def test_start_hunt(self, mock_db):
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        duckhunt.load_status(mock_db.session())
+        conn = MockConn(name="net")
+        message = MagicMock()
+        res = duckhunt.start_hunt(mock_db.session(), "#chan", message, conn)
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", True, False)
+        ]
+        assert message.mock_calls == [
+            call(
+                "Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.",
+                "#chan",
+            )
+        ]
+        assert res is None
+
+
+class TestStopHunt:
+    def test_stop_hunt(self, mock_db):
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        mock_db.add_row(
+            duckhunt.status_table,
+            network="net",
+            chan="#chan",
+            active=True,
+            duck_kick=False,
+        )
+        duckhunt.load_status(mock_db.session())
+        conn = MockConn(name="net")
+        res = duckhunt.stop_hunt(mock_db.session(), "#chan", conn)
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", False, False)
+        ]
+        assert res == "the game has been stopped."
+
+
+class TestDuckKick:
+    def test_enable_duck_kick(self, mock_db):
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        mock_db.add_row(
+            duckhunt.status_table,
+            network="net",
+            chan="#chan",
+            active=True,
+            duck_kick=False,
+        )
+        duckhunt.load_status(mock_db.session())
+        conn = MockConn(name="net")
+        notice_doc = MagicMock()
+        res = duckhunt.no_duck_kick(
+            mock_db.session(), "enable", "#chan", conn, notice_doc
+        )
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", True, True)
+        ]
+        assert (
+            res
+            == "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
+        )
+        assert notice_doc.mock_calls == []
+
+    def test_disable_duck_kick(self, mock_db):
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.game_status.clear()
+        duckhunt.status_table.create(mock_db.engine)
+        mock_db.add_row(
+            duckhunt.status_table,
+            network="net",
+            chan="#chan",
+            active=True,
+            duck_kick=True,
+        )
+        duckhunt.load_status(mock_db.session())
+        conn = MockConn(name="net")
+        notice_doc = MagicMock()
+        res = duckhunt.no_duck_kick(
+            mock_db.session(), "disable", "#chan", conn, notice_doc
+        )
+        assert mock_db.get_data(duckhunt.status_table) == [
+            ("net", "#chan", True, False)
+        ]
+        assert res == "kicking for non-existent ducks has been disabled."
+        assert notice_doc.mock_calls == []
+
+
+class TestAttack:
+    def test_shoot(self, mock_db, freeze_time):
+        duckhunt.table.create(mock_db.engine)
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.status_table.create(mock_db.engine)
+
+        mock_db.add_row(
+            duckhunt.status_table, network="net", chan="#chan", active=True
+        )
+
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.load_status(mock_db.session())
+
+        state = duckhunt.get_state_table("net", "#chan")
+        state.duck_status = 1
+        state.duck_time = datetime.datetime.now().timestamp() - 3600.0
+
+        conn = MockConn(name="net")
+        event = MagicMock()
+        with patch.object(duckhunt, "hit_or_miss") as p:
+            p.return_value = 0
+            res = duckhunt.bang("nick", "#chan", mock_db.session(), conn, event)
+
+        assert res is None
+        assert event.mock_calls == [
+            call.message(
+                "nick you shot a duck in 3600.000 seconds! You have killed 1 duck in #chan."
+            )
+        ]
+        assert mock_db.get_data(duckhunt.table) == [
+            ("net", "nick", 1, 0, "#chan")
+        ]
+
+    def test_befriend(self, mock_db, freeze_time):
+        duckhunt.table.create(mock_db.engine)
+        duckhunt.optout.create(mock_db.engine)
+        duckhunt.status_table.create(mock_db.engine)
+
+        mock_db.add_row(
+            duckhunt.status_table, network="net", chan="#chan", active=True
+        )
+
+        duckhunt.load_optout(mock_db.session())
+        duckhunt.load_status(mock_db.session())
+
+        state = duckhunt.get_state_table("net", "#chan")
+        state.duck_status = 1
+        state.duck_time = datetime.datetime.now().timestamp() - 3600.0
+
+        conn = MockConn(name="net")
+        event = MagicMock()
+        with patch.object(duckhunt, "hit_or_miss") as p:
+            p.return_value = 1
+            res = duckhunt.befriend(
+                "nick", "#chan", mock_db.session(), conn, event
+            )
+
+        assert res is None
+        assert event.mock_calls == [
+            call.message(
+                "nick you befriended a duck in 3600.000 seconds! You have made friends with 1 duck in #chan."
+            )
+        ]
+        assert mock_db.get_data(duckhunt.table) == [
+            ("net", "nick", 0, 1, "#chan")
+        ]

@@ -59,13 +59,14 @@ def mock_db(tmp_path):
 
 
 @pytest.fixture()
-def mock_bot_factory(event_loop, tmp_path):
+def mock_bot_factory(event_loop, tmp_path, unset_bot):
     instances: List[MockBot] = []
 
     def _factory(*args, **kwargs):
         kwargs.setdefault("loop", event_loop)
         kwargs.setdefault("base_dir", tmp_path)
         _bot = MockBot(*args, **kwargs)
+        bot.set(_bot)
         instances.append(_bot)
         return _bot
 

@@ -3,7 +3,7 @@ from typing import Awaitable, Dict, Optional
 
 from watchdog.observers import Observer
 
-from cloudbot.bot import CloudBot
+from cloudbot.bot import AbstractBot, CloudBot
 from cloudbot.client import Client
 from cloudbot.plugin import PluginManager
 from cloudbot.util.async_util import create_future
@@ -11,7 +11,7 @@ from tests.util.mock_config import MockConfig
 from tests.util.mock_db import MockDB
 
 
-class MockBot:
+class MockBot(AbstractBot):
     def __init__(
         self,
         *,
@@ -39,7 +39,7 @@ class MockBot:
 
         self.running = True
         self.logger = logging.getLogger("cloudbot")
-        self.config = MockConfig(self)
+        super().__init__(config=MockConfig(self))
 
         if config is not None:
             self.config.update(config)

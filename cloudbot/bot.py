@@ -29,25 +29,28 @@ from cloudbot.util.mapping import KeyFoldDict
 logger = logging.getLogger("cloudbot")
 
 
-class BotInstanceHolder:
-    def __init__(self):
-        self._instance = None
+class AbstractBot:
+    def __init__(self, *, config: Config) -> None:
+        self.config = config
 
-    def get(self):
-        # type: () -> CloudBot
+
+class BotInstanceHolder:
+    def __init__(self) -> None:
+        self._instance: Optional[AbstractBot] = None
+
+    def get(self) -> Optional[AbstractBot]:
         return self._instance
 
-    def set(self, value):
-        # type: (CloudBot) -> None
+    def set(self, value: Optional[AbstractBot]) -> None:
         self._instance = value
 
     @property
-    def config(self):
-        # type: () -> Config
-        if not self.get():
+    def config(self) -> Config:
+        instance = self.get()
+        if not instance:
             raise ValueError("No bot instance available")
 
-        return self.get().config
+        return instance.config
 
 
 # Store a global instance of the bot to allow easier access to global data
@@ -88,7 +91,7 @@ def get_cmd_regex(event):
     return cmd_re
 
 
-class CloudBot:
+class CloudBot(AbstractBot):
     def __init__(
         self,
         *,
@@ -127,7 +130,7 @@ class CloudBot:
             self.data_path.mkdir(parents=True)
 
         # set up config
-        self.config = Config(self)
+        super().__init__(config=Config(self))
         logger.debug("Config system initialised.")
 
         self.executor = ThreadPoolExecutor(
