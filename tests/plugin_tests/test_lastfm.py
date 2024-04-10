@@ -1,4 +1,5 @@
 from json import JSONDecodeError
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -7,7 +8,10 @@ from responses import RequestsMock
 from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot
+from cloudbot.event import CommandEvent
 from plugins import lastfm
+from tests.util import wrap_hook_response
+from tests.util.mock_db import MockDB
 
 
 def test_get_account(mock_db, mock_requests):
@@ -309,3 +313,200 @@ class TestTopTrack:
         expected = "b\u200bar's favorite songs: some song by some artist listened to 10 times. "
 
         assert out == expected
+
+
+def test_save_account(
+    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
+):
+    lastfm.table.create(mock_db.engine)
+    lastfm.load_cache(mock_db.session())
+    mock_bot = mock_bot_factory(config={"api_keys": {"lastfm": "APIKEY"}})
+    hook = MagicMock()
+    event = CommandEvent(
+        bot=mock_bot,
+        hook=hook,
+        text="myaccount",
+        triggered_command="np",
+        cmd_prefix=".",
+        nick="foo",
+        conn=MagicMock(),
+    )
+
+    event.db = mock_db.session()
+
+    track_name = "some track"
+    artist_name = "bar"
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "user": "myaccount",
+                    "limit": "1",
+                    "method": "user.getrecenttracks",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
+        json={
+            "recenttracks": {
+                "track": [
+                    {
+                        "name": track_name,
+                        "album": {"#text": "foo"},
+                        "artist": {"#text": artist_name},
+                        "date": {"uts": 156432453},
+                        "url": "https://example.com",
+                    }
+                ]
+            }
+        },
+    )
+
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        json={"toptags": {"tag": [{"name": "thing"}]}},
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": artist_name,
+                    "autocorrect": "1",
+                    "track": track_name,
+                    "method": "track.getTopTags",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
+    )
+
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        json={"track": {"userplaycount": 3}},
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": artist_name,
+                    "track": track_name,
+                    "method": "track.getInfo",
+                    "api_key": "APIKEY",
+                    "username": "myaccount",
+                }
+            )
+        ],
+    )
+
+    results = wrap_hook_response(lastfm.lastfm, event)
+    assert mock_db.get_data(lastfm.table) == [
+        ("foo", "myaccount"),
+    ]
+    assert results == [
+        (
+            "return",
+            'm\u200byaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f [playcount: 3] https://example.com (thing) (44 years and 8 months ago)',
+        ),
+    ]
+
+
+def test_update_account(
+    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
+):
+    lastfm.table.create(mock_db.engine)
+    mock_db.add_row(lastfm.table, nick="foo", acc="oldaccount")
+    lastfm.load_cache(mock_db.session())
+    mock_bot = mock_bot_factory(config={"api_keys": {"lastfm": "APIKEY"}})
+    hook = MagicMock()
+    event = CommandEvent(
+        bot=mock_bot,
+        hook=hook,
+        text="myaccount",
+        triggered_command="np",
+        cmd_prefix=".",
+        nick="foo",
+        conn=MagicMock(),
+    )
+
+    event.db = mock_db.session()
+
+    track_name = "some track"
+    artist_name = "bar"
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "user": "myaccount",
+                    "limit": "1",
+                    "method": "user.getrecenttracks",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
+        json={
+            "recenttracks": {
+                "track": [
+                    {
+                        "name": track_name,
+                        "album": {"#text": "foo"},
+                        "artist": {"#text": artist_name},
+                        "date": {"uts": 156432453},
+                        "url": "https://example.com",
+                    }
+                ]
+            }
+        },
+    )
+
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        json={"toptags": {"tag": [{"name": "thing"}]}},
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": artist_name,
+                    "autocorrect": "1",
+                    "track": track_name,
+                    "method": "track.getTopTags",
+                    "api_key": "APIKEY",
+                }
+            )
+        ],
+    )
+
+    mock_requests.add(
+        "GET",
+        "http://ws.audioscrobbler.com/2.0/",
+        json={"track": {"userplaycount": 3}},
+        match=[
+            query_param_matcher(
+                {
+                    "format": "json",
+                    "artist": artist_name,
+                    "track": track_name,
+                    "method": "track.getInfo",
+                    "api_key": "APIKEY",
+                    "username": "myaccount",
+                }
+            )
+        ],
+    )
+
+    results = wrap_hook_response(lastfm.lastfm, event)
+    assert mock_db.get_data(lastfm.table) == [
+        ("foo", "myaccount"),
+    ]
+    assert results == [
+        (
+            "return",
+            'm\u200byaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f [playcount: 3] https://example.com (thing) (44 years and 8 months ago)',
+        ),
+    ]

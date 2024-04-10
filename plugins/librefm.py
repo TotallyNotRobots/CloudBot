@@ -84,7 +84,7 @@ def librefm(text, nick, db, event):
 
     if (
         "track" not in response["recenttracks"]
-        or response["recenttracks"]["track"]
+        or not response["recenttracks"]["track"]
     ):
         return f'No recent tracks for user "{user}" found.'
 
@@ -243,7 +243,7 @@ def toptrack(text, nick):
         return "Error: {}.".format(data["message"])
 
     out = f"{username}'s favorite songs: "
-    for r in range(5):
+    for r in range(min(5, len(data["toptracks"]["track"]))):
         track_name = data["toptracks"]["track"][r]["name"]
         artist_name = data["toptracks"]["track"][r]["artist"]["name"]
         play_count = data["toptracks"]["track"][r]["playcount"]

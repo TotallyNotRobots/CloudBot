@@ -1,8 +1,10 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
+from cloudbot.event import CommandEvent
 from plugins.core import optout
+from tests.util import wrap_hook_response_async
 from tests.util.mock_db import MockDB
 
 
@@ -364,9 +366,41 @@ def test_format():
 
 
 class TestSetOptOut:
+    async def test_cmd(self, mock_db: MockDB, mock_bot) -> None:
+        with mock_db.session() as session:
+            optout.optout_table.create(mock_db.engine)
+            optout.load_cache(session)
+            conn = MagicMock()
+            conn.configure_mock(name="net")
+            event = CommandEvent(
+                nick="nick",
+                channel="#chan",
+                conn=conn,
+                bot=mock_bot,
+                hook=MagicMock(),
+                text="foo.*",
+                triggered_command="optout",
+                cmd_prefix=".",
+            )
+            event.db = session
+            has_perm = MagicMock()
+            has_perm.return_value = True
+            with patch.object(event, "has_permission", has_perm):
+                res = await wrap_hook_response_async(optout.optout, event)
+
+            assert res == [
+                ("return", "Disabled hooks matching foo.* in #chan.")
+            ]
+            assert conn.mock_calls == []
+            assert has_perm.mock_calls == [call("op", notice=True)]
+            assert mock_db.get_data(optout.optout_table) == [
+                ("net", "#chan", "foo.*", False)
+            ]
+
     def test_add(self, mock_db: MockDB):
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
+            optout.load_cache(session)
             optout.set_optout(session, "net", "#chan", "my.hook", True)
 
             assert mock_db.get_data(optout.optout_table) == [
@@ -388,6 +422,8 @@ class TestSetOptOut:
                 ],
             )
 
+            optout.load_cache(session)
+
             assert mock_db.get_data(optout.optout_table) == [
                 ("net", "#chan", "my.hook", False)
             ]
@@ -400,6 +436,68 @@ class TestSetOptOut:
 
 
 class TestDelOptOut:
+    async def test_del_cmd(self, mock_db: MockDB, mock_bot) -> None:
+        with mock_db.session() as session:
+            optout.optout_table.create(mock_db.engine)
+            mock_db.load_data(
+                optout.optout_table,
+                [
+                    {
+                        "network": "net",
+                        "chan": "#chan",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net",
+                        "chan": "#chan",
+                        "hook": "foo1.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net1",
+                        "chan": "#chan",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net",
+                        "chan": "#chan1",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                ],
+            )
+            optout.load_cache(session)
+            conn = MagicMock()
+            conn.configure_mock(name="net")
+            event = CommandEvent(
+                nick="nick",
+                channel="#chan",
+                conn=conn,
+                bot=mock_bot,
+                hook=MagicMock(),
+                text="foo.*",
+                triggered_command="deloptout",
+                cmd_prefix=".",
+            )
+            event.db = session
+            has_perm = MagicMock()
+            has_perm.return_value = True
+            with patch.object(event, "has_permission", has_perm):
+                res = await wrap_hook_response_async(optout.deloptout, event)
+
+            assert res == [
+                ("return", "Deleted optout 'foo.*' in channel '#chan'.")
+            ]
+            assert conn.mock_calls == []
+            assert has_perm.mock_calls == [call("op", notice=True)]
+            assert mock_db.get_data(optout.optout_table) == [
+                ("net", "#chan", "foo1.*", False),
+                ("net1", "#chan", "foo.*", False),
+                ("net", "#chan1", "foo.*", False),
+            ]
+
     def test_del_no_match(self, mock_db: MockDB):
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
@@ -432,6 +530,65 @@ class TestDelOptOut:
 
 
 class TestClearOptOut:
+    async def test_clear_cmd(self, mock_db: MockDB, mock_bot) -> None:
+        with mock_db.session() as session:
+            optout.optout_table.create(mock_db.engine)
+            mock_db.load_data(
+                optout.optout_table,
+                [
+                    {
+                        "network": "net",
+                        "chan": "#chan",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net",
+                        "chan": "#chan",
+                        "hook": "foo1.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net1",
+                        "chan": "#chan",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                    {
+                        "network": "net",
+                        "chan": "#chan1",
+                        "hook": "foo.*",
+                        "allow": False,
+                    },
+                ],
+            )
+            optout.load_cache(session)
+            conn = MagicMock()
+            conn.configure_mock(name="net")
+            event = CommandEvent(
+                nick="nick",
+                channel="#chan",
+                conn=conn,
+                bot=mock_bot,
+                hook=MagicMock(),
+                text="",
+                triggered_command="clearoptout",
+                cmd_prefix=".",
+            )
+            event.db = session
+            has_perm = MagicMock()
+            has_perm.return_value = True
+            with patch.object(event, "has_permission", has_perm):
+                res = await wrap_hook_response_async(optout.clear, event)
+
+            assert res == [("return", "Cleared 2 opt outs from the list.")]
+            assert conn.mock_calls == []
+            assert has_perm.mock_calls == [call("snoonetstaff", notice=True)]
+            assert mock_db.get_data(optout.optout_table) == [
+                ("net1", "#chan", "foo.*", False),
+                ("net", "#chan1", "foo.*", False),
+            ]
+
     def test_clear_chan(self, mock_db: MockDB):
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)

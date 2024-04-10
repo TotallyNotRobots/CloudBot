@@ -2,7 +2,88 @@ import itertools
 import string
 from unittest.mock import MagicMock, call
 
+from cloudbot.event import CommandEvent
 from plugins import factoids
+from tests.util import wrap_hook_response_async
+
+
+async def test_add_fact(mock_db, mock_bot):
+    factoids.table.create(mock_db.engine)
+    factoids.load_cache(mock_db.session())
+    hook = MagicMock()
+    conn = MagicMock()
+    conn.configure_mock(name="net", config={})
+    event = CommandEvent(
+        bot=mock_bot,
+        conn=conn,
+        hook=hook,
+        channel="#chan",
+        nick="nick",
+        text="foo bar baz",
+        triggered_command="remember",
+        cmd_prefix=".",
+    )
+
+    event.db = mock_db.session()
+    res = await wrap_hook_response_async(factoids.remember, event)
+    assert res == [
+        (
+            "notice",
+            (
+                "nick",
+                "Remembering \x02bar baz\x02 for \x02foo\x02. Type ?foo to see it.",
+            ),
+        )
+    ]
+    assert hook.mock_calls == []
+    assert conn.mock_calls == []
+
+    assert mock_db.get_data(factoids.table) == [
+        ("foo", "bar baz", "nick", "#chan")
+    ]
+
+
+async def test_update_fact(mock_db, mock_bot):
+    factoids.table.create(mock_db.engine)
+    mock_db.load_data(
+        factoids.table,
+        [
+            {"word": "foo", "data": "data", "nick": "nick", "chan": "#chan"},
+        ],
+    )
+    factoids.load_cache(mock_db.session())
+    hook = MagicMock()
+    conn = MagicMock()
+    conn.configure_mock(name="net", config={})
+    event = CommandEvent(
+        bot=mock_bot,
+        conn=conn,
+        hook=hook,
+        channel="#chan",
+        nick="nick",
+        text="foo bar baz",
+        triggered_command="remember",
+        cmd_prefix=".",
+    )
+
+    event.db = mock_db.session()
+    res = await wrap_hook_response_async(factoids.remember, event)
+    assert res == [
+        (
+            "notice",
+            (
+                "nick",
+                "Remembering \x02bar baz\x02 for \x02foo\x02. Type ?foo to see it.",
+            ),
+        ),
+        ("notice", ("nick", "Previous data was \x02data\x02")),
+    ]
+    assert hook.mock_calls == []
+    assert conn.mock_calls == []
+
+    assert mock_db.get_data(factoids.table) == [
+        ("foo", "bar baz", "nick", "#chan")
+    ]
 
 
 def test_forget(mock_db, patch_paste):
@@ -123,22 +204,21 @@ def test_clear_facts(mock_db):
 
 def test_list_facts(mock_db):
     factoids.table.create(mock_db.engine)
-    factoids.load_cache(mock_db.session())
     event = MagicMock()
 
     names = [
         "".join(c) for c in itertools.product(string.ascii_lowercase, repeat=2)
     ]
 
-    for name in names:
-        factoids.add_factoid(
-            mock_db.session(),
-            name.lower(),
-            "#chan",
-            name,
-            "nick",
-        )
+    mock_db.load_data(
+        factoids.table,
+        [
+            {"word": name, "data": name, "nick": "nick", "chan": "#chan"}
+            for name in names
+        ],
+    )
 
+    factoids.load_cache(mock_db.session())
     factoids.listfactoids(event.notice, "#chan")
 
     assert event.mock_calls == [

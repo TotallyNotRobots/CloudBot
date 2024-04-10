@@ -37,7 +37,6 @@
             ],
             "settings": {
                 "python.pythonPath": "/usr/local/bin/python",
-                "python.testing.pytestArgs": ["--no-cov"],
                 "terminal.integrated.profiles.linux": {
                     "zsh": {
                         "path": "/usr/bin/zsh"

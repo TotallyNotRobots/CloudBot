@@ -1,11 +1,12 @@
 from datetime import timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
 from cloudbot.event import Event
 from plugins import herald
 from tests.util import wrap_hook_response
+from tests.util.mock_db import MockDB
 
 
 @pytest.fixture()
@@ -109,3 +110,71 @@ class TestWelcome:
 
         # User spam time expired
         assert check(event) == [("message", ("#foo", "\u200b Some herald"))]
+
+
+def test_add_herald(mock_db: MockDB, clear_cache):
+    herald.table.create(mock_db.engine)
+    herald.load_cache(mock_db.session())
+    reply = MagicMock()
+    res = herald.herald("foobar baz", "nick", "#chan", mock_db.session(), reply)
+    assert mock_db.get_data(herald.table) == [
+        ("nick", "#chan", "foobar baz"),
+    ]
+
+    assert res is None
+    assert reply.mock_calls == [call("greeting successfully added")]
+
+
+def test_update_herald(mock_db: MockDB, clear_cache):
+    herald.table.create(mock_db.engine)
+    mock_db.add_row(
+        herald.table,
+        name="nick",
+        chan="#chan",
+        quote="foo baz",
+    )
+    herald.load_cache(mock_db.session())
+    reply = MagicMock()
+    res = herald.herald("foobar baz", "nick", "#chan", mock_db.session(), reply)
+    assert mock_db.get_data(herald.table) == [
+        ("nick", "#chan", "foobar baz"),
+    ]
+
+    assert res is None
+    assert reply.mock_calls == [call("greeting successfully added")]
+
+
+def test_delete_herald(mock_db: MockDB, clear_cache):
+    herald.table.create(mock_db.engine)
+    mock_db.add_row(
+        herald.table,
+        name="nick",
+        chan="#chan",
+        quote="foo baz",
+    )
+    herald.load_cache(mock_db.session())
+    reply = MagicMock()
+    res = herald.herald("delete", "nick", "#chan", mock_db.session(), reply)
+    assert mock_db.get_data(herald.table) == []
+
+    assert res is None
+    assert reply.mock_calls == [
+        call("greeting 'foo baz' for nick has been removed")
+    ]
+
+
+def test_op_delete_herald(mock_db, clear_cache):
+    herald.table.create(mock_db.engine)
+    mock_db.add_row(
+        herald.table,
+        name="nick",
+        chan="#chan",
+        quote="foo baz",
+    )
+    herald.load_cache(mock_db.session())
+    reply = MagicMock()
+    res = herald.deleteherald("nick", "#chan", mock_db.session(), reply)
+    assert mock_db.get_data(herald.table) == []
+
+    assert res is None
+    assert reply.mock_calls == [call("greeting for nick has been removed")]

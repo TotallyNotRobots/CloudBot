@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from sqlalchemy import Column, String, Table
 
+import cloudbot.bot
 from cloudbot import hook
 from cloudbot.bot import CloudBot, clean_name, get_cmd_regex
 from cloudbot.event import Event, EventType
@@ -13,6 +14,12 @@ from cloudbot.util import database
 from tests.util.async_mock import AsyncMock
 from tests.util.mock_config import MockConfig
 from tests.util.mock_db import MockDB
+
+
+def test_no_instance_config(unset_bot):
+    cloudbot.bot.bot.set(None)
+    with pytest.raises(ValueError):
+        _ = cloudbot.bot.bot.config
 
 
 @pytest.mark.asyncio()
