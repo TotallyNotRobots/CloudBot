@@ -303,23 +303,36 @@ def update_score(nick, chan, db, conn, shoot=0):
     dbadd_entry(nick, chan, db, conn, shoot)
     return {"shoot": shoot}
 
-ignorebangs = TTLCache(maxsize=1024, ttl=5)
+too_late_to_bang = TTLCache(maxsize=1024, ttl=10)
 def attack(event, nick, chan, db, conn, attack_type, nick2=None):
-    global ignorebangs, current_duels
+    global too_late_to_bang, current_duels
     if is_opt_out(conn.name, chan):
         return None
 
-    if (chan, nick.casefold()) in ignorebangs:
-        return
+    if (chan, nick.casefold()) in too_late_to_bang:
+        status = too_late_to_bang[(chan, nick.casefold())]
+        now = time()
+        start_time = status["start_time"]
+        del too_late_to_bang[(chan, nick.casefold())]
+
+        if status["result"] == "win":
+            return f"{nick} Stop shooting the dead! You already won this duel"
+
+        if now - start_time < 2:
+            return f"{nick} You were too late to shoot and died! You took {now - start_time:.3f} seconds to shoot."
+        else:
+            return f"{nick} You cannot shoot from the grave! You took {now - start_time:.3f} seconds to shoot."
 
     network = conn.name
     status = get_state_table(network, chan)
 
     if attack_type == "shoot":
         no_duel = "You are not in a duel with that person! You can't shoot at someone just like this. What are you, a criminal?"
-        msg = "{} shot first in {:.3f} seconds! You have killed {} people in this room."
+        msg = "{nick} shot first in {time:.3f} seconds! You have killed {nick2} and a total of {score} people here in {chan}"
         attack_type = "shoot"
         early_msgs = ["His gang instantly revenged by killing you too.", "Lord's wrath might fall over you.", "And you missed! You died for being a fool.", "The sherif killed you then.", "You lost!"]
+    else:
+        raise NotImplementedError("This attack type is not implemented.")
 
     if not status.game_on:
         return "There is no duel right now. Use .startduel to start a game."
@@ -330,35 +343,42 @@ def attack(event, nick, chan, db, conn, attack_type, nick2=None):
     nick2 = nick2.casefold()
     if not nick2 or not current_duels.get(nick2):
         return no_duel
+
     game = current_duels[duel_tuple(nick, nick2)]
     status.shoot_time = time()
     status.duel_time = game['start_time']
-    deploy = status.duel_time
+    start_time = status.duel_time
     shoot = status.shoot_time
     shot_early = False
     if not game["open"]:
         game["canceled"] = True
-        msg = "<{}> You shot too early! " + random.choice(early_msgs) + " {} wins this duel and killed {} on this room"
-        nick, nick2 = nick2, nick
-        deploy = shoot = 0
+        msg = "<{nick}> You shot too early! " + random.choice(early_msgs) + " {nick2} wins this duel and killed {score} here in {chan}"
         shot_early = True
+        nick_status = "loose"
+        nick2_status = "win"
     else:
-        clean_duel(nick, nick2)
-    ignorebangs[(chan, nick2.casefold())] = True
-    ignorebangs[(chan, nick.casefold())] = True
-    # message(f"<{nick}> Wins the duel shooting in {(shoot - game['start_time']):.3f} seconds!")
+        nick_status = "win"
+        nick2_status = "loose"
+
+    clean_duel(nick, nick2)
+    too_late_to_bang[(chan, nick.casefold())] = {"start_time": start_time, "result": nick_status}
+    too_late_to_bang[(chan, nick2.casefold())] = {"start_time": start_time, "result": nick2_status}
     status.duel_status = 2
     try:
         args = {attack_type: 1}
-
-        score = update_score(nick, chan, db, conn, **args)[attack_type]
-    except Exception:
+        if nick_status == "win":
+            score = update_score(nick, chan, db, conn, **args)[attack_type]
+        elif nick2_status == "win":
+            score = update_score(nick2, chan, db, conn, **args)[attack_type]
+        else:
+            raise ValueError("Invalid status for duel.")
+    except Exception as e:
         status.duel_status = 1
         event.reply("An unknown error has occurred.")
-        raise
+        raise e
 
     event.message(
-        msg.format(nick, shoot - deploy, score, chan) if not shot_early else msg.format(nick2, nick, score, chan)
+        msg.format(nick=nick,nick2=nick2, time=shoot - start_time, score=score, chan=chan) if not shot_early else msg.format(nick=nick, nick2=nick2, score=score, chan=chan)
     )
     return None
 
@@ -778,7 +798,7 @@ def clean_duel(n1, n2, checkonly=False):
 @hook.command("duel", autohelp=False)
 def duel(text, nick, chan, message, conn, event):
     """<nick> - Starts a duel with a user."""
-    global pending, current_duels
+    global pending, current_duels, too_late_to_bang
     check = get_state_table(conn.name, chan).game_on
     if not check:
         return "Dueling is not currently enabled in {}.".format(chan)
@@ -796,6 +816,10 @@ def duel(text, nick, chan, message, conn, event):
     if nick2.casefold() not in pending:
         pending[nick2.casefold()] = {}
     pending[nick2.casefold()][chan] = nick
+    if (chan, nick.casefold()) in too_late_to_bang:
+        del too_late_to_bang[(chan, nick.casefold())]
+    if (chan, nick2.casefold()) in too_late_to_bang:
+        del too_late_to_bang[(chan, nick2.casefold())]
     return f"<{nick2}> {nick} has challenged you to a duel! Use .accept to accept it"
 
 @hook.command("accept", autohelp=False)
