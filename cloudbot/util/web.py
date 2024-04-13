@@ -18,13 +18,14 @@ import logging
 import time
 from operator import attrgetter
 from typing import Optional
+from cloudbot.bot import bot
 
 import requests
 from requests import HTTPError, PreparedRequest, RequestException, Response
 
 # Constants
 DEFAULT_SHORTENER = "is.gd"
-DEFAULT_PASTEBIN = ""
+DEFAULT_PASTEBIN = "hastebin"
 
 HASTEBIN_SERVER = "https://hastebin.com"
 
@@ -339,7 +340,8 @@ class Hastebin(Pastebin):
             encoded = data
 
         try:
-            r = requests.post(self.url + "/documents", data=encoded)
+            api_key = bot.config.get_api_key("hastebin")
+            r = requests.post(self.url + "/documents", data=encoded, headers={"Authorization": "Bearer " + str(api_key), "Content-Type": "text/plain"})
             # r.raise_for_status()
         except HTTPError as e:
             r = e.response

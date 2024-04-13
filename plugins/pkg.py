@@ -177,7 +177,10 @@ def arch_search(query: str) -> Generator[Package, None, None]:
 
 def crates_search(query: str) -> Generator[Package, None, None]:
     url = "https://crates.io/api/v1/crates"
-    response = requests.get(url, params={"q": query, "per_page": 20, "page": 1})
+    response = requests.get(url, params={"q": query, "per_page": 20, "page": 1}, headers={
+        "Accept": "application/json",
+        "user-agent": "cloudbot-irc",
+    })
     if response.status_code != 200:
         return
     data = response.json()
