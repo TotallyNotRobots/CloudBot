@@ -145,6 +145,30 @@ warn_required_dynamic_aliases = true
 in-place = true
 remove-all-unused-imports = true
 
+[tool.coverage.report]
+fail_under = 60
+exclude_lines = [
+    "@overload",
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    'if __name__ == .__main__.:',
+    "if sys.version_info",
+    'class .*\(.*(Error|Exception)\):',
+    '^ *\.\.\.$',
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "tests/data/*",
+    "tests/util/*",
+    ".*",
+    "venv/*",
+]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "v$version"
