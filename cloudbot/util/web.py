@@ -16,8 +16,9 @@ License:
 import json
 import logging
 import time
+from collections.abc import Iterable, Iterator
 from operator import attrgetter
-from typing import Optional
+from typing import Generic, TypeVar
 
 import requests
 from requests import (
@@ -41,51 +42,54 @@ logger = logging.getLogger("cloudbot")
 
 # Public API
 
+_T = TypeVar("_T")
 
-class Registry:
-    class Item:
-        def __init__(self, item):
-            self.item = item
+
+class RegistryItem(Generic[_T]):
+    def __init__(self, item: _T) -> None:
+        self.item = item
+        self.working = True
+        self.last_check = 0.0
+        self.uses = 0
+
+    def failed(self) -> None:
+        self.working = False
+        self.last_check = time.time()
+
+    @property
+    def should_use(self) -> bool:
+        if self.working:
+            return True
+
+        if (time.time() - self.last_check) > (5 * 60):
+            # It's been 5 minutes, try again
             self.working = True
-            self.last_check = 0.0
-            self.uses = 0
+            return True
 
-        def failed(self):
-            self.working = False
-            self.last_check = time.time()
+        return False
 
-        @property
-        def should_use(self):
-            if self.working:
-                return True
 
-            if (time.time() - self.last_check) > (5 * 60):
-                # It's been 5 minutes, try again
-                self.working = True
-                return True
-
-            return False
-
+class Registry(Generic[_T]):
     def __init__(self):
-        self._items: dict[str, "Registry.Item"] = {}
+        self._items: dict[str, RegistryItem[_T]] = {}
 
-    def register(self, name, item):
+    def register(self, name: str, item: _T) -> None:
         if name in self._items:
             raise ValueError("Attempt to register duplicate item")
 
-        self._items[name] = self.Item(item)
+        self._items[name] = RegistryItem(item)
 
-    def get(self, name):
+    def get(self, name: str) -> _T | None:
         val = self._items.get(name)
         if val:
             return val.item
 
-        return val
+        return None
 
-    def get_item(self, name):
+    def get_item(self, name: str) -> RegistryItem[_T] | None:
         return self._items.get(name)
 
-    def get_working(self) -> Optional["Item"]:
+    def get_working(self) -> RegistryItem[_T] | None:
         working = [item for item in self._items.values() if item.should_use]
 
         if not working:
@@ -93,24 +97,24 @@ class Registry:
 
         return min(working, key=attrgetter("uses"))
 
-    def remove(self, name):
+    def remove(self, name: str) -> None:
         del self._items[name]
 
-    def items(self):
+    def items(self) -> Iterable[tuple[str, RegistryItem[_T]]]:
         return self._items.items()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self._items)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> _T:
         return self._items[item].item
 
-    def set_working(self):
+    def set_working(self) -> None:
         for item in self._items.values():
             item.working = True
 
 
-def shorten(url, custom=None, key=None, service=DEFAULT_SHORTENER):
+def shorten(url: str, custom=None, key=None, service=DEFAULT_SHORTENER):
     impl = shorteners[service]
     return impl.shorten(url, custom, key)
 
@@ -140,7 +144,12 @@ class NoPasteException(Exception):
     """No pastebins succeeded"""
 
 
-def paste(data, ext="txt", service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
+def paste(
+    data: str | bytes,
+    ext="txt",
+    service=DEFAULT_PASTEBIN,
+    raise_on_no_paste=False,
+) -> str:
     if service:
         impl = pastebins.get_item(service)
     else:
@@ -218,12 +227,12 @@ class Pastebin:
     def __init__(self):
         pass
 
-    def paste(self, data, ext):
+    def paste(self, data, ext) -> str:
         raise NotImplementedError
 
 
-shorteners = Registry()
-pastebins = Registry()
+shorteners = Registry[Shortener]()
+pastebins = Registry[Pastebin]()
 
 # Internal Implementations
 
@@ -346,7 +355,7 @@ class Hastebin(Pastebin):
         super().__init__()
         self.url = base_url
 
-    def paste(self, data, ext):
+    def paste(self, data, ext) -> str:
         if isinstance(data, str):
             encoded = data.encode()
         else:

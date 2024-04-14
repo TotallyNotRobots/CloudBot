@@ -3,7 +3,11 @@ import collections.abc
 import inspect
 import re
 import warnings
+from collections.abc import Callable, Sequence
 from enum import Enum, IntEnum, unique
+from typing import Any, TypeVar, overload
+
+from typing_extensions import ParamSpec
 
 from cloudbot.event import EventType
 from cloudbot.util import HOOK_ATTR
@@ -186,10 +190,36 @@ def _hook_warn():
     )
 
 
-def command(*args, **kwargs):
+_T = TypeVar("_T")
+_P = ParamSpec("_P")
+_Func = Callable[_P, _T]
+
+
+@overload
+def command(arg: Callable[_P, _T], /) -> Callable[_P, _T]: ...
+
+
+@overload
+def command(
+    arg: str | Sequence[str] | None = None,
+    /,
+    *args: str | Sequence[str],
+    **kwargs: Any,
+) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]: ...
+
+
+def command(
+    arg: Callable[_P, _T] | str | Sequence[str] | None = None,
+    /,
+    *args: str | Sequence[str],
+    **kwargs: Any,
+) -> Callable[_P, _T] | Callable[[Callable[_P, _T]], Callable[_P, _T]]:
     """External command decorator. Can be used directly as a decorator, or with args to return a decorator."""
 
-    def _command_hook(func, alias_param=None):
+    def _command_hook(
+        func: Callable[_P, _T],
+        alias_param: Sequence[Sequence[str] | str] | None = None,
+    ) -> Callable[_P, _T]:
         hook = _get_hook(func, "command")
         if hook is None:
             hook = _CommandHook(func)
@@ -198,13 +228,17 @@ def command(*args, **kwargs):
         hook.add_hook(alias_param, kwargs)
         return func
 
-    if len(args) == 1 and callable(args[0]):
+    if arg is not None and not isinstance(arg, (str, collections.abc.Sequence)):
         # this decorator is being used directly
         _hook_warn()
-        return _command_hook(args[0])
+        return _command_hook(arg)
+
+    arg_list: list[str | Sequence[str]] = list(args)
+    if arg:
+        arg_list.insert(0, arg)
 
     # this decorator is being used indirectly, so return a decorator function
-    return lambda func: _command_hook(func, alias_param=args)
+    return lambda func: _command_hook(func, alias_param=arg_list)
 
 
 def irc_raw(triggers_param, **kwargs):
@@ -332,10 +366,22 @@ def config(**kwargs):
     return _config_hook
 
 
-def on_start(param=None, **kwargs):
+@overload
+def on_start(
+    **kwargs: Any,
+) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]: ...
+
+
+@overload
+def on_start(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
+
+
+def on_start(
+    param: Callable[_P, _T] | None = None, /, **kwargs: Any
+) -> Callable[_P, _T] | Callable[[Callable[_P, _T]], Callable[_P, _T]]:
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator"""
 
-    def _on_start_hook(func):
+    def _on_start_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
         hook = _get_hook(func, "on_start")
         if hook is None:
             hook = _Hook(func, "on_start")

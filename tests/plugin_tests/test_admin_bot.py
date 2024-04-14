@@ -89,8 +89,7 @@ async def test_me():
     event.__getitem__ = f
     event.event = event
 
-    res = await func_utils.call_with_args(admin_bot.me, event)
-    assert res is None
+    await func_utils.call_with_args(admin_bot.me, event)
     assert event.mock_calls == [
         call.admin_log('bar used ME to make me ACT "do thing" in #foo.'),
         call.conn.ctcp("#foo", "ACTION", "do thing"),

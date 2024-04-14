@@ -1,4 +1,3 @@
-import re
 from datetime import datetime, timedelta
 from typing import Any
 from unittest.mock import MagicMock
@@ -10,32 +9,6 @@ from cloudbot.bot import bot
 from cloudbot.event import CommandEvent
 from plugins import cryptocurrency
 from tests.util import HookResult, wrap_hook_response
-
-
-def test_parse():
-    assert cryptocurrency.ResponseStatus._fields != cryptocurrency.Quote._fields
-    cryptocurrency.Platform(  # nosec
-        id=1,
-        name="name",
-        symbol="symbol",
-        slug="slug",
-        token_address="foobar",
-    )
-    assert len(cryptocurrency.Platform._fields) == 5
-    data = {
-        "status": {
-            "timestamp": "ts",
-            "error_code": 200,
-            "error_message": None,
-            "elapsed": 1,
-            "credit_count": 1,
-            "notice": None,
-        }
-    }
-
-    obj = cryptocurrency.read_data(data, cryptocurrency.APIRequestResponse)
-    assert obj.status.credit_count == 1
-    assert cryptocurrency.serialize(obj) == data
 
 
 class MatchAPIKey(Response):
@@ -61,7 +34,9 @@ def init_response(
     price=50000000000.0,
 ):
     if check_api_key:
-        cryptocurrency.init_api(bot.get())
+        b = bot.get()
+        assert b is not None
+        cryptocurrency.init_api(b)
 
     cryptocurrency.api.cache.clear()
     cryptocurrency.api.show_btc = show_btc
@@ -189,93 +164,20 @@ def test_api(mock_requests, mock_api_keys):
     result = cryptocurrency.api.get_quote("BTC", "USD")
 
     assert result.name == "Bitcoin"
-    assert not result.unknown_fields
+    assert not result.model_extra
     assert result.total_supply == 1000
     assert result.circulating_supply == 100
 
 
-class SomeSchema(cryptocurrency.Schema):
-    def __init__(self, a: list[list[dict[str, list[str]]]]):
-        super().__init__()
-        self.a = a
-
-
-def test_schema():
-    cryptocurrency.read_data({"a": [[{"a": ["1"]}]]}, SomeSchema)
-
-
-class ConcreteSchema(cryptocurrency.Schema):
-    def __init__(self, a: str) -> None:
-        super().__init__()
-        self.a = a
-
-
-class AbstractSchema(ConcreteSchema):
-    _abstract = True
-
-
-class OtherConcreteSchema(AbstractSchema):
-    def __init__(self, a: str, b: str):
-        super().__init__(a)
-        self.b = b
-
-
-def test_complex_schema():
-    cryptocurrency.read_data({"a": "hello", "b": "world"}, OtherConcreteSchema)
-
-
-def test_invalid_schema_type():
-    with pytest.raises(
-        TypeError,
-        match="field 'a' expected type <class 'str'>, got type <class 'int'>",
-    ):
-        cryptocurrency.read_data({"a": 1, "b": "world"}, OtherConcreteSchema)
-
-
-def test_schema_missing_field():
-    with pytest.raises(cryptocurrency.ParseError) as exc:
-        cryptocurrency.read_data({"b": "hello"}, OtherConcreteSchema)
-
-    assert isinstance(exc.value.__cause__, cryptocurrency.MissingSchemaField)
-
-
-class NestedSchema(cryptocurrency.Schema):
-    def __init__(self, a: OtherConcreteSchema) -> None:
-        super().__init__()
-        self.a = a
-
-
-def test_schema_nested_exceptions():
-    with pytest.raises(cryptocurrency.ParseError) as exc:
-        cryptocurrency.read_data({"a": {"b": "hello"}}, NestedSchema)
-
-    assert isinstance(exc.value.__cause__, cryptocurrency.ParseError)
-    assert isinstance(
-        exc.value.__cause__.__cause__, cryptocurrency.MissingSchemaField
-    )
-
-
-def test_schema_unknown_fields():
-    input_data = {"a": {"a": "hello", "b": "world"}, "c": 1}
-    with pytest.warns(
-        UserWarning,
-        match=re.escape(
-            "Unknown fields: ['c'] while parsing schema 'NestedSchema'"
-        ),
-    ):
-        obj = cryptocurrency.read_data(input_data, NestedSchema)
-
-    assert cryptocurrency.serialize(obj) == input_data
-
-
 def test_cache(freeze_time):
-    c = cryptocurrency.Cache()
+    c = cryptocurrency.Cache[str, str]()
     c.put("foo", "bar", 30)
 
     # Object with a lifespan of 30 seconds should die at 30 seconds
     freeze_time.tick(timedelta(seconds=29))
-    assert c.get("foo") is not None
-    assert c.get("foo").value == "bar"
+    entry = c.get("foo")
+    assert entry is not None
+    assert entry.value == "bar"
     freeze_time.tick()
     assert c.get("foo") is None
 

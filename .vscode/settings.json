@@ -16,5 +16,6 @@
     "evenBetterToml.formatter.arrayAutoExpand": false,
     "evenBetterToml.formatter.arrayTrailingComma": true,
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "python.analysis.diagnosticMode": "workspace"
 }

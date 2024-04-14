@@ -81,9 +81,9 @@ def test_profile_pager():
 
     pages = profile.cat_pages
 
-    def call(*args):
+    def call(text, chan, nick):
         notice = CaptureCalls()
-        hook(*args, notice=notice)
+        hook(text, chan, nick, notice=notice)
         return notice.lines
 
     no_grabs = "There are no category pages to show."

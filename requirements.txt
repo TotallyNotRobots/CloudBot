@@ -11,6 +11,8 @@ mcstatus ==12.0.5
 multidict ==6.7.0
 nltk == 3.9.2
 psutil ==7.1.0
+pydantic[email] ==2.12.0
+pydantic-extra-types ==2.10.6
 py-irclib ==0.7.0
 pyowm ==3.5.0
 requests ==2.32.5
