@@ -3,7 +3,7 @@ import random
 from collections import defaultdict
 from threading import Lock
 from time import sleep, time
-from typing import Dict, List, NamedTuple, TypeVar
+from typing import Callable, Dict, List, NamedTuple, Optional, TypeVar
 
 from sqlalchemy import (
     Boolean,
@@ -18,6 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.sql import select
 
 from cloudbot import hook
+from cloudbot.client import Client
 from cloudbot.event import EventType
 from cloudbot.util import database
 from cloudbot.util.formatting import pluralize_auto, truncate
@@ -607,19 +608,21 @@ def get_average_scores(db, score_type: ScoreType, conn):
     return scores_dict
 
 
-SCORE_TYPES = {
+SCORE_TYPES: Dict[str, ScoreType] = {
     "friend": ScoreType("befriend", "befriend", "friend", "friended"),
     "killer": ScoreType("killer", "shot", "killer", "killed"),
 }
 
-DISPLAY_FUNCS = {
+DISPLAY_FUNCS: Dict[Optional[str], Callable[..., Optional[Dict[str, int]]]] = {
     "average": get_average_scores,
     "global": get_global_scores,
     None: get_channel_scores,
 }
 
 
-def display_scores(score_type: ScoreType, event, text, chan, conn, db):
+def display_scores(
+    score_type: ScoreType, event, text: str, chan: str, conn: "Client", db
+):
     if is_opt_out(conn.name, chan):
         return None
 

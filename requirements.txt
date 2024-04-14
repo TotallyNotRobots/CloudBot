@@ -12,6 +12,9 @@ mcstatus == 11.1.1
 multidict == 6.0.5
 nltk == 3.8.1
 psutil == 5.9.8
+pydantic[email] == 2.7.0
+pydantic-extra-types == 2.6.0
+typing_extensions
 py-irclib == 0.3.0
 pyowm == 3.3.0
 requests == 2.31.0
