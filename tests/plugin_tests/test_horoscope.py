@@ -138,4 +138,4 @@ def test_bad_sign(mock_requests):
     res, err = horoscope.parse_or_lookup(sign, db, "foobar", event)
     assert res is None
     assert err is None
-    event.notice.assert_called_with("Unknown sign: {}".format(sign))
+    event.notice.assert_called_with(f"Unknown sign: {sign}")

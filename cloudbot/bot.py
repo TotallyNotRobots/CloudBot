@@ -420,7 +420,7 @@ class CloudBot:
                             )
                             txt_list = formatting.get_text_list(commands)
                             event.notice(
-                                "Possible matches: {}".format(txt_list)
+                                f"Possible matches: {txt_list}"
                             )
 
         if event.type in (EventType.message, EventType.action):

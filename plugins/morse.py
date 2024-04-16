@@ -1,5 +1,6 @@
-from cloudbot import hook
 import unidecode
+
+from cloudbot import hook
 
 # Stolen from https://www.geeksforgeeks.org/morse-code-translator-python/
 
@@ -80,7 +81,7 @@ def morse(text):
     try:
         return text2morse(text)
     except CharacterNotFount as e:
-        return "Error: Character not decodable {}".format(e.char)
+        return f"Error: Character not decodable {e.char}"
 
 
 @hook.command("morsetrans")
@@ -89,7 +90,7 @@ def morse2(text):
     try:
         return morse2text(text)
     except CharacterNotFount as e:
-        return "Error: Character not decodable {}".format(e.char)
+        return f"Error: Character not decodable {e.char}"
 
 
 if __name__ == "__main__":

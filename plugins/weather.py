@@ -62,7 +62,7 @@ MI_TO_KM = Fraction(1609344, 1000000)
 
 def bearing_to_card(bearing):
     if bearing > MAX_DEGREES or bearing < 0:
-        raise ValueError("Invalid wind bearing: {}".format(bearing))
+        raise ValueError(f"Invalid wind bearing: {bearing}")
 
     # Derived from values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
     adj_bearing = bearing + BEARING_RANGE
@@ -90,7 +90,7 @@ def mph_to_kph(mph):
 
 class LocationNotFound(Exception):
     def __init__(self, location):
-        super().__init__("Unable to find location {!r}".format(location))
+        super().__init__(f"Unable to find location {location!r}")
         self.location = location
 
 
@@ -244,7 +244,7 @@ def weather(reply, db, triggered_prefix, event):
     ]
 
     current_str = "; ".join(
-        colors.parse("$(b){}$(b): {}$(clear)".format(part[0], part[1]))
+        colors.parse(f"$(b){part[0]}$(b): {part[1]}$(clear)")
         for part in parts
     )
 
@@ -316,7 +316,7 @@ def forecast(reply, db, event):
     ]
 
     day_str = colors.parse("$(b){name}$(b): {summary}; ") + "; ".join(
-        "{}: {}".format(part[0], part[1]) for part in parts
+        f"{part[0]}: {part[1]}" for part in parts
     )
 
     url = web.try_shorten(

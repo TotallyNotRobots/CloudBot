@@ -42,7 +42,7 @@ class ParseError(Exception):
 
     def __init__(self, lookup):
         Exception.__init__(
-            self, """Couldn't parse the website: lookup {0} failed
+            self, """Couldn't parse the website: lookup {} failed
 
 Please report what you did to get this error and this full Python traceback
 to ian@ianweller.org. Thanks!""".format(lookup))
@@ -153,8 +153,8 @@ def get_weather(text, reply):
                                        "low": lows[i],
                                        "weather": forecasts[i]})
 
-    tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + (
-    "{0}{1}?! {2}".format(return_val["current"]["temperature"],
+    tfw = ("The Fucking Weather for " "({})".format(return_val["location"])) + (
+    "{}{}?! {}".format(return_val["current"]["temperature"],
                           DEGREE_SYMBOL,
                           return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])
     return tfw

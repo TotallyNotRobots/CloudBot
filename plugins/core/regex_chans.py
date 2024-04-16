@@ -97,7 +97,7 @@ def change_status(db, event, status):
     elif text.startswith("#"):
         channel = text
     else:
-        channel = "#{}".format(text)
+        channel = f"#{text}"
 
     action = "Enabling" if status else "Disabling"
     event.message(
@@ -107,7 +107,7 @@ def change_status(db, event, status):
         target=channel,
     )
     event.notice(
-        "{} regex matching (youtube, etc) in channel {}".format(action, channel)
+        f"{action} regex matching (youtube, etc) in channel {channel}"
     )
     set_status(
         db, event.conn.name, channel, "ENABLED" if status else "DISABLED"
@@ -136,7 +136,7 @@ def resetregex(text, db, conn, chan, nick, message, notice):
     elif text.startswith("#"):
         channel = text
     else:
-        channel = "#{}".format(text)
+        channel = f"#{text}"
 
     message(
         "Resetting regex matching setting (youtube, etc) (issued by {})".format(
@@ -162,14 +162,14 @@ def regexstatus(text, conn, chan):
     elif text.startswith("#"):
         channel = text
     else:
-        channel = "#{}".format(text)
+        channel = f"#{text}"
     status = status_cache.get((conn.name, chan))
     if status is None:
         if default_enabled:
             status = "ENABLED"
         else:
             status = "DISABLED"
-    return "Regex status for {}: {}".format(channel, status)
+    return f"Regex status for {channel}: {status}"
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
@@ -179,5 +179,5 @@ def listregex(conn):
     for (conn_name, chan), status in status_cache.items():
         if conn_name != conn.name:
             continue
-        values.append("{}: {}".format(chan, status))
+        values.append(f"{chan}: {status}")
     return ", ".join(values)

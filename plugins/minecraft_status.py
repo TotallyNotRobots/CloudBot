@@ -16,7 +16,7 @@ def mcstatus(reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Unable to get Minecraft server status: {}".format(e))
+        reply(f"Unable to get Minecraft server status: {e}")
         raise
 
     # lets just reformat this data to get in a nice format

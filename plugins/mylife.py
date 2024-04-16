@@ -47,7 +47,7 @@ async def fml(reply, loop):
     # grab the last item in the fml cache and remove it
     fml_id, text = fml_cache.pop()
     # reply with the fml we grabbed
-    reply("(#{}) {}".format(fml_id, text))
+    reply(f"(#{fml_id}) {text}")
 
     # refresh fml cache if its getting empty
     if len(fml_cache) < 3:

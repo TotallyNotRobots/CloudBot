@@ -36,11 +36,11 @@ def _rotten_tomatoes(text, bot, reply):
         request = requests.get(movie_search_url, params=params)
         request.raise_for_status()
     except HTTPError as e:
-        reply("Error searching: {}".format(e.response.status_code))
+        reply(f"Error searching: {e.response.status_code}")
         raise
 
     if request.status_code != requests.codes.ok:
-        return "Error searching: {}".format(request.status_code)
+        return f"Error searching: {request.status_code}"
 
     results = request.json()
     if results['total'] == 0:
@@ -66,10 +66,10 @@ def _rotten_tomatoes(text, bot, reply):
     try:
         review_request.raise_for_status()
     except HTTPError as e:
-        reply("Error searching: {}".format(e.response.status_code))
+        reply(f"Error searching: {e.response.status_code}")
         raise
     if review_request.status_code != requests.codes.ok:
-        return "Error searching: {}".format(review_request.status_code)
+        return f"Error searching: {review_request.status_code}"
 
     reviews = review_request.json()
 

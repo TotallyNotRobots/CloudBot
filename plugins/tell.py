@@ -4,16 +4,8 @@ from fnmatch import fnmatch
 from typing import Dict, List, Set, Tuple
 
 import sqlalchemy as sa
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    PrimaryKeyConstraint,
-    String,
-    Table,
-    and_,
-    not_,
-)
+from sqlalchemy import (Boolean, Column, DateTime, PrimaryKeyConstraint,
+                        String, Table, and_, not_)
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -179,8 +171,7 @@ def del_ignore(db, conn, nick, mask):
 
 
 def list_ignores(conn, nick):
-    for mask in ignore_cache[conn.name.lower()][nick.lower()]:
-        yield mask
+    yield from ignore_cache[conn.name.lower()][nick.lower()]
 
 
 def get_unread(db, server, target):
@@ -295,7 +286,7 @@ def showtells(nick, notice, db, conn):
     for tell in tells:
         sender, message, time_sent = tell
         past = timeformat.time_since(time_sent)
-        notice("{} sent you a message {} ago: {}".format(sender, past, message))
+        notice(f"{sender} sent you a message {past} ago: {message}")
 
     read_all_tells(db, conn.name, nick)
 
@@ -325,12 +316,12 @@ def tell_cmd(text, nick, db, conn, mask, event):
         not event.is_nick_valid(target.lower())
         or target.lower() == conn.nick.lower()
     ):
-        event.notice("Invalid nick '{}'.".format(target))
+        event.notice(f"Invalid nick '{target}'.")
         return
 
     if count_unread(db, conn.name, target.lower()) >= 10:
         event.notice(
-            "Sorry, {} has too many messages queued already.".format(target)
+            f"Sorry, {target} has too many messages queued already."
         )
         return
 
@@ -360,12 +351,12 @@ def tell_disable(conn, db, text, nick, event):
     target = text.split()[0]
     if is_disable(conn, target):
         return "Tells are already disabled for {}.".format(
-            "you" if is_self else "{!r}".format(target)
+            "you" if is_self else f"{target!r}"
         )
 
     add_disable(db, conn, nick, target)
     return "Tells are now disabled for {}.".format(
-        "you" if is_self else "{!r}".format(target)
+        "you" if is_self else f"{target!r}"
     )
 
 
@@ -383,12 +374,12 @@ def tell_enable(conn, db, text, event, nick):
     target = text.split()[0]
     if not is_disable(conn, target):
         return "Tells are already enabled for {}.".format(
-            "you" if is_self else "{!r}".format(target)
+            "you" if is_self else f"{target!r}"
         )
 
     del_disable(db, conn, target)
     return "Tells are now enabled for {}.".format(
-        "you" if is_self else "{!r}".format(target)
+        "you" if is_self else f"{target!r}"
     )
 
 
@@ -409,11 +400,11 @@ def tell_ignore(db, conn, nick, text, notice):
     """<mask> - Disallow users matching <mask> from sending you tells"""
     mask = text.split()[0].lower()
     if ignore_exists(conn, nick, mask):
-        notice("You are already ignoring tells from {!r}".format(mask))
+        notice(f"You are already ignoring tells from {mask!r}")
         return
 
     add_ignore(db, conn, nick, mask)
-    notice("You are now ignoring tells from {!r}".format(mask))
+    notice(f"You are now ignoring tells from {mask!r}")
 
 
 @hook.command("tellunignore")
@@ -421,11 +412,11 @@ def tell_unignore(db, conn, nick, text, notice):
     """<mask> - Remove a tell ignore"""
     mask = text.split()[0].lower()
     if not ignore_exists(conn, nick, mask):
-        notice("No ignore matching {!r} exists.".format(mask))
+        notice(f"No ignore matching {mask!r} exists.")
         return
 
     del_ignore(db, conn, nick, mask)
-    notice("{!r} has been unignored".format(mask))
+    notice(f"{mask!r} has been unignored")
 
 
 @hook.command(

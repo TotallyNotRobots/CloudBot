@@ -5,10 +5,10 @@
 
 
 import random
-
-from pydub import AudioSegment
-import requests
 from tempfile import NamedTemporaryFile
+
+import requests
+from pydub import AudioSegment
 
 from cloudbot import hook
 

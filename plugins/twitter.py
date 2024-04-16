@@ -114,7 +114,7 @@ def twitter(text, reply, conn):
             if "404" in e.reason:
                 reply("Could not find tweet.")
             else:
-                reply("Error: {}".format(e.reason))
+                reply(f"Error: {e.reason}")
 
             raise
 
@@ -140,7 +140,7 @@ def twitter(text, reply, conn):
             if "404" in e.reason:
                 reply("Could not find user.")
             else:
-                reply("Error: {}".format(e.reason))
+                reply(f"Error: {e.reason}")
             raise
 
         # get the users tweets
@@ -150,7 +150,7 @@ def twitter(text, reply, conn):
 
         # if the timeline is empty, return an error
         if not user_timeline:
-            return "The user \x02{}\x02 has no tweets.".format(user.screen_name)
+            return f"The user \x02{user.screen_name}\x02 has no tweets."
 
         # grab the newest tweet from the users timeline
         try:
@@ -213,7 +213,7 @@ def twuser(text, reply):
         if "404" in e.reason:
             reply("Could not find user.")
         else:
-            reply("Error: {}".format(e.reason))
+            reply(f"Error: {e.reason}")
         raise
 
     if user.verified:
@@ -222,12 +222,12 @@ def twuser(text, reply):
         prefix = ""
 
     if user.location:
-        loc_str = " is located in \x02{}\x02 and".format(user.location)
+        loc_str = f" is located in \x02{user.location}\x02 and"
     else:
         loc_str = ""
 
     if user.description:
-        desc_str = ' The users description is "{}"'.format(user.description)
+        desc_str = f' The users description is "{user.description}"'
     else:
         desc_str = ""
 

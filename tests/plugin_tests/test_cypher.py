@@ -18,7 +18,7 @@ from plugins import cypher
 )
 def test_encipher(plaintext, key, ciphertext):
     event = MagicMock()
-    assert cypher.cypher("{} {}".format(key, plaintext), event) == ciphertext
+    assert cypher.cypher(f"{key} {plaintext}", event) == ciphertext
 
 
 @pytest.mark.parametrize(
@@ -34,7 +34,7 @@ def test_encipher(plaintext, key, ciphertext):
 )
 def test_decipher(ciphertext, key, plaintext):
     event = MagicMock()
-    assert cypher.decypher("{} {}".format(key, ciphertext), event) == plaintext
+    assert cypher.decypher(f"{key} {ciphertext}", event) == plaintext
 
 
 def test_base64_error():

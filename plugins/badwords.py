@@ -38,7 +38,7 @@ def load_bad(db):
         words.append(word)
 
     new_regex = re.compile(
-        r"(\s|^|[^\w\s])({0})(\s|$|[^\w\s])".format("|".join(words)),
+        r"(\s|^|[^\w\s])({})(\s|$|[^\w\s])".format("|".join(words)),
         re.IGNORECASE,
     )
 
@@ -73,7 +73,7 @@ def add_bad(text, nick, db):
     db.commit()
     load_bad(db)
     wordlist = list_bad(channel)
-    return "Current badwords: {}".format(wordlist)
+    return f"Current badwords: {wordlist}"
 
 
 @hook.command("rmbad", "delbad", permissions=["badwords"])
@@ -120,4 +120,4 @@ def check_badwords(conn, message, chan, content, nick):
     word = match.group().lower().strip()
     if word in badcache[chan]:
         conn.cmd("KICK", chan, nick, "that fucking word is so damn offensive")
-        message("{}, congratulations you've won!".format(nick))
+        message(f"{nick}, congratulations you've won!")

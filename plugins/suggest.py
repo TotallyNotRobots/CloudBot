@@ -20,7 +20,7 @@ def suggest(text, reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Could not get suggestions: {}".format(e))
+        reply(f"Could not get suggestions: {e}")
         raise
 
     page = request.text

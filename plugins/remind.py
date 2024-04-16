@@ -133,7 +133,7 @@ async def check_reminders(bot, async_call, db):
             )
 
             conn.message(user, alert)
-            conn.message(user, '"{}"'.format(message))
+            conn.message(user, f'"{message}"')
 
             delta = current_time - remind_time
             if delta > timedelta(minutes=30):
@@ -168,7 +168,7 @@ async def remind(text, nick, chan, db, conn, event, async_call):
 
         await delete_all(async_call, db, conn.name, nick)
         await load_cache(async_call, db)
-        return "Deleted all ({}) reminders for {}!".format(count, nick)
+        return f"Deleted all ({count}) reminders for {nick}!"
 
     # split the input on the first ":"
     parts = text.split(":", 1)

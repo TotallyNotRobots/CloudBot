@@ -8,14 +8,13 @@ Authors:
 """
 import re
 
+import ety
 import requests
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
 from cloudbot.util.http import parse_soup
-
-import ety
 
 
 @hook.command("etree")
@@ -38,14 +37,14 @@ def etymology(text, reply):
         response.raise_for_status()
     except HTTPError as e:
         if e.response.status_code == 404:
-            return "No etymology found for {} :(".format(text)
+            return f"No etymology found for {text} :("
         reply(
-            "Error reaching etymonline.com: {}".format(e.response.status_code)
+            f"Error reaching etymonline.com: {e.response.status_code}"
         )
         raise
 
     if response.status_code != requests.codes.ok:
-        return "Error reaching etymonline.com: {}".format(response.status_code)
+        return f"Error reaching etymonline.com: {response.status_code}"
 
     soup = parse_soup(response.text)
 

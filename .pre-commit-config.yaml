@@ -2,9 +2,10 @@ ci:
   skip:
   - pylint
   - mypy
+exclude: ^\.vscode/.*$
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 38b88246ccc552bffaaf54259d064beeee434539  # frozen: v4.0.1
+  rev: c4a0b883114b00d8d76b479c820ce7950211c99b  # frozen: v4.5.0
   hooks:
   - id: trailing-whitespace
     args: ['--markdown-linebreak-ext=md,markdown']
@@ -22,7 +23,9 @@ repos:
   - id: check-docstring-first
   - id: check-executables-have-shebangs
   - id: check-json
+    exclude: '.devcontainer/.*'
   - id: pretty-format-json
+    exclude: '.devcontainer/.*'
     args:
     - --indent
     - '4'
@@ -33,18 +36,25 @@ repos:
     args:
     - --remove
 - repo: https://github.com/psf/black
-  rev: e3000ace2fd1fcb1c181bb7a8285f1f976bcbdc7  # frozen: 21.7b0
+  rev: 6fdf8a4af28071ed1d079c01122b34c5d587207a  # frozen: 24.2.0
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: fd5ba70665a37ec301a1f714ed09336048b3be63  # frozen: 5.9.3
+  rev: c235f5e450b4b84e58d114ed4c589cbf454175a3  # frozen: 5.13.2
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
-  rev: 6f51a66bba59954917140ec2eeeaa4d5e630e6ce  # frozen: v1.9.0
+  rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316  # frozen: v1.10.0
   hooks:
   - id: python-no-eval
   - id: python-no-log-warn
+- repo: https://github.com/asottile/pyupgrade
+  rev: df17dfa3911b81b4a27190b0eea5b1debc7ffa0a  # frozen: v3.15.1
+  hooks:
+  - id: pyupgrade
+    args:
+    - "--py38-plus"
+
 - repo: local
   hooks:
   - id: mypy
@@ -61,7 +71,7 @@ repos:
     language: system
     types: [python]
 - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-  rev: a27ba454fd1cfd7ce20b60f5a1aee310fd66df82  # frozen: 0.1.0
+  rev: 8d1b9cadaf854cb25bb0b0f5870e1cc66a083d6b  # frozen: 0.2.3
   hooks:
   - id: yamlfmt
     args:

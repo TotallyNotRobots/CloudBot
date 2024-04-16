@@ -37,7 +37,7 @@ def mode_cmd(mode, action, param, event, mode_warn=True):
         channel = chan
         target = split[0]
 
-    event.notice("Attempting to {} {} in {}...".format(action, target, channel))
+    event.notice(f"Attempting to {action} {target} in {channel}...")
     event.admin_log(
         MODE_CMD_LOG.format(
             nick=nick,
@@ -47,7 +47,7 @@ def mode_cmd(mode, action, param, event, mode_warn=True):
             channel=channel,
         )
     )
-    event.conn.send("MODE {} {} {}".format(channel, mode, target))
+    event.conn.send(f"MODE {channel} {mode} {target}")
 
     return True
 
@@ -64,7 +64,7 @@ def mode_cmd_no_target(mode, action, param, event, mode_warn=True):
     else:
         channel = chan
 
-    event.notice("Attempting to {} {}...".format(action, channel))
+    event.notice(f"Attempting to {action} {channel}...")
     event.admin_log(
         MODE_CMD_NO_TARGET_LOG.format(
             nick=event.nick,
@@ -73,7 +73,7 @@ def mode_cmd_no_target(mode, action, param, event, mode_warn=True):
             channel=channel,
         )
     )
-    event.conn.send("MODE {} {}".format(channel, mode))
+    event.conn.send(f"MODE {channel} {mode}")
     return True
 
 
@@ -88,10 +88,10 @@ def do_extban(char, action, param, event, adding=True):
     if split[0].startswith("#"):
         channel = split[0]
         target = split[1]
-        param = "{} {}{}:{}".format(channel, extban_pfx, char, target)
+        param = f"{channel} {extban_pfx}{char}:{target}"
     else:
         target = split[0]
-        param = "{}{}:{}".format(extban_pfx, char, target)
+        param = f"{extban_pfx}{char}:{target}"
 
     mode_cmd("+b" if adding else "-b", action, param, event)
     return True
@@ -165,7 +165,7 @@ def topic(text, conn, chan, nick, event):
         msg = " ".join(split)
 
     event.admin_log(TOPIC_CHANGE.format(nick=nick, channel=chan, text=msg))
-    conn.send("TOPIC {} :{}".format(chan, msg))
+    conn.send(f"TOPIC {chan} :{msg}")
 
 
 @hook.command(permissions=["op_kick", "op", "chanop"])
@@ -178,19 +178,19 @@ def kick(text, chan, conn, nick, event):
         target = split[1]
         if len(split) > 2:
             reason = " ".join(split[2:])
-            out = "KICK {} {} :{}".format(channel, target, reason)
+            out = f"KICK {channel} {target} :{reason}"
         else:
-            out = "KICK {} {}".format(channel, target)
+            out = f"KICK {channel} {target}"
     else:
         channel = chan
         target = split[0]
         if len(split) > 1:
             reason = " ".join(split[1:])
-            out = "KICK {} {} :{}".format(channel, target, reason)
+            out = f"KICK {channel} {target} :{reason}"
         else:
-            out = "KICK {} {}".format(channel, target)
+            out = f"KICK {channel} {target}"
 
-    event.notice("Attempting to kick {} from {}...".format(target, channel))
+    event.notice(f"Attempting to kick {target} from {channel}...")
     event.admin_log(KICK_LOG.format(nick=nick, target=target, channel=channel))
     conn.send(out)
 
@@ -201,10 +201,10 @@ def remove(text, chan, conn, nick, event):
     split = text.split(" ")
     user = split[0]
     if len(split) > 1:
-        reason = " ".join(split[1:]) + " requested by {}".format(nick)
+        reason = " ".join(split[1:]) + f" requested by {nick}"
     else:
-        reason = "requested by {}.".format(nick)
-    out = "REMOVE {} {} :{}".format(user, chan, reason)
+        reason = f"requested by {nick}."
+    out = f"REMOVE {user} {chan} :{reason}"
     event.admin_log(
         REMOVE_LOG.format(nick=nick, target=user, channel=chan, reason=reason)
     )

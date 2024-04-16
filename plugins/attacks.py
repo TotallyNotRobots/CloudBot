@@ -19,7 +19,7 @@ def is_self(conn, target):
     """Checks if a string is "****self" or contains conn.name."""
     return bool(
         re.search(
-            "(^..?.?.?self|{})".format(re.escape(conn.nick)), target, re.I
+            f"(^..?.?.?self|{re.escape(conn.nick)})", target, re.I
         )
     )
 
@@ -43,7 +43,7 @@ class BasicAttack:
         self.doc = doc
         self.commands = commands or [name]
         if file is None:
-            file = "{}.json".format(name)
+            file = f"{name}.json"
 
         self.file = file
         self.response = response
@@ -188,7 +188,7 @@ def basic_attack(attack):
         target = text
         if target:
             if not is_nick_valid(target):
-                return "I can't {action} that.".format(action=attack.action)
+                return f"I can't {attack.action} that."
 
             if is_self(conn, target):
                 target = nick

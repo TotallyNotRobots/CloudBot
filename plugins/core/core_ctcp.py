@@ -18,7 +18,7 @@ async def ctcp_version(notice, irc_ctcp_text):
             )
         elif command == "PING":
             # Bot should return exactly what the user sends as the ping parameter
-            notice("\x01PING {}\x01".format(params))
+            notice(f"\x01PING {params}\x01")
         elif command == "TIME":
             # General convention is to return the asc time
-            notice("\x01TIME {}\x01".format(datetime.datetime.now().ctime()))
+            notice(f"\x01TIME {datetime.datetime.now().ctime()}\x01")

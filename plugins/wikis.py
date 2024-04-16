@@ -95,7 +95,7 @@ def wikipop(wiki: tuple, chan, nick, user=None) -> str:
     url = page.url
 
     desc = formatting.truncate(desc, MAX_SUMMARY)
-    return "\x02{}\x02 :: {} :: {}".format(title, desc, url)
+    return f"\x02{title}\x02 :: {desc} :: {url}"
 
 
 def search(wiki: tuple, query: str, chan, nick) -> str:

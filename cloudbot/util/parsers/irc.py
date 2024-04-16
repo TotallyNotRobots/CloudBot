@@ -117,7 +117,7 @@ class MessageTag(Parseable):
 
             if value[i] == '\\':
                 if i + 1 >= len(value):
-                    raise ValueError("Unexpected end of string while parsing: {}".format(value))
+                    raise ValueError(f"Unexpected end of string while parsing: {value}")
 
                 new_value += TAG_VALUE_ESCAPES[value[i:i + 2]]
                 found = True

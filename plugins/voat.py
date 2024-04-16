@@ -20,7 +20,7 @@ import isodate
 import requests
 
 from cloudbot import hook
-from cloudbot.util import timeformat, formatting
+from cloudbot.util import formatting, timeformat
 
 voat_re = re.compile(r'.*(((www\.)?voat\.co/v)[^ ]+)', re.I)
 
@@ -61,7 +61,7 @@ def voat_url(match, bot):
     url = match.group(1)
     url = url.split('/')
     print(url)
-    url = "https://voat.co/api/singlesubmission?id={}".format(url[4])
+    url = f"https://voat.co/api/singlesubmission?id={url[4]}"
 
     # the voat API gets grumpy if we don't include headers
     r = requests.get(url, headers=headers)
@@ -110,7 +110,7 @@ def voat(text, bot, loop, reply):
             item = data[id_num]
         except IndexError:
             length = len(data)
-            return "Invalid post number. Number must be between 1 and {}.".format(length)
+            return f"Invalid post number. Number must be between 1 and {length}."
     else:
         item = random.choice(data)
 

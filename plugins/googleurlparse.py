@@ -11,7 +11,7 @@ def google_url(match):
     matches = match.group(1)
     url = matches
 
-    url = "http://{}".format(url)
+    url = f"http://{url}"
     out = (
         "".join(
             [

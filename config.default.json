@@ -99,9 +99,9 @@
             "minimum_messages": 10,
             "minimum_users": 5
         },
-      "speech": {
-          "api": "http://localhost:5000"
-      }
+        "speech": {
+            "api": "http://localhost:5000"
+        }
     },
     "api_keys": {
         "tvdb": "",

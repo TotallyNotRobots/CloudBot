@@ -36,7 +36,7 @@ def decode(password, encoded, event):
     try:
         encoded_bytes = base64.urlsafe_b64decode(encoded.encode()).decode()
     except binascii.Error:
-        event.notice("Invalid input '{}'".format(encoded))
+        event.notice(f"Invalid input '{encoded}'")
         return None
 
     for i, c in enumerate(encoded_bytes):

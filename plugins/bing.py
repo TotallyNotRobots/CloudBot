@@ -5,7 +5,7 @@ from lxml import html
 from requests import HTTPError
 
 from cloudbot import hook
-from cloudbot.util import formatting, filesize, colors
+from cloudbot.util import colors, filesize, formatting
 
 API_URL = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
 
@@ -26,7 +26,7 @@ def unescape(s):
 
 def bingify(s):
     """ because bing has to be an asshole and require special params """
-    return "'{}'".format(s)
+    return f"'{s}'"
 
 
 @hook.command("bing", "b")

@@ -75,7 +75,7 @@ def recipe(text):
             request = requests.get(SEARCH_URL, params={'query': text.strip()})
             request.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            return "Could not get recipe: {}".format(e)
+            return f"Could not get recipe: {e}"
 
         search = bs4.BeautifulSoup(request.text)
 
@@ -99,7 +99,7 @@ def recipe(text):
             request = requests.get(RANDOM_URL)
             request.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            return "Could not get recipe: {}".format(e)
+            return f"Could not get recipe: {e}"
 
         url = request.url
 
@@ -107,10 +107,10 @@ def recipe(text):
     try:
         data = get_data(url)
     except ParseError as e:
-        return "Could not parse recipe: {}".format(e)
+        return f"Could not parse recipe: {e}"
 
     name = data.name.strip()
-    return "Try eating \x02{}!\x02 - {}".format(name, web.try_shorten(url))
+    return f"Try eating \x02{name}!\x02 - {web.try_shorten(url)}"
 
 
 # inspired by http://whatthefuckshouldimakefordinner.com/ <3
@@ -121,14 +121,14 @@ def dinner():
         request = requests.get(RANDOM_URL)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "I CANT GET A DAMN RECIPE: {}".format(e).upper()
+        return f"I CANT GET A DAMN RECIPE: {e}".upper()
 
     url = request.url
 
     try:
         data = get_data(url)
     except ParseError as e:
-        return "I CANT READ THE F**KING RECIPE: {}".format(e).upper()
+        return f"I CANT READ THE F**KING RECIPE: {e}".upper()
 
     name = data.name.strip().upper()
     text = random.choice(PHRASES).format(name)
@@ -136,4 +136,4 @@ def dinner():
     if CENSOR:
         text = text.replace("FUCK", "F**K")
 
-    return "{} - {}".format(text, web.try_shorten(url))
+    return f"{text} - {web.try_shorten(url)}"

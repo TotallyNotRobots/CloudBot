@@ -264,7 +264,7 @@ class Event(Mapping[str, Any]):
             self.conn.message(target, *messages)
         else:
             self.conn.message(
-                target, "({}) {}".format(self.nick, messages[0]), *messages[1:]
+                target, f"({self.nick}) {messages[0]}", *messages[1:]
             )
 
     def action(self, message, target=None):

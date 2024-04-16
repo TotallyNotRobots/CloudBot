@@ -119,7 +119,7 @@ def newegg(text, admin_log, reply):
             headers=headers
         )
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "Unable to find product: {}".format(e)
+        return f"Unable to find product: {e}"
 
     r = request.json()
 

@@ -3,18 +3,8 @@ Notes/todo list
 """
 from datetime import datetime
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    PrimaryKeyConstraint,
-    String,
-    Table,
-    and_,
-    func,
-    not_,
-)
+from sqlalchemy import (Boolean, Column, DateTime, Integer,
+                        PrimaryKeyConstraint, String, Table, and_, func, not_)
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -143,7 +133,7 @@ def note(text, db, event):
     if cmd == "listall":
         return cmd_listall(db, event)
 
-    notice("Unknown command: {}".format(cmd))
+    notice(f"Unknown command: {cmd}")
     return None
 
 
@@ -171,7 +161,7 @@ def cmd_listall(db, event):
         event.notice("You have no notes.")
         return None
 
-    event.notice("All notes for {}:".format(event.nick))
+    event.notice(f"All notes for {event.nick}:")
     for n in notes:
         # show the note
         text = format_note(n)
@@ -187,7 +177,7 @@ def cmd_list(db, event):
         event.notice("You have no notes.")
         return None
 
-    event.notice("All notes for {}:".format(event.nick))
+    event.notice(f"All notes for {event.nick}:")
     for n in notes:
         # show the note
         text = format_note(n)
@@ -205,7 +195,7 @@ def cmd_show(args, db, event):
     note_id = args[0]
     n = read_note(db, event.conn.name, event.nick, note_id)
     if not n:
-        event.notice("{} is not a valid note ID.".format(note_id))
+        event.notice(f"{note_id} is not a valid note ID.")
         return None
 
     # show the note
@@ -230,12 +220,12 @@ def cmd_del(args, db, event):
     note_id = args[0]
     n = read_note(db, event.conn.name, event.nick, note_id)
     if not n:
-        event.notice("#{} is not a valid note ID.".format(note_id))
+        event.notice(f"#{note_id} is not a valid note ID.")
         return None
 
     # now we delete it
     delete_note(db, event.conn.name, event.nick, note_id)
-    event.notice("Note #{} deleted!".format(note_id))
+    event.notice(f"Note #{note_id} deleted!")
     return None
 
 

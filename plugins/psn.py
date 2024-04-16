@@ -2,10 +2,11 @@
 # Author: Matheus Fillipe
 # Date: 24/09/2022
 
-import requests
-from urllib.parse import quote
-from typing import List
 from dataclasses import dataclass
+from typing import List
+from urllib.parse import quote
+
+import requests
 from bs4 import BeautifulSoup
 
 from cloudbot import hook

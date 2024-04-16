@@ -8,7 +8,7 @@ from cloudbot import hook
 def RUADICK(text, message):
     """<username> - checks ruadick.com to see if you're a dick on reddit"""
     DickCheck = text.strip()
-    dickstatus = requests.get('http://www.ruadick.com/user/{}'.format(DickCheck))
+    dickstatus = requests.get(f'http://www.ruadick.com/user/{DickCheck}')
     dickstatus.raise_for_status()
     DickSoup = BeautifulSoup(dickstatus.content, 'lxml')
     Dickstr = str(DickSoup.h2)
@@ -18,4 +18,4 @@ def RUADICK(text, message):
     if dickstrip == 'None':
         message('I can\'t find that user')
     else:
-        message('{} {}'.format(dickstrip, dickstatus.url))
+        message(f'{dickstrip} {dickstatus.url}')

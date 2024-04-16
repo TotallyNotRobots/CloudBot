@@ -469,7 +469,7 @@ class TestConnect:
                 return
 
             runs += 1
-            raise socket.error("foo")
+            raise OSError("foo")
 
         client.connect = connect  # type: ignore
         await client.try_connect()

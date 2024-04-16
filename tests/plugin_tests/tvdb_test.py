@@ -95,10 +95,10 @@ def generate_pages(mock_requests, url, count=5, per_page=5):
 
         mock_requests.add(
             "GET",
-            url + "?page={}".format(i),
+            url + f"?page={i}",
             match_querystring=True,
             json={
-                "data": [{"id": "{}.{}".format(i, j)} for j in range(per_page)],
+                "data": [{"id": f"{i}.{j}"} for j in range(per_page)],
                 "links": links,
             },
         )

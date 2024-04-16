@@ -52,7 +52,7 @@ def get_data(user, currency="us"):
         requests.exceptions.ConnectionError,
     ) as e:
         if cfscrape:
-            raise SteamError("Could not get user info: {}".format(e)) from e
+            raise SteamError(f"Could not get user info: {e}") from e
         else:
             raise SteamError(
                 "Could not get user info: {} (You may have been blocked by CloudFlare, try installing the "
@@ -107,7 +107,7 @@ def steamcalc(text, reply):
     try:
         data = get_data(user)
     except SteamError as e:
-        reply("{}".format(e))
+        reply(f"{e}")
         raise
 
     data["short_url"] = web.try_shorten(data["url"])

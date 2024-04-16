@@ -32,4 +32,4 @@ def cats(reply, bot):
 def catgifs(reply, bot):
     """- gets a fucking cat gif."""
     r = get_data("http://marume.herokuapp.com/random.gif", reply, bot)
-    return "OMG A CAT GIF: {}".format(r.url)
+    return f"OMG A CAT GIF: {r.url}"

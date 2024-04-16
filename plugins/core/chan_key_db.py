@@ -8,7 +8,8 @@ from itertools import zip_longest
 from typing import Any, Dict, List, Optional
 
 from irclib.parser import Message
-from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_, select
+from sqlalchemy import (Column, PrimaryKeyConstraint, String, Table, and_,
+                        select)
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import BooleanClauseList, ClauseElement
 

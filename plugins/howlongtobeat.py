@@ -89,7 +89,7 @@ def howlongtobeat(text, nick, chan):
     json_data['searchTerms'] = text.split()
     response = requests.post(URL, headers=headers, json=json_data)
     if not response.ok:
-        return 'Error: {}'.format(response.status_code)
+        return f'Error: {response.status_code}'
     results_queue[chan][nick] = [Game(
         data["game_name"],
         GAME_URL.format(data["game_id"]),

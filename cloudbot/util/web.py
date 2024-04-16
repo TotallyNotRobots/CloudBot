@@ -18,10 +18,11 @@ import logging
 import time
 from operator import attrgetter
 from typing import Optional
-from cloudbot.bot import bot
 
 import requests
 from requests import HTTPError, PreparedRequest, RequestException, Response
+
+from cloudbot.bot import bot
 
 # Constants
 DEFAULT_SHORTENER = "is.gd"
@@ -172,7 +173,7 @@ class ServiceHTTPError(ServiceError):
     def __init__(self, message: str, response: Response):
         super().__init__(
             response.request,
-            "[HTTP {}] {}".format(response.status_code, message),
+            f"[HTTP {response.status_code}] {message}",
         )
         self.message = message
         self.response = response

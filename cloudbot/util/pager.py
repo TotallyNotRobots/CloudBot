@@ -58,7 +58,7 @@ class Pager:
     def format_chunk(self, chunk, pagenum):
         chunk = list(chunk)
         if len(self.chunks) > 1:
-            chunk[-1] += " (page {}/{})".format(pagenum + 1, len(self.chunks))
+            chunk[-1] += f" (page {pagenum + 1}/{len(self.chunks)})"
 
         return chunk
 

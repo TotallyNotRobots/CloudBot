@@ -177,7 +177,7 @@ def prepare_url(url, queries):
         query = dict(urllib.parse.parse_qsl(query))
         query.update(queries)
         query = urllib.parse.urlencode(
-            dict((to_utf8(key), to_utf8(value)) for key, value in query.items())
+            {to_utf8(key): to_utf8(value) for key, value in query.items()}
         )
 
         url = urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))

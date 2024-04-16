@@ -87,7 +87,7 @@ def parse_or_lookup(text, db, nick, event):
         sign = sign.strip().lower()
 
     if sign not in SIGN_MAP:
-        event.notice("Unknown sign: {}".format(sign))
+        event.notice(f"Unknown sign: {sign}")
         return None, None
 
     return sign, dontsave
@@ -147,7 +147,7 @@ def horoscope(text, db, bot, nick, event):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        event.reply("Could not get horoscope: {}. URL Error".format(e))
+        event.reply(f"Could not get horoscope: {e}. URL Error")
         raise
 
     try:

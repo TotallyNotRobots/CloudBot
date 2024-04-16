@@ -85,7 +85,7 @@ def qrcode(text):
 
     argstring = urllib.parse.urlencode(args)
 
-    link = "http://chart.googleapis.com/chart?{}".format(argstring)
+    link = f"http://chart.googleapis.com/chart?{argstring}"
     return web.try_shorten(link)
 
 
@@ -154,7 +154,7 @@ def base64_decode(text, notice):
     try:
         decoded = base64.b64decode(text.encode()).decode(errors="ignore")
     except binascii.Error:
-        notice("Invalid base64 string '{}'".format(text))
+        notice(f"Invalid base64 string '{text}'")
         return None
 
     if repr(decoded)[1:-1] != decoded:
@@ -172,9 +172,9 @@ def base64_check(text):
     try:
         base64.b64decode(text.encode())
     except binascii.Error:
-        return "'{}' is not a valid base64 encoded string".format(text)
+        return f"'{text}' is not a valid base64 encoded string"
     else:
-        return "'{}' is a valid base64 encoded string".format(text)
+        return f"'{text}' is a valid base64 encoded string"
 
 
 @hook.command()
@@ -197,7 +197,7 @@ def escape(text):
 @hook.command()
 def length(text):
     """<string> - Gets the length of <string>"""
-    return "The length of that string is {} characters.".format(len(text))
+    return f"The length of that string is {len(text)} characters."
 
 
 # reverse

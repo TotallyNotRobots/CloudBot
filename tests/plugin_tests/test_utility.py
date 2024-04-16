@@ -215,9 +215,9 @@ def test_base64_decode(text, out):
 def test_base64_check(text, valid):
     ret = utility.base64_check(text)
     if valid:
-        assert ret == "'{}' is a valid base64 encoded string".format(text)
+        assert ret == f"'{text}' is a valid base64 encoded string"
     else:
-        assert ret == "'{}' is not a valid base64 encoded string".format(text)
+        assert ret == f"'{text}' is not a valid base64 encoded string"
 
 
 @pytest.mark.parametrize("text,output", ESCAPE_DATA)
@@ -259,7 +259,7 @@ def test_reverse(text, output):
 def test_length(text, text_length):
     assert utility.length(
         text
-    ) == "The length of that string is {} characters.".format(text_length)
+    ) == f"The length of that string is {text_length} characters."
 
 
 @pytest.mark.parametrize(

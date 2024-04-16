@@ -1,6 +1,6 @@
 import responses
 
-from plugins.fishbans import fishbans, bancount
+from plugins.fishbans import bancount, fishbans
 
 test_user = "notch"
 

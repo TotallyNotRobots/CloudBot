@@ -1,7 +1,8 @@
 import asyncio
 from fnmatch import fnmatch
 
-from sqlalchemy import Table, Column, UniqueConstraint, PrimaryKeyConstraint, String, Boolean
+from sqlalchemy import (Boolean, Column, PrimaryKeyConstraint, String, Table,
+                        UniqueConstraint)
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -113,10 +114,10 @@ def ignore(text, db, chan, conn, notice, admin_log, nick):
     target = get_user(conn, text)
 
     if is_ignored(conn.name, chan, target):
-        notice("{} is already ignored in {}.".format(target, chan))
+        notice(f"{target} is already ignored in {chan}.")
     else:
-        admin_log("{} used IGNORE to make me ignore {} in {}".format(nick, target, chan))
-        notice("{} has been ignored in {}.".format(target, chan))
+        admin_log(f"{nick} used IGNORE to make me ignore {target} in {chan}")
+        notice(f"{target} has been ignored in {chan}.")
         add_ignore(db, conn.name, chan, target)
 
 
@@ -126,10 +127,10 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     target = get_user(conn, text)
 
     if not is_ignored(conn.name, chan, target):
-        notice("{} is not ignored in {}.".format(target, chan))
+        notice(f"{target} is not ignored in {chan}.")
     else:
-        admin_log("{} used UNIGNORE to make me stop ignoring {} in {}".format(nick, target, chan))
-        notice("{} has been un-ignored in {}.".format(target, chan))
+        admin_log(f"{nick} used UNIGNORE to make me stop ignoring {target} in {chan}")
+        notice(f"{target} has been un-ignored in {chan}.")
         remove_ignore(db, conn.name, chan, target)
 
 
@@ -139,10 +140,10 @@ def global_ignore(text, db, conn, notice, nick, admin_log):
     target = get_user(conn, text)
 
     if is_ignored(conn.name, "*", target):
-        notice("{} is already globally ignored.".format(target))
+        notice(f"{target} is already globally ignored.")
     else:
-        notice("{} has been globally ignored.".format(target))
-        admin_log("{} used GLOBAL_IGNORE to make me ignore {} everywhere".format(nick, target))
+        notice(f"{target} has been globally ignored.")
+        admin_log(f"{nick} used GLOBAL_IGNORE to make me ignore {target} everywhere")
         add_ignore(db, conn.name, "*", target)
 
 
@@ -152,8 +153,8 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
     target = get_user(conn, text)
 
     if not is_ignored(conn.name, "*", target):
-        notice("{} is not globally ignored.".format(target))
+        notice(f"{target} is not globally ignored.")
     else:
-        notice("{} has been globally un-ignored.".format(target))
-        admin_log("{} used GLOBAL_UNIGNORE to make me stop ignoring {} everywhere".format(nick, target))
+        notice(f"{target} has been globally un-ignored.")
+        admin_log(f"{nick} used GLOBAL_UNIGNORE to make me stop ignoring {target} everywhere")
         remove_ignore(db, conn.name, "*", target)

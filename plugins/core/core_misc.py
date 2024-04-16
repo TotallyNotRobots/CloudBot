@@ -86,7 +86,7 @@ async def onjoin(conn, bot):
             else:
                 conn.message(
                     nickserv_name,
-                    "{} {}".format(nickserv_command, nickserv_password),
+                    f"{nickserv_command} {nickserv_password}",
                 )
             if "censored_strings" in bot.config:
                 bot.config["censored_strings"].append(nickserv_password)
@@ -96,7 +96,7 @@ async def onjoin(conn, bot):
     oper_pw = conn.config.get("oper_pw", False)
     oper_user = conn.config.get("oper_user", False)
     if oper_pw and oper_user:
-        out = "OPER {} {}".format(oper_user, oper_pw)
+        out = f"OPER {oper_user} {oper_pw}"
         conn.send(out)
         # Make sure we finish oper-ing before continuing
         await asyncio.sleep(1)

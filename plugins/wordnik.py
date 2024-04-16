@@ -4,9 +4,9 @@ import re
 import urllib.parse
 from json import JSONDecodeError
 from typing import Any, Dict, Iterable, List, Optional, Tuple, cast
-from bs4 import BeautifulSoup
 
 import requests
+from bs4 import BeautifulSoup
 
 from cloudbot import hook
 from cloudbot.bot import bot
@@ -56,7 +56,7 @@ class WordNotFound(WordnikAPIError):
 
 class NoValidResults(WordnikAPIError):
     def __init__(self, term, results):
-        super().__init__("No valid results found for {!r}".format(term))
+        super().__init__(f"No valid results found for {term!r}")
         self.term = term
         self.results = results
 
@@ -76,7 +76,7 @@ def raise_error(data):
     try:
         err = ERROR_MAP[error]()
     except KeyError:
-        err = WordnikAPIError("Unknown error {!r}".format(error))
+        err = WordnikAPIError(f"Unknown error {error!r}")
 
     raise err
 
@@ -314,7 +314,7 @@ def pronounce(text, event):
         raise
     else:
         url = web.try_shorten(audio_response["fileUrl"])
-        out += " - {}".format(url)
+        out += f" - {url}"
 
     return out
 

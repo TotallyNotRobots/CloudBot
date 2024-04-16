@@ -2,8 +2,10 @@
 # Date: 29/10/2022
 # Description: Simple APIs with Python that don't even require auth
 
-import requests
 from time import time
+
+import requests
+
 from cloudbot import hook
 
 GETS = {

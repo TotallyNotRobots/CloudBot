@@ -37,7 +37,7 @@ def octopart(text, reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Could not fetch part data: {}".format(e))
+        reply(f"Could not fetch part data: {e}")
         raise
 
     response = request.json()

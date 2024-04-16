@@ -36,7 +36,7 @@ def mcuser(text, bot, reply):
             requests.exceptions.ConnectionError,
             KeyError,
         ) as e:
-            reply("Could not get username from UUID: {}".format(e))
+            reply(f"Could not get username from UUID: {e}")
             raise
     else:
         name = text
@@ -51,7 +51,7 @@ def mcuser(text, bot, reply):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        reply("Could not get profile status: {}".format(e))
+        reply(f"Could not get profile status: {e}")
         raise
 
     # read the fishbans data

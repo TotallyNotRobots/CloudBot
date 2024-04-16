@@ -2,11 +2,12 @@
 #
 #   DuckDuckGo Search Results API
 #
-from bs4 import BeautifulSoup
 from sys import argv
 from urllib.error import HTTPError
 from urllib.parse import quote, unquote, urlparse
 from urllib.request import Request, urlopen
+
+from bs4 import BeautifulSoup
 
 DEFAULT_USER_AGENT='Mozilla/5.0'
 
@@ -93,7 +94,7 @@ def search(query):
 
     # Make search request.
     response = request(f'{searchURL}{query}')
-    
+
     # Parse response html.
     soup = makeSoup(response)
 
@@ -103,7 +104,7 @@ def search(query):
     # Parse out each search result from the <div id='links'>
     searchResults = searchResults.find_all('div', match['result'])
 
-    
+
     results = []
     # Parse descritpion, link from the searchResults list.
     for result in searchResults:
@@ -124,4 +125,3 @@ if __name__ == '__main__':
         print(result['text'])
         print(result['url'])
         print('---')
-

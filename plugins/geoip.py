@@ -1,7 +1,8 @@
-import re
 import asyncio
-import socket
 import logging
+import re
+import socket
+
 import requests
 
 from cloudbot import hook
@@ -23,7 +24,7 @@ def geoip(text, loop, reply):
 
     response = requests.get(URL.format(ip))
     if not response.ok:
-        return "Error: {}".format(response.status_code)
+        return f"Error: {response.status_code}"
 
     data = response.json()
 

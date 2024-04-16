@@ -147,13 +147,13 @@ def metacritic(text, reply, chan, nick):
 
     title_safe = requests.utils.quote(title)
 
-    url = "http://www.metacritic.com/search/{}/{}/results".format(cat, title_safe)
+    url = f"http://www.metacritic.com/search/{cat}/{title_safe}/results"
 
     try:
         request = requests.get(url, headers=headers)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        reply("Could not get Metacritic info: {}".format(e))
+        reply(f"Could not get Metacritic info: {e}")
         raise
 
     doc = html.fromstring(request.text)

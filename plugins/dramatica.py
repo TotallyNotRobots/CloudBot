@@ -23,11 +23,11 @@ def drama(text, reply):
     try:
         search_response.raise_for_status()
     except HTTPError:
-        reply("Error searching: {}".format(search_response.status_code))
+        reply(f"Error searching: {search_response.status_code}")
         raise
 
     if search_response.status_code != requests.codes.ok:
-        return "Error searching: {}".format(search_response.status_code)
+        return f"Error searching: {search_response.status_code}"
 
     data = search_response.json()
 
@@ -42,11 +42,11 @@ def drama(text, reply):
     try:
         page_response.raise_for_status()
     except HTTPError:
-        reply("Error getting page: {}".format(page_response.status_code))
+        reply(f"Error getting page: {page_response.status_code}")
         raise
 
     if page_response.status_code != requests.codes.ok:
-        return "Error getting page: {}".format(page_response.status_code)
+        return f"Error getting page: {page_response.status_code}"
 
     page = html.fromstring(page_response.text)
 
@@ -55,6 +55,6 @@ def drama(text, reply):
             summary = " ".join(p.text_content().splitlines())
             summary = re.sub(r"\[\d+\]", "", summary)
             summary = formatting.truncate(summary, 220)
-            return "{} - {}".format(summary, url)
+            return f"{summary} - {url}"
 
     return "Unknown Error."

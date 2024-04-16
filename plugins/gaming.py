@@ -61,7 +61,7 @@ def dice(text, event):
     """<dice roll> - simulates dice rolls. Example: 'dice 2d20-d5+4 roll 2': D20s, subtract 1D5, add 4"""
     match = valid_diceroll.match(text)
     if not match:
-        event.notice("Invalid dice roll '{}'".format(text))
+        event.notice(f"Invalid dice roll '{text}'")
         return None
 
     text, desc = match.groups()
@@ -132,7 +132,7 @@ def coin(text, notice, action):
         try:
             amount = int(text)
         except (ValueError, TypeError):
-            notice("Invalid input '{}': not a number".format(text))
+            notice(f"Invalid input '{text}': not a number")
             return None
     else:
         amount = 1

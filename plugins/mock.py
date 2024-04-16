@@ -22,9 +22,9 @@ def mock(text, chan, conn, message):
     line = get_latest_line(text, conn, chan, nick)
     if line is None:
         if not text:
-            return "Nothing found in recent history for {}".format(nick)
+            return f"Nothing found in recent history for {nick}"
         else:
-            return "Nothing found in recent history for {} containing '{}'".format(nick, text)
+            return f"Nothing found in recent history for {nick} containing '{text}'"
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"

@@ -6,7 +6,7 @@ server_info.py
 """
 import gc
 import weakref
-from collections import Mapping
+from collections.abc import Mapping
 from contextlib import suppress
 from operator import attrgetter
 from weakref import WeakValueDictionary
@@ -235,7 +235,7 @@ def dump_dict(data, indent=2, level=0, _objects=None):
         _objects = [id(data)]
 
     for key, value in data.items():
-        yield ((" " * (indent * level)) + "{}:".format(key))
+        yield ((" " * (indent * level)) + f"{key}:")
         if id(value) in _objects:
             yield ((" " * (indent * (level + 1))) + "[...]")
         elif isinstance(value, Mapping):
@@ -243,7 +243,7 @@ def dump_dict(data, indent=2, level=0, _objects=None):
             yield from dump_dict(value, indent=indent, level=level + 1, _objects=_objects)
         else:
             _objects.append(id(value))
-            yield ((" " * (indent * (level + 1))) + "{}".format(value))
+            yield ((" " * (indent * (level + 1))) + f"{value}")
 
 
 @hook.permission("chanop")
@@ -275,7 +275,7 @@ def dumpchans(conn):
     data = conn.memory["chan_data"]
     lines = list(dump_dict(data))
     print('\n'.join(lines))
-    return "Printed {} channel records totalling {} lines of data to the console.".format(len(data), len(lines))
+    return f"Printed {len(data)} channel records totalling {len(lines)} lines of data to the console."
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
@@ -284,7 +284,7 @@ def dumpusers(conn):
     data = conn.memory["users"]
     lines = list(dump_dict(data))
     print('\n'.join(lines))
-    return "Printed {} user records totalling {} lines of data to the console.".format(len(data), len(lines))
+    return f"Printed {len(data)} user records totalling {len(lines)} lines of data to the console."
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)

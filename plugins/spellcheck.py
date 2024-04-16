@@ -24,7 +24,7 @@ def spell(text):
             # get some suggestions for it
             suggestions = err.suggest()
             s_string = '/'.join(suggestions[:3])
-            s_string = "\x02{}\x02".format(s_string)
+            s_string = f"\x02{s_string}\x02"
             # calculate the offset for the next word
             offset = (offset + len(s_string)) - len(err.word)
             # replace the word with the suggestions

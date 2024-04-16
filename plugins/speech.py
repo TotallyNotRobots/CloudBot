@@ -8,7 +8,6 @@ import urllib.parse
 from pprint import pformat
 
 import requests
-
 import validators
 
 from cloudbot import hook

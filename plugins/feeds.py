@@ -45,7 +45,7 @@ ALIASES = {
 def format_item(item):
     url = web.try_shorten(item.link)
     title = formatting.strip_html(item.title)
-    return "{} ({})".format(title, url)
+    return f"{title} ({url})"
 
 
 @hook.command("feed", "rss")
@@ -69,7 +69,7 @@ def rss(text):
         out.append(format_item(item))
 
     if "title" in feed.feed:
-        start = "\x02{}\x02: ".format(feed.feed.title)
+        start = f"\x02{feed.feed.title}\x02: "
     else:
         start = ""
 

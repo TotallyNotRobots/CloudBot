@@ -12,7 +12,7 @@ def fact(reply):
     fact_type = random.choice(types)
     try:
         json = http.get_json(
-            "http://numbersapi.com/random/{}?json".format(fact_type)
+            f"http://numbersapi.com/random/{fact_type}?json"
         )
     except Exception:
         reply("There was an error contacting the numbersapi.com API.")

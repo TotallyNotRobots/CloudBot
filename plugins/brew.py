@@ -20,7 +20,7 @@ def brew(text, reply):
     try:
         request.raise_for_status()
     except HTTPError:
-        reply("Failed to fetch info ({})".format(request.status_code))
+        reply(f"Failed to fetch info ({request.status_code})")
         raise
 
     response = request.json()

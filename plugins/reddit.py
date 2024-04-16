@@ -6,7 +6,7 @@ import requests
 from yarl import URL
 
 from cloudbot import hook
-from cloudbot.util import timeformat, formatting
+from cloudbot.util import formatting, timeformat
 
 reddit_re = re.compile(
     r"""
@@ -114,7 +114,7 @@ def reddit(text, bot, reply):
             item = data[id_num]
         except IndexError:
             length = len(data)
-            return "Invalid post number. Number must be between 1 and {}.".format(length)
+            return f"Invalid post number. Number must be between 1 and {length}."
     else:
         item = random.choice(data)
 

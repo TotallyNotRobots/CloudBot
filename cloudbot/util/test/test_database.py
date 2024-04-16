@@ -1,4 +1,4 @@
-from cloudbot.util.database import metadata, base
+from cloudbot.util.database import base, metadata
 
 
 def test_database():

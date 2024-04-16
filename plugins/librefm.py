@@ -28,7 +28,7 @@ def api_request(method, **params):
     request = requests.get(api_url, params=params)
 
     if request.status_code != requests.codes.ok:
-        return None, "Failed to fetch info ({})".format(request.status_code)
+        return None, f"Failed to fetch info ({request.status_code})"
 
     response = request.json()
     return response, None
@@ -86,7 +86,7 @@ def librefm(text, nick, db, event):
         "track" not in response["recenttracks"]
         or response["recenttracks"]["track"]
     ):
-        return 'No recent tracks for user "{}" found.'.format(user)
+        return f'No recent tracks for user "{user}" found.'
 
     tracks = response["recenttracks"]["track"]
 
@@ -114,7 +114,7 @@ def librefm(text, nick, db, event):
         # lets see how long ago they listened to it
         time_listened = datetime.fromtimestamp(int(track["date"]["uts"]))
         time_since = timeformat.time_since(time_listened)
-        ending = " ({} ago)".format(time_since)
+        ending = f" ({time_since} ago)"
 
     else:
         return "error: could not parse track listing"
@@ -125,15 +125,15 @@ def librefm(text, nick, db, event):
     url = web.try_shorten(track["url"])
     tags = getartisttags(artist)
 
-    out = '{} {} "{}"'.format(user, status, title)
+    out = f'{user} {status} "{title}"'
     if artist:
-        out += " by \x02{}\x0f".format(artist)
+        out += f" by \x02{artist}\x0f"
     if album:
-        out += " from the album \x02{}\x0f".format(album)
+        out += f" from the album \x02{album}\x0f"
     if url:
-        out += " {}".format(url)
+        out += f" {url}"
 
-    out += " ({})".format(tags)
+    out += f" ({tags})"
 
     # append ending based on what type it was
     out += ending
@@ -153,7 +153,7 @@ def librefm(text, nick, db, event):
 def getartisttags(artist):
     tags, err = api_request("artist.getTopTags", artist=artist)
     if err:
-        return "error returning tags ({})".format(err)
+        return f"error returning tags ({err})"
 
     try:
         tag = tags["toptags"]["tag"]
@@ -200,8 +200,8 @@ def displaybandinfo(text, bot):
 
     out = "{}: ".format(a["name"])
     out += summary if summary else "No artist summary listed."
-    out += " {}".format(url)
-    out += " ({})".format(tags)
+    out += f" {url}"
+    out += f" ({tags})"
 
     return out
 
@@ -242,7 +242,7 @@ def toptrack(text, nick):
     if "error" in data:
         return "Error: {}.".format(data["message"])
 
-    out = "{}'s favorite songs: ".format(username)
+    out = f"{username}'s favorite songs: "
     for r in range(5):
         track_name = data["toptracks"]["track"][r]["name"]
         artist_name = data["toptracks"]["track"][r]["artist"]["name"]
@@ -274,7 +274,7 @@ def libretopartists(text, nick):
     if "error" in data:
         return "Error: {}.".format(data["message"])
 
-    out = "{}'s favorite artists: ".format(username)
+    out = f"{username}'s favorite artists: "
     for r in range(5):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
@@ -332,9 +332,9 @@ def topartists(text, nick, period):
     else:
         range_count = 10
 
-    out = "{}'s favorite artists: ".format(username)
+    out = f"{username}'s favorite artists: "
     for r in range(range_count):
         artist_name = data["topartists"]["artist"][r]["name"]
         play_count = data["topartists"]["artist"][r]["playcount"]
-        out += "{} [{:,}] ".format(artist_name, int(play_count))
+        out += f"{artist_name} [{int(play_count):,}] "
     return out

@@ -1,11 +1,11 @@
+import io
 import socket
 from base64 import b64decode
 
 import requests
-import io
 
-from cloudbot.bot import bot
 from cloudbot import hook
+from cloudbot.bot import bot
 
 API = "https://api.funtranslations.com/translate"
 

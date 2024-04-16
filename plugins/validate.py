@@ -27,7 +27,7 @@ def validate(text):
     request.raise_for_status()
 
     if request.status_code != requests.codes.ok:
-        return "Failed to fetch info: {}".format(request.status_code)
+        return f"Failed to fetch info: {request.status_code}"
 
     response = request.json()
     response = response["messages"]

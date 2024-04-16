@@ -11,7 +11,7 @@ class BasicFood:
         self.name = name
         self.unit = unit
         self.commands = commands or (name,)
-        self.file = file or "{}.json".format(self.name)
+        self.file = file or f"{self.name}.json"
 
 
 BASIC_FOOD = (
@@ -102,13 +102,13 @@ def basic_format(nick, text, data, **kwargs):
 def basic_food(food):
     def func(text, nick, action, is_nick_valid):
         if not is_nick_valid(text):
-            return "I can't give {} to that user.".format(food.unit)
+            return f"I can't give {food.unit} to that user."
 
         action(basic_format(nick, text, basic_food_data[food.name]))
         return None
 
     func.__name__ = food.name
-    func.__doc__ = "<user> - gives {} to [user]".format(food.unit)
+    func.__doc__ = f"<user> - gives {food.unit} to [user]"
     return func
 
 

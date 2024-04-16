@@ -70,7 +70,7 @@ class _CommandHook(_Hook):
             self.main_alias = alias_param[0]
         for alias in alias_param:
             if not valid_command_re.match(alias):
-                raise ValueError("Invalid command name {}".format(alias))
+                raise ValueError(f"Invalid command name {alias}")
         self.aliases.update(alias_param)
 
 
@@ -145,7 +145,7 @@ class _EventHook(_Hook):
 
 class _CapHook(_Hook):
     def __init__(self, func, _type):
-        super().__init__(func, "on_cap_{}".format(_type))
+        super().__init__(func, f"on_cap_{_type}")
         self.caps = set()
 
     def add_hook(self, caps, kwargs):

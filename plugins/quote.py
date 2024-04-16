@@ -2,16 +2,8 @@ import random
 import re
 import time
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    PrimaryKeyConstraint,
-    String,
-    Table,
-    func,
-    not_,
-    select,
-)
+from sqlalchemy import (Boolean, Column, PrimaryKeyConstraint, String, Table,
+                        func, not_, select)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.types import REAL
 
@@ -124,7 +116,7 @@ def get_quote_num(num, count, name):
     if num:  # Make sure num is a number if it isn't false
         num = int(num)
     if count == 0:  # Error on no quotes
-        raise Exception("No quotes found for {}.".format(name))
+        raise Exception(f"No quotes found for {name}.")
     if num and num < 0:  # Count back if possible
         num = count + num + 1 if num + count > -1 else count + 1
     if num and num > count:  # If there are not enough quotes, raise an error
@@ -161,7 +153,7 @@ def get_quote_by_nick(db, nick, num=False):
         .where(qtable.c.nick == nick.lower())
         .order_by(qtable.c.time)
         .limit(1)
-        .offset((num - 1))
+        .offset(num - 1)
     )
     data = db.execute(query).fetchall()[0]
     return format_quote(data, num, count)
@@ -189,7 +181,7 @@ def get_quote_by_nick_chan(db, chan, nick, num=False):
         .where(qtable.c.nick == nick.lower())
         .order_by(qtable.c.time)
         .limit(1)
-        .offset((num - 1))
+        .offset(num - 1)
     )
     data = db.execute(query).fetchall()[0]
     return format_quote(data, num, count)
@@ -215,7 +207,7 @@ def get_quote_by_chan(db, chan, num=False):
         .where(qtable.c.chan == chan)
         .order_by(qtable.c.time)
         .limit(1)
-        .offset((num - 1))
+        .offset(num - 1)
     )
     data = db.execute(query).fetchall()[0]
     return format_quote(data, num, count)

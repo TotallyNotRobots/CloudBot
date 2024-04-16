@@ -21,7 +21,7 @@ def snopes(text):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        return "Error finding results: {}".format(e)
+        return f"Error finding results: {e}"
 
     search_page = html.fromstring(request.text)
     result_urls = search_page.xpath("//a[@target='_self']/@href")
@@ -36,7 +36,7 @@ def snopes(text):
         requests.exceptions.HTTPError,
         requests.exceptions.ConnectionError,
     ) as e:
-        return "Error finding results: {}".format(e)
+        return f"Error finding results: {e}"
 
     snopes_page = html.fromstring(_request.text)
     snopes_text = snopes_page.text_content()
@@ -58,4 +58,4 @@ def snopes(text):
 
     url = web.try_shorten(result_urls[0])
 
-    return '"{}" {} - {}'.format(claim, status, url)
+    return f'"{claim}" {status} - {url}'

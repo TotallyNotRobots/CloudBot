@@ -119,13 +119,13 @@ def imgur(text):
     # if the search was a subreddit search, add the reddit comment link
     if is_reddit:
         reddit_url = web.try_shorten("http://reddit.com" + item.reddit_comments)
-        url = "{} ({})".format(item.link, reddit_url)
+        url = f"{item.link} ({reddit_url})"
     else:
-        url = "{}".format(item.link)
+        url = f"{item.link}"
 
     tag_str = "[\x02" + ("\x02, \x02".join(tags)) + "\x02] " if tags else ""
 
-    return '{}"{}" - {}'.format(tag_str, title, url)
+    return f'{tag_str}"{title}" - {url}'
 
 
 @hook.command("imguralbum", "multiimgur", "imgalbum", "album", autohelp=False)

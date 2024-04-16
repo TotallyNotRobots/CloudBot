@@ -30,7 +30,7 @@ def pre(text, reply):
         request = requests.get("http://orlydb.com/", params={"q": text})
         request.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        reply("Unable to fetch results: {}".format(e))
+        reply(f"Unable to fetch results: {e}")
         raise
 
     h = html.fromstring(request.text)

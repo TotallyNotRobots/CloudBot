@@ -90,7 +90,7 @@ def _search(text, _type, reply):
         request = api.search(params)
     except HTTPError as e:
         reply(
-            "Could not get track information: {}".format(e.response.status_code)
+            f"Could not get track information: {e.response.status_code}"
         )
         raise
 
@@ -128,7 +128,7 @@ def _do_format(data, _type):
 
     if _type in FORMATS:
         fmt = FORMATS[_type]
-        return "Spotify {}".format(_type.title()), fmt.format_map(data)
+        return f"Spotify {_type.title()}", fmt.format_map(data)
 
     raise ValueError("Attempt to format unknown Spotify API type: " + _type)
 
@@ -196,7 +196,7 @@ def spotify_url(match):
     _type = match.group(2)
     spotify_id = match.group(3)
 
-    request = api.request("{}/{}".format(TYPE_MAP[_type], spotify_id))
+    request = api.request(f"{TYPE_MAP[_type]}/{spotify_id}")
 
     data = request.json()
 

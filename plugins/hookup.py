@@ -46,7 +46,7 @@ def hookup(db, chan):
         return "something went wrong"
 
     # Make sure the list of people is unique
-    people = list(set(row[0] for row in results))
+    people = list({row[0] for row in results})
     random.shuffle(people)
     person1, person2 = people[:2]
     variables = {

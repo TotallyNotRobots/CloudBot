@@ -3,16 +3,8 @@
 # Date: 08/07/2022
 
 import binascii
-from base64 import (
-    b16decode,
-    b16encode,
-    b32decode,
-    b32encode,
-    b64decode,
-    b64encode,
-    b85decode,
-    b85encode,
-)
+from base64 import (b16decode, b16encode, b32decode, b32encode, b64decode,
+                    b64encode, b85decode, b85encode)
 from hashlib import blake2b, blake2s, md5, sha1, sha224, sha256, sha384, sha512
 
 from cloudbot import hook
@@ -28,7 +20,7 @@ def base_encode(text: str, base_func) -> str:
     try:
         return base_func(text.encode("utf-8")).decode("utf-8")
     except binascii.Error as e:
-        return "Error: {}".format(e)
+        return f"Error: {e}"
 
 
 # TODO convert this to a loop over a map and eval call on hook decorator like in wikis.py. Copilot wrote this all and im too lazy to fix this now

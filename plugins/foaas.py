@@ -16,7 +16,7 @@ fuck_offs: Dict[str, List[str]] = {}
 def format_url(fucker, fuckee=None):
     if fuckee:
         fucks = fuck_offs["fuck_offs"]
-        target = "\2{fuckee}\2/{fucker}".format(fuckee=fuckee, fucker=fucker)
+        target = f"\2{fuckee}\2/{fucker}"
     else:
         fucks = fuck_offs["single_fucks"]
         target = fucker

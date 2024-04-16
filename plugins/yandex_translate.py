@@ -19,7 +19,7 @@ def load_key(bot):
     r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
-    lang_dict = dict((v, k) for k, v in data['langs'].items())
+    lang_dict = {v: k for k, v in data['langs'].items()}
     lang_dir = data['dirs']
 
 
@@ -54,11 +54,11 @@ def list_langs():
     data = r.json()
     langs = data['langs']
     out = "Language Codes:"
-    out += ",".join("\n{}-{}".format(key, value) for (key, value) in sorted(langs.items(),))
+    out += ",".join(f"\n{key}-{value}" for (key, value) in sorted(langs.items(),))
     out += "\n\nTranslation directions:"
-    out += ",".join("\n{}".format(code) for code in data['dirs'])
+    out += ",".join(f"\n{code}" for code in data['dirs'])
     paste = web.paste(out, ext="txt")
-    return "Here is information on what I can translate as well as valid language codes. {}".format(paste)
+    return f"Here is information on what I can translate as well as valid language codes. {paste}"
 
 
 @hook.command("tran", "translate")

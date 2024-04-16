@@ -64,7 +64,7 @@ class Hook:
 
     @property
     def description(self):
-        return "{}:{}".format(self.plugin.title, self.function_name)
+        return f"{self.plugin.title}:{self.function_name}"
 
     def __repr__(self):
         parts = [
@@ -74,7 +74,7 @@ class Hook:
             ("single_thread", self.single_thread),
             ("threaded", self.threaded),
         ]
-        return ", ".join("{}: {}".format(k, v) for k, v in parts)
+        return ", ".join(f"{k}: {v}" for k, v in parts)
 
 
 class CommandHook(Hook):
@@ -177,7 +177,7 @@ class SieveHook(Hook):
         super().__init__("sieve", plugin, sieve_hook)
 
     def __repr__(self):
-        return "Sieve[{}]".format(Hook.__repr__(self))
+        return f"Sieve[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "sieve {} from {}".format(
@@ -210,7 +210,7 @@ class OnStartHook(Hook):
         super().__init__("on_start", plugin, on_start_hook)
 
     def __repr__(self):
-        return "On_start[{}]".format(Hook.__repr__(self))
+        return f"On_start[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "on_start {} from {}".format(
@@ -223,7 +223,7 @@ class OnStopHook(Hook):
         super().__init__("on_stop", plugin, on_stop_hook)
 
     def __repr__(self):
-        return "On_stop[{}]".format(Hook.__repr__(self))
+        return f"On_stop[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "on_stop {} from {}".format(
@@ -233,7 +233,7 @@ class OnStopHook(Hook):
 
 class CapHook(Hook):
     def __init__(self, _type, plugin, base_hook):
-        super().__init__("on_cap_{}".format(_type), plugin, base_hook)
+        super().__init__(f"on_cap_{_type}", plugin, base_hook)
 
         self.caps = base_hook.caps
 
@@ -264,7 +264,7 @@ class OnConnectHook(Hook):
         super().__init__("on_connect", plugin, sieve_hook)
 
     def __repr__(self):
-        return "{name}[{base!r}]".format(name=self.type, base=super())
+        return f"{self.type}[{super()!r}]"
 
     def __str__(self):
         return "{name} {func} from {file}".format(
@@ -277,7 +277,7 @@ class IrcOutHook(Hook):
         super().__init__("irc_out", plugin, out_hook)
 
     def __repr__(self):
-        return "Irc_Out[{}]".format(Hook.__repr__(self))
+        return f"Irc_Out[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "irc_out {} from {}".format(
@@ -290,7 +290,7 @@ class PostHookHook(Hook):
         super().__init__("post_hook", plugin, out_hook)
 
     def __repr__(self):
-        return "Post_hook[{}]".format(Hook.__repr__(self))
+        return f"Post_hook[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "post_hook {} from {}".format(
@@ -316,7 +316,7 @@ class PermHook(Hook):
         self.perms = perm_hook.perms
 
     def __repr__(self):
-        return "PermHook[{}]".format(Hook.__repr__(self))
+        return f"PermHook[{Hook.__repr__(self)}]"
 
     def __str__(self):
         return "perm hook {} from {}".format(

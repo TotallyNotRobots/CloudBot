@@ -8,12 +8,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 def get_data(num):
-    file = SCRIPT_DIR / "{}.json".format(num)
+    file = SCRIPT_DIR / f"{num}.json"
     if file.exists():
         with file.open(encoding="utf-8") as f:
             return json.load(f)
 
-    url = "https://xkcd.com/{}/info.0.json".format(num)
+    url = f"https://xkcd.com/{num}/info.0.json"
 
     with requests.get(url) as r:
         if r.status_code == 404:

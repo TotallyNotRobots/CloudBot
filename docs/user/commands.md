@@ -12,7 +12,7 @@ gonzobot Command list
 
 **antonym**: &lt;word&gt; -- Returns a list of antonyms for &lt;word&gt;.
 
-**ask (cb, cleverbot):**  &lt;question&gt; -- Asks Cleverbot &lt;question&gt; 
+**ask (cb, cleverbot):**  &lt;question&gt; -- Asks Cleverbot &lt;question&gt;
 
 **ban**: [channel] &lt;user&gt; - bans &lt;user&gt; in [channel], or in the caller's channel if no channel is specified ( *Permission required:* op_ban, op)
 
@@ -22,7 +22,7 @@ gonzobot Command list
 
 **base64**: base64 &lt;string&gt; -- Encode &lt;string&gt; with base64.
 
-**beats**: beats -- Gets the current time in .beats (Swatch Internet Time). 
+**beats**: beats -- Gets the current time in .beats (Swatch Internet Time).
 
 **bing (bsearch):** &lt;query&gt; - returns the first bing search result for &lt;query&gt;
 
@@ -126,7 +126,7 @@ gonzobot Command list
 
 **generatehelp**: Dumps a list of commands with their help text to the docs directory formatted using markdown. ( *Permission required:* botcontrol)
 
-**geoip**:  geoip &lt;host|ip&gt; -- Looks up the physical location of &lt;host|ip&gt; using Maxmind GeoLite 
+**geoip**:  geoip &lt;host|ip&gt; -- Looks up the physical location of &lt;host|ip&gt; using Maxmind GeoLite
 
 **gitio**: &lt;url&gt; [custom] - shortens a github URL &lt;url&gt; using git.io with [custom] as an optional custom shortlink,
 
@@ -284,7 +284,7 @@ gonzobot Command list
 
 **password**: [length [types]] - generates a password of &lt;length&gt; (default 10). [types] can include 'alpha', 'no caps',
 
-**pig (piglatin):**  pig &lt;text&gt; -- Converts &lt;text&gt; to pig latin. 
+**pig (piglatin):**  pig &lt;text&gt; -- Converts &lt;text&gt; to pig latin.
 
 **ping**: &lt;host&gt; [count] - pings &lt;host&gt; [count] times
 
@@ -372,7 +372,7 @@ gonzobot Command list
 
 **steam**: steam [Takes a Steam ID_64 formatted ID and returns a ID_32 formatted IDsearch] - Search for specified
 
-**steamid (steamuser, su, sid):** steamid &lt;username&gt; -- gets the steam ID of &lt;username&gt;. Uses steamcommunity.com/id/&lt;nickname&gt;. 
+**steamid (steamuser, su, sid):** steamid &lt;username&gt; -- gets the steam ID of &lt;username&gt;. Uses steamcommunity.com/id/&lt;nickname&gt;.
 
 **stock**: &lt;symbol&gt; -- gets stock information
 
@@ -464,7 +464,7 @@ gonzobot Command list
 
 **wrainbow**: &lt;text&gt; -- Gives each word in &lt;text&gt; rainbow colors.
 
-**wyr (wouldyourather):**  -- What would you rather do? 
+**wyr (wouldyourather):**  -- What would you rather do?
 
 **xkcd**: xkcd &lt;search term&gt; - Search for xkcd comic matching &lt;search term&gt;
 
@@ -473,4 +473,3 @@ gonzobot Command list
 **youtime (ytime):** youtime &lt;query&gt; -- Gets the total run time of the first YouTube search result for &lt;query&gt;.
 
 **youtube (yt, you, y):** youtube &lt;query&gt; -- Returns the first YouTube search result for &lt;query&gt;.
-

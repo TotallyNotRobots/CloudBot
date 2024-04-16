@@ -43,5 +43,5 @@ def whois(text, reply):
     if not info:
         return "No information returned."
 
-    info_text = ", ".join("\x02{name}\x02: {info}".format(name=name, info=i) for name, i in info)
-    return "{} - {}".format(domain, info_text)
+    info_text = ", ".join(f"\x02{name}\x02: {i}" for name, i in info)
+    return f"{domain} - {info_text}"

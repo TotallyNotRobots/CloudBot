@@ -43,7 +43,7 @@ def format_colors(description):
 def mcping(text):
     try:
         server = MinecraftServer.lookup(text)
-    except (IOError, ValueError) as e:
+    except (OSError, ValueError) as e:
         return str(e)
 
     try:
@@ -56,8 +56,8 @@ def mcping(text):
         return "Connection refused"
     except ConnectionError:
         return "Connection error"
-    except (IOError, ValueError) as e:
-        return "Error pinging server: {}".format(e)
+    except (OSError, ValueError) as e:
+        return f"Error pinging server: {e}"
 
     if isinstance(s.description, dict):
         description = format_colors(" ".join(s.description["text"].split()))

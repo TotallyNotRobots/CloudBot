@@ -13,14 +13,8 @@ import sqlalchemy
 from sqlalchemy import Table
 
 from cloudbot.event import Event, EventType, PostHookEvent
-from cloudbot.plugin_hooks import (
-    CapHook,
-    CommandHook,
-    ConfigHook,
-    EventHook,
-    RawHook,
-    hook_name_to_plugin,
-)
+from cloudbot.plugin_hooks import (CapHook, CommandHook, ConfigHook, EventHook,
+                                   RawHook, hook_name_to_plugin)
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
 from cloudbot.util.func_utils import call_with_args
 
@@ -223,7 +217,7 @@ class PluginManager:
         if self.get_plugin(file_path):
             await self.unload_plugin(file_path)
 
-        module_name = "plugins.{}".format(title)
+        module_name = f"plugins.{title}"
         try:
             plugin_module = self._load_mod(module_name)
         except Exception:

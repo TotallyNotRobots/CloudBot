@@ -1,5 +1,6 @@
-from cloudbot import hook
 import unidecode
+
+from cloudbot import hook
 
 origspace = "abcdefghijklmnopqrstuvwxyz"
 keyspace = "4bcd3fg8ijk1mn0pqr57uvwxy2"

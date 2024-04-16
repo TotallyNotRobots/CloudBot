@@ -1,8 +1,9 @@
-import requests
 import random
 
-from cloudbot.util import http, formatting
+import requests
+
 from cloudbot import hook
+from cloudbot.util import formatting, http
 
 
 def api_get(kind, query):
@@ -18,7 +19,7 @@ def googleimage(text):
 
     parsed = api_get('images', text)
     if not 200 <= parsed['responseStatus'] < 300:
-        raise IOError('error searching for images: {}: {}'.format(parsed['responseStatus'], ''))
+        raise OSError('error searching for images: {}: {}'.format(parsed['responseStatus'], ''))
     if not parsed['responseData']['results']:
         return 'no images found'
     return random.choice(parsed['responseData']['results'][:10])['unescapedUrl']
@@ -29,7 +30,7 @@ def google(text):
 
     parsed = api_get('web', text)
     if not 200 <= parsed['responseStatus'] < 300:
-        raise IOError('error searching for pages: {}: {}'.format(parsed['responseStatus'], ''))
+        raise OSError('error searching for pages: {}: {}'.format(parsed['responseStatus'], ''))
     if not parsed['responseData']['results']:
         return 'No fucking results found.'
 
@@ -55,7 +56,7 @@ def forecast(text):
         try:
             j = response.json()
         except Exception as e:
-            return "Error: {}".format(e) + " -- " + response.text
+            return f"Error: {e}" + " -- " + response.text
         nearest = j['nearest_area'][0]
         area = nearest["areaName"][0]["value"]
         message = [f"{nearest['country'][0]['value']} - {nearest['region'][0]['value']} - {area}, lat: {nearest['latitude']}  long: {nearest['longitude']}"]
@@ -107,7 +108,7 @@ def ddg_search(text):
     result = results.pop()
     last_results = results
     return f"{ result['text'] }   ---   \x02{result['url']}\x02"
- 
+
 @hook.command("ddg_next", "gn")
 def ddg_gn(text):
     global last_results

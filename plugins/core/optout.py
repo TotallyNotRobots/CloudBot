@@ -6,14 +6,8 @@ from functools import total_ordering
 from threading import RLock
 
 from irclib.util.compare import match_mask
-from sqlalchemy import (
-    Boolean,
-    Column,
-    PrimaryKeyConstraint,
-    String,
-    Table,
-    and_,
-)
+from sqlalchemy import (Boolean, Column, PrimaryKeyConstraint, String, Table,
+                        and_)
 
 from cloudbot import hook
 from cloudbot.hook import Priority
@@ -55,7 +49,7 @@ class OptOut:
         return NotImplemented
 
     def __str__(self):
-        return "{} {} {}".format(self.channel, self.hook, self.allow)
+        return f"{self.channel} {self.hook} {self.allow}"
 
     def __repr__(self):
         return "{}({}, {}, {})".format(
@@ -263,9 +257,9 @@ async def deloptout(text, event, chan, db, conn):
     deleted = await event.async_call(del_optout, db, conn.name, chan, pattern)
 
     if deleted:
-        return "Deleted optout '{}' in channel '{}'.".format(pattern, chan)
+        return f"Deleted optout '{pattern}' in channel '{chan}'."
 
-    return "No matching optouts in channel '{}'.".format(chan)
+    return f"No matching optouts in channel '{chan}'."
 
 
 async def check_global_perms(event):
@@ -318,4 +312,4 @@ async def clear(conn, event, db, async_call):
 
     count = await async_call(clear_optout, db, conn.name, chan)
 
-    return "Cleared {} opt outs from the list.".format(count)
+    return f"Cleared {count} opt outs from the list."

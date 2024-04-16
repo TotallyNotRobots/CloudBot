@@ -5,12 +5,12 @@ from bs4 import BeautifulSoup
 from requests import HTTPError
 
 from cloudbot import hook
-from cloudbot.util import web, formatting, colors
+from cloudbot.util import colors, formatting, web
 
 SEARCH_URL = "http://www.amazon.{}/s/"
 REGION = "com"
 
-AMAZON_RE = re.compile(""".*ama?zo?n\.(com|co\.uk|com\.au|de|fr|ca|cn|es|it)/.*/(?:exec/obidos/ASIN/|o/|gp/product/|
+AMAZON_RE = re.compile(""".*ama?zo?n\\.(com|co\\.uk|com\\.au|de|fr|ca|cn|es|it)/.*/(?:exec/obidos/ASIN/|o/|gp/product/|
 (?:(?:[^"\'/]*)/)?dp/|)(B[A-Z0-9]{9})""", re.I)
 
 # Feel free to set this to None or change it to your own ID.
@@ -98,7 +98,7 @@ def amazon(text, reply, _parsed=False):
         pattern = re.compile(r'(product-reviews|#customerReviews)')
         num_ratings = item.find('a', {'href': pattern}).text.replace(".", ",")
         # format the rating and count into a nice string
-        rating_str = "{}/5 stars ({} ratings)".format(rating, num_ratings)
+        rating_str = f"{rating}/5 stars ({num_ratings} ratings)"
     except AttributeError:
         rating_str = "No Ratings"
 
@@ -115,7 +115,7 @@ def amazon(text, reply, _parsed=False):
     # finally, assemble everything into the final string, and return it!
     if not _parsed:
         return colors.parse(
-            "".join("$(b){}$(b) ({}) - {}{} - {}".format(title, price, rating_str, tag_str, url).splitlines())
+            "".join(f"$(b){title}$(b) ({price}) - {rating_str}{tag_str} - {url}".splitlines())
         )
     else:
-        return colors.parse("".join("$(b){}$(b) ({}) - {}{}".format(title, price, rating_str, tag_str).splitlines()))
+        return colors.parse("".join(f"$(b){title}$(b) ({price}) - {rating_str}{tag_str}".splitlines()))

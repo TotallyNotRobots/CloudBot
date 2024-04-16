@@ -3,21 +3,8 @@ import logging
 from collections.abc import Sized
 from enum import Enum
 from functools import wraps
-from typing import (
-    Any,
-    Container,
-    Dict,
-    Generic,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import (Any, Container, Dict, Generic, Iterable, Iterator, List,
+                    Optional, Tuple, TypeVar, Union, cast, overload)
 
 import requests
 
@@ -47,7 +34,7 @@ class TvdbApi:
         self.base_url = "https://api.thetvdb.com"
         self.api_version = "3.0.0"
         self.default_headers = {
-            "Accept": "application/vnd.thetvdb.v{}".format(self.api_version)
+            "Accept": f"application/vnd.thetvdb.v{self.api_version}"
         }
 
         self.jwt_token = None  # type: Optional[str]
@@ -149,7 +136,7 @@ class TvdbApi:
 
         self._headers = self.default_headers.copy()
         if self.jwt_token:
-            self._headers["Authorization"] = "Bearer {}".format(self.jwt_token)
+            self._headers["Authorization"] = f"Bearer {self.jwt_token}"
 
         return self._headers
 
@@ -170,7 +157,7 @@ class TvdbApi:
     ) -> Iterable[JsonObject]:
         try:
             for page in self._get_paged(
-                "/series/{id}/episodes".format(id=series_id), reverse=reverse
+                f"/series/{series_id}/episodes", reverse=reverse
             ):
                 data = cast(List[JsonObject], page["data"])
                 if not reverse:
@@ -391,13 +378,13 @@ class EpisodeInfo:
 
     @property
     def full_number(self) -> str:
-        return "S{:02d}E{:02d}".format(self.season, self.episode_number)
+        return f"S{self.season:02d}E{self.episode_number:02d}"
 
     @property
     def description(self) -> str:
-        episode_desc = "{}".format(self.full_number)
+        episode_desc = f"{self.full_number}"
         if self.name:
-            episode_desc += " - {}".format(self.name)
+            episode_desc += f" - {self.name}"
 
         return episode_desc
 
@@ -477,7 +464,7 @@ def tv_next(text: str) -> str:
         return err
 
     if series.ended:
-        return "{} has ended.".format(series.name)
+        return f"{series.name} has ended."
 
     next_eps = []
     today = datetime.date.today()
@@ -493,13 +480,13 @@ def tv_next(text: str) -> str:
         else:
             date_str = str(episode.first_aired)
 
-        next_eps.append("{} ({})".format(date_str, episode.description))
+        next_eps.append(f"{date_str} ({episode.description})")
 
     if not next_eps:
-        return "There are no new episodes scheduled for {}.".format(series.name)
+        return f"There are no new episodes scheduled for {series.name}."
 
     if len(next_eps) == 1:
-        return "The next episode of {} airs {}".format(series.name, next_eps[0])
+        return f"The next episode of {series.name} airs {next_eps[0]}"
 
     return "The next episodes of {}: {}".format(
         series.name, ", ".join(reversed(next_eps))
@@ -522,7 +509,7 @@ def tv_last(text: str) -> str:
             continue
 
         if episode.first_aired < today:
-            prev_ep = "{} ({})".format(episode.first_aired, episode.description)
+            prev_ep = f"{episode.first_aired} ({episode.description})"
             break
 
     if not prev_ep:
@@ -535,4 +522,4 @@ def tv_last(text: str) -> str:
             series.name, prev_ep
         )
 
-    return "The last episode of {} aired {}.".format(series.name, prev_ep)
+    return f"The last episode of {series.name} aired {prev_ep}."

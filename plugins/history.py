@@ -1,14 +1,15 @@
 import asyncio
-from datetime import datetime
 import re
 import time
 from collections import deque
+from datetime import datetime
 
-from sqlalchemy import Table, Column, String, PrimaryKeyConstraint, Float, select
+from sqlalchemy import (Column, Float, PrimaryKeyConstraint, String, Table,
+                        select)
 
 from cloudbot import hook
 from cloudbot.event import EventType
-from cloudbot.util import timeformat, database
+from cloudbot.util import database, timeformat
 
 table = Table(
     'seen_user',
@@ -69,7 +70,7 @@ def chat_tracker(event, db, conn):
     :type conn: cloudbot.client.Client
     """
     if event.type is EventType.action:
-        event.content = "\x01ACTION {}\x01".format(event.content)
+        event.content = f"\x01ACTION {event.content}\x01"
 
     message_time = time.time()
     track_seen(event, db)
@@ -115,11 +116,11 @@ def seen(text, nick, chan, db, event, is_nick_valid):
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
         if last_seen[2][0:1] == "\x01":
-            return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
+            return f'{text} was last seen {reltime} ago: * {text} {last_seen[2][8:-1]}'
         else:
-            return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
+            return f'{text} was last seen {reltime} ago saying: {last_seen[2]}'
     else:
-        return "I've never seen {} talking in this channel.".format(text)
+        return f"I've never seen {text} talking in this channel."
 
 
 @hook.command("lastlink", "ll", "lasturl", autohelp=False)
@@ -143,7 +144,7 @@ def lastlink(text, chan, conn):
             match = re.match(pattern, message)
             if match:
                 date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
-                return "{} {}: {}".format(date, nick, message)
+                return f"{date} {nick}: {message}"
 
     return "No links found" if not text else f"No links found for nick: {text}"
 
@@ -175,10 +176,10 @@ def searchword(text, chan, conn):
             if text in message:
                 date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
                 message = message.replace("\x01ACTION ", "* ").replace("\x01", "")
-                message = message.replace(text, "\x02{}\x02".format(text))
-                return "{} {}: {}".format(date, nick, message)
+                message = message.replace(text, f"\x02{text}\x02")
+                return f"{date} {nick}: {message}"
 
-    return "Seems like {} hasn't said anything containing '{}' recently".format(search_nick, text)
+    return f"Seems like {search_nick} hasn't said anything containing '{text}' recently"
 
 @hook.command("now", autohelp=False)
 def now(text, chan, conn):

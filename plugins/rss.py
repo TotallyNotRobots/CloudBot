@@ -36,7 +36,7 @@ def hookwrapper(cmds):
             n = 1
         return parsefeed(rss, n)
 
-    rss_command.__doc__ = """<number> - Get latest nth feed from {}""".format(cmds[0])
+    rss_command.__doc__ = f"""<number> - Get latest nth feed from {cmds[0]}"""
     return rss_command
 
 

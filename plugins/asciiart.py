@@ -123,7 +123,7 @@ def save_map(filename):
 
 
 def load_map(filename):
-    return json.load(open(FILE, "r"))
+    return json.load(open(FILE))
 
 
 if __name__ != '__main__':

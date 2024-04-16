@@ -13,7 +13,7 @@ def meh():
     title = feed.entries[0].title
     link = web.try_shorten(feed.entries[0].link)
 
-    return "meh.com: {} ({})".format(title, link)
+    return f"meh.com: {title} ({link})"
 
 
 @hook.command("slickdeals", autohelp=False)
@@ -23,7 +23,7 @@ def slickdeals():
 
     feed = feedparser.parse(url)
     items = (
-        "{} ({})".format(item.title, web.try_shorten(item.link))
+        f"{item.title} ({web.try_shorten(item.link)})"
         for item in feed.entries[:3]
     )
 

@@ -3,14 +3,13 @@
 # Description: Chinese Language Utils
 
 import string
-
-import requests
 from urllib.parse import quote
 
-from cloudbot import hook
-
+import requests
 from google.transliteration import transliterate_text
 from google.transliteration.numerals import LANG2SCRIPT
+
+from cloudbot import hook
 
 API = "https://api.ctext.org/"
 
