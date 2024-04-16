@@ -51,8 +51,6 @@ def grammar(text, bot, reply, lang="en", retry=True):
     model = LANG_MODEL_MAP[lang]
 
     text = text.strip()
-    if not text.endswith("."):
-        text = text + "."
 
     client = HuggingFaceClient([api_key])
     response = client.send(text, model)
@@ -84,7 +82,7 @@ def grammar(text, bot, reply, lang="en", retry=True):
         resp = re.sub(r"\s+\.$", ".", resp)
         return resp
 
-    generated_text = [proccess_response(r["generated_text"]) for r in response]
+    generated_text = {proccess_response(r["generated_text"]) for r in response}
     if text.strip() in generated_text:
         return "✅ Perfect grammar! No changes needed."
 
