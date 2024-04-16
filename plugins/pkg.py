@@ -189,7 +189,7 @@ def crates_search(query: str) -> Generator[Package, None, None]:
             return (package.get(key, "") or "").strip()
 
         name = safeget("name")
-        link = safeget("repository")
+        link = f"https://crates.io/crates/{name}"
         version = safeget("newest_version")
         released = safeget("updated_at")
         description = safeget("description")

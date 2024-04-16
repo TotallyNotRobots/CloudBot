@@ -53,14 +53,14 @@ def grammar(text, bot, reply, lang="en", retry=True):
     response = client.send(text, model)
     if 'estimated_time' in response and "error" in response and "currently loading" in response["error"] and retry:
         estimated_time = int(response['estimated_time'])
-        if estimated_time < 60 and estimated_time > 0:
+        if estimated_time < 120 and estimated_time > 0:
             reply(
-                "⏳ Model is currently loading. I will retry in a few minutes and give your response. Please don't spam.")
+                f"⏳ Model is currently loading. I will retry in a few minutes and give your response. Please don't spam. Estimated time: {estimated_time} seconds.")
             sleep(estimated_time)
             return grammar(text, bot, reply, lang, retry=False)
         else:
-            reply("⏳ Model is currently loading and will take some minutes. Try again later. estimated time: " + str(
-                estimated_time))
+            reply(f"⏳ Model is currently loading and will take some minutes. Try again later. Estimated time: {estimated_time} seconds.")
+            return
 
     if "error" in response:
         return response["error"]
