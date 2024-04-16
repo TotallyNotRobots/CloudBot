@@ -17,10 +17,16 @@ import json
 import logging
 import time
 from operator import attrgetter
-from typing import Optional
+from typing import Dict, Optional, Union
 
 import requests
-from requests import HTTPError, PreparedRequest, RequestException, Response
+from requests import (
+    HTTPError,
+    PreparedRequest,
+    Request,
+    RequestException,
+    Response,
+)
 
 from cloudbot.bot import bot
 
@@ -63,7 +69,7 @@ class Registry:
             return False
 
     def __init__(self):
-        self._items = {}
+        self._items: Dict[str, "Registry.Item"] = {}
 
     def register(self, name, item):
         if name in self._items:
@@ -164,7 +170,9 @@ def paste(data, ext="txt", service=DEFAULT_PASTEBIN, raise_on_no_paste=False):
 
 
 class ServiceError(Exception):
-    def __init__(self, request: PreparedRequest, message: str):
+    def __init__(
+        self, request: Union[Request, PreparedRequest], message: str
+    ) -> None:
         super().__init__(message)
         self.request = request
 
@@ -224,9 +232,12 @@ pastebins = Registry()
 
 class Isgd(Shortener):
     def shorten(self, url, custom=None, key=None):
-        p = {"url": url, "shorturl": custom, "format": "json"}
+        p = {"url": url, "format": "json"}
+        if custom:
+            p["shorturl"] = custom
+
         try:
-            r = requests.get("http://is.gd/create.php", params=p)
+            r = requests.get("https://is.gd/create.php", params=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
@@ -234,7 +245,10 @@ class Isgd(Shortener):
         except RequestException as e:
             raise ServiceError(e.request, "Connection error occurred") from e
 
-        j = r.json()
+        try:
+            j = r.json()
+        except requests.exceptions.JSONDecodeError as e:
+            raise ServiceError(r.request, str(e)) from e
 
         if "shorturl" in j:
             return j["shorturl"]
@@ -244,7 +258,7 @@ class Isgd(Shortener):
     def expand(self, url):
         p = {"shorturl": url, "format": "json"}
         try:
-            r = requests.get("http://is.gd/forward.php", params=p)
+            r = requests.get("https://is.gd/forward.php", params=p)
             r.raise_for_status()
         except HTTPError as e:
             r = e.response
@@ -342,7 +356,14 @@ class Hastebin(Pastebin):
 
         try:
             api_key = bot.config.get_api_key("hastebin")
-            r = requests.post(self.url + "/documents", data=encoded, headers={"Authorization": "Bearer " + str(api_key), "Content-Type": "text/plain"})
+            r = requests.post(
+                self.url + "/documents",
+                data=encoded,
+                headers={
+                    "Authorization": "Bearer " + str(api_key),
+                    "Content-Type": "text/plain",
+                },
+            )
             # r.raise_for_status()
         except HTTPError as e:
             r = e.response

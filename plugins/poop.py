@@ -10,7 +10,7 @@ SENTENCES = [
     "Sharts on {}'s face",
     "Defecates out of control all around {}",
     "Farts and poops while {} smells it",
-    "Feeds {} by pooping on his mouth,"
+    "Feeds {} by pooping on his mouth,",
 ]
 
 

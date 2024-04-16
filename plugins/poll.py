@@ -158,8 +158,6 @@ def results(text, conn, chan, nick, message, reply):
 
     p = polls.get(uid)
 
-    reply(
-        f'Results for \x02"{p.question}"\x02 by \x02{p.creator}\x02:'
-    )
+    reply(f'Results for \x02"{p.question}"\x02 by \x02{p.creator}\x02:')
     message(p.format_results())
     return None

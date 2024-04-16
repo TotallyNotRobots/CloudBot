@@ -9,8 +9,10 @@ Created By:
 License:
     GPL v3
 """
+
 import inspect
 import time
+import typing
 import warnings
 from math import floor, log
 from numbers import Real
@@ -341,12 +343,9 @@ def _hydrate_object(_value, _cls):
         _assert_type(_value, dict)
         return read_data(_value, _cls)
 
-    try:
-        typing_cls = _cls.__origin__  # type: ignore[union-attr]
-    except AttributeError:
-        pass
-    else:
-        type_args = _cls.__args__  # type: ignore[union-attr]
+    typing_cls = typing.get_origin(_cls)
+    if typing_cls is not None:
+        type_args = typing.get_args(_cls)
         if issubclass(typing_cls, list):
             _assert_type(_value, list, _cls)
 
@@ -644,7 +643,9 @@ def crypto_command(text, event):
         btc = ""
 
     price = float(quote.price)
-    precision = max(floor(log(1 / price if price != 0 else 0.01) / log(10)) + 4, 2)
+    precision = max(
+        floor(log(1 / price if price != 0 else 0.01) / log(10)) + 4, 2
+    )
     return colors.parse(
         (
             "{} ({}) // $(orange){}{:,.{}f}$(clear) {} " + btc + "// {} change"
@@ -658,6 +659,17 @@ def crypto_command(text, event):
             change_str,
         )
     )
+
+
+def format_price(price: Union[int, float, Real]) -> str:
+    price = float(price)
+    if price < 1:
+        precision = max(2, min(10, len(str(Decimal(str(price)))) - 2))
+        num_format = "{:01,.{}f}".format(price, precision)
+    else:
+        num_format = f"{price:,.2f}"
+
+    return num_format
 
 
 @hook.command("currencies", "currencylist", autohelp=False)

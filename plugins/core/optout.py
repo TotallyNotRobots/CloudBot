@@ -1,13 +1,21 @@
 """
 Bot wide hook opt-out for channels
 """
+
 from collections import defaultdict
 from functools import total_ordering
 from threading import RLock
+from typing import List, MutableMapping, Optional
 
 from irclib.util.compare import match_mask
-from sqlalchemy import (Boolean, Column, PrimaryKeyConstraint, String, Table,
-                        and_)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    and_,
+)
 
 from cloudbot import hook
 from cloudbot.hook import Priority
@@ -26,7 +34,7 @@ optout_table = Table(
     PrimaryKeyConstraint("network", "chan", "hook"),
 )
 
-optout_cache = DefaultKeyFoldDict(list)
+optout_cache: MutableMapping[str, List["OptOut"]] = DefaultKeyFoldDict(list)
 
 cache_lock = RLock()
 
@@ -40,16 +48,18 @@ class OptOut:
 
     def __lt__(self, other):
         if isinstance(other, OptOut):
-            diff = len(self.channel) - len(other.channel)
-            if diff:
-                return diff < 0
-
-            return len(self.hook) < len(other.hook)
+            return (self.channel.rstrip("*"), self.hook.rstrip("*")) < (
+                other.channel.rstrip("*"),
+                other.hook.rstrip("*"),
+            )
 
         return NotImplemented
 
-    def __str__(self):
-        return f"{self.channel} {self.hook} {self.allow}"
+    def __eq__(self, other):
+        if isinstance(other, OptOut):
+            return self.channel == other.channel and self.hook == other.hook
+
+        return NotImplemented
 
     def __repr__(self):
         return "{}({}, {}, {})".format(
@@ -75,18 +85,26 @@ async def check_channel_permissions(event, chan, *perms):
     return allowed
 
 
-def get_conn_optouts(conn_name):
+def get_conn_optouts(conn_name) -> List[OptOut]:
     with cache_lock:
         return optout_cache[conn_name.casefold()]
 
 
-def get_channel_optouts(conn_name, chan=None):
+def get_channel_optouts(conn_name, chan=None) -> List[OptOut]:
     with cache_lock:
         return [
             opt
             for opt in get_conn_optouts(conn_name)
             if not chan or opt.match_chan(chan)
         ]
+
+
+def get_first_matching_optout(conn_name, chan, hook_name) -> Optional[OptOut]:
+    for optout in get_conn_optouts(conn_name):
+        if optout.match(chan, hook_name):
+            return optout
+
+    return None
 
 
 def format_optout_list(opts):
@@ -179,19 +197,12 @@ def optout_sieve(bot, event, _hook):
         return event
 
     hook_name = _hook.plugin.title + "." + _hook.function_name
-    with cache_lock:
-        optouts = get_conn_optouts(event.conn.name)
-        for _optout in optouts:
-            if _optout.match(event.chan, hook_name):
-                if not _optout.allow:
-                    if _hook.type == "command":
-                        event.notice(
-                            "Sorry, that command is disabled in this channel."
-                        )
+    _optout = get_first_matching_optout(event.conn.name, event.chan, hook_name)
+    if _optout and not _optout.allow:
+        if _hook.type == "command":
+            event.notice("Sorry, that command is disabled in this channel.")
 
-                    return None
-
-                break
+        return None
 
     return event
 

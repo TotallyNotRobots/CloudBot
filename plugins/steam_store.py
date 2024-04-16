@@ -67,9 +67,7 @@ def format_game(app_id, show_url=True):
             price_now = "$%d.%02d" % divmod(price["final"], 100)
             price_original = "$%d.%02d" % divmod(price["initial"], 100)
 
-            out.append(
-                f"\x02{price_now}\x02 (was \x02{price_original}\x02)"
-            )
+            out.append(f"\x02{price_now}\x02 (was \x02{price_original}\x02)")
 
     if show_url:
         url = web.try_shorten(STORE_URL.format(game["steam_appid"]))

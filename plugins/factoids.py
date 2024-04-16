@@ -172,7 +172,7 @@ def info(text, chan, notice):
         notice("Unknown Factoid.")
 
 
-factoid_re = re.compile(fr"^{re.escape(FACTOID_CHAR)} ?(.+)", re.I)
+factoid_re = re.compile(rf"^{re.escape(FACTOID_CHAR)} ?(.+)", re.I)
 
 
 @hook.regex(factoid_re)

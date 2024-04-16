@@ -1,4 +1,6 @@
-from sqlalchemy import create_engine
+from typing import Any, Dict, List
+
+from sqlalchemy import Table, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from cloudbot.util.database import Session
@@ -15,7 +17,11 @@ class MockDB:
     def get_data(self, table):
         return self.session().execute(table.select()).fetchall()
 
-    def add_row(self, *args, **data):
-        table = args[0]
+    def add_row(self, table: Table, /, **data: Any) -> None:
         self.session().execute(table.insert().values(data))
         self.session().commit()
+
+    def load_data(self, table: Table, data: List[Dict[str, Any]]):
+        with self.session() as session, session.begin():
+            for item in data:
+                session.execute(table.insert().values(item))

@@ -31,8 +31,9 @@ class LocationError(Exception):
     """
 
     def __init__(self):
-        Exception.__init__(self, ("I CAN'T FIND THAT SHIT returned "
-                                  "from website"))
+        Exception.__init__(
+            self, ("I CAN'T FIND THAT SHIT returned " "from website")
+        )
 
 
 class ParseError(Exception):
@@ -42,10 +43,14 @@ class ParseError(Exception):
 
     def __init__(self, lookup):
         Exception.__init__(
-            self, """Couldn't parse the website: lookup {} failed
+            self,
+            """Couldn't parse the website: lookup {} failed
 
 Please report what you did to get this error and this full Python traceback
-to ian@ianweller.org. Thanks!""".format(lookup))
+to ian@ianweller.org. Thanks!""".format(
+                lookup
+            ),
+        )
 
 
 @hook.command("tfw", autohelp=False)
@@ -130,7 +135,7 @@ def get_weather(text, reply):
     return_val["current"]["remark"] = flavor.text
 
     # the fucking forecast
-    return_val["forecast"] = list()
+    return_val["forecast"] = []
     forecast = soup.find("div", {"class": "forecastBody"})
     if not forecast:
         raise ParseError("div.forecastBody")
@@ -148,13 +153,25 @@ def get_weather(text, reply):
         raise ParseError("forecast counts don't match up")
 
     for i in range(len(days)):
-        return_val["forecast"].append({"day": days[i],
-                                       "high": highs[i],
-                                       "low": lows[i],
-                                       "weather": forecasts[i]})
+        return_val["forecast"].append(
+            {
+                "day": days[i],
+                "high": highs[i],
+                "low": lows[i],
+                "weather": forecasts[i],
+            }
+        )
 
-    tfw = ("The Fucking Weather for " "({})".format(return_val["location"])) + (
-    "{}{}?! {}".format(return_val["current"]["temperature"],
-                          DEGREE_SYMBOL,
-                          return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])
+    tfw = (
+        ("The Fucking Weather for " "({})".format(return_val["location"]))
+        + (
+            "{}{}?! {}".format(
+                return_val["current"]["temperature"],
+                DEGREE_SYMBOL,
+                return_val["current"]["weather"][0],
+            )
+        )
+        + " "
+        + (return_val["current"]["remark"])
+    )
     return tfw

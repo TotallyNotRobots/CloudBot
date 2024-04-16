@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import logging
+from typing import Union
 
 from cloudbot.hook import Action, Priority
 
@@ -37,7 +38,9 @@ class Hook:
         self.permissions = func_hook.kwargs.pop("permissions", [])
         self.single_thread = func_hook.kwargs.pop("singlethread", False)
         self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
-        self.priority = func_hook.kwargs.pop("priority", Priority.NORMAL)
+        self.priority: Union[int, Priority] = func_hook.kwargs.pop(
+            "priority", Priority.NORMAL
+        )
         self.do_sieve = func_hook.kwargs.pop("do_sieve", True)
 
         lock = func_hook.kwargs.pop("lock", None)

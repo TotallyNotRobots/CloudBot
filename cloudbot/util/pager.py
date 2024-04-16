@@ -1,5 +1,5 @@
 from threading import RLock
-from typing import List, Tuple
+from typing import Iterable, List, Tuple
 
 from cloudbot.util.formatting import chunk_str
 from cloudbot.util.sequence import chunk_iter
@@ -55,7 +55,7 @@ class Pager:
 
         self.current_pos = 0
 
-    def format_chunk(self, chunk, pagenum):
+    def format_chunk(self, chunk: Iterable[str], pagenum: int) -> List[str]:
         chunk = list(chunk)
         if len(self.chunks) > 1:
             chunk[-1] += f" (page {pagenum + 1}/{len(self.chunks)})"
@@ -76,7 +76,7 @@ class Pager:
         """Get a specific page"""
         return self[index]
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> List[str]:
         """Get a specific page"""
         with self.lock:
             chunk = self.chunks[item]

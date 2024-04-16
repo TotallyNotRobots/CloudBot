@@ -15,7 +15,7 @@ def getJson(path, params={}):
 
 def pastebin(text):
     url = "http://ix.io"
-    payload = {'f:1=<-': text}
+    payload = {"f:1=<-": text}
     response = requests.request("POST", url, data=payload)
     return response.text
 
@@ -39,8 +39,15 @@ def search_show(provider, search):
     if shows is None or len(shows) == 0:
         return None, True
     # Find show which the title has the bigger fuzzy ratio with search
-    return max(shows, key=lambda show: fuzz.ratio(
-        show["Title"].strip().casefold(), search.strip().casefold())), True
+    return (
+        max(
+            shows,
+            key=lambda show: fuzz.ratio(
+                show["Title"].strip().casefold(), search.strip().casefold()
+            ),
+        ),
+        True,
+    )
 
 
 @hook.command("blackbeard", "blb")
@@ -87,19 +94,26 @@ def blackbeard(text, reply):
     if len(shows) == 0:
         return "No results found"
 
-    show = max(shows, key=lambda show: fuzz.ratio(
-        show["Title"].strip().casefold(), search.strip().casefold()))
+    show = max(
+        shows,
+        key=lambda show: fuzz.ratio(
+            show["Title"].strip().casefold(), search.strip().casefold()
+        ),
+    )
 
     reply("Show/Movie: " + show["Title"] + " - " + show["Url"])
     if episode is None:
-        msg = "Description: " + show["Metadata"]["Description"][:400].replace("\n", " ")
+        msg = "Description: " + show["Metadata"]["Description"][:400].replace(
+            "\n", " "
+        )
         if len(show["Metadata"]["Description"]) > 512:
             msg += f' -->  {pastebin(show["Metadata"]["Description"])}'
         reply(msg)
         return
 
     episodes = getJson(
-        "episodes", {"provider": show["provider"], "showurl": show["Url"]})
+        "episodes", {"provider": show["provider"], "showurl": show["Url"]}
+    )
     if "error" in episodes:
         return episodes["message"]
 
@@ -113,12 +127,16 @@ def blackbeard(text, reply):
         url = pastebin(url)
     reply("Episode/Video: " + episode["Title"] + " - " + url)
 
-    msg = "Description: " + episode["Metadata"]["Description"][:400].replace("\n", " ")
+    msg = "Description: " + episode["Metadata"]["Description"][:400].replace(
+        "\n", " "
+    )
     if len(episode["Metadata"]["Description"]) > 512:
         msg += f' -->  {pastebin(episode["Metadata"]["Description"])}'
     reply(msg)
 
-    video = getJson("video", {"provider": show["provider"], "epurl": episode["Url"]})
+    video = getJson(
+        "video", {"provider": show["provider"], "epurl": episode["Url"]}
+    )
     url = video.get("Request", {}).get("Url")
     cmd = video.get("Metadata", {}).get("CurlCommand")
     if cmd:

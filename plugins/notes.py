@@ -1,10 +1,21 @@
 """
 Notes/todo list
 """
+
 from datetime import datetime
 
-from sqlalchemy import (Boolean, Column, DateTime, Integer,
-                        PrimaryKeyConstraint, String, Table, and_, func, not_)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    and_,
+    func,
+    not_,
+)
 from sqlalchemy.sql import select
 
 from cloudbot import hook

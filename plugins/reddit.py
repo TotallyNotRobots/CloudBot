@@ -23,7 +23,7 @@ reddit_re = re.compile(
 
     (?:\?(?:[A-Za-z0-9!$&-;=@_~\u00A0-\u10FFFD]|%[A-F0-9]{2})*)?  # Query
     """,
-    re.IGNORECASE | re.VERBOSE
+    re.IGNORECASE | re.VERBOSE,
 )
 
 base_url = "https://reddit.com/r/{}"
@@ -36,21 +36,23 @@ def api_request(url, bot):
     :type bot: cloudbot.bot.CloudBot
     """
     url = url.with_query("").with_scheme("https") / ".json"
-    r = requests.get(str(url), headers={'User-Agent': bot.user_agent})
+    r = requests.get(str(url), headers={"User-Agent": bot.user_agent})
     r.raise_for_status()
     return r.json()
 
 
 def format_output(item, show_url=False):
-    """ takes a reddit post and returns a formatted string """
+    """takes a reddit post and returns a formatted string"""
     item["title"] = formatting.truncate(item["title"], 70)
     item["link"] = short_url.format(item["id"])
 
     raw_time = datetime.fromtimestamp(int(item["created_utc"]))
     item["timesince"] = timeformat.time_since(raw_time, count=1, simple=True)
 
-    item["comments"] = formatting.pluralize_auto(item["num_comments"], 'comment')
-    item["points"] = formatting.pluralize_auto(item["score"], 'point')
+    item["comments"] = formatting.pluralize_auto(
+        item["num_comments"], "comment"
+    )
+    item["points"] = formatting.pluralize_auto(item["score"], "point")
 
     if item["over_18"]:
         item["warning"] = " \x02NSFW\x02"
@@ -58,11 +60,17 @@ def format_output(item, show_url=False):
         item["warning"] = ""
 
     if show_url:
-        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
-               " - \x02{author}\x02 {timesince} ago - {link}{warning}".format(**item)
+        return (
+            "\x02{title} : {subreddit}\x02 - {comments}, {points}"
+            " - \x02{author}\x02 {timesince} ago - {link}{warning}".format(
+                **item
+            )
+        )
     else:
-        return "\x02{title} : {subreddit}\x02 - {comments}, {points}" \
-               " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
+        return (
+            "\x02{title} : {subreddit}\x02 - {comments}, {points}"
+            " - \x02{author}\x02, {timesince} ago{warning}".format(**item)
+        )
 
 
 # @hook.regex(reddit_re, singlethread=True)
@@ -71,7 +79,7 @@ def reddit_url(match, bot):
     url = URL(url).with_scheme("https")
 
     if url.host.endswith("redd.it"):
-        response = requests.get(url, headers={'User-Agent': bot.user_agent})
+        response = requests.get(url, headers={"User-Agent": bot.user_agent})
         response.raise_for_status()
         url = URL(response.url).with_scheme("https")
 
@@ -114,7 +122,9 @@ def reddit(text, bot, reply):
             item = data[id_num]
         except IndexError:
             length = len(data)
-            return f"Invalid post number. Number must be between 1 and {length}."
+            return (
+                f"Invalid post number. Number must be between 1 and {length}."
+            )
     else:
         item = random.choice(data)
 

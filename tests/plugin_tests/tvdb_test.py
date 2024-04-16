@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
+from responses.matchers import query_param_matcher
 
 from cloudbot.bot import bot
 from cloudbot.event import CommandEvent
@@ -95,8 +96,8 @@ def generate_pages(mock_requests, url, count=5, per_page=5):
 
         mock_requests.add(
             "GET",
-            url + f"?page={i}",
-            match_querystring=True,
+            url,
+            match=[query_param_matcher({"page": i})],
             json={
                 "data": [{"id": f"{i}.{j}"} for j in range(per_page)],
                 "links": links,
@@ -193,8 +194,8 @@ class _Base(ABC):
     def test_404(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=404,
         )
 
@@ -204,8 +205,8 @@ class _Base(ABC):
     def test_other_errors(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=502,
         )
 
@@ -232,8 +233,8 @@ class _Base(ABC):
     def test_no_episodes(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -248,8 +249,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [],
             },
@@ -261,8 +262,8 @@ class _Base(ABC):
     def test_no_episodes_404(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -277,8 +278,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [],
             },
@@ -292,8 +293,8 @@ class _Base(ABC):
     def test_ep_other_error(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -308,8 +309,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={},
             status=503,
         )
@@ -325,8 +326,8 @@ class _Base(ABC):
     def test_only_old_eps(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -341,8 +342,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -370,8 +371,8 @@ class _Base(ABC):
     def test_only_new_eps(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -386,8 +387,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -418,8 +419,8 @@ class _Base(ABC):
     def test_only_new_eps_tba(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -434,8 +435,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {
@@ -487,8 +488,8 @@ class _Base(ABC):
     def test_series_ended(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -504,8 +505,8 @@ class _Base(ABC):
         if self.shows_old_eps():
             mock_requests.add(
                 "GET",
-                "https://api.thetvdb.com/series/5/episodes?page=1",
-                match_querystring=True,
+                "https://api.thetvdb.com/series/5/episodes",
+                match=[query_param_matcher({"page": 1})],
                 json={
                     "data": [
                         {
@@ -531,8 +532,8 @@ class _Base(ABC):
     def test_only_new_eps_tba_no_name(self, mock_requests, enable_api):
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/search/series?name=Foo",
-            match_querystring=True,
+            "https://api.thetvdb.com/search/series",
+            match=[query_param_matcher({"name": "Foo"})],
             status=200,
             json={
                 "data": [
@@ -547,8 +548,8 @@ class _Base(ABC):
 
         mock_requests.add(
             "GET",
-            "https://api.thetvdb.com/series/5/episodes?page=1",
-            match_querystring=True,
+            "https://api.thetvdb.com/series/5/episodes",
+            match=[query_param_matcher({"page": 1})],
             json={
                 "data": [
                     {

@@ -37,7 +37,7 @@ async def on_kick(conn, chan, target, loop):
             loop.call_later(
                 5,
                 logger.info,
-                "[%s|tracker] Bot was kicked from %s, " "rejoining channel.",
+                "[%s|tracker] Bot was kicked from %s, rejoining channel.",
                 conn.name,
                 chan,
             )

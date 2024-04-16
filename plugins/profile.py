@@ -11,7 +11,7 @@ from cloudbot.util import database
 from cloudbot.util.pager import CommandPager, paginated_list
 
 category_re = r"[A-Za-z0-9]+"
-data_re = re.compile(fr"({category_re})\s(.+)")
+data_re = re.compile(rf"({category_re})\s(.+)")
 
 # borrowed pagination code from grab.py
 cat_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
@@ -87,9 +87,7 @@ def profile(text, chan, notice, nick):
     pnick_cf = pnick.casefold()
     user_profile = chan_profiles.get(pnick_cf, {})
     if not user_profile:
-        notice(
-            f"User {pnick} has no profile data saved in this channel"
-        )
+        notice(f"User {pnick} has no profile data saved in this channel")
         return None
 
     # Check if the caller specified a profile category, if not, send a NOTICE with the users registered categories
@@ -154,11 +152,11 @@ def profileadd(text, chan, nick, notice, db):
         table.update()
         .values(text=data)
         .where(
-                and_(
-                    table.c.nick == nick.casefold(),
-                    table.c.chan == chan.casefold(),
-                    table.c.category == cat.casefold(),
-                )
+            and_(
+                table.c.nick == nick.casefold(),
+                table.c.chan == chan.casefold(),
+                table.c.category == cat.casefold(),
+            )
         )
     )
     db.commit()
@@ -182,11 +180,11 @@ def profiledel(nick, chan, text, notice, db):
 
     db.execute(
         table.delete().where(
-                and_(
-                    table.c.nick == nick.casefold(),
-                    table.c.chan == chan.casefold(),
-                    table.c.category == category.casefold(),
-                )
+            and_(
+                table.c.nick == nick.casefold(),
+                table.c.chan == chan.casefold(),
+                table.c.category == category.casefold(),
+            )
         )
     )
     db.commit()
@@ -208,10 +206,10 @@ def profileclear(nick, chan, text, notice, db):
             del confirm_keys[chan.casefold()][nick.casefold()]
             db.execute(
                 table.delete().where(
-                        and_(
-                            table.c.nick == nick.casefold(),
-                            table.c.chan == chan.casefold(),
-                        )
+                    and_(
+                        table.c.nick == nick.casefold(),
+                        table.c.chan == chan.casefold(),
+                    )
                 )
             )
             db.commit()

@@ -81,7 +81,9 @@ def get_table() -> List[TiobeRow]:
     """Returns the tiobe index table."""
     r = requests.get(TABLE_URL)
     soup = BeautifulSoup(r.content, "html.parser")
-    table = soup.find("table", attrs={"class": "table table-striped table-top20"})
+    table = soup.find(
+        "table", attrs={"class": "table table-striped table-top20"}
+    )
     table2 = soup.find("table", attrs={"id": "otherPL"})
     top20 = [
         TiobeRowBuilder(*(ele for ele in row.find_all("td"))).build()
@@ -114,7 +116,7 @@ def tiobe(reply, text):
     # If is digit return the ranking for the language
     if arg.isdigit():
         try:
-            for row in rows[int(arg) - 1: int(arg) + 5]:
+            for row in rows[int(arg) - 1 : int(arg) + 5]:
                 reply(str(row))
         except IndexError:
             reply("Invalid rank position")

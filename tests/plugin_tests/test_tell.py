@@ -1,21 +1,82 @@
 import datetime
 from unittest.mock import MagicMock, call, patch
 
+import sqlalchemy as sa
 from irclib.parser import Prefix
 
+from cloudbot.util import database
 from plugins import tell
 from tests.util.mock_conn import MockConn
 
 
 def init_tables(mock_db):
     db_engine = mock_db.engine
-    tell.table.create(db_engine)
+    tell.TellMessage.__table__.create(db_engine)
     tell.disable_table.create(db_engine)
     tell.ignore_table.create(db_engine)
     session = mock_db.session()
     tell.load_cache(session)
     tell.load_disabled(session)
     tell.load_ignores(session)
+
+
+def test_migrate_db(mock_db, freeze_time):
+    init_tables(mock_db)
+    session = mock_db.session()
+
+    tbl = sa.Table(
+        "tells",
+        database.metadata,
+        sa.Column("connection", sa.String),
+        sa.Column("sender", sa.String),
+        sa.Column("target", sa.String),
+        sa.Column("message", sa.String),
+        sa.Column("is_read", sa.Boolean),
+        sa.Column("time_sent", sa.DateTime),
+        sa.Column("time_read", sa.DateTime),
+    )
+
+    tbl.create(mock_db.engine)
+    mock_db.add_row(
+        tbl,
+        connection="conn",
+        sender="foo",
+        target="bar",
+        message="foobar",
+        is_read=False,
+        time_sent=datetime.datetime.now(),
+        time_read=None,
+    )
+
+    database.metadata.clear()
+
+    assert mock_db.get_data(tbl) == [
+        (
+            "conn",
+            "foo",
+            "bar",
+            "foobar",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        )
+    ]
+
+    tell.migrate_tables(session)
+
+    assert not sa.inspect(mock_db.engine).has_table(tbl.name)
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "conn",
+            "foo",
+            "bar",
+            "foobar",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        )
+    ]
 
 
 def test_tellcmd(mock_db):
@@ -109,8 +170,9 @@ def test_showtells(mock_db, freeze_time):
     event = MagicMock()
     tell.add_tell(mock_db.session(), server, sender, target, message)
 
-    assert mock_db.get_data(tell.table) == [
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
         (
+            1,
             "testconn",
             "foo",
             "other",
@@ -127,8 +189,9 @@ def test_showtells(mock_db, freeze_time):
     assert event.mock_calls == [
         call.notice("foo sent you a message 60 seconds ago: bar")
     ]
-    assert mock_db.get_data(tell.table) == [
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
         (
+            1,
             "testconn",
             "foo",
             "other",
@@ -206,6 +269,75 @@ def test_tellinput(mock_db, freeze_time):
     ]
 
 
+def test_read_tell_spam(mock_db, freeze_time):
+    init_tables(mock_db)
+    db = mock_db.session()
+    conn = MockConn()
+    conn.config["command_prefix"] = "."
+    sender = "foo"
+    nick = "other"
+    message = "bar"
+    message2 = "baraa"
+    event = MagicMock()
+    content = "aa"
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message)
+    freeze_time.tick()
+    tell.add_tell(db, conn.name.lower(), sender, nick, message2)
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
+        (
+            2,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 37),
+            None,
+        ),
+        (
+            3,
+            "testconn",
+            sender,
+            nick,
+            message,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 38),
+            None,
+        ),
+        (
+            4,
+            "testconn",
+            sender,
+            nick,
+            message2,
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 39),
+            None,
+        ),
+    ]
+    res = tell.tellinput(conn, db, nick, event.notice, content)
+    assert res is None
+    assert event.mock_calls == [
+        call.notice(
+            "foo sent you a message 3 seconds ago: bar (+3 more, .showtells to view)"
+        )
+    ]
+
+
 def test_tellinput_multiple(mock_db, freeze_time):
     init_tables(mock_db)
     db = mock_db.session()
@@ -225,6 +357,38 @@ def test_tellinput_multiple(mock_db, freeze_time):
         call.notice(
             "foo sent you a message 0 minutes ago: bar (+2 more, .showtells to view)"
         )
+    ]
+    assert mock_db.get_data(tell.TellMessage.__table__) == [
+        (
+            1,
+            "testconn",
+            "foo",
+            "other",
+            "bar",
+            True,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+        ),
+        (
+            2,
+            "testconn",
+            "foo",
+            "other",
+            "test",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
+        (
+            3,
+            "testconn",
+            "foo",
+            "other",
+            "z",
+            False,
+            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            None,
+        ),
     ]
 
 

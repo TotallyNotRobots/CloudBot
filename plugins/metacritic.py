@@ -78,16 +78,25 @@ def metan(chan, nick):
             countdown = doc.find_class("product_countdown")
             if countdown:
                 try:
-                    script = countdown[0].find_class("countdown_holder")[0].find(
-                        "span").find("script").text_content()
+                    script = (
+                        countdown[0]
+                        .find_class("countdown_holder")[0]
+                        .find("span")
+                        .find("script")
+                        .text_content()
+                    )
                 except IndexError:
                     pass
                 else:
-                    match = re.match(r'^.+(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d).+', script)
+                    match = re.match(
+                        r"^.+(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d).+", script
+                    )
                     if match:
                         cowntdown_date = match.group(1)
                         # Get time delta
-                        cowntdown_date = datetime.strptime(cowntdown_date, "%Y-%m-%d %H:%M:%S")
+                        cowntdown_date = datetime.strptime(
+                            cowntdown_date, "%Y-%m-%d %H:%M:%S"
+                        )
                         cowntdown_date = cowntdown_date - datetime.now()
                         cowntdown_date = str(cowntdown_date).split(".")[0]
 
@@ -98,7 +107,11 @@ def metan(chan, nick):
         name.strip(),
         score.strip() or "no score",
         f"user score: \x02{user_score}/10\x02, " if user_score else "",
-        f"release: \x02{release}\x02, " if release and not cowntdown_date else "",
+        (
+            f"release: \x02{release}\x02, "
+            if release and not cowntdown_date
+            else ""
+        ),
         f"releases in: \x02{cowntdown_date}\x02" if cowntdown_date else "",
         link,
     )
@@ -152,7 +165,10 @@ def metacritic(text, reply, chan, nick):
     try:
         request = requests.get(url, headers=headers)
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         reply(f"Could not get Metacritic info: {e}")
         raise
 
@@ -179,7 +195,10 @@ def metacritic(text, reply, chan, nick):
                 # otherwise, use the result_type text_content
                 result_plat = result_type[0].text_content().strip()
 
-        if plat not in game_platforms or result_plat.casefold() == plat.casefold():
+        if (
+            plat not in game_platforms
+            or result_plat.casefold() == plat.casefold()
+        ):
             results_array.append(Result(res, result_plat or plat))
 
     results_queue[chan][nick] = results_array

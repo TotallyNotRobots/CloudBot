@@ -4,18 +4,18 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 
 
-@hook.command('ruad', 'rud', 'ruadick')
+@hook.command("ruad", "rud", "ruadick")
 def RUADICK(text, message):
     """<username> - checks ruadick.com to see if you're a dick on reddit"""
     DickCheck = text.strip()
-    dickstatus = requests.get(f'http://www.ruadick.com/user/{DickCheck}')
+    dickstatus = requests.get(f"http://www.ruadick.com/user/{DickCheck}")
     dickstatus.raise_for_status()
-    DickSoup = BeautifulSoup(dickstatus.content, 'lxml')
+    DickSoup = BeautifulSoup(dickstatus.content, "lxml")
     Dickstr = str(DickSoup.h2)
 
-    dickstrip = Dickstr.lstrip('<h2>').rstrip('</h2>')
+    dickstrip = Dickstr.lstrip("<h2>").rstrip("</h2>")
 
-    if dickstrip == 'None':
-        message('I can\'t find that user')
+    if dickstrip == "None":
+        message("I can't find that user")
     else:
-        message(f'{dickstrip} {dickstatus.url}')
+        message(f"{dickstrip} {dickstatus.url}")

@@ -16,7 +16,9 @@ def jamdate(reply):
     """- Next godot jam date"""
     try:
         url_soup = Soup(get("https://godotwildjam.com"))
-        url = url_soup.find("a", {"class": "elementor-button-link"})[0].attrs['href']
+        url = url_soup.find("a", {"class": "elementor-button-link"})[0].attrs[
+            "href"
+        ]
         soup = Soup(get(url))
         elm = soup.find("div", {"class": "date_data"})
         text = elm.text
@@ -33,8 +35,8 @@ def jamdate(reply):
         from_date = firstday.replace(day=friday, hour=20, minute=0)
         to_date = from_date + datetime.timedelta(days=7)
 
-    start_time_left = (from_date - datetime.datetime.utcnow())
-    end_time_left = (to_date - datetime.datetime.utcnow())
+    start_time_left = from_date - datetime.datetime.utcnow()
+    end_time_left = to_date - datetime.datetime.utcnow()
 
     if end_time_left.days < 0:
         reply("This month's Godot Wild Jam is over.")
@@ -45,16 +47,18 @@ def jamdate(reply):
         from_date = firstday.replace(day=friday, hour=20, minute=0)
         to_date = from_date + datetime.timedelta(days=7)
 
-        start_time_left = (from_date - datetime.datetime.utcnow())
-        end_time_left = (to_date - datetime.datetime.utcnow())
+        start_time_left = from_date - datetime.datetime.utcnow()
+        end_time_left = to_date - datetime.datetime.utcnow()
 
     if start_time_left.days < 0:
         reply("Jam has already begun.")
     else:
         reply(
-            f"Next Jam starts in {start_time_left.days} days {start_time_left.seconds//3600} hours {(start_time_left.seconds//60)%60} minutes.")
+            f"Next Jam starts in {start_time_left.days} days {start_time_left.seconds//3600} hours {(start_time_left.seconds//60)%60} minutes."
+        )
     reply(
-        f"Jam ends in {end_time_left.days} days {end_time_left.seconds//3600} hours {(end_time_left.seconds//60)%60} minutes.")
+        f"Jam ends in {end_time_left.days} days {end_time_left.seconds//3600} hours {(end_time_left.seconds//60)%60} minutes."
+    )
 
 
 @hook.command()
@@ -67,25 +71,27 @@ def godocs(text, reply):
 
     i = 0
     used = set()
-    for item in data['results']:
+    for item in data["results"]:
         if i == 4:
             break
         description = ""
-        for block in item['blocks']:
-            if block['type'] == 'section':
-                if block['content']:
+        for block in item["blocks"]:
+            if block["type"] == "section":
+                if block["content"]:
                     limit = 128
-                    description += block['content'][:limit]
+                    description += block["content"][:limit]
                     if len(description) > limit:
                         description += "..."
                 break
 
-        if item['path'] in used:
+        if item["path"] in used:
             continue
 
         i += 1
-        used.add(item['path'])
-        reply(f"{item['title']}: {description} - {item['domain'] + item['path']}")
+        used.add(item["path"])
+        reply(
+            f"{item['title']}: {description} - {item['domain'] + item['path']}"
+        )
 
 
 def capitalize(word: str) -> str:
@@ -100,7 +106,8 @@ class WildJamCardPaser:
 
     def orc_image(self, img):
         txt = self.tool.image_to_string(
-            img, lang="eng", builder=pyocr.builders.TextBuilder())
+            img, lang="eng", builder=pyocr.builders.TextBuilder()
+        )
         return txt.strip().lower().replace("\n", " ")
 
     def get_cards(self):
@@ -128,18 +135,21 @@ def theme(reply):
     soup = Soup(get("https://godotwildjam.com"))
     elm = soup.find("div", {"class": "page-content"})
     title = elm.find(
-        "h1", {"class": "elementor-heading-title elementor-size-default"})[0].text
+        "h1", {"class": "elementor-heading-title elementor-size-default"}
+    )[0].text
 
     not_started = "theme to be announced" in title.lower()
     if not_started:
         reply(title)
         return
 
-    elms = soup.find('div', {'class': 'elementor-widget-image'}, mode='all')
-    theme_url = elms[1].find('img').attrs['src']
-    cards_url = elms[2].find('img').attrs['src']
+    elms = soup.find("div", {"class": "elementor-widget-image"}, mode="all")
+    theme_url = elms[1].find("img").attrs["src"]
+    cards_url = elms[2].find("img").attrs["src"]
     parser = WildJamCardPaser(theme_url, cards_url)
     theme = parser.get_theme()
     cards = parser.get_cards()
 
-    reply(f"\x02{title}\x02: {theme} - \x02CARDS: \x02{cards[0]}, {cards[1]}, {cards[2]}")
+    reply(
+        f"\x02{title}\x02: {theme} - \x02CARDS: \x02{cards[0]}, {cards[1]}, {cards[2]}"
+    )

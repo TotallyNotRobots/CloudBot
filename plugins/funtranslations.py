@@ -61,11 +61,13 @@ def tor_check_code(s: socket, failmsg: str):
     if str(c) != "250":
         raise Exception(failmsg)
 
+
 def upload_file(file):
     url = "https://ttm.sh"
-    payload = {'file': file}
+    payload = {"file": file}
     response = requests.request("POST", url, files=payload)
     return response.text.strip()
+
 
 def tor_refresh():
     # Create tcp socket
@@ -73,7 +75,7 @@ def tor_refresh():
     s.connect((TOR_HOST, TOR_PORT))
 
     # Get new ip
-    s.sendall(f"AUTHENTICATE \"{TOR_PASSWORD}\"\n".encode())
+    s.sendall(f'AUTHENTICATE "{TOR_PASSWORD}"\n'.encode())
     tor_check_code(s, "Authentication failed")
     s.sendall(b"signal NEWNYM\n")
     tor_check_code(s, "Signal failed")
@@ -83,17 +85,25 @@ def tor_refresh():
 
 
 def tor_request_get(*args, **kwargs):
-    return requests.get(*args,
-                        proxies=dict(http=f'socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}',
-                                     https=f'socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}'),
-                        **kwargs)
+    return requests.get(
+        *args,
+        proxies=dict(
+            http=f"socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}",
+            https=f"socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}",
+        ),
+        **kwargs,
+    )
 
 
 def tor_request_post(*args, **kwargs):
-    return requests.post(*args,
-                         proxies=dict(http=f'socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}',
-                                      https=f'socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}'),
-                         **kwargs)
+    return requests.post(
+        *args,
+        proxies=dict(
+            http=f"socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}",
+            https=f"socks5://{TOR_SOCKS5_HOST}:{TOR_SOCKS5_PORT}",
+        ),
+        **kwargs,
+    )
 
 
 def proxy_request_post(proxies, *args, **kwargs):
@@ -123,17 +133,17 @@ def funtranslate(text, reply):
 
     # Translate
     headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    data = f'text={text}'
+    data = f"text={text}"
 
     response = requests.post(LANGS[lang], headers=headers, data=data)
 
     def process_response(response):
         resp = response.json()
         if "error" not in resp:
-            translated = resp.get('contents', {}).get('translated')
+            translated = resp.get("contents", {}).get("translated")
             if isinstance(translated, str):
                 return translated
             if isinstance(translated, dict):
@@ -154,7 +164,8 @@ def funtranslate(text, reply):
     if last_proxy is not None:
         try:
             response = proxy_request_post(
-                last_proxy, LANGS[lang], headers=headers, data=data)
+                last_proxy, LANGS[lang], headers=headers, data=data
+            )
             output = process_response(response)
             if output:
                 return "p: " + output
@@ -166,28 +177,35 @@ def funtranslate(text, reply):
     if webshare_key:
 
         def mkuri(proxy):
-            addr = proxy['proxy_address']
-            port = proxy['ports']['http']
-            username = proxy['username']
-            password = proxy['password']
+            addr = proxy["proxy_address"]
+            port = proxy["ports"]["http"]
+            username = proxy["username"]
+            password = proxy["password"]
             return f"http://{username}:{password}@{addr}:{port}"
 
-        response = requests.get("https://proxy.webshare.io/api/proxy/list/?page=1",
-                                headers={"Authorization": "Token " + webshare_key})
+        response = requests.get(
+            "https://proxy.webshare.io/api/proxy/list/?page=1",
+            headers={"Authorization": "Token " + webshare_key},
+        )
         r = response.json().get("results")
         if r:
-            proxies = [{'http': mkuri(proxy), 'https': mkuri(proxy)} for proxy in r]
+            proxies = [
+                {"http": mkuri(proxy), "https": mkuri(proxy)} for proxy in r
+            ]
             i = 0
             while i < len(proxies):
                 i += 1
                 if last_proxy in proxies:
-                    last_proxy = proxies[(proxies.index(last_proxy) + 1) % len(proxies)]
+                    last_proxy = proxies[
+                        (proxies.index(last_proxy) + 1) % len(proxies)
+                    ]
                 else:
                     last_proxy = proxies[0]
 
                 try:
                     response = proxy_request_post(
-                        last_proxy, LANGS[lang], headers=headers, data=data)
+                        last_proxy, LANGS[lang], headers=headers, data=data
+                    )
                 except requests.exceptions.ProxyError:
                     continue
 

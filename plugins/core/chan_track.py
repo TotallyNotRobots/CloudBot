@@ -4,6 +4,7 @@ Track channel ops for permissions checks
 Requires:
 server_info.py
 """
+
 import gc
 import json
 import logging
@@ -31,9 +32,7 @@ logger = logging.getLogger("cloudbot")
 
 class MemberNotFoundException(KeyError):
     def __init__(self, name, chan):
-        super().__init__(
-            f"No such member '{name}' in channel '{chan.name}'"
-        )
+        super().__init__(f"No such member '{name}' in channel '{chan.name}'")
         self.name = name
         self.chan = chan
         self.members = list(chan.users.values())

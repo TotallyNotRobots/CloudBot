@@ -8,14 +8,21 @@ from cloudbot import hook
 API = "https://api.datamuse.com/words?"
 MAX_DISPLAY_WORDS = 20
 
+
 def get(**params):
-    r = requests.get(API + "&".join([
-        f"{key}={urllib.parse.quote(value)}"
-        for key, value in params.items()
-    ]))
+    r = requests.get(
+        API
+        + "&".join(
+            [
+                f"{key}={urllib.parse.quote(value)}"
+                for key, value in params.items()
+            ]
+        )
+    )
     if r.status_code != 200:
         return None, r.status_code
     return json.loads(r.content), r.status_code
+
 
 def words(**params):
     r, code = get(**params)
@@ -23,8 +30,10 @@ def words(**params):
         return "Request failed. Status code: " + code
     return ", ".join([w["word"] for w in r[:MAX_DISPLAY_WORDS]])
 
+
 def targs(text):
     return text.strip().split()
+
 
 @hook.command()
 def rhyme(text, bot, nick):
@@ -33,6 +42,7 @@ def rhyme(text, bot, nick):
     if not args:
         return "This command requires one argument"
     return words(rel_rhy=args[0])
+
 
 @hook.command()
 def adj(text, bot, nick):
@@ -49,22 +59,26 @@ def noun(text, bot, nick):
         return "This command requires one argument"
     return words(rel_jja=args[0])
 
+
 @hook.command()
 def soundlike(text, bot, nick):
     """<word> - words that sound like <word>."""
     args = targs(text)
     return words(sl=args[0])
 
+
 @hook.command()
 def mean(text, bot, nick):
     """<text> - words with a meaning similar to <text>."""
     return words(ml=text)
+
 
 @hook.command()
 def rhymerel(text, bot, nick):
     """<word1> <word2> - words that rhyme with <word1> that are related to <word2>."""
     args = targs(text)
     return words(ml=args[0], rel_rhy=args[0])
+
 
 @hook.command()
 def adjrel(text, bot, nick):

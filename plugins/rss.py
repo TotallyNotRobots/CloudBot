@@ -21,8 +21,8 @@ feeds = {
 def parsefeed(rss, n=1):
     """Get random news from fake news website."""
     feed = feedparser.parse(rss)
-    article = feed['entries'][- n]
-    body = BeautifulSoup(article['summary'], "html.parser").text
+    article = feed["entries"][-n]
+    body = BeautifulSoup(article["summary"], "html.parser").text
     return f"{article['title']} - {article['link']} - {truncate(body, 300)}"
 
 

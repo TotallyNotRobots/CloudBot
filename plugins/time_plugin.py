@@ -46,12 +46,20 @@ def check_status(status, api):
 @hook.command("time")
 def time_command(text, reply):
     """<location> - Gets the current time in <location>."""
-    formatted_time = requests.get(f"http://wttr.in/{'+'.join(text.split())}?format=\"%T %Z\"&nonce={random.randint(10**4, 10**6)}").text.strip().split("-")[0].replace("'", "").replace('"', '')
-    j = requests.get(f"http://wttr.in/{'+'.join(text.split())}?format=j1").json()
-    location_name = f"{j['nearest_area'][0]['region'][0]['value']} - {j['nearest_area'][0]['country'][0]['value']}"
-    return "\x02{}\x02 - {}".format(
-        formatted_time, location_name
+    formatted_time = (
+        requests.get(
+            f"http://wttr.in/{'+'.join(text.split())}?format=\"%T %Z\"&nonce={random.randint(10**4, 10**6)}"
+        )
+        .text.strip()
+        .split("-")[0]
+        .replace("'", "")
+        .replace('"', "")
     )
+    j = requests.get(
+        f"http://wttr.in/{'+'.join(text.split())}?format=j1"
+    ).json()
+    location_name = f"{j['nearest_area'][0]['region'][0]['value']} - {j['nearest_area'][0]['country'][0]['value']}"
+    return f"\x02{formatted_time}\x02 - {location_name}"
     dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:
         return "This command requires a Google Developers Console API key."

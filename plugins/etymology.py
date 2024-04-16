@@ -6,6 +6,7 @@ Authors:
     - Scaevolus
     - linuxdaemon <linuxdaemon@snoonet.org>
 """
+
 import re
 
 import ety
@@ -38,9 +39,7 @@ def etymology(text, reply):
     except HTTPError as e:
         if e.response.status_code == 404:
             return f"No etymology found for {text} :("
-        reply(
-            f"Error reaching etymonline.com: {e.response.status_code}"
-        )
+        reply(f"Error reaching etymonline.com: {e.response.status_code}")
         raise
 
     if response.status_code != requests.codes.ok:

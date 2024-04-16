@@ -25,7 +25,7 @@ def unescape(s):
 
 
 def bingify(s):
-    """ because bing has to be an asshole and require special params """
+    """because bing has to be an asshole and require special params"""
     return f"'{s}'"
 
 
@@ -50,7 +50,7 @@ def bing(text, bot, reply):
         "Sources": bingify("web"),
         "Query": bingify(text),
         "Adult": bingify(rating),
-        "$format": "json"
+        "$format": "json",
     }
 
     request = requests.get(API_URL, params=params, auth=(api_key, api_key))
@@ -62,7 +62,7 @@ def bing(text, bot, reply):
         raise
 
     # I'm not even going to pretend to know why results are in ['d']['results'][0]
-    j = request.json()['d']['results'][0]
+    j = request.json()["d"]["results"][0]
 
     if not j["Web"]:
         return "No results."
@@ -76,7 +76,9 @@ def bing(text, bot, reply):
 
     return colors.parse(
         '\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02  {} -- $(b){}$(b): "{}"'.format(
-            url, title, desc))
+            url, title, desc
+        )
+    )
 
 
 @hook.command("bingimage", "bis")
@@ -101,7 +103,7 @@ def bingimage(text, bot, reply):
         "Sources": bingify("image"),
         "Query": bingify(text),
         "Adult": bingify(rating),
-        "$format": "json"
+        "$format": "json",
     }
 
     request = requests.get(API_URL, params=params, auth=(api_key, api_key))
@@ -113,7 +115,7 @@ def bingimage(text, bot, reply):
         raise
 
     # I'm not even going to pretend to know why results are in ['d']['results'][0]
-    j = request.json()['d']['results'][0]
+    j = request.json()["d"]["results"][0]
 
     if not j["Image"]:
         return "No results."
@@ -138,5 +140,6 @@ def bingimage(text, bot, reply):
     # join all the tags together in a comma separated string ("tag1, tag2, tag3")
     tag_text = ", ".join(tags)
 
-    return '\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02 {} ({})'.format(
-        unescape(result["MediaUrl"]), tag_text)
+    return "\x02Notice: The Bing API will stop working sometime soon because Microsoft is greedy as fuck and is removing the free search tier.\x02 {} ({})".format(
+        unescape(result["MediaUrl"]), tag_text
+    )

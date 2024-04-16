@@ -38,14 +38,14 @@ class Article:
     @staticmethod
     def from_json(json):
         return Article(
-            json['source'].get('name', ""),
-            json.get('author', ""),
-            json.get('title', ""),
-            json.get('description', ""),
-            json.get('url', ""),
-            json.get('urlToImage', ""),
-            json.get('publishedAt', ""),
-            json.get('content', "") or ""
+            json["source"].get("name", ""),
+            json.get("author", ""),
+            json.get("title", ""),
+            json.get("description", ""),
+            json.get("url", ""),
+            json.get("urlToImage", ""),
+            json.get("publishedAt", ""),
+            json.get("content", "") or "",
         )
 
     def __post_init__(self, link: str = None):
@@ -117,8 +117,9 @@ def news(text, chan, nick, reply):
 
     top_headlines = newsapi.get_top_headlines(q=query, category=cat, country=co)
 
-    results_queue[chan][nick] = [Article.from_json(
-        json) for json in top_headlines['articles']]
+    results_queue[chan][nick] = [
+        Article.from_json(json) for json in top_headlines["articles"]
+    ]
     return pop_many(results_queue[chan][nick], reply)
 
 
@@ -127,6 +128,6 @@ def fakenews(text, chan, nick, reply):
     """Get random news from fake news website."""
     rss = choice(fakenews_feeds)
     feed = feedparser.parse(rss)
-    article = choice(feed['entries'])
-    body = BeautifulSoup(article['summary'], "html.parser").text
+    article = choice(feed["entries"])
+    body = BeautifulSoup(article["summary"], "html.parser").text
     return f"{article['title']} - {article['link']} - {truncate(body, 300)}"

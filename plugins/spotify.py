@@ -89,9 +89,7 @@ def _search(text, _type, reply):
     try:
         request = api.search(params)
     except HTTPError as e:
-        reply(
-            f"Could not get track information: {e.response.status_code}"
-        )
+        reply(f"Could not get track information: {e.response.status_code}")
         raise
 
     results = request.json()[TYPE_MAP[_type]]["items"]

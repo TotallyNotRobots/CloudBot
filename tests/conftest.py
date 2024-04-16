@@ -1,4 +1,5 @@
 import datetime
+import importlib
 import logging
 from typing import List
 from unittest.mock import MagicMock, patch
@@ -16,6 +17,13 @@ from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
 
 
+@pytest.fixture(autouse=True)
+def clear_metadata():
+    database.metadata.clear()
+    yield
+    database.metadata.clear()
+
+
 @pytest.fixture()
 def tmp_logs(tmp_path):
     cloudbot._setup(tmp_path)
@@ -30,13 +38,13 @@ def caplog_bot(caplog):
 
 @pytest.fixture()
 def patch_import_module():
-    with patch("importlib.import_module") as mocked:
+    with patch.object(importlib, "import_module") as mocked:
         yield mocked
 
 
 @pytest.fixture()
 def patch_import_reload():
-    with patch("importlib.reload") as mocked:
+    with patch.object(importlib, "reload") as mocked:
         yield mocked
 
 
@@ -51,13 +59,14 @@ def mock_db(tmp_path):
 
 
 @pytest.fixture()
-def mock_bot_factory(event_loop, tmp_path):
+def mock_bot_factory(event_loop, tmp_path, unset_bot):
     instances: List[MockBot] = []
 
     def _factory(*args, **kwargs):
         kwargs.setdefault("loop", event_loop)
         kwargs.setdefault("base_dir", tmp_path)
         _bot = MockBot(*args, **kwargs)
+        bot.set(_bot)
         instances.append(_bot)
         return _bot
 

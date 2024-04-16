@@ -57,15 +57,20 @@ class Doc:
             node = soup.find(id=id)
         header = node.text
         # Get more text after it
-        return (header + " - " + " - ".join(n.text for n in node.find_next_siblings()[:2])).strip()
+        return (
+            header
+            + " - "
+            + " - ".join(n.text for n in node.find_next_siblings()[:2])
+        ).strip()
 
 
 def search(slug, query) -> Doc:
     url = Api.index.format(slug=slug)
     response = requests.get(url)
     if response.status_code == 200:
-        index = {(d['path'], uuid1()): d['name']
-                 for d in response.json()['entries']}
+        index = {
+            (d["path"], uuid1()): d["name"] for d in response.json()["entries"]
+        }
         _, score, (path, uid) = process.extractOne(query, index)
         if score > 80:
             return Doc(path, slug)
@@ -77,8 +82,10 @@ def search(slug, query) -> Doc:
         return
 
     data = response.json()
-    bodies = {path: BeautifulSoup(body, "html.parser").get_text()
-              for path, body in data.items()}
+    bodies = {
+        path: BeautifulSoup(body, "html.parser").get_text()
+        for path, body in data.items()
+    }
     _, nscore, path = process.extractOne(query, bodies)
 
     # Find the anchor: Loop over every element that has an id and count the time that the query is found

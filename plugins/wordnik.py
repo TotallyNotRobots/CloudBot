@@ -259,7 +259,9 @@ def define(text, event):
 
     data["url"] = web.try_shorten(WEB_URL.format(data["word"]))
     data["attrib"] = format_attrib(data["sourceDictionary"])
-    data['text'] = BeautifulSoup(data['text']).text  # Make sure to remove xml tags
+    data["text"] = BeautifulSoup(
+        data["text"]
+    ).text  # Make sure to remove xml tags
 
     return colors.parse("$(b){word}$(b): {text} - {url} ({attrib})").format_map(
         data

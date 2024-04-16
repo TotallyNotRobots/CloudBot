@@ -4,41 +4,55 @@ import time
 from collections import deque
 from datetime import datetime
 
-from sqlalchemy import (Column, Float, PrimaryKeyConstraint, String, Table,
-                        select)
+from sqlalchemy import (
+    Column,
+    Float,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    select,
+)
 
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database, timeformat
 
 table = Table(
-    'seen_user',
+    "seen_user",
     database.metadata,
-    Column('name', String),
-    Column('time', Float),
-    Column('quote', String),
-    Column('chan', String),
-    Column('host', String),
-    PrimaryKeyConstraint('name', 'chan')
+    Column("name", String),
+    Column("time", Float),
+    Column("quote", String),
+    Column("chan", String),
+    Column("host", String),
+    PrimaryKeyConstraint("name", "chan"),
 )
 
 
 def track_seen(event, db):
-    """ Tracks messages for the .seen command
+    """Tracks messages for the .seen command
     :type event: cloudbot.event.Event
     :type db: sqlalchemy.orm.Session
     """
     # keep private messages private
     now = time.time()
-    if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
+    if event.chan[:1] == "#" and not re.findall(
+        "^s/.*/.*/$", event.content.lower()
+    ):
         res = db.execute(
-            table.update().values(time=now, quote=event.content, host=str(event.mask))
-                .where(table.c.name == event.nick.lower()).where(table.c.chan == event.chan)
+            table.update()
+            .values(time=now, quote=event.content, host=str(event.mask))
+            .where(table.c.name == event.nick.lower())
+            .where(table.c.chan == event.chan)
         )
         if res.rowcount == 0:
             db.execute(
                 table.insert().values(
-                    name=event.nick.lower(), time=now, quote=event.content, chan=event.chan, host=str(event.mask)
+                    name=event.nick.lower(),
+                    time=now,
+                    quote=event.content,
+                    chan=event.chan,
+                    host=str(event.mask),
                 )
             )
 
@@ -110,15 +124,16 @@ def seen(text, nick, chan, db, event, is_nick_valid):
 
     last_seen = db.execute(
         select([table.c.name, table.c.time, table.c.quote])
-        .where(table.c.name == text.lower()).where(table.c.chan == chan)
+        .where(table.c.name == text.lower())
+        .where(table.c.chan == chan)
     ).fetchone()
 
     if last_seen:
         reltime = timeformat.time_since(last_seen[1])
         if last_seen[2][0:1] == "\x01":
-            return f'{text} was last seen {reltime} ago: * {text} {last_seen[2][8:-1]}'
+            return f"{text} was last seen {reltime} ago: * {text} {last_seen[2][8:-1]}"
         else:
-            return f'{text} was last seen {reltime} ago saying: {last_seen[2]}'
+            return f"{text} was last seen {reltime} ago saying: {last_seen[2]}"
     else:
         return f"I've never seen {text} talking in this channel."
 
@@ -143,7 +158,9 @@ def lastlink(text, chan, conn):
         if nick == text or not text:
             match = re.match(pattern, message)
             if match:
-                date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
+                date = datetime.fromtimestamp(message_time).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 return f"{date} {nick}: {message}"
 
     return "No links found" if not text else f"No links found for nick: {text}"
@@ -162,7 +179,7 @@ def searchword(text, chan, conn):
         return "Please provide a nick and a search string."
 
     search_nick = text.split()[0]
-    text = text[len(search_nick):].strip()
+    text = text[len(search_nick) :].strip()
 
     i = 0
     max_i = 50000
@@ -174,17 +191,23 @@ def searchword(text, chan, conn):
         i += 1
         if nick == search_nick or not text or search_nick == "*":
             if text in message:
-                date = datetime.fromtimestamp(message_time).strftime("%Y-%m-%d %H:%M:%S")
-                message = message.replace("\x01ACTION ", "* ").replace("\x01", "")
+                date = datetime.fromtimestamp(message_time).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                message = message.replace("\x01ACTION ", "* ").replace(
+                    "\x01", ""
+                )
                 message = message.replace(text, f"\x02{text}\x02")
                 return f"{date} {nick}: {message}"
 
     return f"Seems like {search_nick} hasn't said anything containing '{text}' recently"
 
+
 @hook.command("now", autohelp=False)
 def now(text, chan, conn):
     """Returns now in local time"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 @hook.command("utc", autohelp=False)
 def utc(text, chan, conn):

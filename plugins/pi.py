@@ -9,9 +9,11 @@ MAX_DIGITS = 400
 
 def pi_range(start: int, size: int) -> str:
     response = requests.get(
-        API, params={"start": start, "numberOfDigits": size, "radix": 10})
+        API, params={"start": start, "numberOfDigits": size, "radix": 10}
+    )
     if response.status_code == 200:
         yield response.json().get("content")
+
 
 @hook.command("pi", autohelp=False)
 def pi(text: str):

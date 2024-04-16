@@ -205,9 +205,7 @@ def moderates(text, chan, conn, reply):
 
     data = r.json()
     subs = data["data"]
-    out = colors.parse(
-        f"$(b){user}$(b) moderates these public subreddits: "
-    )
+    out = colors.parse(f"$(b){user}$(b) moderates these public subreddits: ")
     pager = paginated_list([sub["sr"] for sub in subs], pager_cls=CommandPager)
     search_pages[conn.name][chan.casefold()] = pager
     page = pager.next()

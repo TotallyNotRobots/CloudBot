@@ -4,8 +4,15 @@ from collections import defaultdict
 from typing import Dict
 
 import sqlalchemy
-from sqlalchemy import (Column, Integer, PrimaryKeyConstraint, String, Table,
-                        and_, select)
+from sqlalchemy import (
+    Column,
+    Integer,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    and_,
+    select,
+)
 from sqlalchemy.sql.base import Executable
 
 from cloudbot import hook
@@ -74,7 +81,9 @@ def re_addpt(match, nick, chan, db, notice):
     if thing:
         addpoint(thing, nick, chan, db)
     else:
-        notice(pluspts(nick, chan, db))
+        out = pluspts(nick, chan, db)
+        if out:
+            notice(out)
 
 
 @hook.command("mm", "rmpoint")
@@ -134,10 +143,12 @@ def re_rmpt(match, nick, chan, db, notice):
     if thing:
         rmpoint(thing, nick, chan, db)
     else:
-        notice(minuspts(nick, chan, db))
+        out = minuspts(nick, chan, db)
+        if out:
+            notice(out)
 
 
-@hook.command("points", autohelp=False)
+@hook.command("points")
 def points_cmd(text, chan, db):
     """<thing> - will print the total points for <thing> in the channel."""
     score = 0

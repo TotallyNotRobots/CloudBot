@@ -9,20 +9,20 @@ from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
 
-DEFAULT_USER_AGENT='Mozilla/5.0'
+DEFAULT_USER_AGENT = "Mozilla/5.0"
 
 # Extrapolate matching information should the format of the site change.
 match = {
     # Main search results body identifier.
-    'searchResults': {'id': 'links'},
+    "searchResults": {"id": "links"},
     # Individual search results identifier.
-    'result': {'class': 'links_main links_deep result__body'},
+    "result": {"class": "links_main links_deep result__body"},
     # Link and description identifier.
-    'link': {'class': 'result__snippet'}
+    "link": {"class": "result__snippet"},
 }
 
 # Plain HTML Search URL.
-searchURL = 'https://html.duckduckgo.com/html/?q='
+searchURL = "https://html.duckduckgo.com/html/?q="
 
 
 def request(url, headers=None):
@@ -36,7 +36,7 @@ def request(url, headers=None):
             request.add_header(header, headers[header])
     else:
         # Default headers.
-        request.add_header('User-Agent', DEFAULT_USER_AGENT)
+        request.add_header("User-Agent", DEFAULT_USER_AGENT)
 
     try:
         response = urlopen(request)
@@ -52,10 +52,10 @@ def request(url, headers=None):
         #   Date: Thu, 01 Apr 2021 04:31:31 GMT
         #   Connection: close
         # e.fp, pointer to the http.client.HTTPResponse object.
-        code = e.code      # HTTPError code
-        error = e.msg      # HTTPError message
-        headers = e.hdr    # HTTPError headers
-        response = e.fp   # HTTPResponse object
+        code = e.code  # HTTPError code
+        error = e.msg  # HTTPError message
+        headers = e.hdr  # HTTPError headers
+        response = e.fp  # HTTPResponse object
         return e
 
     # Set HTTPResponse status code.
@@ -75,11 +75,11 @@ def request(url, headers=None):
 
 def makeSoup(html):
     try:
-        soup = BeautifulSoup(html, 'lxml')
+        soup = BeautifulSoup(html, "lxml")
         return soup
     except Exception as e:
         print(e)
-        return ''
+        return ""
 
 
 def parseLink(link):
@@ -90,38 +90,37 @@ def parseLink(link):
 
 def search(query):
     # Quote the query string.
-    query = quote(''.join(query))
+    query = quote("".join(query))
 
     # Make search request.
-    response = request(f'{searchURL}{query}')
+    response = request(f"{searchURL}{query}")
 
     # Parse response html.
     soup = makeSoup(response)
 
     # Select the <div id='links'>.
-    searchResults = soup.find('div', match['searchResults'])
+    searchResults = soup.find("div", match["searchResults"])
 
     # Parse out each search result from the <div id='links'>
-    searchResults = searchResults.find_all('div', match['result'])
-
+    searchResults = searchResults.find_all("div", match["result"])
 
     results = []
     # Parse descritpion, link from the searchResults list.
     for result in searchResults:
-        anch = result.find('a', match['link'])
+        anch = result.find("a", match["link"])
         desc = anch.text
-        link = parseLink(anch['href'])
+        link = parseLink(anch["href"])
         url = urlparse(link)
-        if 'duckduckgo.com' in url.netloc:
+        if "duckduckgo.com" in url.netloc:
             continue
-        results.append({'text': desc, 'url':link})
+        results.append({"text": desc, "url": link})
 
     return results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     results = search(argv[1:])
     for result in results:
-        print(result['text'])
-        print(result['url'])
-        print('---')
+        print(result["text"])
+        print(result["url"])
+        print("---")

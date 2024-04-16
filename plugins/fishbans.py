@@ -13,18 +13,25 @@ api_url = "http://api.fishbans.com/stats/{}/"
 def fishbans(text, bot):
     """<user> - gets information on <user>'s minecraft bans from fishbans"""
     user = text.strip()
-    headers = {'User-Agent': bot.user_agent}
+    headers = {"User-Agent": bot.user_agent}
 
     try:
-        request = requests.get(api_url.format(quote_plus(user)), headers=headers)
+        request = requests.get(
+            api_url.format(quote_plus(user)), headers=headers
+        )
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         return f"Could not fetch ban data from the Fishbans API: {e}"
 
     try:
         json = request.json()
     except ValueError:
-        return "Could not fetch ban data from the Fishbans API: Invalid Response"
+        return (
+            "Could not fetch ban data from the Fishbans API: Invalid Response"
+        )
 
     if not json["success"]:
         return f"Could not fetch ban data for {user}."
@@ -35,7 +42,9 @@ def fishbans(text, bot):
     if ban_count == 1:
         return f"The user \x02{user}\x02 has \x021\x02 ban - {user_url}"
     elif ban_count > 1:
-        return f"The user \x02{user}\x02 has \x02{ban_count}\x02 bans - {user_url}"
+        return (
+            f"The user \x02{user}\x02 has \x02{ban_count}\x02 bans - {user_url}"
+        )
     else:
         return f"The user \x02{user}\x02 has no bans - {user_url}"
 
@@ -44,18 +53,25 @@ def fishbans(text, bot):
 def bancount(text, bot):
     """<user> - gets a count of <user>'s minecraft bans from fishbans"""
     user = text.strip()
-    headers = {'User-Agent': bot.user_agent}
+    headers = {"User-Agent": bot.user_agent}
 
     try:
-        request = requests.get(api_url.format(quote_plus(user)), headers=headers)
+        request = requests.get(
+            api_url.format(quote_plus(user)), headers=headers
+        )
         request.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+    except (
+        requests.exceptions.HTTPError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         return f"Could not fetch ban data from the Fishbans API: {e}"
 
     try:
         json = request.json()
     except ValueError:
-        return "Could not fetch ban data from the Fishbans API: Invalid Response"
+        return (
+            "Could not fetch ban data from the Fishbans API: Invalid Response"
+        )
 
     if not json["success"]:
         return f"Could not fetch ban data for {user}."
@@ -73,4 +89,6 @@ def bancount(text, bot):
     if not out:
         return f"The user \x02{user}\x02 has no bans - {user_url}"
     else:
-        return "Bans for \x02{}\x02: {} - {}".format(user, formatting.get_text_list(out, "and"), user_url)
+        return "Bans for \x02{}\x02: {} - {}".format(
+            user, formatting.get_text_list(out, "and"), user_url
+        )

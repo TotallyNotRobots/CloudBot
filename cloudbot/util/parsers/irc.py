@@ -8,33 +8,32 @@ import re
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 
-TAGS_SENTINEL = '@'
-TAGS_SEP = ';'
-TAG_VALUE_SEP = '='
+TAGS_SENTINEL = "@"
+TAGS_SEP = ";"
+TAG_VALUE_SEP = "="
 
-PREFIX_SENTINEL = ':'
-PREFIX_USER_SEP = '!'
-PREFIX_HOST_SEP = '@'
+PREFIX_SENTINEL = ":"
+PREFIX_USER_SEP = "!"
+PREFIX_HOST_SEP = "@"
 
-PARAM_SEP = ' '
-TRAIL_SENTINEL = ':'
+PARAM_SEP = " "
+TRAIL_SENTINEL = ":"
 
-CAP_SEP = ' '
-CAP_VALUE_SEP = '='
+CAP_SEP = " "
+CAP_VALUE_SEP = "="
 
-PREFIX_RE = re.compile(r':?(?P<nick>.+?)(?:!(?P<user>.+?))?(?:@(?P<host>.+?))?')
+PREFIX_RE = re.compile(r":?(?P<nick>.+?)(?:!(?P<user>.+?))?(?:@(?P<host>.+?))?")
 
 TAG_VALUE_ESCAPES = {
-    '\\s': ' ',
-    '\\:': ';',
-    '\\r': '\r',
-    '\\n': '\n',
-    '\\\\': '\\',
+    "\\s": " ",
+    "\\:": ";",
+    "\\r": "\r",
+    "\\n": "\n",
+    "\\\\": "\\",
 }
 
 TAG_VALUE_UNESCAPES = {
-    unescaped: escaped
-    for escaped, unescaped in TAG_VALUE_ESCAPES.items()
+    unescaped: escaped for escaped, unescaped in TAG_VALUE_ESCAPES.items()
 }
 
 
@@ -115,11 +114,13 @@ class MessageTag(Parseable):
                 found = False
                 continue
 
-            if value[i] == '\\':
+            if value[i] == "\\":
                 if i + 1 >= len(value):
-                    raise ValueError(f"Unexpected end of string while parsing: {value}")
+                    raise ValueError(
+                        f"Unexpected end of string while parsing: {value}"
+                    )
 
-                new_value += TAG_VALUE_ESCAPES[value[i:i + 2]]
+                new_value += TAG_VALUE_ESCAPES[value[i : i + 2]]
                 found = True
             else:
                 new_value += value[i]
@@ -219,7 +220,7 @@ class Prefix(Parseable):
         :return: Parsed Object
         """
         if not text:
-            return Prefix('')
+            return Prefix("")
 
         match = PREFIX_RE.fullmatch(text)
         assert match, "Prefix did not match prefix pattern"
@@ -292,8 +293,8 @@ class Message(Parseable):
         if isinstance(text, bytes):
             text = text.decode()
 
-        tags = ''
-        prefix = ''
+        tags = ""
+        prefix = ""
         if text.startswith(TAGS_SENTINEL):
             tags, _, text = text.partition(PARAM_SEP)
 

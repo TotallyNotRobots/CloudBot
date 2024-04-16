@@ -1,5 +1,4 @@
 import asyncio
-import socket
 from asyncio import CancelledError
 from typing import TYPE_CHECKING, Any, Dict
 from unittest.mock import MagicMock

@@ -1,17 +1,17 @@
-import asyncio
 import logging
 from typing import Awaitable, Dict, Optional
 
 from watchdog.observers import Observer
 
-from cloudbot.bot import CloudBot
+from cloudbot.bot import AbstractBot, CloudBot
 from cloudbot.client import Client
 from cloudbot.plugin import PluginManager
+from cloudbot.util.async_util import create_future
 from tests.util.mock_config import MockConfig
 from tests.util.mock_db import MockDB
 
 
-class MockBot:
+class MockBot(AbstractBot):
     def __init__(
         self,
         *,
@@ -22,11 +22,15 @@ class MockBot:
     ):
         self.old_db = None
         self.do_db_migrate = False
+        self.loop = loop
         self.base_dir = base_dir
         self.data_path = self.base_dir / "data"
         self.data_dir = str(self.data_path)
         self.plugin_dir = self.base_dir / "plugins"
-        self.stopped_future: Awaitable[bool] = asyncio.Future()
+        if self.loop:
+            self.stopped_future: Awaitable[bool] = create_future(self.loop)
+        else:
+            self.stopped_future = None
 
         if db:
             self.db_engine = db.engine
@@ -35,8 +39,7 @@ class MockBot:
 
         self.running = True
         self.logger = logging.getLogger("cloudbot")
-        self.loop = loop
-        self.config = MockConfig(self)
+        super().__init__(config=MockConfig(self))
 
         if config is not None:
             self.config.update(config)

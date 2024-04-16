@@ -2,8 +2,16 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
+from responses import RequestsMock
+from responses.matchers import query_param_matcher
 
 from plugins import horoscope
+from tests.util.mock_db import MockDB
+
+BASE_URL = (
+    "http://www.horoscope.com/us/horoscopes/general/"
+    "horoscope-general-daily-today.aspx"
+)
 
 URL = (
     "http://www.horoscope.com/us/horoscopes/general/"
@@ -19,18 +27,18 @@ def setup_db(mock_db):
     return sess
 
 
-def test_horoscope(mock_requests, mock_db):
+def test_horoscope(mock_requests: RequestsMock, mock_db: MockDB):
     sess = setup_db(mock_db)
     mock_requests.add(
         "GET",
-        URL.format(sign=1),
+        BASE_URL,
         headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
             <p>Some horoscope text</p>
         </div>
         """,
-        match_querystring=True,
+        match=[query_param_matcher({"sign": 1})],
     )
 
     event = MagicMock()
@@ -46,7 +54,7 @@ def test_horoscope(mock_requests, mock_db):
     assert mock_db.get_data(horoscope.table) == [("some_user", "aries")]
 
 
-def test_invalid_syntax(mock_requests, mock_db):
+def test_invalid_syntax(mock_requests: RequestsMock, mock_db: MockDB):
     sess = setup_db(mock_db)
 
     event = MagicMock()
@@ -60,19 +68,19 @@ def test_invalid_syntax(mock_requests, mock_db):
     assert event.notice_doc.call_count == 1
 
 
-def test_database_read(mock_requests, mock_db):
+def test_database_read(mock_requests: RequestsMock, mock_db: MockDB):
     sess = setup_db(mock_db)
 
     mock_requests.add(
         "GET",
-        URL.format(sign=4),
+        BASE_URL,
         headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
             <p>Some horoscope text</p>
         </div>
         """,
-        match_querystring=True,
+        match=[query_param_matcher({"sign": 4})],
     )
 
     mock_db.add_row(horoscope.table, nick="some_user", sign="cancer")
@@ -88,18 +96,18 @@ def test_database_read(mock_requests, mock_db):
     event.message.assert_called_once_with("\x02cancer\x02 Some horoscope text")
 
 
-def test_parse_fail(mock_requests, mock_db):
+def test_parse_fail(mock_requests: RequestsMock, mock_db: MockDB):
     sess = setup_db(mock_db)
 
     mock_requests.add(
         "GET",
-        URL.format(sign=4),
+        BASE_URL,
         headers={"User-Agent": "Some user agent"},
         body="""
         <div class="main-horoscope">
         </div>
         """,
-        match_querystring=True,
+        match=[query_param_matcher({"sign": 4})],
     )
 
     event = MagicMock()
@@ -112,7 +120,7 @@ def test_parse_fail(mock_requests, mock_db):
     event.reply.assert_called_once_with("Unable to parse horoscope posting")
 
 
-def test_page_error(mock_requests, mock_db):
+def test_page_error(mock_requests: RequestsMock, mock_db: MockDB):
     sess = setup_db(mock_db)
 
     event = MagicMock()
@@ -131,7 +139,7 @@ def test_page_error(mock_requests, mock_db):
     )
 
 
-def test_bad_sign(mock_requests):
+def test_bad_sign(mock_requests: RequestsMock):
     db = MagicMock()
     event = MagicMock()
     sign = "some_sign"

@@ -77,9 +77,7 @@ def issue_cmd(text, event):
             number, state, url, title, summary
         )
 
-    r = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/issues"
-    )
+    r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/issues")
 
     r.raise_for_status()
     j = r.json()

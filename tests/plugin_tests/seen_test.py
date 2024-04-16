@@ -201,7 +201,7 @@ def test_seen_bad_nick(mock_db, freeze_time):
 
     db = mock_db.session()
     conn = MockConn()
-    conn.is_nick_valid = lambda text: False  # type: ignore[assignment]
+    conn.is_nick_valid = lambda text: False  # type: ignore[method-assign]
     nick = "bar"
     event = CommandEvent(
         conn=conn,

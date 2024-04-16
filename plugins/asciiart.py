@@ -12,7 +12,7 @@ from typing import List, Optional, Union
 import requests
 from bs4 import BeautifulSoup
 
-if __name__ != '__main__':
+if __name__ != "__main__":
     from cloudbot import hook
 
 URL = "https://www.asciiart.eu"
@@ -34,8 +34,9 @@ class Page:
 class Directory:
     name: str
     url: str
-    children: Optional[Union[List[Page], List["Directory"]]
-                       ] = field(default_factory=list)
+    children: Optional[Union[List[Page], List["Directory"]]] = field(
+        default_factory=list
+    )
 
 
 def str_similarity(a, b):
@@ -126,7 +127,7 @@ def load_map(filename):
     return json.load(open(FILE))
 
 
-if __name__ != '__main__':
+if __name__ != "__main__":
     asciimap = load_map(FILE)
 
     uses = {}
@@ -192,5 +193,5 @@ if __name__ != '__main__':
             reply(line)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     save_map(FILE)

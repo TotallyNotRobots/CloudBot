@@ -1,6 +1,7 @@
 """
 Validates all hook registrations in all plugins
 """
+
 import asyncio
 import importlib
 import inspect
@@ -15,12 +16,33 @@ import pytest
 
 import cloudbot.bot
 from cloudbot.bot import CloudBot
-from cloudbot.event import (CapEvent, CommandEvent, Event, EventType,
-                            IrcOutEvent, PostHookEvent, RegexEvent)
-from cloudbot.hook import (Action, command, config, event, irc_out, irc_raw,
-                           on_cap_ack, on_cap_available, on_connect, on_start,
-                           on_stop, periodic, permission, post_hook, regex,
-                           sieve)
+from cloudbot.event import (
+    CapEvent,
+    CommandEvent,
+    Event,
+    EventType,
+    IrcOutEvent,
+    PostHookEvent,
+    RegexEvent,
+)
+from cloudbot.hook import (
+    Action,
+    command,
+    config,
+    event,
+    irc_out,
+    irc_raw,
+    on_cap_ack,
+    on_cap_available,
+    on_connect,
+    on_start,
+    on_stop,
+    periodic,
+    permission,
+    post_hook,
+    regex,
+    sieve,
+)
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import Hook, hook_name_to_plugin
 from tests.util.mock_bot import MockBot
@@ -94,10 +116,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             "hook",
             hooks,
-            ids=[
-                f"{hook.plugin.title}.{hook.function_name}"
-                for hook in hooks
-            ],
+            ids=[f"{hook.plugin.title}.{hook.function_name}" for hook in hooks],
         )
 
 

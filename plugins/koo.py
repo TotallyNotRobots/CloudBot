@@ -5,6 +5,7 @@ from cloudbot.util.queue import Queue
 
 results_queue = Queue()
 
+
 class BotKooPost(KooPost):
     def __str__(self):
         return f"{self.name} at {self.created_at.strftime('%d-%m-%Y %H:%M')} {self.likes_count}👍 - {self.content}"
@@ -33,5 +34,7 @@ def koo(text, nick, chan, message):
     except KooAccountNotFoundException:
         return "User Account not found with that name."
 
-    results_queue[chan][nick] = [BotKooPost.construct(**post.dict()) for post in user.get_posts(20)]
+    results_queue[chan][nick] = [
+        BotKooPost.construct(**post.dict()) for post in user.get_posts(20)
+    ]
     return koon(nick, chan, text)

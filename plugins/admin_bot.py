@@ -298,9 +298,7 @@ def get_chan(chan, text):
 async def say(text, conn, chan, nick, admin_log):
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified"""
     channel, text = get_chan(chan, text)
-    admin_log(
-        f'{nick} used SAY to make me SAY "{text}" in {channel}.'
-    )
+    admin_log(f'{nick} used SAY to make me SAY "{text}" in {channel}.')
     conn.message(channel, text)
 
 
@@ -310,9 +308,7 @@ async def send_message(text, conn, nick, admin_log):
     split = text.split(None, 1)
     channel = split[0]
     text = split[1]
-    admin_log(
-        f'{nick} used MESSAGE to make me SAY "{text}" in {channel}.'
-    )
+    admin_log(f'{nick} used MESSAGE to make me SAY "{text}" in {channel}.')
     conn.message(channel, text)
 
 
@@ -324,9 +320,7 @@ async def me(
     [#channel] <action> - acts out <action> in a [#channel], or in the current channel of none is specified
     """
     channel, text = get_chan(chan, text)
-    event.admin_log(
-        f'{nick} used ME to make me ACT "{text}" in {channel}.'
-    )
+    event.admin_log(f'{nick} used ME to make me ACT "{text}" in {channel}.')
     conn.ctcp(channel, "ACTION", text)
 
 

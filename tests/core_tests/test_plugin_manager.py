@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+import sqlalchemy as sa
 from sqlalchemy import Column, String, Table, inspect
 
 from cloudbot import hook
@@ -54,6 +55,28 @@ def test_get_plugin(mock_manager):
         mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is None
     )
     assert mock_manager.find_plugin("test") is None
+
+
+def test_find_tables(mock_manager):
+    file_path = mock_manager.bot.plugin_dir / "test.py"
+    file_name = file_path.name
+
+    class TestTable(database.Base):
+        __tablename__ = "foo"
+
+        test_id = sa.Column(sa.Integer, primary_key=True)
+
+    mod = MockModule(tbl=TestTable)
+    obj = Plugin(
+        str(file_path),
+        file_name,
+        "test",
+        mod,
+    )
+
+    table_names = [t.name for t in obj.tables]
+
+    assert table_names == ["foo"]
 
 
 def test_can_load(mock_manager):
@@ -198,6 +221,8 @@ def test_plugin_with_objs_full_dict_attr(mock_manager, patch_import_module):
 def test_plugin_load_disabled(
     mock_manager, patch_import_module, patch_import_reload
 ):
+    patch_import_module.reset_mock()
+    patch_import_reload.reset_mock()
     patch_import_module.return_value = MockModule()
     mock_manager.bot.config.update(
         {

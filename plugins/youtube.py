@@ -22,6 +22,7 @@ ytpl_re = re.compile(
 
 base_url = "https://www.googleapis.com/youtube/v3/"
 
+
 def remove_tags(text):
     """Remove vtt markup tags."""
     tags = [
@@ -33,7 +34,11 @@ def remove_tags(text):
     for pat in tags:
         text = re.sub(pat, "", text)
 
-    text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3} --> .* align:start position:0%", r"\g<1>", text)
+    text = re.sub(
+        r"(\d{2}:\d{2}):\d{2}\.\d{3} --> .* align:start position:0%",
+        r"\g<1>",
+        text,
+    )
     # Remove HH:MM:.* lines completely
     text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3} --> ", "", text)
     text = re.sub(r"(\d{2}:\d{2}):\d{2}\.\d{3}", "", text)
@@ -131,26 +136,29 @@ def get_video_info(video_url) -> "dict[str, str]":
 
         return video_info
 
+
 def search_youtube_videos(query, max_results=10) -> "list[str]":
     ydl_opts = {
-        'quiet': True,
-        'no_warnings': True,
-        'force_generic_extractor': True,  # Use generic extractor to get info
-        'extract_flat': True,  # Extract flat JSON structure
-        'default_search': 'auto',  # Use the best search method supported by yt-dlp
-        'max_results': max_results,
-        'format': 'best', # Choose the best available format
-        'noplaylist': True,  # Do not extract playlists
+        "quiet": True,
+        "no_warnings": True,
+        "force_generic_extractor": True,  # Use generic extractor to get info
+        "extract_flat": True,  # Extract flat JSON structure
+        "default_search": "auto",  # Use the best search method supported by yt-dlp
+        "max_results": max_results,
+        "format": "best",  # Choose the best available format
+        "noplaylist": True,  # Do not extract playlists
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        search_results = ydl.extract_info(f'ytsearch{max_results}:{query}', download=False) or {}
+        search_results = (
+            ydl.extract_info(f"ytsearch{max_results}:{query}", download=False)
+            or {}
+        )
         video_urls = []
-        for result in search_results.get('entries', []):
+        for result in search_results.get("entries", []):
             if result:
-                video_urls.append(result['url'])
+                video_urls.append(result["url"])
         return video_urls
-
 
 
 class APIError(Exception):
@@ -279,7 +287,7 @@ def get_video_description(video_id: str) -> str:
 
     if "viewCount" in statistics:
         views = int(statistics["viewCount"])
-        out += " - \x02{:,}\x02 view{}".format(views, "s"[views == 1:])
+        out += " - \x02{:,}\x02 view{}".format(views, "s"[views == 1 :])
 
     uploader = snippet["channelTitle"]
 
@@ -318,7 +326,7 @@ def get_video_id(text: str) -> str:
 @hook.regex(youtube_re)
 def youtube_url(match: Match[str]) -> str:
     result = get_video_info(match.group(1))
-    time = timeformat.format_time(int(result['duration']), simple=True)
+    time = timeformat.format_time(int(result["duration"]), simple=True)
     return f"\x02{result['title']}\x02, \x02duration:\x02 {time} - {result['transcript']}"
 
 
@@ -330,7 +338,7 @@ def youtube_next(text: str, nick: str, reply) -> str:
     global user_results
     url = user_results[nick].pop(0)
     result = get_video_info(url)
-    time = timeformat.format_time(int(result['duration']), simple=True)
+    time = timeformat.format_time(int(result["duration"]), simple=True)
     return f"{url}  -  \x02{result['title']}\x02, \x02duration:\x02 {time} - {result['transcript']}"
 
 
@@ -408,6 +416,6 @@ def ytplaylist_url(match: Match[str]) -> str:
     author = snippet["channelTitle"]
     num_videos = int(content_details["itemCount"])
     count_videos = " - \x02{:,}\x02 video{}".format(
-        num_videos, "s"[num_videos == 1:]
+        num_videos, "s"[num_videos == 1 :]
     )
     return f"\x02{title}\x02 {count_videos} - \x02{author}\x02"

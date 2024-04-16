@@ -1,8 +1,14 @@
 import asyncio
 from fnmatch import fnmatch
 
-from sqlalchemy import (Boolean, Column, PrimaryKeyConstraint, String, Table,
-                        UniqueConstraint)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    UniqueConstraint,
+)
 
 from cloudbot import hook
 from cloudbot.util import database
@@ -15,7 +21,7 @@ table = Table(
     Column("mask", String(250)),
     Column("status", Boolean, default=True),
     UniqueConstraint("connection", "channel", "mask", "status"),
-    PrimaryKeyConstraint("connection", "channel", "mask")
+    PrimaryKeyConstraint("connection", "channel", "mask"),
 )
 
 
@@ -37,15 +43,21 @@ def add_ignore(db, conn, chan, mask):
     if (conn, chan) in ignore_cache:
         pass
     else:
-        db.execute(table.insert().values(connection=conn, channel=chan, mask=mask))
+        db.execute(
+            table.insert().values(connection=conn, channel=chan, mask=mask)
+        )
 
     db.commit()
     load_cache(db)
 
 
 def remove_ignore(db, conn, chan, mask):
-    db.execute(table.delete().where(table.c.connection == conn).where(table.c.channel == chan)
-               .where(table.c.mask == mask))
+    db.execute(
+        table.delete()
+        .where(table.c.connection == conn)
+        .where(table.c.channel == chan)
+        .where(table.c.mask == mask)
+    )
     db.commit()
     load_cache(db)
 
@@ -80,7 +92,10 @@ def ignore_sieve(bot, event, _hook):
         return event
 
     # don't block an event that could be unignoring
-    if _hook.type == "command" and event.triggered_command in ("unignore", "global_unignore"):
+    if _hook.type == "command" and event.triggered_command in (
+        "unignore",
+        "global_unignore",
+    ):
         return event
 
     if event.mask is None:
@@ -102,7 +117,7 @@ def get_user(conn, text):
     else:
         mask = "*!*@{host}".format_map(user)
 
-    if '@' not in mask:
+    if "@" not in mask:
         mask += "!*@*"
 
     return mask
@@ -129,7 +144,9 @@ def unignore(text, db, chan, conn, notice, nick, admin_log):
     if not is_ignored(conn.name, chan, target):
         notice(f"{target} is not ignored in {chan}.")
     else:
-        admin_log(f"{nick} used UNIGNORE to make me stop ignoring {target} in {chan}")
+        admin_log(
+            f"{nick} used UNIGNORE to make me stop ignoring {target} in {chan}"
+        )
         notice(f"{target} has been un-ignored in {chan}.")
         remove_ignore(db, conn.name, chan, target)
 
@@ -143,7 +160,9 @@ def global_ignore(text, db, conn, notice, nick, admin_log):
         notice(f"{target} is already globally ignored.")
     else:
         notice(f"{target} has been globally ignored.")
-        admin_log(f"{nick} used GLOBAL_IGNORE to make me ignore {target} everywhere")
+        admin_log(
+            f"{nick} used GLOBAL_IGNORE to make me ignore {target} everywhere"
+        )
         add_ignore(db, conn.name, "*", target)
 
 
@@ -156,5 +175,7 @@ def global_unignore(text, db, conn, notice, nick, admin_log):
         notice(f"{target} is not globally ignored.")
     else:
         notice(f"{target} has been globally un-ignored.")
-        admin_log(f"{nick} used GLOBAL_UNIGNORE to make me stop ignoring {target} everywhere")
+        admin_log(
+            f"{nick} used GLOBAL_UNIGNORE to make me stop ignoring {target} everywhere"
+        )
         remove_ignore(db, conn.name, "*", target)

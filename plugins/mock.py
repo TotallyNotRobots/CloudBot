@@ -18,13 +18,10 @@ def get_latest_line(text, conn, chan, nick):
 @hook.command()
 def mock(text, chan, conn, message):
     """<nick> - turn <user>'s last message in to aLtErNaTiNg cApS"""
-    nick, text, *_ = text.strip().split(None, 1) + ['', '']
+    nick, text, *_ = text.strip().split(None, 1) + ["", ""]
     line = get_latest_line(text, conn, chan, nick)
     if line is None:
-        if not text:
-            return f"Nothing found in recent history for {nick}"
-        else:
-            return f"Nothing found in recent history for {nick} containing '{text}'"
+        return f"Nothing found in recent history for {nick}"
 
     if line.startswith("\x01ACTION"):
         fmt = "* {nick} {msg}"

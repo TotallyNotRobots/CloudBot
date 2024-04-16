@@ -9,6 +9,7 @@ from cloudbot.util.queue import Queue
 results_queue = Queue()
 poped3 = Queue()
 
+
 def pop3(results, reply, chan, nick):
     global poped3
     songs = []
@@ -16,7 +17,7 @@ def pop3(results, reply, chan, nick):
         try:
             song = results.pop()
             if isinstance(song, Strophe):
-                reply(str(song).replace('\n', ' - '))
+                reply(str(song).replace("\n", " - "))
                 return
 
             songs.append(song)
@@ -25,6 +26,7 @@ def pop3(results, reply, chan, nick):
             reply("No [more] results found.")
             break
     poped3[chan][nick] = songs
+
 
 @hook.command("lyricsn", "lyn", autohelp=False)
 def lyricsn(text, bot, chan, nick, reply):
@@ -55,18 +57,22 @@ def parse_args(text: str):
     if args:
         return args.groups()
 
+
 @hook.command("lyrics", autohost=False)
 def lyricsnmusic(text, chan, nick, reply):
     """<artist> <song> - will fetch the first 150 characters of a song and a link to the full lyrics. Enclose with quotes to deliminate arguments. Use lyricsn to paginate"""
     global results_queue
     args = text.split()
-    if len(args) > 2 and "\"" in text:
+    if len(args) > 2 and '"' in text:
         args = parse_args(text)
     if args is None or len(args) != 2:
         return "Usage: .lyrics <artist> <song>"
     client = ChartLyricsClient()
-    results_queue[chan][nick] = list(client.search_artist_and_song(args[0], args[1]))
+    results_queue[chan][nick] = list(
+        client.search_artist_and_song(args[0], args[1])
+    )
     return pop3(results_queue[chan][nick], reply, chan, nick)
+
 
 @hook.command("lysearch", autohelp=False)
 def lysearch(text, chan, nick, reply):
@@ -77,6 +83,7 @@ def lysearch(text, chan, nick, reply):
     client = ChartLyricsClient()
     results_queue[chan][nick] = list(client.search_text(text))
     return pop3(results_queue[chan][nick], reply, chan, nick)
+
 
 @hook.command("getlyrics", autohelp=False)
 def getlyrics(text, chan, nick, reply):

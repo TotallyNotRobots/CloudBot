@@ -6,8 +6,16 @@ from threading import Lock
 from time import sleep, time
 from typing import Dict, List, NamedTuple, TypeVar
 
-from sqlalchemy import (Boolean, Column, Integer, PrimaryKeyConstraint, String,
-                        Table, and_, desc)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Integer,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    and_,
+    desc,
+)
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -501,7 +509,7 @@ def attack(event, nick, chan, db, conn, attack_type):
 
 
 # @hook.command("bang", autohelp=False)
-@hook.regex(re.compile(r'^\s*\.bang\s*$', re.I))
+@hook.regex(re.compile(r"^\s*\.bang\s*$", re.I))
 def bang(nick, chan, db, conn, event):
     """- when there is a duck on the loose use this command to shoot it."""
     with chan_locks[conn.name][chan.casefold()]:

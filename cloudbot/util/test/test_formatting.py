@@ -1,9 +1,19 @@
-from cloudbot.util.formatting import (chunk_str, dict_format, get_text_list,
-                                      ireplace, multi_replace,
-                                      multiword_replace, munge,
-                                      pluralize_suffix, smart_split,
-                                      strip_colors, strip_html, truncate,
-                                      truncate_str, truncate_words)
+from cloudbot.util.formatting import (
+    chunk_str,
+    dict_format,
+    get_text_list,
+    ireplace,
+    multi_replace,
+    multiword_replace,
+    munge,
+    pluralize_suffix,
+    smart_split,
+    strip_colors,
+    strip_html,
+    truncate,
+    truncate_str,
+    truncate_words,
+)
 
 test_munge_input = "The quick brown fox jumps over the lazy dog"
 test_munge_count = 3
@@ -45,7 +55,13 @@ test_multiword_replace_result = "<replace1> likes [replace2]"
 test_ireplace_input = "The quick brown FOX fox FOX jumped over the lazy dog"
 
 test_chunk_str_input = "The quick brown fox jumped over the lazy dog"
-test_chunk_str_result = ['The quick', 'brown fox', 'jumped', 'over the', 'lazy dog']
+test_chunk_str_result = [
+    "The quick",
+    "brown fox",
+    "jumped",
+    "over the",
+    "lazy dog",
+]
 
 
 def test_munge():
@@ -54,13 +70,21 @@ def test_munge():
 
 
 def test_dict_format():
-    assert dict_format(test_format_data, test_format_formats) == test_format_result
+    assert (
+        dict_format(test_format_data, test_format_formats) == test_format_result
+    )
     assert dict_format({}, test_format_formats) is None
 
 
 def test_pluralize():
-    assert pluralize_suffix(test_pluralize_num_a, test_pluralize_text) == test_pluralize_result_a
-    assert pluralize_suffix(test_pluralize_num_b, test_pluralize_text) == test_pluralize_result_b
+    assert (
+        pluralize_suffix(test_pluralize_num_a, test_pluralize_text)
+        == test_pluralize_result_a
+    )
+    assert (
+        pluralize_suffix(test_pluralize_num_b, test_pluralize_text)
+        == test_pluralize_result_b
+    )
 
 
 def test_strip_colors():
@@ -69,20 +93,40 @@ def test_strip_colors():
 
 
 def test_truncate_str():
-    assert truncate(test_truncate_str_input, length=test_truncate_str_length_a) == test_truncate_str_result_a
-    assert truncate(test_truncate_str_input, length=test_truncate_str_length_b) == test_truncate_str_result_b
+    assert (
+        truncate(test_truncate_str_input, length=test_truncate_str_length_a)
+        == test_truncate_str_result_a
+    )
+    assert (
+        truncate(test_truncate_str_input, length=test_truncate_str_length_b)
+        == test_truncate_str_result_b
+    )
 
     # compatibility
-    assert truncate_str(test_truncate_str_input, length=test_truncate_str_length_a) == test_truncate_str_result_a
-    assert truncate_str(test_truncate_str_input, length=test_truncate_str_length_b) == test_truncate_str_result_b
+    assert (
+        truncate_str(test_truncate_str_input, length=test_truncate_str_length_a)
+        == test_truncate_str_result_a
+    )
+    assert (
+        truncate_str(test_truncate_str_input, length=test_truncate_str_length_b)
+        == test_truncate_str_result_b
+    )
 
 
 # noinspection PyPep8
 def test_truncate_words():
-    assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_a) == \
-           test_truncate_words_result_a
-    assert truncate_words(test_truncate_words_input, length=test_truncate_words_length_b) == \
-           test_truncate_words_result_b
+    assert (
+        truncate_words(
+            test_truncate_words_input, length=test_truncate_words_length_a
+        )
+        == test_truncate_words_result_a
+    )
+    assert (
+        truncate_words(
+            test_truncate_words_input, length=test_truncate_words_length_b
+        )
+        == test_truncate_words_result_b
+    )
 
 
 def test_strip_html():
@@ -90,17 +134,37 @@ def test_strip_html():
 
 
 def test_multiword_replace():
-    assert multi_replace(test_multiword_replace_text, test_multiword_replace_dict) == test_multiword_replace_result
+    assert (
+        multi_replace(test_multiword_replace_text, test_multiword_replace_dict)
+        == test_multiword_replace_result
+    )
 
     # compatibility
-    assert multiword_replace(test_multiword_replace_text, test_multiword_replace_dict) == test_multiword_replace_result
+    assert (
+        multiword_replace(
+            test_multiword_replace_text, test_multiword_replace_dict
+        )
+        == test_multiword_replace_result
+    )
 
 
 def test_ireplace():
-    assert ireplace(test_ireplace_input, "fox", "cat") == "The quick brown cat cat cat jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "FOX", "cAt") == "The quick brown cAt cAt cAt jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "fox", "cat", 1) == "The quick brown cat fox FOX jumped over the lazy dog"
-    assert ireplace(test_ireplace_input, "fox", "cat", 2) == "The quick brown cat cat FOX jumped over the lazy dog"
+    assert (
+        ireplace(test_ireplace_input, "fox", "cat")
+        == "The quick brown cat cat cat jumped over the lazy dog"
+    )
+    assert (
+        ireplace(test_ireplace_input, "FOX", "cAt")
+        == "The quick brown cAt cAt cAt jumped over the lazy dog"
+    )
+    assert (
+        ireplace(test_ireplace_input, "fox", "cat", 1)
+        == "The quick brown cat fox FOX jumped over the lazy dog"
+    )
+    assert (
+        ireplace(test_ireplace_input, "fox", "cat", 2)
+        == "The quick brown cat cat FOX jumped over the lazy dog"
+    )
 
     # test blank input - this should behave like the native string.replace()
     assert ireplace("Hello", "", "?") == "?H?e?l?l?o?"
@@ -111,14 +175,27 @@ def test_chunk_str():
 
 
 def test_get_text_list():
-    assert get_text_list(['a', 'b', 'c', 'd']) == 'a, b, c or d'
-    assert get_text_list(['a', 'b', 'c'], 'and') == 'a, b and c'
-    assert get_text_list(['a', 'b'], 'and') == 'a and b'
-    assert get_text_list(['a']) == 'a'
-    assert get_text_list([]) == ''
+    assert get_text_list(["a", "b", "c", "d"]) == "a, b, c or d"
+    assert get_text_list(["a", "b", "c"], "and") == "a, b and c"
+    assert get_text_list(["a", "b"], "and") == "a and b"
+    assert get_text_list(["a"]) == "a"
+    assert get_text_list([]) == ""
 
 
 def test_smart_split():
-    assert list(smart_split(r'This is "a person\'s" test.')) == ['This', 'is', '"a person\\\'s"', 'test.']
-    assert list(smart_split(r"Another 'person\'s' test.")) == ['Another', "'person\\'s'", 'test.']
-    assert list(smart_split(r'A "\"funky\" style" test.')) == ['A', '"\\"funky\\" style"', 'test.']
+    assert list(smart_split(r'This is "a person\'s" test.')) == [
+        "This",
+        "is",
+        '"a person\\\'s"',
+        "test.",
+    ]
+    assert list(smart_split(r"Another 'person\'s' test.")) == [
+        "Another",
+        "'person\\'s'",
+        "test.",
+    ]
+    assert list(smart_split(r'A "\"funky\" style" test.')) == [
+        "A",
+        '"\\"funky\\" style"',
+        "test.",
+    ]

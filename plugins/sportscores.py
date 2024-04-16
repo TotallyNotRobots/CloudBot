@@ -66,7 +66,7 @@ def scrape_scores(conn, chan, game, text):
     raw = score.replace("%20", " ")
     raw = raw.replace("^", "")
     raw = raw.replace("&", "\n")
-    pattern = re.compile(fr"{game}_s_left\d+=(.*)")
+    pattern = re.compile(rf"{game}_s_left\d+=(.*)")
     scores = []
     for match in re.findall(pattern, raw):
         if text.lower() in match.lower():

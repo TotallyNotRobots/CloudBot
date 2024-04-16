@@ -18,7 +18,9 @@ else:
 def whois(text, reply):
     """<domain> - Does a whois query on <domain>."""
     if pythonwhois is None:
-        return "The pythonwhois library does not work on this version of Python."
+        return (
+            "The pythonwhois library does not work on this version of Python."
+        )
 
     domain = text.strip().lower()
 
@@ -35,10 +37,14 @@ def whois(text, reply):
         info.append(("Registrar", data["registrar"][0]))
 
     with suppress(KeyError):
-        info.append(("Registered", data["creation_date"][0].strftime("%d-%m-%Y")))
+        info.append(
+            ("Registered", data["creation_date"][0].strftime("%d-%m-%Y"))
+        )
 
     with suppress(KeyError):
-        info.append(("Expires", data["expiration_date"][0].strftime("%d-%m-%Y")))
+        info.append(
+            ("Expires", data["expiration_date"][0].strftime("%d-%m-%Y"))
+        )
 
     if not info:
         return "No information returned."

@@ -2,10 +2,18 @@ from unittest.mock import patch
 
 import pytest
 
-from cloudbot.util.colors import (IRC_COLOUR_DICT, _convert,
-                                  get_available_colours, get_available_formats,
-                                  get_color, get_format, parse, strip,
-                                  strip_all, strip_irc)
+from cloudbot.util.colors import (
+    IRC_COLOUR_DICT,
+    _convert,
+    get_available_colours,
+    get_available_formats,
+    get_color,
+    get_format,
+    parse,
+    strip,
+    strip_all,
+    strip_irc,
+)
 
 test_input = "The quick $(brown, red)brown$(clear) fox$(fake) jumps over the $(bold)lazy dog$(clear)."
 

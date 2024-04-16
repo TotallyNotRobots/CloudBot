@@ -1,8 +1,10 @@
 import json
+from typing import Any, Dict, Optional
 from unittest.mock import MagicMock
 
 import pytest
 import requests
+from responses.matchers import query_param_matcher
 
 from plugins import wordnik
 
@@ -26,31 +28,31 @@ class WordTestBase:
         raise NotImplementedError
 
     @classmethod
-    def get_paramstring(cls):
-        return None
+    def get_params(cls) -> Dict[str, Any]:
+        return {}
 
     @classmethod
-    def get_result_limit(cls):
+    def get_result_limit(cls) -> int:
         return 5
 
     @classmethod
-    def build_url(cls, word, op=None, paramstring=None):
+    def make_query_params(cls, params: Optional[Dict[str, Any]] = None):
+        out: Dict[str, Any] = {}
+        if limit := cls.get_result_limit():
+            out["limit"] = limit
+
+        out["api_key"] = "APIKEY"
+        params = params or cls.get_params()
+        if params:
+            out.update(params)
+
+        return out
+
+    @classmethod
+    def build_url(cls, word, op=None):
         base = "http://api.wordnik.com/v4/word.json"
         url = base + "/" + word + "/" + (op or cls.get_op())
-        if cls.get_result_limit():
-            param_trail = "limit={}&api_key=APIKEY".format(
-                cls.get_result_limit()
-            )
-        else:
-            param_trail = "api_key=APIKEY"
-
-        params = paramstring or cls.get_paramstring()
-        if params:
-            params += "&" + param_trail
-        else:
-            params = param_trail
-
-        return url + "?" + params
+        return url
 
     @classmethod
     def get_func(cls):
@@ -71,7 +73,7 @@ class WordTestBase:
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=404,
             json={"error": "Not Found"},
         )
@@ -83,7 +85,7 @@ class WordTestBase:
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=512,
             json={"error": "FooBar"},
         )
@@ -100,7 +102,7 @@ class WordTestBase:
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=512,
             json={},
         )
@@ -118,7 +120,7 @@ class WordTestBase:
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=512,
             body="Some data",
         )
@@ -131,7 +133,7 @@ class WordTestBase:
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             body="Some data",
         )
 
@@ -170,7 +172,7 @@ class TestDefine(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json=[
                 {
                     "id": "W5229000-1",
@@ -236,7 +238,7 @@ class TestUsage(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json={
                 "examples": [
                     {
@@ -289,7 +291,7 @@ class TestPronounce(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json=[
                 {
                     "seq": 0,
@@ -341,7 +343,7 @@ class TestPronounce(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word", "audio"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json=[{"fileUrl": "https://example.com/word.ogg"}],
         )
 
@@ -359,7 +361,7 @@ class TestPronounce(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word", "audio"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=404,
             json={"error": "Not Found"},
         )
@@ -375,7 +377,7 @@ class TestPronounce(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word", "audio"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=500,
             json={"error": "FooBar"},
         )
@@ -403,8 +405,8 @@ class TestSynonym(WordTestBase):
         return None
 
     @classmethod
-    def get_paramstring(cls):
-        return "relationshipTypes=synonym&limitPerRelationshipType=5"
+    def get_params(cls) -> Dict[str, Any]:
+        return {"relationshipTypes": "synonym", "limitPerRelationshipType": "5"}
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -416,7 +418,7 @@ class TestSynonym(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("word"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json=[
                 {
                     "relationshipType": "synonym",
@@ -453,8 +455,12 @@ class TestAntonym(WordTestBase):
         return None
 
     @classmethod
-    def get_paramstring(cls):
-        return "relationshipTypes=antonym&limitPerRelationshipType=5&useCanonical=false"
+    def get_params(cls) -> Dict[str, Any]:
+        return {
+            "relationshipTypes": "antonym",
+            "limitPerRelationshipType": "5",
+            "useCanonical": "false",
+        }
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -466,7 +472,7 @@ class TestAntonym(WordTestBase):
         mock_requests.add(
             "GET",
             self.build_url("clear"),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json=[
                 {
                     "relationshipType": "antonym",
@@ -495,22 +501,17 @@ class WordsTestBase(WordTestBase):
         raise NotImplementedError
 
     @classmethod
-    def build_url(cls, word=None, op=None, paramstring=None):
+    def build_url(cls, word=None, op=None):
         base = "http://api.wordnik.com/v4/words.json"
         url = base + "/" + (op or cls.get_op())
-        return (
-            url
-            + "?"
-            + "&".join(
-                filter(
-                    None,
-                    ((paramstring or cls.get_paramstring()), "api_key=APIKEY"),
-                )
-            )
-        )
+        return url
 
 
 class TestWOTD(WordsTestBase):
+    @classmethod
+    def get_result_limit(cls):
+        return 0
+
     @classmethod
     def get_not_found_msg(cls, word):
         return "Sorry I couldn't find the word of the day"
@@ -556,7 +557,7 @@ class TestWOTD(WordsTestBase):
         mock_requests.add(
             "GET",
             self.build_url(),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json={
                 "_id": "5cfaf4960464123a364fd4fd",
                 "word": "technopathy",
@@ -675,8 +676,12 @@ class TestWOTD(WordsTestBase):
 
         mock_requests.add(
             "GET",
-            self.build_url(paramstring="date=2018-11-21"),
-            match_querystring=True,
+            self.build_url(),
+            match=[
+                query_param_matcher(
+                    self.make_query_params({"date": "2018-11-21"})
+                )
+            ],
             json={
                 "_id": "5c60c1a77c27cbdb29216227",
                 "word": "sangaree",
@@ -708,8 +713,15 @@ class TestRandomWord(WordsTestBase):
         return "randomWord"
 
     @classmethod
-    def get_paramstring(cls):
-        return "hasDictionarydef=true&vulgar=true"
+    def get_params(cls) -> Dict[str, Any]:
+        return {
+            "hasDictionarydef": "true",
+            "vulgar": "true",
+        }
+
+    @classmethod
+    def get_result_limit(cls):
+        return 0
 
     @classmethod
     def get_not_found_msg(cls, word):
@@ -730,7 +742,7 @@ class TestRandomWord(WordsTestBase):
         mock_requests.add(
             "GET",
             self.build_url(),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             status=404,
             json={"error": "Not Found"},
         )
@@ -745,7 +757,7 @@ class TestRandomWord(WordsTestBase):
         mock_requests.add(
             "GET",
             self.build_url(),
-            match_querystring=True,
+            match=[query_param_matcher(self.make_query_params())],
             json={"id": 0, "word": "commendation"},
         )
 

@@ -14,7 +14,7 @@ from cloudbot.util.formatting import gen_markdown_table
 
 
 def default_hook_counter():
-    return {'success': 0, 'failure': 0}
+    return {"success": 0, "failure": 0}
 
 
 def hook_sorter(n):
@@ -29,9 +29,11 @@ def get_stats(bot):
         stats = bot.memory["hook_stats"]
     except LookupError:
         bot.memory["hook_stats"] = stats = {
-            'global': defaultdict(default_hook_counter),
-            'network': defaultdict(lambda: defaultdict(default_hook_counter)),
-            'channel': defaultdict(lambda: defaultdict(lambda: defaultdict(default_hook_counter))),
+            "global": defaultdict(default_hook_counter),
+            "network": defaultdict(lambda: defaultdict(default_hook_counter)),
+            "channel": defaultdict(
+                lambda: defaultdict(lambda: defaultdict(default_hook_counter))
+            ),
         }
 
     return stats
@@ -41,53 +43,60 @@ def get_stats(bot):
 def stats_sieve(launched_event, error, bot, launched_hook):
     chan = launched_event.chan
     conn = launched_event.conn
-    status = 'success' if error is None else 'failure'
+    status = "success" if error is None else "failure"
     stats = get_stats(bot)
-    name = launched_hook.plugin.title + '.' + launched_hook.function_name
-    stats['global'][name][status] += 1
+    name = launched_hook.plugin.title + "." + launched_hook.function_name
+    stats["global"][name][status] += 1
     if conn:
-        stats['network'][conn.name.casefold()][name][status] += 1
+        stats["network"][conn.name.casefold()][name][status] += 1
 
         if chan:
-            stats['channel'][conn.name.casefold()][chan.casefold()][name][status] += 1
+            stats["channel"][conn.name.casefold()][chan.casefold()][name][
+                status
+            ] += 1
 
 
 def do_basic_stats(data):
     table = [
-        (hook_name, str(count['success']), str(count['failure']))
-        for hook_name, count in sorted(data.items(), key=hook_sorter(1), reverse=True)
+        (hook_name, str(count["success"]), str(count["failure"]))
+        for hook_name, count in sorted(
+            data.items(), key=hook_sorter(1), reverse=True
+        )
     ]
     return ("Hook", "Uses - Success", "Uses - Errored"), table
 
 
 def do_global_stats(data):
-    return do_basic_stats(data['global'])
+    return do_basic_stats(data["global"])
 
 
 def do_network_stats(data, network):
-    return do_basic_stats(data['network'][network.casefold()])
+    return do_basic_stats(data["network"][network.casefold()])
 
 
 def do_channel_stats(data, network, channel):
-    return do_basic_stats(data['channel'][network.casefold()][channel.casefold()])
+    return do_basic_stats(
+        data["channel"][network.casefold()][channel.casefold()]
+    )
 
 
 def do_hook_stats(data, hook_name):
     table = [
-        (net, chan, hooks[hook_name]) for net, chans in data['channel'].items() for chan, hooks in chans.items()
+        (net, chan, hooks[hook_name])
+        for net, chans in data["channel"].items()
+        for chan, hooks in chans.items()
     ]
-    return ("Network", "Channel", "Uses - Success", "Uses - Errored"), \
-           [
-               (net, chan, str(count['success']), str(count['failure']))
-               for net, chan, count in sorted(table, key=hook_sorter(2), reverse=True)
-           ]
+    return ("Network", "Channel", "Uses - Success", "Uses - Errored"), [
+        (net, chan, str(count["success"]), str(count["failure"]))
+        for net, chan, count in sorted(table, key=hook_sorter(2), reverse=True)
+    ]
 
 
 stats_funcs = {
-    'global': (do_global_stats, 0),
-    'network': (do_network_stats, 1),
-    'channel': (do_channel_stats, 2),
-    'hook': (do_hook_stats, 1),
+    "global": (do_global_stats, 0),
+    "network": (do_network_stats, 1),
+    "channel": (do_channel_stats, 2),
+    "hook": (do_hook_stats, 1),
 }
 
 
@@ -116,4 +125,4 @@ def hookstats(text, bot, notice_doc):
 
     table = gen_markdown_table(headers, data)
 
-    return web.paste(table, 'md', 'hastebin')
+    return web.paste(table, "md", "hastebin")

@@ -3,8 +3,21 @@ import logging
 from collections.abc import Sized
 from enum import Enum
 from functools import wraps
-from typing import (Any, Container, Dict, Generic, Iterable, Iterator, List,
-                    Optional, Tuple, TypeVar, Union, cast, overload)
+from typing import (
+    Any,
+    Container,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 import requests
 
@@ -257,6 +270,17 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     Traceback (most recent call last):
         ...
     IndexError: list index out of range
+    >>> col = LazyCollection(['a'])
+    >>> 'c' in col
+    False
+    >>> col = LazyCollection(['a', 'b', 'c'])
+    >>> list(col)
+    ['a', 'b', 'c']
+    >>> col = LazyCollection(['a'])
+    >>> col[0]
+    'a'
+    >>> col[0]
+    'a'
     """
 
     def __init__(self, it: Iterable[T]) -> None:
@@ -282,10 +306,10 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
         yield from self._data
         while True:
             holder = self._get_next()
-            if holder.exists():
-                yield holder.get()
-            else:
+            if not holder.exists():
                 break
+
+            yield holder.get()
 
     def __contains__(self, needle: object) -> bool:
         if needle in self._data:
@@ -322,12 +346,10 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
             self._gen_to_index(i)
 
     @overload
-    def __getitem__(self, item: int) -> T:
-        ...
+    def __getitem__(self, item: int) -> T: ...
 
     @overload
-    def __getitem__(self, item: slice) -> List[T]:
-        ...
+    def __getitem__(self, item: slice) -> List[T]: ...
 
     def __getitem__(self, item: Union[int, slice]) -> Union[T, List[T]]:
         if isinstance(item, slice):

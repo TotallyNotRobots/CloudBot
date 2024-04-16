@@ -137,11 +137,11 @@ def test_swapcase(text, output):
 @pytest.mark.parametrize(
     "text,output",
     [
-        ("foo", "ｆｏｏ"),
-        ("foo bar", "ｆｏｏ ｂａｒ"),
-        ("Foo", "Ｆｏｏ"),
-        ("fOO", "ｆＯＯ"),
-        ("FOO", "ＦＯＯ"),
+        ("foo", "\uff46\uff4f\uff4f"),
+        ("foo bar", "\uff46\uff4f\uff4f\u3000\uff42\uff41\uff52"),
+        ("Foo", "\uff26\uff4f\uff4f"),
+        ("fOO", "\uff46\uff2f\uff2f"),
+        ("FOO", "\uff26\uff2f\uff2f"),
     ],
 )
 def test_fullwidth(text, output):
@@ -257,9 +257,10 @@ def test_reverse(text, output):
     ],
 )
 def test_length(text, text_length):
-    assert utility.length(
-        text
-    ) == f"The length of that string is {text_length} characters."
+    assert (
+        utility.length(text)
+        == f"The length of that string is {text_length} characters."
+    )
 
 
 @pytest.mark.parametrize(

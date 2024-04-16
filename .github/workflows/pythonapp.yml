@@ -15,35 +15,39 @@ jobs:
       fail-fast: false
       matrix:
         python-ver:
-        - '3.6'
-        - '3.7'
         - '3.8'
         - '3.9'
-    runs-on: ubuntu-latest
+        - '3.10'
+        - '3.11'
+        - '3.12'
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
       with:
-        fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-ver }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-ver }}
-    - uses: actions/cache@v2.1.7
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-${{ matrix.python-ver }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.python-ver }}-pip-
+        python-version: "${{matrix.python-ver}}"
+        cache: "pip"
+        cache-dependency-path: |
+          **/*requirements*.txt
+
     - name: Install apt deps
-      run: sudo apt-get update && sudo apt-get install -qq -y libenchant-dev libxml2-dev libxslt1-dev
+      run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
+
     - name: Install dependencies
-      run: pip install -Ur requirements-dev.txt
+      run: |
+        pip install -U pip wheel
+        pip install -Ur requirements-dev.txt
+
     - name: Test with pytest
       run: pytest
       env:
         PYTHONDEVMODE: 1
         PYTHONPATH: .
-    - uses: codecov/codecov-action@v2.1.0
+
+    - uses: codecov/codecov-action@v4
       with:
         name: build-${{ matrix.python-ver }}
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}

@@ -19,12 +19,19 @@ commands = {
     "link": "getlink?search={search_term}&urn={urn}",
     "text": "gettext?urn={urn}",
     "textinfo": "gettextinfo?urn={urn}",
-    "readlink": "readlink?url={ctext_url}"
+    "readlink": "readlink?url={ctext_url}",
 }
 
 
 def pretty_dict(dict):
-    return str(dict).replace(', ', '\n').replace(': ', ':\t').replace('{', '').replace('}', '').replace("'", '')
+    return (
+        str(dict)
+        .replace(", ", "\n")
+        .replace(": ", ":\t")
+        .replace("{", "")
+        .replace("}", "")
+        .replace("'", "")
+    )
 
 
 @hook.command("chinese", autohelp=False)
@@ -41,17 +48,27 @@ def chinese(text):
 
     if cmd == "help":
         if len(text.split()) == 1:
-            return "Commands: " + ", ".join(commands.keys()) + " https://ctext.org/plugins/apilist/"
+            return (
+                "Commands: "
+                + ", ".join(commands.keys())
+                + " https://ctext.org/plugins/apilist/"
+            )
         else:
             cmd = text.split()[1]
             fmtstr = commands[cmd]
-            field_names = [name for text, name, spec,
-                           conv in string.Formatter().parse(fmtstr) if name is not None]
+            field_names = [
+                name
+                for text, name, spec, conv in string.Formatter().parse(fmtstr)
+                if name is not None
+            ]
             return f"Usage: .chinese {cmd} [" + "] [".join(field_names) + "]"
 
     fmtstr = commands[cmd]
-    field_names = [name for text, name, spec,
-                   conv in string.Formatter().parse(fmtstr) if name is not None]
+    field_names = [
+        name
+        for text, name, spec, conv in string.Formatter().parse(fmtstr)
+        if name is not None
+    ]
 
     named_fields = {k: quote(v) for k, v in zip(field_names, text.split()[1:])}
     url = API + fmtstr.format(**named_fields)
@@ -61,7 +78,9 @@ def chinese(text):
         _list = pretty_dict(r.json()).split("\n")
         # Join every n elements
         n = 4
-        return [";\t".join(_list[i:i + n]) for i in range(0, len(_list), n)][:8]
+        return [";\t".join(_list[i : i + n]) for i in range(0, len(_list), n)][
+            :8
+        ]
     else:
         return "Error: " + r.status_code
 
@@ -76,7 +95,7 @@ def transliterate(text):
         _list = pretty_dict(LANG2SCRIPT).split("\n")
         # Join every n elements
         n = 8
-        return [";\t".join(_list[i:i + n]) for i in range(0, len(_list), n)]
+        return [";\t".join(_list[i : i + n]) for i in range(0, len(_list), n)]
 
     try:
         source, text = text.split(maxsplit=1)

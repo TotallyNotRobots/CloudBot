@@ -18,9 +18,7 @@ class RespType(Enum):
 def is_self(conn, target):
     """Checks if a string is "****self" or contains conn.name."""
     return bool(
-        re.search(
-            f"(^..?.?.?self|{re.escape(conn.nick)})", target, re.I
-        )
+        re.search(f"(^..?.?.?self|{re.escape(conn.nick)})", target, re.I)
     )
 
 

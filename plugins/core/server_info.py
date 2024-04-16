@@ -1,6 +1,7 @@
 """
 Tracks verious server info like ISUPPORT tokens
 """
+
 from typing import Callable, Dict, MutableMapping, TypeVar
 
 from cloudbot import hook

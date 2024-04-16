@@ -2,26 +2,71 @@ import asyncio
 import importlib
 import logging
 import sys
+import typing
 from collections import defaultdict
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional
+from typing import (
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    cast,
+)
 from weakref import WeakValueDictionary
 
 import sqlalchemy
 from sqlalchemy import Table
 
 from cloudbot.event import Event, EventType, PostHookEvent
-from cloudbot.plugin_hooks import (CapHook, CommandHook, ConfigHook, EventHook,
-                                   RawHook, hook_name_to_plugin)
+from cloudbot.plugin_hooks import (
+    CapHook,
+    CommandHook,
+    ConfigHook,
+    EventHook,
+    IrcOutHook,
+    OnCapAckHook,
+    OnCapAvaliableHook,
+    OnConnectHook,
+    OnStartHook,
+    OnStopHook,
+    PeriodicHook,
+    PermHook,
+    PostHookHook,
+    RawHook,
+    RegexHook,
+    SieveHook,
+    hook_name_to_plugin,
+)
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, async_util, database
 from cloudbot.util.func_utils import call_with_args
 
 logger = logging.getLogger("cloudbot")
 
 
-def find_hooks(parent, module):
+class HookDict(TypedDict):
+    command: List[CommandHook]
+    on_connect: List[OnConnectHook]
+    on_start: List[OnStartHook]
+    on_stop: List[OnStopHook]
+    on_cap_available: List[OnCapAvaliableHook]
+    on_cap_ack: List[OnCapAckHook]
+    sieve: List[SieveHook]
+    event: List[EventHook]
+    regex: List[RegexHook]
+    periodic: List[PeriodicHook]
+    irc_raw: List[RawHook]
+    irc_out: List[IrcOutHook]
+    post_hook: List[PostHookHook]
+    config: List[ConfigHook]
+    perm_check: List[PermHook]
+
+
+def find_hooks(parent, module) -> HookDict:
     hooks = defaultdict(list)
     for func in module.__dict__.values():
         if hasattr(func, HOOK_ATTR) and not hasattr(func, "_not_" + HOOK_ATTR):
@@ -36,7 +81,7 @@ def find_hooks(parent, module):
             # delete the hook to free memory
             delattr(func, HOOK_ATTR)
 
-    return hooks
+    return cast(HookDict, hooks)
 
 
 def find_tables(code):
@@ -48,6 +93,9 @@ def find_tables(code):
         ):
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
+        elif isinstance(obj, type) and issubclass(obj, database.Base):
+            obj = cast(Type[database.Base], obj)
+            tables.append(obj.__table__)
 
     return tables
 
@@ -74,16 +122,16 @@ class PluginManager:
         self.bot = bot
 
         self.plugins: Dict[str, Plugin] = {}
-        self._plugin_name_map: MutableMapping[
-            str, Plugin
-        ] = WeakValueDictionary()
+        self._plugin_name_map: MutableMapping[str, Plugin] = (
+            WeakValueDictionary()
+        )
         self.commands: Dict[str, CommandHook] = {}
         self.raw_triggers: Dict[str, List[RawHook]] = defaultdict(list)
         self.catch_all_triggers: List[RawHook] = []
         self.event_type_hooks: Dict[EventType, List[EventHook]] = defaultdict(
             list
         )
-        self.regex_hooks = []
+        self.regex_hooks: List[Tuple[typing.Pattern, RegexHook]] = []
         self.sieves = []
         self.cap_hooks: Dict[str, Dict[str, List[CapHook]]] = {
             "on_available": defaultdict(list),
@@ -340,7 +388,7 @@ class PluginManager:
         self._sort_hooks()
 
         # we don't need this anymore
-        del plugin.hooks["on_start"]
+        plugin.hooks["on_start"].clear()
 
     def _sort_hooks(self) -> None:
         def _sort_list(hooks):

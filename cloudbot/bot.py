@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import gc
+import importlib
 import logging
 import re
 import time
@@ -10,13 +11,12 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from sqlalchemy import Table, create_engine, inspect
+from sqlalchemy import Table, create_engine
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
-from venusian import Scanner
 from watchdog.observers import Observer
 
-from cloudbot import clients
 from cloudbot.client import Client
 from cloudbot.config import Config
 from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
@@ -29,25 +29,28 @@ from cloudbot.util.mapping import KeyFoldDict
 logger = logging.getLogger("cloudbot")
 
 
-class BotInstanceHolder:
-    def __init__(self):
-        self._instance = None
+class AbstractBot:
+    def __init__(self, *, config: Config) -> None:
+        self.config = config
 
-    def get(self):
-        # type: () -> CloudBot
+
+class BotInstanceHolder:
+    def __init__(self) -> None:
+        self._instance: Optional[AbstractBot] = None
+
+    def get(self) -> Optional[AbstractBot]:
         return self._instance
 
-    def set(self, value):
-        # type: (CloudBot) -> None
+    def set(self, value: Optional[AbstractBot]) -> None:
         self._instance = value
 
     @property
-    def config(self):
-        # type: () -> Config
-        if not self.get():
+    def config(self) -> Config:
+        instance = self.get()
+        if not instance:
             raise ValueError("No bot instance available")
 
-        return self.get().config
+        return instance.config
 
 
 # Store a global instance of the bot to allow easier access to global data
@@ -88,7 +91,7 @@ def get_cmd_regex(event):
     return cmd_re
 
 
-class CloudBot:
+class CloudBot(AbstractBot):
     def __init__(
         self,
         *,
@@ -127,7 +130,7 @@ class CloudBot:
             self.data_path.mkdir(parents=True)
 
         # set up config
-        self.config = Config(self)
+        super().__init__(config=Config(self))
         logger.debug("Config system initialised.")
 
         self.executor = ThreadPoolExecutor(
@@ -186,7 +189,7 @@ class CloudBot:
         )
         return str(self.data_path)
 
-    def run(self):
+    async def run(self):
         """
         Starts CloudBot.
         This will load plugins, connect to IRC, and process input.
@@ -194,14 +197,13 @@ class CloudBot:
         """
         self.loop.set_default_executor(self.executor)
         # Initializes the bot, plugins and connections
-        self.loop.run_until_complete(self._init_routine())
+        await self._init_routine()
         # Wait till the bot stops. The stopped_future will be set to True to restart, False otherwise
         logger.debug("Init done")
-        restart = self.loop.run_until_complete(self.stopped_future)
+        restart = await self.stopped_future
         logger.debug("Waiting for plugin unload")
-        self.loop.run_until_complete(self.plugin_manager.unload_all())
+        await self.plugin_manager.unload_all()
         logger.debug("Unload complete")
-        self.loop.close()
         return restart
 
     def get_client(self, name: str) -> Type[Client]:
@@ -316,8 +318,21 @@ class CloudBot:
         """
         Load all clients from the "clients" directory
         """
-        scanner = Scanner(bot=self)
-        scanner.scan(clients, categories=["cloudbot.client"])
+        for file in (Path(__file__).parent / "clients").rglob("*.py"):
+            if file.name.startswith("_"):
+                continue
+
+            mod = importlib.import_module("cloudbot.clients." + file.stem)
+            for _, obj in vars(mod).items():
+                if not isinstance(obj, type):
+                    continue
+
+                try:
+                    _type = obj._cloudbot_client  # type: ignore
+                except AttributeError:
+                    continue
+
+                self.register_client(_type, obj)
 
     async def process(self, event):
         run_before_tasks = []
@@ -419,9 +434,7 @@ class CloudBot:
                                 command for command, plugin in potential_matches
                             )
                             txt_list = formatting.get_text_list(commands)
-                            event.notice(
-                                f"Possible matches: {txt_list}"
-                            )
+                            event.notice(f"Possible matches: {txt_list}")
 
         if event.type in (EventType.message, EventType.action):
             # Regex hooks
@@ -467,7 +480,7 @@ class CloudBot:
         old_session: Session = scoped_session(sessionmaker(bind=engine))()
         new_session: Session = database.Session()
         table: Table
-        inspector = inspect(engine)
+        inspector = sa_inspect(engine)
         for table in database.metadata.tables.values():
             logger.info("Migrating table %s", table.name)
             if not inspector.has_table(table.name):

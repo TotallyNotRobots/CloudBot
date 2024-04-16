@@ -46,9 +46,7 @@ class Package:
         if self.updated:
             for strfmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]:
                 try:
-                    self.released_date = datetime.strptime(
-                        self.updated, strfmt
-                    )
+                    self.released_date = datetime.strptime(self.updated, strfmt)
                     break
                 except ValueError:
                     continue
@@ -89,7 +87,8 @@ def pypi_search(
             snippets = sorted(
                 snippets,
                 key=lambda s: s.select_one(
-                    'span[class*="package-snippet__name"]').text.strip(),
+                    'span[class*="package-snippet__name"]'
+                ).text.strip(),
             )
         elif opts.sort == "version":
             from pkg_resources import parse_version
@@ -97,40 +96,48 @@ def pypi_search(
             snippets = sorted(
                 snippets,
                 key=lambda s: parse_version(
-                    s.select_one('span[class*="package-snippet__version"]').text.strip()
+                    s.select_one(
+                        'span[class*="package-snippet__version"]'
+                    ).text.strip()
                 ),
             )
         elif opts.sort == "released":
             snippets = sorted(
                 snippets,
-                key=lambda s: s.select_one('span[class*="package-snippet__created"]').find(
-                    "time"
-                )["datetime"],
+                key=lambda s: s.select_one(
+                    'span[class*="package-snippet__created"]'
+                ).find("time")["datetime"],
             )
 
     for snippet in snippets:
         link = urljoin(config.api_url, snippet.get("href"))
         package = re.sub(
-            r"\s+", " ", snippet.select_one(
-                'span[class*="package-snippet__name"]').text.strip()
+            r"\s+",
+            " ",
+            snippet.select_one(
+                'span[class*="package-snippet__name"]'
+            ).text.strip(),
         )
         version = re.sub(
             r"\s+",
             " ",
-            snippet.select_one('span[class*="package-snippet__version"]').text.strip(),
+            snippet.select_one(
+                'span[class*="package-snippet__version"]'
+            ).text.strip(),
         )
         released = re.sub(
             r"\s+",
             " ",
-
-            snippet.select_one('span[class*="package-snippet__created"]').find("time")[
-                "datetime"
-            ],
+            snippet.select_one('span[class*="package-snippet__created"]').find(
+                "time"
+            )["datetime"],
         )
         description = re.sub(
             r"\s+",
             " ",
-            snippet.select_one('p[class*="package-snippet__description"]').text.strip(),
+            snippet.select_one(
+                'p[class*="package-snippet__description"]'
+            ).text.strip(),
         )
         yield Package(package, version, released, description, link)
 
@@ -145,8 +152,10 @@ def aur_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[0].select_one("a").text.strip()
-            link = "https://aur.archlinux.org" + \
-                columns[0].select_one("a").get("href").strip()
+            link = (
+                "https://aur.archlinux.org"
+                + columns[0].select_one("a").get("href").strip()
+            )
             version = columns[1].text.strip()
             released = ""
             description = columns[4].text.strip()
@@ -165,8 +174,10 @@ def arch_search(query: str) -> Generator[Package, None, None]:
         for package in soup.select("tbody tr"):
             columns = package.select("td")
             name = columns[2].select_one("a").text.strip()
-            link = "https://archlinux.org" + \
-                columns[2].select_one("a").get("href").strip()
+            link = (
+                "https://archlinux.org"
+                + columns[2].select_one("a").get("href").strip()
+            )
             version = columns[3].text.strip()
             released = ""
             description = columns[4].text.strip()
@@ -177,14 +188,19 @@ def arch_search(query: str) -> Generator[Package, None, None]:
 
 def crates_search(query: str) -> Generator[Package, None, None]:
     url = "https://crates.io/api/v1/crates"
-    response = requests.get(url, params={"q": query, "per_page": 20, "page": 1}, headers={
-        "Accept": "application/json",
-        "user-agent": "cloudbot-irc",
-    })
+    response = requests.get(
+        url,
+        params={"q": query, "per_page": 20, "page": 1},
+        headers={
+            "Accept": "application/json",
+            "user-agent": "cloudbot-irc",
+        },
+    )
     if response.status_code != 200:
         return
     data = response.json()
     for package in data["crates"]:
+
         def safeget(key: str) -> str:
             return (package.get(key, "") or "").strip()
 
@@ -207,7 +223,9 @@ def pubdev_search(query: str) -> Generator[Package, None, None]:
         link = package.select_one("h3 a").get("href").strip()
         if link.startswith("/"):
             link = "https://pub.dev" + link
-        version = package.select_one("span.packages-metadata-block").text.strip()
+        version = package.select_one(
+            "span.packages-metadata-block"
+        ).text.strip()
 
         # Remove release date from version
         version = re.sub(r"\(.+\)", "", version).strip()
@@ -230,7 +248,14 @@ def pubdev_search(query: str) -> Generator[Package, None, None]:
 def ubuntu_search(query: str) -> Generator[Package, None, None]:
     url = "https://packages.ubuntu.com/search"
     response = requests.get(
-        url, params={"keywords": query, "searchon": "all", "suite": "all", "section": "all"})
+        url,
+        params={
+            "keywords": query,
+            "searchon": "all",
+            "suite": "all",
+            "section": "all",
+        },
+    )
     if response.status_code != 200:
         return
     soup = BeautifulSoup(response.text, "html.parser")
@@ -240,8 +265,10 @@ def ubuntu_search(query: str) -> Generator[Package, None, None]:
         ubuntus = []
         for li in package.select("li"):
             ver = li.select_one("a.resultlink").text.strip()
-            link = "https://packages.ubuntu.com" + \
-                li.select_one("a.resultlink").get("href").strip()
+            link = (
+                "https://packages.ubuntu.com"
+                + li.select_one("a.resultlink").get("href").strip()
+            )
             ubuntus.append(ver)
 
         rows = li.text.strip().split("\n")
@@ -254,7 +281,9 @@ def ubuntu_search(query: str) -> Generator[Package, None, None]:
 
 def search_npmjs(query: str) -> Generator[Package, None, None]:
     url = "https://www.npmjs.com/search"
-    response = requests.get(url, params={"q": query}, headers={'x-spiferack': '1'})
+    response = requests.get(
+        url, params={"q": query}, headers={"x-spiferack": "1"}
+    )
     if response.status_code != 200:
         return
     data = response.json()
@@ -279,7 +308,6 @@ def search_npmjs(query: str) -> Generator[Package, None, None]:
         released = package.get("date", {}).get("rel", "").strip()
         description = safeget("description")
         yield Package(name, version, released, description, link)
-
 
 
 _REPOS = {
@@ -345,7 +373,9 @@ def pkg(text, bot, chan, nick, reply):
 
     repo = text.strip().split()[0]
     if repo not in REPOS:
-        return f"Repo '{repo}' not found. Use .'pkglist' to see available repos."
+        return (
+            f"Repo '{repo}' not found. Use .'pkglist' to see available repos."
+        )
 
     results_queue[chan][nick] = REPOS[repo](" ".join(text.strip().split()[1:]))
     results = results_queue[chan][nick]

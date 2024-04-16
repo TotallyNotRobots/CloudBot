@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add spam protection in herald.py
 - Add config reload hooks
 ### Changed
+- Replace DarkSky with OpenWeatherMap
 - Updated wine.json (Vault108)
 - Refactor tests to remove dependency on mock library
 - Change link_announcer.py to only warn on connection errors
@@ -44,8 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - rua.py removed due to website no longer existing that it's based off
 - Python 3.5 support dropped
 - Removed geoip plugin
-- Removewd yandex translate plugin
+- Removed yandex translate plugin
 - Removed soundcloud plugin due to API removal
+- Removed imdb.py, the backing app is not being maintained and is broken
 
 ## [1.3.0] 2020-03-17
 ### Added

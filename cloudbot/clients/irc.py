@@ -8,7 +8,7 @@ import traceback
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Mapping, Optional, Tuple, Union
+from typing import Dict, Mapping, Optional, Tuple, Union, cast
 
 from irclib.parser import Message
 
@@ -21,9 +21,9 @@ logger = logging.getLogger("cloudbot")
 irc_nick_re = re.compile(r"[A-Za-z0-9^{}\[\]\-`_|\\]+")
 
 irc_bad_chars = "".join(
-        c
-        for c in (chr(x) for x in chain(range(0, 32), range(127, 160)))
-        if c not in colors.IRC_FORMATTING_DICT.values() and c != "\1"
+    c
+    for c in (chr(x) for x in chain(range(0, 32), range(127, 160)))
+    if c not in colors.IRC_FORMATTING_DICT.values() and c != "\1"
 )
 
 irc_clean_re = re.compile(f"[{re.escape(irc_bad_chars)}]")
@@ -100,7 +100,7 @@ def _get_param(msg: Message, index_map: Mapping[str, int]) -> Optional[str]:
     if msg.command in index_map:
         idx = index_map[msg.command]
         if idx < len(msg.parameters):
-            return msg.parameters[idx]
+            return cast(str, msg.parameters[idx])
 
     return None
 
@@ -145,7 +145,7 @@ class IrcClient(Client):
 
         self._connecting = False
 
-        self._channel_keys = {}
+        self._channel_keys: Dict[str, str] = {}
 
     def set_channel_key(
         self, channel: str, key: str, *, override: bool = True

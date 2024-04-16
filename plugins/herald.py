@@ -63,7 +63,8 @@ def load_cache(db):
 @hook.command()
 def herald(text, nick, chan, db, reply):
     """{<message>|show|delete|remove} - adds a greeting for your nick that will be announced everytime you join the
-    channel. Using .herald show will show your current herald and .herald delete will remove your greeting."""
+    channel. Using .herald show will show your current herald and .herald delete will remove your greeting.
+    """
     if text.lower() == "show":
         greeting = herald_cache[chan.casefold()].get(nick.casefold())
         if greeting is None:

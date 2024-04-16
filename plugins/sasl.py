@@ -7,15 +7,15 @@ from cloudbot.util import async_util
 
 @hook.on_cap_available("sasl")
 def sasl_available(conn):
-    sasl_conf = conn.config.get('sasl')
-    return bool(sasl_conf and sasl_conf.get('enabled', True))
+    sasl_conf = conn.config.get("sasl")
+    return bool(sasl_conf and sasl_conf.get("enabled", True))
 
 
 @hook.on_cap_ack("sasl")
 @asyncio.coroutine
 def sasl_ack(conn, logger):
-    sasl_auth = conn.config.get('sasl')
-    if sasl_auth and sasl_auth.get('enabled', True):
+    sasl_auth = conn.config.get("sasl")
+    if sasl_auth and sasl_auth.get("enabled", True):
         sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()
         auth_fut = async_util.create_future(conn.loop)
         conn.memory["sasl_auth_future"] = auth_fut
@@ -23,16 +23,18 @@ def sasl_ack(conn, logger):
         cmd, arg = yield from auth_fut
         if cmd == "908":
             logger.warning("[%s|sasl] SASL mechanism not supported", conn.name)
-        elif cmd == "AUTHENTICATE" and arg[0] == '+':
+        elif cmd == "AUTHENTICATE" and arg[0] == "+":
             num_fut = async_util.create_future(conn.loop)
             conn.memory["sasl_numeric_future"] = num_fut
             if sasl_mech == "PLAIN":
                 auth_str = "{nick}\0{user}\0{passwd}".format(
-                    nick=conn.nick, user=sasl_auth["user"], passwd=sasl_auth["pass"]
+                    nick=conn.nick,
+                    user=sasl_auth["user"],
+                    passwd=sasl_auth["pass"],
                 ).encode()
                 conn.cmd("AUTHENTICATE", base64.b64encode(auth_str).decode())
             else:
-                conn.cmd("AUTHENTICATE", '+')
+                conn.cmd("AUTHENTICATE", "+")
             numeric = yield from num_fut
             if numeric == "902":
                 logger.warning("[%s|sasl] SASL nick locked", conn.name)

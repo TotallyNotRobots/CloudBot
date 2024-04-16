@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 from cloudbot.util.queue import Queue
 
-API = 'https://grep.app/api/search'
+API = "https://grep.app/api/search"
 
 
 @dataclass
@@ -26,36 +26,44 @@ results_queue = Queue()
 def grep(query: str, **params) -> ([str], [str]):
     res = []
     params = {
-        'q': query,
+        "q": query,
         **params,
     }
 
     response = requests.get(API, params=params)
     obj = response.json()
-    for i in range(len(obj['hits']['hits'])):
-        match = obj['hits']['hits'][i]
-        snippet = match['content']['snippet']
+    for i in range(len(obj["hits"]["hits"])):
+        match = obj["hits"]["hits"][i]
+        snippet = match["content"]["snippet"]
 
-        soup = BeautifulSoup(snippet, 'html.parser')
+        soup = BeautifulSoup(snippet, "html.parser")
 
         # Find div with class 'lineno'
-        lineno = soup.find('div', class_='lineno')
+        lineno = soup.find("div", class_="lineno")
         lineno = lineno.text if lineno else "1"
 
-        url = "https://github.com/" + \
-            match['repo']['raw'] + "/blob/" + \
-            match.get('branch', {}).get('raw', 'master') + "/" + match['path']['raw'] + \
-            "#L" + lineno
+        url = (
+            "https://github.com/"
+            + match["repo"]["raw"]
+            + "/blob/"
+            + match.get("branch", {}).get("raw", "master")
+            + "/"
+            + match["path"]["raw"]
+            + "#L"
+            + lineno
+        )
 
         lines = []
-        for pre in soup.find_all('tr'):
-            pre.find_all('td')[0].decompose()
+        for pre in soup.find_all("tr"):
+            pre.find_all("td")[0].decompose()
             lines.append(pre.text)
 
         res.append(Result(url, lines))
 
-    langs = [lang["val"]
-             for lang in obj.get("facets", {}).get("lang", {}).get("buckets", [])]
+    langs = [
+        lang["val"]
+        for lang in obj.get("facets", {}).get("lang", {}).get("buckets", [])
+    ]
 
     return res, langs
 
@@ -92,24 +100,24 @@ def gitgrep(text, reply, chan, nick):
 
     def findargs(text):
         text = text.strip()
-        match = re.match(r'^-l\s+(\S+)', text)
+        match = re.match(r"^-l\s+(\S+)", text)
         start = 0
         if match:
-            if 'f.lang' not in params:
-                params['f.lang'] = []
-            params['f.lang'].append(match[1])
+            if "f.lang" not in params:
+                params["f.lang"] = []
+            params["f.lang"].append(match[1])
             start = match.end()
 
         if re.search("^-w ", text):
-            params['words'] = "true"
+            params["words"] = "true"
             start = 3
 
         if re.search("^-i ", text):
-            params['case'] = "false"
+            params["case"] = "false"
             start = 3
 
         if re.search("^-e ", text):
-            params['regexp'] = "true"
+            params["regexp"] = "true"
             start = 3
 
         if start == 0:
@@ -118,12 +126,12 @@ def gitgrep(text, reply, chan, nick):
         return findargs(text)
 
     text = findargs(text)
-    if 'case' not in params:
-        params['case'] = "true"
+    if "case" not in params:
+        params["case"] = "true"
     else:
-        del params['case']
+        del params["case"]
 
-    if 'regexp' in params and 'words' in params:
+    if "regexp" in params and "words" in params:
         return "You can't use -w and -e at the same time."
 
     results, langs = grep(text, **params)
@@ -133,14 +141,17 @@ def gitgrep(text, reply, chan, nick):
             return "No results found."
         corrected_langs = []
         for lang in langs:
-            for plang in params['f.lang']:
+            for plang in params["f.lang"]:
                 if lang.casefold() == plang.casefold():
                     corrected_langs.append(lang)
 
         if len(corrected_langs) == 0:
-            return "No results found. Suggested langs for this query: " + ", ".join(langs)
+            return (
+                "No results found. Suggested langs for this query: "
+                + ", ".join(langs)
+            )
 
-        params['f.lang'] = corrected_langs
+        params["f.lang"] = corrected_langs
         results, langs = grep(text, **params)
 
     results_queue[chan][nick] = results

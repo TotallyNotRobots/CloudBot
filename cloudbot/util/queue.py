@@ -11,6 +11,7 @@ class Dummy:
         except AttributeError:
             return None
 
+
 class UserQueue(list):
     def __init__(self, _list: Iterable):
         super().__init__(_list)
@@ -66,6 +67,7 @@ class Queue(dict):
     q['#channel']['user'].pop()
     >> 2
     """
+
     def __init__(self):
         super().__init__()
         self.metadata = Dummy()

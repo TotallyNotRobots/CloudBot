@@ -36,7 +36,6 @@ class App(BaseModel):
         soup = BeautifulSoup(desc, "html.parser")
         return soup.get_text()
 
-
     @validator("url", always=True)
     def set_url(cls, v, values, **kwargs):
         """Set the eggs field based upon a spam value."""

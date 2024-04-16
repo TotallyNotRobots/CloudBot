@@ -197,9 +197,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
             messages.append("Traceback: " + url)
         except Exception:
             msg = traceback.format_exc()[-1]
-            messages.append(
-                f"Error occurred while gathering traceback {msg}"
-            )
+            messages.append(f"Error occurred while gathering traceback {msg}")
 
     try:
         lines = ["Event Data:"]
@@ -214,9 +212,7 @@ def on_hook_end(error, launched_hook, launched_event, admin_log):
         messages.append("Event: " + url)
     except Exception:
         msg = traceback.format_exc()[-1]
-        messages.append(
-            f"Error occurred while gathering error data {msg}"
-        )
+        messages.append(f"Error occurred while gathering error data {msg}")
 
     for message in messages:
         admin_log(message, should_broadcast)

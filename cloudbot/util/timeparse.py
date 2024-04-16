@@ -56,7 +56,7 @@ DAY_CLOCK = (
     r"(?P<mins>\d{2}):(?P<secs>\d{2}(?:\.\d+)?)"
 )
 
-OPT = lambda x: fr"(?:{x})?"
+OPT = lambda x: rf"(?:{x})?"
 OPT_SEP = lambda x: r"(?:{x}\s*(?:{SEPARATORS}\s*)?)?".format(
     x=x, SEPARATORS=SEPARATORS
 )
@@ -71,12 +71,12 @@ TIME_FORMATS = [
         MINS=OPT_SEP(MINS),
         SECS=OPT(SECS),
     ),
-    fr"{MIN_CLOCK}",
+    rf"{MIN_CLOCK}",
     r"{WEEKS}\s*{DAYS}\s*{HOUR_CLOCK}".format(
         WEEKS=OPT_SEP(WEEKS), DAYS=OPT_SEP(DAYS), HOUR_CLOCK=HOUR_CLOCK
     ),
-    fr"{DAY_CLOCK}",
-    fr"{SEC_CLOCK}",
+    rf"{DAY_CLOCK}",
+    rf"{SEC_CLOCK}",
 ]
 
 MULTIPLIERS = dict(

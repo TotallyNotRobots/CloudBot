@@ -11,7 +11,7 @@ class MockClient(Client):  # pylint: disable=abstract-method
     def __init__(self, bot, *args, **kwargs):
         super().__init__(bot, "TestClient", *args, **kwargs)
         self.active = True
-        self.join = MagicMock()  # type: ignore[assignment]
+        self.join = MagicMock()  # type: ignore[method-assign]
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,6 @@
-import re
+import json
 from copy import deepcopy
-from typing import Any, Dict, List
+from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,7 +9,7 @@ from googlemaps.exceptions import ApiError
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
-from tests.util import HookResult, wrap_hook_response
+from tests.util import HookResult, get_data_file, wrap_hook_response
 
 
 @pytest.mark.parametrize(
@@ -67,67 +67,12 @@ def test_mph_to_kph(mph, kph):
     assert weather.mph_to_kph(mph) == kph
 
 
-FIO_DATA: Dict[str, Any] = {
-    "json": {
-        "currently": {
-            "summary": "foobar",
-            "windSpeed": 12.2,
-            "windBearing": 128,
-            "temperature": 68,
-            "humidity": 0.45,
-        },
-        "daily": {
-            "data": [
-                {
-                    "summary": "foobar",
-                    "temperatureHigh": 64,
-                    "temperatureLow": 57,
-                    "windSpeed": 15,
-                    "windBearing": 140,
-                    "humidity": 0.45,
-                },
-                {
-                    "summary": "foobar",
-                    "temperatureHigh": 64,
-                    "temperatureLow": 57,
-                    "windSpeed": 15,
-                    "windBearing": 140,
-                    "humidity": 0.45,
-                },
-                {
-                    "summary": "foobar",
-                    "temperatureHigh": 64,
-                    "temperatureLow": 57,
-                    "windSpeed": 15,
-                    "windBearing": 140,
-                    "humidity": 0.45,
-                },
-                {
-                    "summary": "foobar",
-                    "temperatureHigh": 64,
-                    "temperatureLow": 57,
-                    "windSpeed": 15,
-                    "windBearing": 140,
-                    "humidity": 0.45,
-                },
-                {
-                    "summary": "some summary",
-                    "temperatureHigh": 64,
-                    "temperatureLow": 57,
-                    "windSpeed": 15,
-                    "windBearing": 140,
-                    "humidity": 0.45,
-                },
-            ]
-        },
-    },
-    "headers": {
-        "Cache-Control": "",
-        "Expires": "",
-        "X-Forecast-API-Calls": "",
-        "X-Response-Time": "",
-    },
-}
+def get_test_data():
+    return {
+        "json": json.loads(
+            get_data_file("owm.json").read_text(encoding="utf-8")
+        )
+    }
 
 
 def setup_api(
@@ -141,7 +86,7 @@ def setup_api(
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
-                "darksky": "abc12345" * 4,
+                "openweathermap": "abc12345" * 4,
             }
         },
         db=mock_db,
@@ -167,6 +112,7 @@ def setup_api(
         json=return_value,
     )
     weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
     weather.location_cache.clear()
 
     return bot
@@ -195,13 +141,14 @@ def test_rounding(
 
     weather.location_cache.append(("foobar", "test location"))
 
-    new_data = deepcopy(FIO_DATA)
+    new_data = deepcopy(get_test_data())
 
-    new_data["json"]["currently"]["temperature"] = 31.9
+    new_data["json"]["current"]["temp"] = 273.0944
 
     mock_requests.add(
         "GET",
-        re.compile(r"^https://api\.darksky\.net/forecast/.*"),
+        "https://api.openweathermap.org/data/2.5/onecall?"
+        "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
         **new_data,
     )
 
@@ -210,7 +157,6 @@ def test_rounding(
         "\x02Low\x02: 57F/14C\x0f; \x02Humidity\x02: 45%\x0f; "
         "\x02Wind\x02: 12MPH/20KPH SE\x0f "
         "-- 123 Test St, Example City, CA - "
-        "\x1fhttps://darksky.net/forecast/30.123,123.456\x0f "
         "(\x1dTo get a forecast, use .fc\x1d)"
     )
 
@@ -232,8 +178,10 @@ def test_find_location(
 ):
     bot = mock_bot_factory(config={}, db=mock_db, loop=event_loop)
     weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
     weather.location_cache.clear()
     assert weather.data.maps_api is None
+    assert weather.data.owm_api is None
 
     bot = setup_api(
         mock_requests,
@@ -276,8 +224,9 @@ def test_find_location(
 
     mock_requests.add(
         "GET",
-        re.compile(r"^https://api\.darksky\.net/forecast/.*"),
-        **FIO_DATA,
+        "https://api.openweathermap.org/data/2.5/onecall?"
+        "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
+        **get_test_data(),
     )
     assert wrap_hook_response(weather.weather, cmd_event) == [
         (
@@ -288,7 +237,6 @@ def test_find_location(
                 "\x02Low\x02: 57F/14C\x0f; \x02Humidity\x02: 45%\x0f; "
                 "\x02Wind\x02: 12MPH/20KPH SE\x0f "
                 "-- 123 Test St, Example City, CA - "
-                "\x1fhttps://darksky.net/forecast/30.123,123.456\x0f "
                 "(\x1dTo get a forecast, use .fc\x1d)",
             ),
             {},
@@ -303,8 +251,7 @@ def test_find_location(
                 "Humidity: 45%; Wind: 15MPH/24KPH SE | "
                 "\x02Tomorrow\x02: foobar; High: 64F/18C; "
                 "Low: 57F/14C; Humidity: 45%; Wind: 15MPH/24KPH SE "
-                "-- 123 Test St, Example City, CA - "
-                "\x1fhttps://darksky.net/forecast/30.123,123.456\x0f",
+                "-- 123 Test St, Example City, CA",
             ),
             {},
         )
@@ -325,24 +272,26 @@ def test_find_location(
         ("message", ("#foo", "(foobar) API Error occurred."), {})
     ]
 
+    bot.config["api_keys"]["openweathermap"] = None
+    bot.config.load_config()
+    weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
+    assert wrap_hook_response(weather.weather, cmd_event) == [
+        ("return", "This command requires a OpenWeatherMap API key.")
+    ]
+    assert wrap_hook_response(weather.forecast, cmd_event) == [
+        ("return", "This command requires a OpenWeatherMap API key.")
+    ]
+
     bot.config["api_keys"]["google_dev_key"] = None
     bot.config.load_config()
     weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
     assert wrap_hook_response(weather.weather, cmd_event) == [
         ("return", "This command requires a Google Developers Console API key.")
     ]
     assert wrap_hook_response(weather.forecast, cmd_event) == [
         ("return", "This command requires a Google Developers Console API key.")
-    ]
-
-    bot.config["api_keys"]["darksky"] = None
-    bot.config.load_config()
-    weather.create_maps_api(bot)
-    assert wrap_hook_response(weather.weather, cmd_event) == [
-        ("return", "This command requires a DarkSky API key.")
-    ]
-    assert wrap_hook_response(weather.forecast, cmd_event) == [
-        ("return", "This command requires a DarkSky API key.")
     ]
 
     # Test DB storage
@@ -350,12 +299,13 @@ def test_find_location(
         {
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
-                "darksky": "abc12345" * 4,
+                "openweathermap": "abc12345" * 4,
             }
         }
     )
     bot.config.load_config()
     weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
     weather.table.create(mock_db.engine, checkfirst=True)
     cmd_event.db = mock_db.session()
     cmd_event.text = "my location"
@@ -370,8 +320,9 @@ def test_find_location(
     )
     mock_requests.add(
         "GET",
-        re.compile(r"^https://api\.darksky\.net/forecast/.*"),
-        **FIO_DATA,
+        "https://api.openweathermap.org/data/2.5/onecall?"
+        "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
+        **get_test_data(),
     )
 
     (loc, data), err = call_with_args(weather.check_and_parse, cmd_event)
@@ -431,13 +382,14 @@ def test_parse_no_results(
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
-                "darksky": "abc12345" * 4,
+                "openweathermap": "abc12345" * 4,
             }
         },
         db=mock_db,
     )
 
     weather.create_maps_api(bot)
+    weather.create_owm_api(bot)
 
     conn = MagicMock()
     conn.config = {}
