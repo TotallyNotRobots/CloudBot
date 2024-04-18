@@ -20,7 +20,7 @@ def send_cap_ls(conn):
 
 
 async def handle_available_caps(conn, caplist, event, irc_paramlist, bot):
-    available_caps = conn.memory["available_caps"]  # type: CapList
+    available_caps: CapList = conn.memory["available_caps"]
     available_caps.extend(caplist)
     cap_queue = conn.memory["cap_queue"]
     for cap in caplist:

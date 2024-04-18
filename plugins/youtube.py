@@ -184,7 +184,7 @@ def get_video_id(text: str) -> str:
     if not json.get("items"):
         raise NoResultsError(request)
 
-    video_id = json["items"][0]["id"]["videoId"]  # type: str
+    video_id: str = json["items"][0]["id"]["videoId"]
     return video_id
 
 

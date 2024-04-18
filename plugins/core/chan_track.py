@@ -282,8 +282,7 @@ def get_chans(conn):
 # endregion util functions
 
 
-def update_chan_data(conn, chan):
-    # type: (IrcClient, str) -> None
+def update_chan_data(conn: IrcClient, chan: str) -> None:
     """
     Start the process of updating channel data from /NAMES
     :param conn: The current connection
@@ -294,8 +293,7 @@ def update_chan_data(conn, chan):
     conn.cmd("NAMES", chan)
 
 
-def update_conn_data(conn):
-    # type: (IrcClient) -> None
+def update_conn_data(conn: IrcClient) -> None:
     """
     Update all channel data for this connection
     :param conn: The connection to update
@@ -585,7 +583,7 @@ def handle_tags(conn: IrcClient, nick: str, irc_tags: TagList) -> None:
     users = get_users(conn)
 
     if irc_tags:
-        account_tag = irc_tags.get("account")  # type: MessageTag
+        account_tag: MessageTag = irc_tags.get("account")
         if account_tag:
             user_data = users.getuser(nick)
             user_data.account = account_tag.value
@@ -659,8 +657,8 @@ def on_mode(chan, irc_paramlist, conn):
         return
 
     serv_info = conn.memory["server_info"]
-    statuses = serv_info["statuses"]  # type: Dict[str, StatusMode]
-    mode_types = serv_info["channel_modes"]  # type: Dict[str, ChannelMode]
+    statuses: Dict[str, StatusMode] = serv_info["statuses"]
+    mode_types: Dict[str, ChannelMode] = serv_info["channel_modes"]
 
     chan_data = get_chans(conn).getchan(chan)
 

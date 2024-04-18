@@ -43,14 +43,14 @@ class NoMatchingSeries(LookupError):
 class TvdbApi:
     def __init__(self) -> None:
         self.token_lifetime = token_lifetime
-        self._headers = None  # type: Optional[Dict[str, str]]
+        self._headers: Optional[Dict[str, str]] = None
         self.base_url = "https://api.thetvdb.com"
         self.api_version = "3.0.0"
         self.default_headers = {
             "Accept": f"application/vnd.thetvdb.v{self.api_version}"
         }
 
-        self.jwt_token = None  # type: Optional[str]
+        self.jwt_token: Optional[str] = None
         self.refresh_time = datetime.datetime.min
 
     @property
@@ -209,7 +209,7 @@ class Holder(Generic[T]):
     """
 
     def __init__(self) -> None:
-        self._item = None  # type: Optional[T]
+        self._item: Optional[T] = None
         self._set = False
 
     def set(self, item: T) -> None:
@@ -284,7 +284,7 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     """
 
     def __init__(self, it: Iterable[T]) -> None:
-        self._data = []  # type: List[T]
+        self._data: List[T] = []
         self._it = iter(it)
         self._complete = False
 

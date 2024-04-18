@@ -262,7 +262,7 @@ def start_hunt(db, chan, message, conn):
 
 
 def set_ducktime(chan, conn):
-    status = get_state_table(conn, chan)  # type: ChannelState
+    status: ChannelState = get_state_table(conn, chan)
     status.next_duck_time = random.randint(
         int(time()) + 480, int(time()) + 3600
     )
