@@ -5,7 +5,6 @@ import random
 from typing import Any, Dict
 
 from cloudbot.permissions import PermissionManager
-from cloudbot.util import async_util
 
 logger = logging.getLogger("cloudbot")
 
@@ -66,7 +65,7 @@ class Client:
 
         self._active = False
 
-        self.cancelled_future = async_util.create_future(self.loop)
+        self.cancelled_future = self.loop.create_future()
 
     def describe_server(self):
         raise NotImplementedError

@@ -6,7 +6,6 @@ from watchdog.observers import Observer
 from cloudbot.bot import AbstractBot, CloudBot
 from cloudbot.client import Client
 from cloudbot.plugin import PluginManager
-from cloudbot.util.async_util import create_future
 from tests.util.mock_config import MockConfig
 from tests.util.mock_db import MockDB
 
@@ -28,7 +27,7 @@ class MockBot(AbstractBot):
         self.data_dir = str(self.data_path)
         self.plugin_dir = self.base_dir / "plugins"
         if self.loop:
-            self.stopped_future: Awaitable[bool] = create_future(self.loop)
+            self.stopped_future: Awaitable[bool] = self.loop.create_future()
         else:
             self.stopped_future = None
 

@@ -14,7 +14,7 @@ from irclib.parser import Message
 
 from cloudbot.client import Client, ClientConnectError, client
 from cloudbot.event import Event, EventType, IrcOutEvent
-from cloudbot.util import async_util, colors
+from cloudbot.util import colors
 
 logger = logging.getLogger("cloudbot")
 
@@ -391,7 +391,7 @@ class IrcClient(Client):
         """
         Sends a raw IRC line unchecked. Doesn't do connected check, and is *not* threadsafe
         """
-        async_util.wrap_future(
+        asyncio.ensure_future(
             self._protocol.send(line, log=log), loop=self.loop
         )
 
@@ -423,7 +423,7 @@ class _IrcProtocol(asyncio.Protocol):
         self._transport = None
 
         # Future that waits until we are connected
-        self._connected_future = async_util.create_future(self.loop)
+        self._connected_future = self.loop.create_future()
 
     def connection_made(self, transport):
         self._transport = transport
@@ -438,7 +438,7 @@ class _IrcProtocol(asyncio.Protocol):
         if exc:
             logger.error("[%s] Connection lost: %s", self.conn.name, exc)
 
-        async_util.wrap_future(self.conn.auto_reconnect(), loop=self.loop)
+        asyncio.ensure_future(self.conn.auto_reconnect(), loop=self.loop)
 
     def close(self):
         self._connecting = False
@@ -522,7 +522,7 @@ class _IrcProtocol(asyncio.Protocol):
                 )
             else:
                 # handle the message, async
-                async_util.wrap_future(self.bot.process(event), loop=self.loop)
+                asyncio.ensure_future(self.bot.process(event), loop=self.loop)
 
     def parse_line(self, line: str) -> Event:
         message = Message.parse(line)
