@@ -5,7 +5,7 @@ ci:
 exclude: ^\.vscode/.*$
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: c4a0b883114b00d8d76b479c820ce7950211c99b  # frozen: v4.5.0
+  rev: 2c9f875913ee60ca25ce70243dc24d5b6415598c  # frozen: v4.6.0
   hooks:
   - id: trailing-whitespace
     args: ['--markdown-linebreak-ext=md,markdown']
@@ -36,7 +36,7 @@ repos:
     args:
     - --remove
 - repo: https://github.com/psf/black
-  rev: 6fdf8a4af28071ed1d079c01122b34c5d587207a  # frozen: 24.2.0
+  rev: 3702ba224ecffbcec30af640c149f231d90aebdb  # frozen: 24.4.2
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
@@ -49,7 +49,7 @@ repos:
   - id: python-no-eval
   - id: python-no-log-warn
 - repo: https://github.com/asottile/pyupgrade
-  rev: df17dfa3911b81b4a27190b0eea5b1debc7ffa0a  # frozen: v3.15.1
+  rev: 12af25eb252deaaecb6b259df40d01f42e716dc3  # frozen: v3.15.2
   hooks:
   - id: pyupgrade
     args:
@@ -85,3 +85,7 @@ repos:
     - '120'
     - -e
     - -p
+- repo: https://github.com/commitizen-tools/commitizen
+  rev: a754230d41a1933fd4ba000014d841dd2a05c71d  # frozen: v3.24.0
+  hooks:
+  - id: commitizen
