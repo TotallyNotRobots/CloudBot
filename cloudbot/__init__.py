@@ -4,7 +4,7 @@ import logging.config
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-version = (1, 3, 0)
+version = (1, 4, 0)
 __version__ = ".".join(str(i) for i in version)
 
 __all__ = (
