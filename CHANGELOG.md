@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed yandex translate plugin
 - Removed soundcloud plugin due to API removal
 - Removed imdb.py, the backing app is not being maintained and is broken
+- Removed quran.py as API no longer exists
+
+## Breaking
+- Removed support for Python <3.8
 
 ## [1.3.0] 2020-03-17
 ### Added
