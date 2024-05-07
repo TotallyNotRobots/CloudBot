@@ -11,7 +11,7 @@ from plugins.core import core_ctcp
     [
         (
             "VERSION",
-            "\x01VERSION gonzobot a fork of Cloudbot 1.3.0 - https://snoonet.org/gonzobot\x01",
+            "\x01VERSION gonzobot a fork of Cloudbot 1.4.0 - https://snoonet.org/gonzobot\x01",
         ),
         ("PING 1", "\x01PING 1\x01"),
         ("TIME", "\x01TIME Thu Aug 22 13:14:36 2019\x01"),
