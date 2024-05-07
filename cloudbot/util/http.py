@@ -134,7 +134,6 @@ def open_request(
     return opener.open(request)
 
 
-# noinspection PyShadowingBuiltins
 def open(
     url,
     query_params=None,

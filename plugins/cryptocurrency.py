@@ -105,7 +105,6 @@ T = TypeVar("T", bound="Schema")
 
 
 class Schema(metaclass=SchemaMeta):
-    # noinspection PyUnusedName
     _abstract = True
     _fields = ()
 
@@ -149,7 +148,6 @@ class UntypedResponse(APIRequestResponse):
 
 
 class Platform(Schema):
-    # noinspection PyShadowingBuiltins
     def __init__(
         self, id: int, name: str, symbol: str, slug: str, token_address: str
     ):
@@ -193,7 +191,6 @@ class Quote(Schema):
 
 
 class CryptoCurrency(Schema):
-    # noinspection PyShadowingBuiltins
     def __init__(
         self,
         id: int,
@@ -237,7 +234,6 @@ class QuoteRequestResponse(APIRequestResponse):
 
 
 class FiatCurrency(Schema):
-    # noinspection PyShadowingBuiltins
     def __init__(self, id: int, name: str, sign: str, symbol: str):
         super().__init__()
         self.id = id
@@ -257,7 +253,6 @@ class FiatCurrencyMap(APIRequestResponse):
 
 
 class CryptoCurrencyEntry(Schema):
-    # noinspection PyShadowingBuiltins
     def __init__(
         self,
         id: int,

@@ -294,7 +294,6 @@ class Event(Mapping[str, Any]):
         if not hasattr(self.conn, "ctcp"):
             raise ValueError("CTCP can only be used on IRC connections")
 
-        # noinspection PyUnresolvedReferences
         self.conn.ctcp(target, ctcp_type, message)
 
     def notice(self, message, target=None):

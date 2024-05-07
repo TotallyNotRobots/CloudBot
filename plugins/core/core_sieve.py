@@ -20,7 +20,6 @@ def task_clear():
             del buckets[uid]
 
 
-# noinspection PyUnusedLocal
 @hook.sieve()
 def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
     """
@@ -50,7 +49,6 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
     return event
 
 
-# noinspection PyUnusedLocal
 @hook.sieve()
 async def perm_sieve(
     bot: CloudBot, event: Event, _hook: Hook
@@ -71,7 +69,6 @@ async def perm_sieve(
     return event
 
 
-# noinspection PyUnusedLocal
 @hook.sieve()
 def check_disabled(
     bot: CloudBot, event: CommandEvent, _hook: Hook
@@ -88,7 +85,6 @@ def check_disabled(
     return event
 
 
-# noinspection PyUnusedLocal
 @hook.sieve()
 def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
     """

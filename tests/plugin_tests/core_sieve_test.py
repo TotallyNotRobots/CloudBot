@@ -8,7 +8,6 @@ from cloudbot.util.tokenbucket import TokenBucket
 from plugins.core import core_sieve
 
 
-# noinspection PyUnusedFunction
 @pytest.fixture(autouse=True)
 def reset_buckets() -> Iterator[None]:
     """
