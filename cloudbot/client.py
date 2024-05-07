@@ -5,14 +5,14 @@ import random
 from typing import Any, Dict
 
 from cloudbot.permissions import PermissionManager
-from cloudbot.util import async_util
+from cloudbot.util import CLIENT_ATTR, async_util
 
 logger = logging.getLogger("cloudbot")
 
 
 def client(_type):
     def _decorate(cls):
-        cls._cloudbot_client = _type
+        setattr(cls, CLIENT_ATTR, _type)
         return cls
 
     return _decorate

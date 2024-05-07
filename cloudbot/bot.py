@@ -23,7 +23,7 @@ from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import ConfigReloader, PluginReloader
-from cloudbot.util import async_util, database, formatting
+from cloudbot.util import CLIENT_ATTR, async_util, database, formatting
 from cloudbot.util.mapping import KeyFoldDict
 
 logger = logging.getLogger("cloudbot")
@@ -328,7 +328,7 @@ class CloudBot(AbstractBot):
                     continue
 
                 try:
-                    _type = obj._cloudbot_client  # type: ignore
+                    _type = getattr(obj, CLIENT_ATTR)
                 except AttributeError:
                     continue
 
