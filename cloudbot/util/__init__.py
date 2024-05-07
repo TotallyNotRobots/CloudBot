@@ -2,4 +2,5 @@
 
 ATTR_PREFIX = "_cloudbot"
 HOOK_ATTR = ATTR_PREFIX + "_hook"
+CLIENT_ATTR = ATTR_PREFIX + "_client"
 LOADED_ATTR = ATTR_PREFIX + "_loaded"

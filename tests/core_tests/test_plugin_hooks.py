@@ -45,6 +45,7 @@ from cloudbot.hook import (
 )
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import Hook, hook_name_to_plugin
+from cloudbot.util import HOOK_ATTR
 from tests.util.mock_bot import MockBot
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
@@ -256,7 +257,7 @@ def make_plugin():
 
 
 def get_and_wrap_hook(func, hook_type):
-    func_hook = func._cloudbot_hook[hook_type]
+    func_hook = getattr(func, HOOK_ATTR)[hook_type]
     plugin = make_plugin()
 
     _hook = hook_name_to_plugin(hook_type)(plugin, func_hook)

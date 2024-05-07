@@ -66,27 +66,27 @@ def test_hook_decorate():
     def f():
         raise NotImplementedError
 
-    assert f._cloudbot_hook["event"].types == {
+    assert getattr(f, HOOK_ATTR)["event"].types == {
         EventType.message,
         EventType.notice,
         EventType.action,
     }
-    assert f._cloudbot_hook["command"].aliases == {"test"}
-    assert f._cloudbot_hook["irc_raw"].triggers == {"*", "PRIVMSG"}
+    assert getattr(f, HOOK_ATTR)["command"].aliases == {"test"}
+    assert getattr(f, HOOK_ATTR)["irc_raw"].triggers == {"*", "PRIVMSG"}
 
-    assert "irc_out" in f._cloudbot_hook
-    assert "on_start" in f._cloudbot_hook
-    assert "on_stop" in f._cloudbot_hook
-    assert "regex" in f._cloudbot_hook
-    assert "periodic" in f._cloudbot_hook
-    assert "perm_check" in f._cloudbot_hook
-    assert "post_hook" in f._cloudbot_hook
-    assert "on_connect" in f._cloudbot_hook
-    assert "on_cap_available" in f._cloudbot_hook
-    assert "on_cap_ack" in f._cloudbot_hook
+    assert "irc_out" in getattr(f, HOOK_ATTR)
+    assert "on_start" in getattr(f, HOOK_ATTR)
+    assert "on_stop" in getattr(f, HOOK_ATTR)
+    assert "regex" in getattr(f, HOOK_ATTR)
+    assert "periodic" in getattr(f, HOOK_ATTR)
+    assert "perm_check" in getattr(f, HOOK_ATTR)
+    assert "post_hook" in getattr(f, HOOK_ATTR)
+    assert "on_connect" in getattr(f, HOOK_ATTR)
+    assert "on_cap_available" in getattr(f, HOOK_ATTR)
+    assert "on_cap_ack" in getattr(f, HOOK_ATTR)
 
-    assert len(f._cloudbot_hook["regex"].regexes) == 4
-    assert f._cloudbot_hook["periodic"].interval == 20
+    assert len(getattr(f, HOOK_ATTR)["regex"].regexes) == 4
+    assert getattr(f, HOOK_ATTR)["periodic"].interval == 20
 
     with pytest.raises(ValueError, match="Invalid command name test 123"):
         hook.command("test 123")(f)
@@ -107,13 +107,13 @@ def test_hook_decorate():
     def sieve_func(_bot, _event, _hook):
         raise NotImplementedError
 
-    assert "sieve" in sieve_func._cloudbot_hook
+    assert "sieve" in getattr(sieve_func, HOOK_ATTR)
 
     @hook.sieve()
     def sieve_func2(_bot, _event, _hook):
         raise NotImplementedError
 
-    assert "sieve" in sieve_func2._cloudbot_hook
+    assert "sieve" in getattr(sieve_func2, HOOK_ATTR)
 
     @hook.on_connect()
     @hook.irc_out()
@@ -123,7 +123,7 @@ def test_hook_decorate():
     def plain_dec(_bot, _event, _hook):
         raise NotImplementedError
 
-    assert sorted(plain_dec._cloudbot_hook.keys()) == [
+    assert sorted(getattr(plain_dec, HOOK_ATTR).keys()) == [
         "irc_out",
         "on_connect",
         "on_start",
@@ -141,7 +141,7 @@ def test_command_hook_doc():
 
         foo"""
 
-    cmd_hook = test._cloudbot_hook["command"]
+    cmd_hook = getattr(test, HOOK_ATTR)["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
@@ -150,14 +150,14 @@ def test_command_hook_doc():
 
         foo"""
 
-    cmd_hook = test1._cloudbot_hook["command"]
+    cmd_hook = getattr(test1, HOOK_ATTR)["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
     def test2(bot):
         """<arg> - foo bar baz"""
 
-    cmd_hook = test2._cloudbot_hook["command"]
+    cmd_hook = getattr(test2, HOOK_ATTR)["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
@@ -166,12 +166,12 @@ def test_command_hook_doc():
         <arg> - foo bar baz
         """
 
-    cmd_hook = test3._cloudbot_hook["command"]
+    cmd_hook = getattr(test3, HOOK_ATTR)["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
     def test4(bot):
         """<arg> - foo bar baz"""
 
-    cmd_hook = test4._cloudbot_hook["command"]
+    cmd_hook = getattr(test4, HOOK_ATTR)["command"]
     assert cmd_hook.doc == "<arg> - foo bar baz"
