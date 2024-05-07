@@ -33,7 +33,9 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "EditorConfig.EditorConfig",
-                "GitHub.vscode-pull-request-github"
+                "GitHub.vscode-pull-request-github",
+                "ms-python.black-formatter",
+                "redhat.vscode-yaml"
             ],
             "settings": {
                 "python.pythonPath": "/usr/local/bin/python",
