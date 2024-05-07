@@ -9,7 +9,7 @@ from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import CommandHook, EventHook, RegexHook
 from plugins.core import regex_chans
 from tests.util import wrap_hook_response
-from tests.util.mock_conn import MockConn
+from tests.util.mock_conn import MockClient
 from tests.util.mock_db import MockDB
 
 
@@ -75,7 +75,7 @@ def test_delete_status(mock_db: MockDB):
         assert regex_chans.status_cache == {}
 
 
-def test_listregex(mock_db: MockDB):
+def test_listregex(mock_db: MockDB, mock_bot):
     regex_chans.table.create(mock_db.engine)
     with mock_db.session() as session:
         mock_db.load_data(
@@ -103,7 +103,7 @@ def test_listregex(mock_db: MockDB):
 
         regex_chans.load_cache(session)
 
-        conn = MockConn(name="net")
+        conn = MockClient(bot=mock_bot, name="net")
         assert (
             regex_chans.listregex(conn)
             == "#chan: DISABLED, #chan1: ENABLED, #chan2: DISABLED, #chan3: DISABLED"
@@ -111,7 +111,7 @@ def test_listregex(mock_db: MockDB):
 
 
 class TestRegexStatus:
-    def test_current_chan(self, mock_db: MockDB):
+    def test_current_chan(self, mock_db: MockDB, mock_bot):
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -147,13 +147,13 @@ class TestRegexStatus:
 
             regex_chans.load_cache(session)
 
-            conn = MockConn(name="net")
+            conn = MockClient(bot=mock_bot, name="net")
             assert (
                 regex_chans.regexstatus("", conn, "#chan")
                 == "Regex status for #chan: DISABLED"
             )
 
-    def test_other_chan(self, mock_db: MockDB):
+    def test_other_chan(self, mock_db: MockDB, mock_bot):
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -189,13 +189,13 @@ class TestRegexStatus:
 
             regex_chans.load_cache(session)
 
-            conn = MockConn(name="net")
+            conn = MockClient(bot=mock_bot, name="net")
             assert (
                 regex_chans.regexstatus("#chan1", conn, "#chan")
                 == "Regex status for #chan1: ENABLED"
             )
 
-    def test_other_chan_no_prefix(self, mock_db: MockDB):
+    def test_other_chan_no_prefix(self, mock_db: MockDB, mock_bot):
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -231,7 +231,7 @@ class TestRegexStatus:
 
             regex_chans.load_cache(session)
 
-            conn = MockConn(name="net")
+            conn = MockClient(bot=mock_bot, name="net")
             assert (
                 regex_chans.regexstatus("chan2", conn, "#chan")
                 == "Regex status for #chan2: DISABLED"

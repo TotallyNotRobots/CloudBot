@@ -108,6 +108,16 @@ show_error_codes = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 # strict_equality = true
+plugins = [
+  "pydantic.mypy"
+]
+
+follow_imports = "silent"
+# disallow_any_generics = true
+no_implicit_reexport = true
+
+# for strict mypy: (this is the tricky one :-))
+# disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = 'cloudbot.*'
@@ -119,6 +129,45 @@ module = 'cloudbot.config'
 check_untyped_defs = true
 warn_return_any = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = 'plugins.cryptocurrency'
+strict_optional = true
+check_untyped_defs = true
+warn_return_any = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.autoflake]
+in-place = true
+remove-all-unused-imports = true
+
+[tool.coverage.report]
+fail_under = 60
+exclude_lines = [
+    "@overload",
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    'if __name__ == .__main__.:',
+    "if sys.version_info",
+    'class .*\(.*(Error|Exception)\):',
+    '^ *\.\.\.$',
+]
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "tests/data/*",
+    "tests/util/*",
+    ".*",
+    "venv/*",
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"

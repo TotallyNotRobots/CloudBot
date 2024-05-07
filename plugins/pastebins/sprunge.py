@@ -11,11 +11,11 @@ from cloudbot.util.web import (
 
 
 class Sprunge(Pastebin):
-    def __init__(self, base_url):
+    def __init__(self, base_url) -> None:
         super().__init__()
         self.url = base_url
 
-    def paste(self, data, ext):
+    def paste(self, data, ext) -> str:
         if isinstance(data, str):
             encoded = data.encode()
         else:
