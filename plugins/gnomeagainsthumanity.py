@@ -26,7 +26,6 @@ def CAHblackcard(text):
     """<text> - Submit text with _ for the bot to fill in the rest. You can submit text with multiple _"""
     CardText = text.strip()
 
-    # noinspection PyUnusedLocal
     def blankfiller(matchobj):
         return random.choice(gnomecards["white"])
 

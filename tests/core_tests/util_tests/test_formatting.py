@@ -141,7 +141,6 @@ def test_truncate_str():
     )
 
 
-# noinspection PyPep8
 def test_truncate_words():
     assert (
         truncate_words(

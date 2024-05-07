@@ -461,7 +461,6 @@ class TestConnect:
         client = await self.make_client(event_loop)
         runs = 0
 
-        # noinspection PyUnusedLocal
         async def connect(timeout):
             nonlocal runs
             if runs == 5:
@@ -524,7 +523,6 @@ class TestConnect:
         client = await self.make_client(event_loop)
         runs = 0
 
-        # noinspection PyUnusedLocal
         async def connect(timeout):
             nonlocal runs
             if runs == 5:

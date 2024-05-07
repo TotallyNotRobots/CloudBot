@@ -106,7 +106,6 @@ def is_ignored(conn, chan, mask):
     return False
 
 
-# noinspection PyUnusedLocal
 @hook.sieve(priority=50)
 async def ignore_sieve(bot, event, _hook):
     # don't block event hooks

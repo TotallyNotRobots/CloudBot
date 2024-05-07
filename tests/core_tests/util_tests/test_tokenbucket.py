@@ -6,7 +6,6 @@ import pytest
 from cloudbot.util import tokenbucket
 
 
-# noinspection PyProtectedMember
 def test_bucket_consume():
     bucket = tokenbucket.TokenBucket(10, 5)
     # larger then capacity
@@ -19,7 +18,6 @@ def test_bucket_consume():
     assert bucket.consume(10) is False
 
 
-# noinspection PyProtectedMember
 def test_bucket_advanced():
     bucket = tokenbucket.TokenBucket(10, 1)
     # tokens start at 10
