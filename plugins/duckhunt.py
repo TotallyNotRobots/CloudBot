@@ -736,7 +736,7 @@ def hunt_opt_out(text, chan, db, conn):
     return None
 
 
-@hook.command("duckmerge", permissions=["botcontrol"])
+@hook.command("duckmerge", permissions=["botcontrol", "duckmerge"])
 def duck_merge(text, conn, db, message):
     """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will
     have their duck scores removed the second will have the first score added. Warning this cannot be undone.
