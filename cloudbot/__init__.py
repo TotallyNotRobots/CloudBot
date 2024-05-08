@@ -4,7 +4,7 @@ import logging.config
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 version = tuple(__version__.split("."))
 
 __all__ = (

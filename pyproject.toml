@@ -126,4 +126,4 @@ tag_format = "v$version"
 version_scheme = "semver"
 update_changelog_on_bump = true
 version_files = ["cloudbot/__init__.py:__version__"]
-version = "1.4.0"
+version = "1.5.0"
