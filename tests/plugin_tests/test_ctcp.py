@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
+import cloudbot
 from plugins.core import core_ctcp
 
 
@@ -11,7 +12,7 @@ from plugins.core import core_ctcp
     [
         (
             "VERSION",
-            "\x01VERSION gonzobot a fork of Cloudbot 1.4.0 - https://snoonet.org/gonzobot\x01",
+            f"\x01VERSION gonzobot a fork of Cloudbot {cloudbot.__version__} - https://snoonet.org/gonzobot\x01",
         ),
         ("PING 1", "\x01PING 1\x01"),
         ("TIME", "\x01TIME Thu Aug 22 13:14:36 2019\x01"),
