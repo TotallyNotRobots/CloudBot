@@ -4,8 +4,8 @@ import logging.config
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-version = (1, 4, 0)
-__version__ = ".".join(str(i) for i in version)
+__version__ = "1.4.0"
+version = tuple(__version__.split("."))
 
 __all__ = (
     "clients",
