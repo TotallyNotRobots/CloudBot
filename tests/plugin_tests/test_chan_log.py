@@ -1,3 +1,4 @@
+import sys
 from itertools import chain
 
 from plugins.core import chan_log
@@ -6,7 +7,7 @@ from plugins.core import chan_log
 def test_format_exception_chain():
     def _get_data(exc):
         yield repr(exc)
-        if hasattr(exc, "add_note"):
+        if sys.version_info >= (3, 11):
             yield f"  add_note = {exc.add_note!r}"
 
         yield f"  args = {exc.args!r}"
