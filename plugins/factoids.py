@@ -33,9 +33,9 @@ def load_cache(db):
     new_cache.clear()
     for row in db.execute(table.select()):
         # assign variables
-        chan = row["chan"]
-        word = row["word"]
-        data = row["data"]
+        chan = row.chan
+        word = row.word
+        data = row.data
         new_cache[chan][word] = data
 
     factoid_cache.clear()

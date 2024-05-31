@@ -45,6 +45,7 @@ jobs:
       env:
         PYTHONDEVMODE: 1
         PYTHONPATH: .
+        SQLALCHEMY_WARN_20: 1
 
     - uses: codecov/codecov-action@v4
       with:

@@ -175,9 +175,7 @@ def clear_optout(db, conn, chan=None):
 def load_cache(db):
     new_cache = defaultdict(list)
     for row in db.execute(optout_table.select()):
-        new_cache[row["network"]].append(
-            OptOut(row["chan"], row["hook"], row["allow"])
-        )
+        new_cache[row.network].append(OptOut(row.chan, row.hook, row.allow))
 
     for opts in new_cache.values():
         opts.sort(reverse=True)

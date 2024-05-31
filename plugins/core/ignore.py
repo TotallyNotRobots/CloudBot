@@ -34,9 +34,9 @@ ignore_cache: List[Tuple[str, str, str]] = []
 def load_cache(db):
     new_cache = []
     for row in db.execute(table.select()):
-        conn = row["connection"]
-        chan = row["channel"]
-        mask = row["mask"]
+        conn = row.connection
+        chan = row.channel
+        mask = row.mask
         new_cache.append((conn, chan, mask))
 
     ignore_cache.clear()
@@ -182,8 +182,7 @@ def listignores(db, conn, chan):
     """- List all active ignores for the current channel"""
 
     rows = db.execute(
-        select(
-            [table.c.mask],
+        select(table.c.mask).where(
             and_(
                 table.c.connection == conn.name.lower(),
                 table.c.channel == chan.lower(),
@@ -191,7 +190,7 @@ def listignores(db, conn, chan):
         )
     ).fetchall()
 
-    out = "\n".join(row["mask"] for row in rows) + "\n"
+    out = "\n".join(row.mask for row in rows) + "\n"
 
     return web.paste(out)
 
@@ -245,13 +244,13 @@ def list_all_ignores(db, conn, text):
         whereclause = and_(whereclause, table.c.channel == text.lower())
 
     rows = db.execute(
-        select([table.c.channel, table.c.mask], whereclause)
+        select(table.c.channel, table.c.mask).where(whereclause)
     ).fetchall()
 
     ignores: Dict[str, List[str]] = OrderedDict()
 
     for row in rows:
-        ignores.setdefault(row["channel"], []).append(row["mask"])
+        ignores.setdefault(row.channel, []).append(row.mask)
 
     out = ""
     for chan, masks in ignores.items():

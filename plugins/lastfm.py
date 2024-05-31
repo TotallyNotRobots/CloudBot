@@ -76,9 +76,7 @@ last_cache: Dict[str, str] = {}
 def load_cache(db):
     new_cache = {}
     for row in db.execute(table.select()):
-        nick = row["nick"]
-        account = row["acc"]
-        new_cache[nick] = account
+        new_cache[row.nick] = row.acc
 
     last_cache.clear()
     last_cache.update(new_cache)

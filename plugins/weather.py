@@ -133,9 +133,7 @@ def add_location(nick, location, db):
 def load_cache(db):
     new_cache = []
     for row in db.execute(table.select()):
-        nick = row["nick"]
-        location = row["loc"]
-        new_cache.append((nick, location))
+        new_cache.append((row.nick, row.loc))
 
     location_cache.clear()
     location_cache.extend(new_cache)

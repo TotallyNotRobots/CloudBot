@@ -15,6 +15,7 @@ from sqlalchemy import (
     and_,
     desc,
 )
+from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -136,14 +137,13 @@ def get_config(conn, field, default):
 
 
 @hook.on_start()
-def load_optout(db):
+def load_optout(db: Session):
     """load a list of channels duckhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
     new_data = defaultdict(list)
     chans = db.execute(optout.select())
     for row in chans:
-        chan = row["chan"]
-        new_data[row["network"].casefold()].append(chan.casefold())
+        new_data[row.network.casefold()].append(row.chan.casefold())
 
     opt_out.clear()
     opt_out.update(new_data)
@@ -157,11 +157,11 @@ def is_opt_out(network, chan):
 def load_status(db):
     rows = db.execute(status_table.select())
     for row in rows:
-        net = row["network"]
-        chan = row["chan"]
+        net = row.network
+        chan = row.chan
         status = get_state_table(net, chan)
-        status.game_on = row["active"]
-        status.no_duck_kick = row["duck_kick"]
+        status.game_on = row.active
+        status.no_duck_kick = row.duck_kick
         if status.game_on:
             set_ducktime(chan, net)
 
@@ -404,7 +404,7 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
 
 def update_score(nick, chan, db, conn, shoot=0, friend=0):
     score = db.execute(
-        select([table.c.shot, table.c.befriend])
+        select(table.c.shot, table.c.befriend)
         .where(table.c.network == conn.name)
         .where(table.c.chan == chan.lower())
         .where(table.c.name == nick.lower())
@@ -544,8 +544,10 @@ def get_scores(db, score_type, network, chan=None):
     if chan is not None:
         clause = and_(clause, table.c.chan == chan.lower())
 
-    query = select([table.c.name, table.c[score_type]], clause).order_by(
-        desc(table.c[score_type])
+    query = (
+        select(table.c.name, table.c[score_type])
+        .where(clause)
+        .order_by(desc(table.c[score_type]))
     )
 
     scores = db.execute(query).fetchall()
@@ -728,8 +730,7 @@ def hunt_opt_out(text, chan, db, conn):
         if not is_opt_out(conn.name, channel):
             return f"Duck hunt is already enabled in {channel}."
 
-        delete = optout.delete(optout.c.chan == channel.lower())
-        db.execute(delete)
+        db.execute(optout.delete().where(optout.c.chan == channel.lower()))
         db.commit()
         load_optout(db)
 
@@ -746,13 +747,13 @@ def duck_merge(text, conn, db, message):
         return "Please specify two nicks for this command."
 
     oldnickscore = db.execute(
-        select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
+        select(table.c.name, table.c.chan, table.c.shot, table.c.befriend)
         .where(table.c.network == conn.name)
         .where(table.c.name == oldnick)
     ).fetchall()
 
     newnickscore = db.execute(
-        select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
+        select(table.c.name, table.c.chan, table.c.shot, table.c.befriend)
         .where(table.c.network == conn.name)
         .where(table.c.name == newnick)
     ).fetchall()
@@ -767,16 +768,16 @@ def duck_merge(text, conn, db, message):
     new_chans = []
 
     for row in newnickscore:
-        new_chans.append(row["chan"])
-        chan_data = duckmerge[row["chan"]]
-        chan_data["shot"] = row["shot"]
-        chan_data["befriend"] = row["befriend"]
+        new_chans.append(row.chan)
+        chan_data = duckmerge[row.chan]
+        chan_data["shot"] = row.shot
+        chan_data["befriend"] = row.befriend
 
     for row in oldnickscore:
-        chan_name = row["chan"]
+        chan_name = row.chan
         chan_data1 = duckmerge[chan_name]
-        shot: int = row["shot"]
-        _friends: int = row["befriend"]
+        shot: int = row.shot
+        _friends: int = row.befriend
         chan_data1["shot"] += shot
         chan_data1["befriend"] += _friends
         total_kills += shot
@@ -833,7 +834,8 @@ def ducks_user(text, nick, chan, conn, db, message):
     ducks: Dict[str, int] = defaultdict(int)
     scores = db.execute(
         select(
-            [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
+            table.c.name, table.c.chan, table.c.shot, table.c.befriend
+        ).where(
             and_(
                 table.c.network == conn.name,
                 table.c.name == name,
@@ -849,13 +851,13 @@ def ducks_user(text, nick, chan, conn, db, message):
     if scores:
         has_hunted_in_chan = False
         for row in scores:
-            if row["chan"].lower() == chan.lower():
+            if row.chan.lower() == chan.lower():
                 has_hunted_in_chan = True
-                ducks["chankilled"] += row["shot"]
-                ducks["chanfriends"] += row["befriend"]
+                ducks["chankilled"] += row.shot
+                ducks["chanfriends"] += row.befriend
 
-            ducks["killed"] += row["shot"]
-            ducks["friend"] += row["befriend"]
+            ducks["killed"] += row.shot
+            ducks["friend"] += row.befriend
             ducks["chans"] += 1
 
         # Check if the user has only participated in the hunt in this channel
@@ -897,7 +899,8 @@ def duck_stats(chan, conn, db, message):
     """- Prints duck statistics for the entire channel and totals for the network."""
     scores = db.execute(
         select(
-            [table.c.name, table.c.chan, table.c.shot, table.c.befriend],
+            table.c.name, table.c.chan, table.c.shot, table.c.befriend
+        ).where(
             table.c.network == conn.name,
         )
     ).fetchall()
