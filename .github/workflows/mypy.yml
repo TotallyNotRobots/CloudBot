@@ -19,21 +19,9 @@ jobs:
         cache: "pip"
         cache-dependency-path: |
           **/*requirements*.txt
-
     - name: Install apt deps
       run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
-
     - name: Install dependencies
       run: pip install -Ur requirements-dev.txt
-
     - name: Test with mypy
-      run: mypy --cobertura-xml-report . .
-
-    - uses: codecov/codecov-action@v4
-      with:
-        name: types
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
-        disable_search: true
-        file: cobertura.xml
-        flags: types
+      run: pre-commit run mypy --all

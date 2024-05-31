@@ -10,14 +10,6 @@ coverage:
 
 component_management:
   individual_components:
-  - component_id: types
-    name: types
-    flag_regexes:
-    - types
-    statuses:
-    - type: patch
-      target: 90%
-
   - component_id: tests
     name: tests
     flag_regexes:
