@@ -1,0 +1,13 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "github>TotallyNotRobots/renovate-config",
+        ":separateMajorReleases",
+        ":separateMultipleMajorReleases",
+        ":separateMultipleMinorReleases",
+        ":separatePatchReleases",
+        "docker:pinDigests",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "prConcurrentLimit": 5
+}
