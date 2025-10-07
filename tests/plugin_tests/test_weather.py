@@ -1,6 +1,5 @@
 import json
 from copy import deepcopy
-from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -147,20 +146,20 @@ def test_rounding(
 
     mock_requests.add(
         "GET",
-        "https://api.openweathermap.org/data/2.5/onecall?"
+        "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
         **new_data,
     )
 
     out_text = (
-        "(foobar) \x02Current\x02: foobar, 32F/0C\x0f; \x02High\x02: 64F/18C\x0f; "
-        "\x02Low\x02: 57F/14C\x0f; \x02Humidity\x02: 45%\x0f; "
-        "\x02Wind\x02: 12MPH/20KPH SE\x0f "
+        "(foobar) \x02Current\x02: Clouds, 32F/0C\x0f; \x02High\x02: 80F/26C\x0f; "
+        "\x02Low\x02: 78F/26C\x0f; \x02Humidity\x02: 77%\x0f; "
+        "\x02Wind\x02: 17MPH/27KPH N\x0f "
         "-- 123 Test St, Example City, CA - "
         "(\x1dTo get a forecast, use .fc\x1d)"
     )
 
-    calls: List[HookResult] = [
+    calls: list[HookResult] = [
         HookResult(
             "message",
             (
@@ -224,7 +223,7 @@ def test_find_location(
 
     mock_requests.add(
         "GET",
-        "https://api.openweathermap.org/data/2.5/onecall?"
+        "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
         **get_test_data(),
     )
@@ -233,9 +232,9 @@ def test_find_location(
             "message",
             (
                 "#foo",
-                "(foobar) \x02Current\x02: foobar, 68F/20C\x0f; \x02High\x02: 64F/18C\x0f; "
-                "\x02Low\x02: 57F/14C\x0f; \x02Humidity\x02: 45%\x0f; "
-                "\x02Wind\x02: 12MPH/20KPH SE\x0f "
+                "(foobar) \x02Current\x02: Clouds, 78F/26C\x0f; \x02High\x02: 80F/26C\x0f; "
+                "\x02Low\x02: 78F/26C\x0f; \x02Humidity\x02: 77%\x0f; "
+                "\x02Wind\x02: 17MPH/27KPH N\x0f "
                 "-- 123 Test St, Example City, CA - "
                 "(\x1dTo get a forecast, use .fc\x1d)",
             ),
@@ -247,10 +246,10 @@ def test_find_location(
             "message",
             (
                 "#foo",
-                "(foobar) \x02Today\x02: foobar; High: 64F/18C; Low: 57F/14C; "
-                "Humidity: 45%; Wind: 15MPH/24KPH SE | "
-                "\x02Tomorrow\x02: foobar; High: 64F/18C; "
-                "Low: 57F/14C; Humidity: 45%; Wind: 15MPH/24KPH SE "
+                "(foobar) \x02Today\x02: Clouds; High: 80F/26C; Low: 78F/26C; "
+                "Humidity: 77%; Wind: 19MPH/31KPH NNE | "
+                "\x02Tomorrow\x02: Rain; High: 82F/28C; "
+                "Low: 78F/26C; Humidity: 73%; Wind: 22MPH/35KPH ENE "
                 "-- 123 Test St, Example City, CA",
             ),
             {},
@@ -264,7 +263,7 @@ def test_find_location(
         json={"status": "foobar"},
     )
 
-    response: List[HookResult] = []
+    response: list[HookResult] = []
     with pytest.raises(ApiError):
         wrap_hook_response(weather.weather, cmd_event, response)
 
@@ -320,7 +319,7 @@ def test_find_location(
     )
     mock_requests.add(
         "GET",
-        "https://api.openweathermap.org/data/2.5/onecall?"
+        "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
         **get_test_data(),
     )

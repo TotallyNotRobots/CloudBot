@@ -1,12 +1,12 @@
 import math
 from fractions import Fraction
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import googlemaps
 import pyowm
 from googlemaps.exceptions import ApiError
 from pyowm import OWM
-from pyowm.weatherapi25.weather import Weather
+from pyowm.weatherapi30.weather import Weather
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
@@ -32,7 +32,7 @@ table = Table(
     PrimaryKeyConstraint("nick"),
 )
 
-location_cache: List[Tuple[str, str]] = []
+location_cache: list[tuple[str, str]] = []
 
 BEARINGS = (
     "N",
@@ -222,7 +222,7 @@ def weather(reply, db, triggered_prefix, event):
         return err
 
     location_data, owm = res
-    daily_conditions: List[Weather] = owm.forecast_daily
+    daily_conditions: list[Weather] = owm.forecast_daily
     current: Weather = owm.current
     today = daily_conditions[0]
     wind_mph = current.wind("miles_hour")
