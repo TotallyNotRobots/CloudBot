@@ -14,5 +14,7 @@
     "evenBetterToml.formatter.allowedBlankLines": 1,
     "evenBetterToml.formatter.arrayAutoCollapse": true,
     "evenBetterToml.formatter.arrayAutoExpand": false,
-    "evenBetterToml.formatter.arrayTrailingComma": true
+    "evenBetterToml.formatter.arrayTrailingComma": true,
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": []
 }

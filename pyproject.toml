@@ -8,7 +8,7 @@ float_to_top = true
 
 [tool.black]
 line-length = 80
-target-version = ['py38']
+target-version = ['py39']
 include = '\.pyi?$'
 exclude = '''
 (
@@ -30,7 +30,7 @@ exclude = '''
 
 [tool.pylint.main]
 analyse-fallback-blocks = true
-py-version = "3.8"
+py-version = "3.9"
 extension-pkg-allow-list=["lxml"]
 
 [tool.pylint.messages_control]
@@ -98,7 +98,7 @@ generated-members = "(requests\\.)?codes\\.[a-zA-Z0-9_]+"
 
 [tool.mypy]
 namespace_packages = true
-python_version = "3.8"
+python_version = "3.9"
 warn_unused_configs = true
 strict = false
 strict_optional = false
