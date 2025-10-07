@@ -13,7 +13,7 @@ multidict == 6.0.5
 nltk == 3.9.2
 psutil == 5.9.8
 py-irclib == 0.3.0
-pyowm == 3.3.0
+pyowm ==3.5.0
 requests ==2.32.4
 urllib3 ==2.5.0
 watchdog == 4.0.0
