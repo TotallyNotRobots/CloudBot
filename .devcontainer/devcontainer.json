@@ -6,8 +6,7 @@
     "dockerFile": "./Dockerfile",
     "context": "..",
     "features": {
-        "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-            "plugins": "ssh-agent",
+        "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
             "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions"
         }
     },
