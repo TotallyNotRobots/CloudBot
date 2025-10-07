@@ -5,7 +5,7 @@ ci:
 exclude: ^\.vscode/.*$
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 2c9f875913ee60ca25ce70243dc24d5b6415598c  # frozen: v4.6.0
+  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
   hooks:
   - id: trailing-whitespace
     args: ['--markdown-linebreak-ext=md,markdown']
@@ -36,11 +36,11 @@ repos:
     args:
     - --remove
 - repo: https://github.com/psf/black
-  rev: 3702ba224ecffbcec30af640c149f231d90aebdb  # frozen: 24.4.2
+  rev: af0ba72a73598c76189d6dd1b21d8532255d5942  # frozen: 25.9.0
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: c235f5e450b4b84e58d114ed4c589cbf454175a3  # frozen: 5.13.2
+  rev: ec0efaee4acfce198521e43caa3029b06cedd64a  # frozen: 6.1.0
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
@@ -49,7 +49,7 @@ repos:
   - id: python-no-eval
   - id: python-no-log-warn
 - repo: https://github.com/asottile/pyupgrade
-  rev: 12af25eb252deaaecb6b259df40d01f42e716dc3  # frozen: v3.15.2
+  rev: 37bfa06d791fd38fb4e54910b36a2ff57641b074  # frozen: v3.20.0
   hooks:
   - id: pyupgrade
     args:
@@ -86,6 +86,6 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: a754230d41a1933fd4ba000014d841dd2a05c71d  # frozen: v3.24.0
+  rev: cc981fcb065527b6de0033b0cbf0432e69781901  # frozen: v4.9.1
   hooks:
   - id: commitizen
