@@ -1,7 +1,7 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from datetime import datetime
 from fnmatch import fnmatch
-from typing import Dict, Iterable, List, Set, Tuple
 
 import sqlalchemy as sa
 from sqlalchemy import (
@@ -69,11 +69,11 @@ ignore_table = Table(
     PrimaryKeyConstraint("conn", "nick", "mask"),
 )
 
-disable_cache: Dict[str, Set[str]] = defaultdict(set)
-ignore_cache: Dict[str, Dict[str, List[str]]] = defaultdict(
+disable_cache: dict[str, set[str]] = defaultdict(set)
+ignore_cache: dict[str, dict[str, list[str]]] = defaultdict(
     lambda: defaultdict(list)
 )
-tell_cache: List[Tuple[str, str]] = []
+tell_cache: list[tuple[str, str]] = []
 
 
 @hook.on_start(priority=Priority.HIGHEST)
@@ -230,7 +230,7 @@ def list_ignores(conn, nick: str) -> Iterable[str]:
     yield from ignore_cache[conn.name.lower()][nick.lower()]
 
 
-def get_unread(db, server, target) -> List[TellMessage]:
+def get_unread(db, server, target) -> list[TellMessage]:
     query = (
         select(TellMessage)
         .where(not_(TellMessage.is_read))

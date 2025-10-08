@@ -1,5 +1,4 @@
 import re
-from typing import Dict, Union
 
 import requests
 from requests import HTTPError
@@ -48,7 +47,7 @@ def egg_calculator(text):
     """<time> - Parses dragonvalebreedingguide.com for a list of possible dragons based on the incubation time.
     Enter the time as 5 hours, 30 minutes. For upgraded incubation times put 'upgrade' at the front of the time length
     """
-    params: Dict[str, Union[int, float]] = {"avail": 1}
+    params: dict[str, int | float] = {"avail": 1}
     if text.lower().startswith("upgrade"):
         timer = text.replace("upgrade", "")
         time2 = time_parse(timer.strip())

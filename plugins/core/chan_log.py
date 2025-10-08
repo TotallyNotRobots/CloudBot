@@ -1,5 +1,6 @@
 import traceback
-from typing import Any, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 from requests.exceptions import RequestException
 
@@ -7,7 +8,7 @@ from cloudbot import hook
 from cloudbot.util import web
 
 
-def get_attrs(obj: object) -> List[str]:
+def get_attrs(obj: object) -> list[str]:
     """Returns a list of all of the attributes on an object,
     either from the __dict__ or from dir() if the object has no __dict__
 
@@ -49,7 +50,7 @@ def is_dunder(name: str) -> bool:
     return len(name) > 4 and name.startswith("__") and name.endswith("__")
 
 
-AttrList = Iterable[Tuple[str, Any]]
+AttrList = Iterable[tuple[str, Any]]
 
 
 def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:

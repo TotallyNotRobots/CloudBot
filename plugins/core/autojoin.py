@@ -2,7 +2,6 @@ import asyncio
 from collections import defaultdict
 from copy import copy
 from threading import RLock
-from typing import Dict, Set
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 from sqlalchemy.exc import IntegrityError
@@ -18,7 +17,7 @@ table = Table(
     PrimaryKeyConstraint("conn", "chan"),
 )
 
-chan_cache: Dict[str, Set[str]] = defaultdict(set)
+chan_cache: dict[str, set[str]] = defaultdict(set)
 db_lock = RLock()
 
 

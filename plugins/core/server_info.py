@@ -2,7 +2,8 @@
 Tracks verious server info like ISUPPORT tokens
 """
 
-from typing import Callable, Dict, MutableMapping, TypeVar
+from collections.abc import Callable, MutableMapping
+from typing import TypeVar
 
 from cloudbot import hook
 from cloudbot.util.irc import ChannelMode, ModeType, StatusMode
@@ -63,13 +64,13 @@ def get_server_info(conn):
 
 def get_status_modes(
     serv_info, *, clear: bool = False
-) -> Dict[str, StatusMode]:
+) -> dict[str, StatusMode]:
     return _get_set_clear(serv_info, "statuses", dict, clear=clear)
 
 
 def get_channel_modes(
     serv_info, *, clear: bool = False
-) -> Dict[str, ChannelMode]:
+) -> dict[str, ChannelMode]:
     return _get_set_clear(serv_info, "channel_modes", dict, clear=clear)
 
 

@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from irclib.util.compare import match_mask
 
@@ -7,7 +6,7 @@ logger = logging.getLogger("cloudbot")
 
 # put your hostmask here for magic
 # it's disabled by default, see has_perm_mask()
-backdoor: Optional[str] = None
+backdoor: str | None = None
 
 
 class PermissionManager:

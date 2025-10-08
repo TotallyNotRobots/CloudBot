@@ -17,7 +17,7 @@ Api = Optional[googlemaps.Client]
 
 class PluginData:
     maps_api: Api = None
-    owm_api: Optional[OWM] = None
+    owm_api: OWM | None = None
 
 
 data = PluginData()

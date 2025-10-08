@@ -1,9 +1,8 @@
 import random
-from typing import List
 
 from cloudbot import hook
 
-topicchange_data: List[str] = []
+topicchange_data: list[str] = []
 
 
 @hook.on_start()

@@ -2,7 +2,6 @@ import random
 import re
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict
 
 import requests
 from requests import HTTPError
@@ -13,7 +12,7 @@ from cloudbot.util import colors, formatting, timeformat
 from cloudbot.util.formatting import pluralize_auto
 from cloudbot.util.pager import CommandPager, paginated_list
 
-search_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
+search_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
 user_re = re.compile(r"^(?:/?(?:u(?:ser)?/)?)?(?P<name>.+?)/?$", re.IGNORECASE)
 sub_re = re.compile(r"^(?:/?(?:r/)?)?(?P<name>.+?)/?$", re.IGNORECASE)
 

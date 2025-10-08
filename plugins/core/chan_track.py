@@ -14,7 +14,6 @@ from collections.abc import Iterable, Mapping
 from contextlib import suppress
 from numbers import Number
 from operator import attrgetter
-from typing import Dict
 
 from irclib.parser import MessageTag, Prefix, TagList
 
@@ -657,8 +656,8 @@ def on_mode(chan, irc_paramlist, conn):
         return
 
     serv_info = conn.memory["server_info"]
-    statuses: Dict[str, StatusMode] = serv_info["statuses"]
-    mode_types: Dict[str, ChannelMode] = serv_info["channel_modes"]
+    statuses: dict[str, StatusMode] = serv_info["statuses"]
+    mode_types: dict[str, ChannelMode] = serv_info["channel_modes"]
 
     chan_data = get_chans(conn).getchan(chan)
 

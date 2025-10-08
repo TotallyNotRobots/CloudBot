@@ -1,4 +1,4 @@
-from typing import Iterator, Optional
+from collections.abc import Iterator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -180,7 +180,7 @@ async def test_permissions_no_perms(event_loop) -> None:
         assert res is event
 
 
-def make_command_event(chan: Optional[str] = "#foo") -> CommandEvent:
+def make_command_event(chan: str | None = "#foo") -> CommandEvent:
     conn = MagicMock()
     conn.name = "foobarconn"
     conn.config = {}

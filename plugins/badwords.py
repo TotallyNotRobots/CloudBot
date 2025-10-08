@@ -1,6 +1,6 @@
 import re
 from collections import defaultdict
-from typing import Dict, List, Optional, Pattern
+from re import Pattern
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, select
 
@@ -17,11 +17,11 @@ table = Table(
     PrimaryKeyConstraint("word", "chan"),
 )
 
-badcache: Dict[str, List[str]] = defaultdict(list)
+badcache: dict[str, list[str]] = defaultdict(list)
 
 
 class BadwordMatcher:
-    regex: Optional[Pattern[str]] = None
+    regex: Pattern[str] | None = None
 
 
 matcher = BadwordMatcher()

@@ -1,8 +1,9 @@
 import concurrent.futures
 import enum
 import logging
+from collections.abc import Iterator, Mapping
 from functools import partial
-from typing import Any, Iterator, Mapping
+from typing import Any
 
 from irclib.parser import Message
 

@@ -1,12 +1,11 @@
 import re
 from collections import defaultdict
-from typing import Dict
 
 from cloudbot import hook
 from cloudbot.util import http
 from cloudbot.util.pager import CommandPager, paginated_list
 
-search_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
+search_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
 
 
 class Game:

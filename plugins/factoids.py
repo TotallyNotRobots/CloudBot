@@ -1,7 +1,6 @@
 import re
 import string
 from collections import defaultdict
-from typing import Dict, List
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 
@@ -12,7 +11,7 @@ from cloudbot.util.web import NoPasteException
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
-factoid_cache: Dict[str, Dict[str, str]] = defaultdict(default_dict.copy)
+factoid_cache: dict[str, dict[str, str]] = defaultdict(default_dict.copy)
 
 FACTOID_CHAR = "?"  # TODO: config
 
@@ -203,7 +202,7 @@ def factoid(content, match, chan, message, action):
 @hook.command("listfacts", autohelp=False)
 def listfactoids(notice, chan):
     """- lists all available factoids"""
-    reply_text: List[str] = []
+    reply_text: list[str] = []
     reply_text_length = 0
     for word in sorted(factoid_cache[chan].keys()):
         text = FACTOID_CHAR + word

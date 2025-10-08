@@ -2,7 +2,7 @@ import logging
 import os
 import os.path
 import time
-from typing import Dict, TextIO, Tuple
+from typing import TextIO
 
 import cloudbot
 from cloudbot import hook
@@ -169,9 +169,9 @@ raw_file_format = "{server}_%Y%m%d.log"
 folder_format = "%Y"
 
 # Stream cache, (server, chan) -> (file_name, stream)
-stream_cache: Dict[Tuple[str, str], Tuple[str, TextIO]] = {}
+stream_cache: dict[tuple[str, str], tuple[str, TextIO]] = {}
 # Raw stream cache, server -> (file_name, stream)
-raw_cache: Dict[str, Tuple[str, TextIO]] = {}
+raw_cache: dict[str, tuple[str, TextIO]] = {}
 
 
 def get_log_filename(server, chan):

@@ -22,7 +22,6 @@ import json
 import random
 import re
 import urllib.parse
-from typing import Dict, List
 
 from cloudbot import hook
 from cloudbot.util import colors, formatting, web
@@ -43,7 +42,7 @@ COLORS = collections.OrderedDict(
     ]
 )
 
-leet_text: Dict[str, List[str]] = {}
+leet_text: dict[str, list[str]] = {}
 
 # helper functions
 

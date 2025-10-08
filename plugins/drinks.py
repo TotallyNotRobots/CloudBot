@@ -1,12 +1,12 @@
 import json
 import random
-from typing import Any, Dict, List
+from typing import Any
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
 from cloudbot.util import formatting, web
 
-drink_data: List[Dict[str, Any]] = []
+drink_data: list[dict[str, Any]] = []
 
 
 @hook.onload()

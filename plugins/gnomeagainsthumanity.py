@@ -1,11 +1,10 @@
 import json
 import random
 import re
-from typing import Dict, List
 
 from cloudbot import hook
 
-gnomecards: Dict[str, List[str]] = {}
+gnomecards: dict[str, list[str]] = {}
 
 
 @hook.on_start()

@@ -2,7 +2,7 @@ import asyncio
 import collections
 import logging
 import random
-from typing import Any, Dict
+from typing import Any
 
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import CLIENT_ATTR, async_util
@@ -59,7 +59,7 @@ class Client:
         self.permissions = PermissionManager(self)
 
         # for plugins to abuse
-        self.memory: Dict[str, Any] = collections.defaultdict()
+        self.memory: dict[str, Any] = collections.defaultdict()
 
         # set when on_load in core_misc is done
         self.ready = False

@@ -1,13 +1,12 @@
 import random
 from pathlib import Path
-from typing import List
 
 from cloudbot import hook
 
 joke_lines = {}
 
 
-def load_joke_file(path: Path) -> List[str]:
+def load_joke_file(path: Path) -> list[str]:
     """Loads all the lines from a file, excluding blanks and lines that have been 'commented out'."""
     with path.open(encoding="utf-8") as f:
         return [

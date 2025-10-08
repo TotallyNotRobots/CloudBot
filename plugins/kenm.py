@@ -1,9 +1,8 @@
 import random
-from typing import List
 
 from cloudbot import hook
 
-kenm_data: List[str] = []
+kenm_data: list[str] = []
 
 
 @hook.on_start()

@@ -1,5 +1,3 @@
-from typing import Dict
-
 import requests
 
 from cloudbot import hook
@@ -9,7 +7,7 @@ from cloudbot.util.http import parse_xml
 API_URL = "http://steamcommunity.com/id/{}/"
 ID_BASE = 76561197960265728
 
-headers: Dict[str, str] = {}
+headers: dict[str, str] = {}
 
 
 class SteamError(Exception):

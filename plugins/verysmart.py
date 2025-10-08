@@ -1,9 +1,8 @@
 import random
-from typing import List
 
 from cloudbot import hook
 
-vsquotes: List[str] = []
+vsquotes: list[str] = []
 
 
 @hook.on_start()

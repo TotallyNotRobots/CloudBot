@@ -2,7 +2,6 @@ import datetime
 import random
 import re
 from collections import defaultdict
-from typing import Dict
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
@@ -43,10 +42,10 @@ class ChannelData:
         return True
 
 
-user_join: Dict[str, Dict[str, ChannelData]] = defaultdict(
+user_join: dict[str, dict[str, ChannelData]] = defaultdict(
     lambda: defaultdict(ChannelData)
 )
-herald_cache: Dict[str, Dict[str, str]] = defaultdict(dict)
+herald_cache: dict[str, dict[str, str]] = defaultdict(dict)
 
 
 @hook.on_start()

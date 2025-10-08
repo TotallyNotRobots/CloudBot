@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy import Table, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -23,7 +23,7 @@ class MockDB:
         self.session().execute(table.insert().values(data))
         self.session().commit()
 
-    def load_data(self, table: Table, data: List[Dict[str, Any]]):
+    def load_data(self, table: Table, data: list[dict[str, Any]]):
         with self.session() as session, session.begin():
             for item in data:
                 session.execute(table.insert().values(item))

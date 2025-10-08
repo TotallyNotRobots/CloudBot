@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from typing import Dict, List, Tuple
 
 from irclib.util.compare import match_mask
 from sqlalchemy import (
@@ -27,7 +26,7 @@ table = Table(
     PrimaryKeyConstraint("connection", "channel", "mask"),
 )
 
-ignore_cache: List[Tuple[str, str, str]] = []
+ignore_cache: list[tuple[str, str, str]] = []
 
 
 @hook.on_start()
@@ -247,7 +246,7 @@ def list_all_ignores(db, conn, text):
         select(table.c.channel, table.c.mask).where(whereclause)
     ).fetchall()
 
-    ignores: Dict[str, List[str]] = OrderedDict()
+    ignores: dict[str, list[str]] = OrderedDict()
 
     for row in rows:
         ignores.setdefault(row.channel, []).append(row.mask)

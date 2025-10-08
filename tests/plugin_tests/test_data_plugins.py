@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import random
 from pathlib import Path
-from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -26,7 +25,7 @@ def _do_test(
     cmd,
     event_loop,
     mock_bot_factory,
-    text: Optional[str] = "test _ data",
+    text: str | None = "test _ data",
     is_nick_valid=None,
     nick=None,
     bot_nick=None,

@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Column, String, Table, UniqueConstraint
 
@@ -28,7 +28,7 @@ DISABLED = "DISABLED"
 # If True, all channels without a setting will have regex enabled
 # If False, all channels without a setting will have regex disabled
 default_enabled = True
-status_cache: Dict[Tuple[str, str], bool] = {}
+status_cache: dict[tuple[str, str], bool] = {}
 logger = logging.getLogger("cloudbot")
 
 

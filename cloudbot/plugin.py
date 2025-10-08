@@ -4,19 +4,11 @@ import logging
 import sys
 import typing
 from collections import defaultdict
+from collections.abc import MutableMapping
 from functools import partial
 from operator import attrgetter
 from pathlib import Path
-from typing import (
-    Dict,
-    List,
-    MutableMapping,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    cast,
-)
+from typing import Optional, TypedDict, cast
 from weakref import WeakValueDictionary
 
 import sqlalchemy
@@ -49,21 +41,21 @@ logger = logging.getLogger("cloudbot")
 
 
 class HookDict(TypedDict):
-    command: List[CommandHook]
-    on_connect: List[OnConnectHook]
-    on_start: List[OnStartHook]
-    on_stop: List[OnStopHook]
-    on_cap_available: List[OnCapAvaliableHook]
-    on_cap_ack: List[OnCapAckHook]
-    sieve: List[SieveHook]
-    event: List[EventHook]
-    regex: List[RegexHook]
-    periodic: List[PeriodicHook]
-    irc_raw: List[RawHook]
-    irc_out: List[IrcOutHook]
-    post_hook: List[PostHookHook]
-    config: List[ConfigHook]
-    perm_check: List[PermHook]
+    command: list[CommandHook]
+    on_connect: list[OnConnectHook]
+    on_start: list[OnStartHook]
+    on_stop: list[OnStopHook]
+    on_cap_available: list[OnCapAvaliableHook]
+    on_cap_ack: list[OnCapAckHook]
+    sieve: list[SieveHook]
+    event: list[EventHook]
+    regex: list[RegexHook]
+    periodic: list[PeriodicHook]
+    irc_raw: list[RawHook]
+    irc_out: list[IrcOutHook]
+    post_hook: list[PostHookHook]
+    config: list[ConfigHook]
+    perm_check: list[PermHook]
 
 
 def find_hooks(parent, module) -> HookDict:
@@ -94,7 +86,7 @@ def find_tables(code):
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
         elif isinstance(obj, type) and issubclass(obj, database.Base):
-            obj = cast(Type[database.Base], obj)
+            obj = cast(type[database.Base], obj)
             tables.append(obj.__table__)
 
     return tables
@@ -121,19 +113,19 @@ class PluginManager:
         """
         self.bot = bot
 
-        self.plugins: Dict[str, Plugin] = {}
+        self.plugins: dict[str, Plugin] = {}
         self._plugin_name_map: MutableMapping[str, Plugin] = (
             WeakValueDictionary()
         )
-        self.commands: Dict[str, CommandHook] = {}
-        self.raw_triggers: Dict[str, List[RawHook]] = defaultdict(list)
-        self.catch_all_triggers: List[RawHook] = []
-        self.event_type_hooks: Dict[EventType, List[EventHook]] = defaultdict(
+        self.commands: dict[str, CommandHook] = {}
+        self.raw_triggers: dict[str, list[RawHook]] = defaultdict(list)
+        self.catch_all_triggers: list[RawHook] = []
+        self.event_type_hooks: dict[EventType, list[EventHook]] = defaultdict(
             list
         )
-        self.regex_hooks: List[Tuple[typing.Pattern, RegexHook]] = []
+        self.regex_hooks: list[tuple[typing.Pattern, RegexHook]] = []
         self.sieves = []
-        self.cap_hooks: Dict[str, Dict[str, List[CapHook]]] = {
+        self.cap_hooks: dict[str, dict[str, list[CapHook]]] = {
             "on_available": defaultdict(list),
             "on_ack": defaultdict(list),
         }
@@ -141,7 +133,7 @@ class PluginManager:
         self.out_sieves = []
         self.hook_hooks = defaultdict(list)
         self.perm_hooks = defaultdict(list)
-        self.config_hooks: List[ConfigHook] = []
+        self.config_hooks: list[ConfigHook] = []
 
     def _add_plugin(self, plugin: "Plugin"):
         self.plugins[plugin.file_path] = plugin

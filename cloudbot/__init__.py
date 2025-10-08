@@ -2,7 +2,7 @@ import json
 import logging
 import logging.config
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 __version__ = "1.5.0"
 version = tuple(__version__.split("."))
@@ -41,7 +41,7 @@ class LoggingInfo:
 logging_info = LoggingInfo()
 
 
-def _setup(base_path: Optional[Path] = None) -> None:
+def _setup(base_path: Path | None = None) -> None:
     base_path = base_path or Path().resolve()
     cfg_file = base_path / "config.json"
     if cfg_file.exists():
@@ -64,7 +64,7 @@ def _setup(base_path: Optional[Path] = None) -> None:
 
     logger_names = ["cloudbot", "plugins"]
 
-    dict_config: Dict[str, Any] = {
+    dict_config: dict[str, Any] = {
         "version": 1,
         "formatters": {
             "brief": {

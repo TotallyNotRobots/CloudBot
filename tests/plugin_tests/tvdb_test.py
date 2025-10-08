@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -210,7 +209,7 @@ class _Base(ABC):
             status=502,
         )
 
-        results: List[HookResult] = []
+        results: list[HookResult] = []
         with pytest.raises(requests.HTTPError):
             self.call("Foo", results=results)
 
@@ -315,7 +314,7 @@ class _Base(ABC):
             status=503,
         )
 
-        results: List[HookResult] = []
+        results: list[HookResult] = []
         with pytest.raises(requests.HTTPError):
             self.call("Foo", results=results)
 

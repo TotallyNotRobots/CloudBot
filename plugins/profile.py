@@ -2,7 +2,6 @@ import random
 import re
 import string
 from collections import defaultdict
-from typing import Dict
 
 from sqlalchemy import Column, String, Table, and_
 
@@ -14,8 +13,8 @@ category_re = r"[A-Za-z0-9]+"
 data_re = re.compile(rf"({category_re})\s(.+)")
 
 # borrowed pagination code from grab.py
-cat_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
-confirm_keys: Dict[str, Dict[str, str]] = defaultdict(dict)
+cat_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
+confirm_keys: dict[str, dict[str, str]] = defaultdict(dict)
 
 table = Table(
     "profile",
@@ -26,7 +25,7 @@ table = Table(
     Column("text", String),
 )
 
-profile_cache: Dict[str, Dict[str, Dict[str, str]]] = {}
+profile_cache: dict[str, dict[str, dict[str, str]]] = {}
 
 
 @hook.on_start()

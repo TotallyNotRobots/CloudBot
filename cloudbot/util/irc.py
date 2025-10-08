@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Mapping
 from enum import Enum
-from typing import List, Mapping, Optional
+from typing import Optional
 
 import attr
 
@@ -69,8 +70,8 @@ class StatusMode(ChannelMode):
 
 
 def parse_mode_string(
-    modes: str, params: List[str], server_modes: Mapping[str, ChannelMode]
-) -> List[ModeChange]:
+    modes: str, params: list[str], server_modes: Mapping[str, ChannelMode]
+) -> list[ModeChange]:
     new_modes = []
     params = params.copy()
     adding = True

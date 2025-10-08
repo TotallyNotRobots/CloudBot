@@ -2,7 +2,7 @@ import json
 import re
 from collections import defaultdict
 from enum import Enum, unique
-from typing import Any, Dict
+from typing import Any
 
 from cloudbot import hook
 from cloudbot.util import textgen
@@ -22,7 +22,7 @@ def is_self(conn, target):
     )
 
 
-attack_data: Dict[str, Dict[str, Any]] = defaultdict(dict)
+attack_data: dict[str, dict[str, Any]] = defaultdict(dict)
 
 
 class BasicAttack:

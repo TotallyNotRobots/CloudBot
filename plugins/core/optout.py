@@ -3,9 +3,9 @@ Bot wide hook opt-out for channels
 """
 
 from collections import defaultdict
+from collections.abc import MutableMapping
 from functools import total_ordering
 from threading import RLock
-from typing import List, MutableMapping, Optional
 
 from irclib.util.compare import match_mask
 from sqlalchemy import (
@@ -34,7 +34,7 @@ optout_table = Table(
     PrimaryKeyConstraint("network", "chan", "hook"),
 )
 
-optout_cache: MutableMapping[str, List["OptOut"]] = DefaultKeyFoldDict(list)
+optout_cache: MutableMapping[str, list["OptOut"]] = DefaultKeyFoldDict(list)
 
 cache_lock = RLock()
 
@@ -85,12 +85,12 @@ async def check_channel_permissions(event, chan, *perms):
     return allowed
 
 
-def get_conn_optouts(conn_name) -> List[OptOut]:
+def get_conn_optouts(conn_name) -> list[OptOut]:
     with cache_lock:
         return optout_cache[conn_name.casefold()]
 
 
-def get_channel_optouts(conn_name, chan=None) -> List[OptOut]:
+def get_channel_optouts(conn_name, chan=None) -> list[OptOut]:
     with cache_lock:
         return [
             opt
@@ -99,7 +99,7 @@ def get_channel_optouts(conn_name, chan=None) -> List[OptOut]:
         ]
 
 
-def get_first_matching_optout(conn_name, chan, hook_name) -> Optional[OptOut]:
+def get_first_matching_optout(conn_name, chan, hook_name) -> OptOut | None:
     for optout in get_conn_optouts(conn_name):
         if optout.match(chan, hook_name):
             return optout

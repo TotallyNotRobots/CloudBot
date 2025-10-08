@@ -6,7 +6,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
-from typing import Dict, Union
+from typing import Union
 from urllib.parse import quote_plus as _quote_plus
 
 from bs4 import BeautifulSoup
@@ -237,4 +237,4 @@ def compare_urls(a: UrlOrStr, b: UrlOrStr) -> bool:
     return unify_url(a) == unify_url(b)
 
 
-GetParams = Dict[str, Union[str, int]]
+GetParams = dict[str, Union[str, int]]

@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import Any, Dict
+from typing import Any
 
 from cloudbot import hook
 from cloudbot.util import textgen
@@ -60,7 +60,7 @@ BASIC_FOOD = (
     BasicFood("birthday", "birthday cake"),
 )
 
-basic_food_data: Dict[str, Dict[str, Any]] = defaultdict(dict)
+basic_food_data: dict[str, dict[str, Any]] = defaultdict(dict)
 
 
 def load_template_data(bot, filename, data_dict):

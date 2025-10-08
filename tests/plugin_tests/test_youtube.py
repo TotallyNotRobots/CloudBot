@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,7 +7,7 @@ from responses.matchers import query_param_matcher
 
 from plugins import youtube
 
-video_data: Dict[str, Any] = {
+video_data: dict[str, Any] = {
     "kind": "youtube#videoListResponse",
     "etag": '"p4VTdlkQv3HQeTEaXgvLePAydmU/Lj2TyUBAY4pSJv0nR-wZBKBK9YU"',
     "pageInfo": {"totalResults": 1, "resultsPerPage": 1},

@@ -5,10 +5,11 @@ import re
 import socket
 import ssl
 import traceback
+from collections.abc import Mapping
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import Dict, Mapping, Optional, Tuple, Union, cast
+from typing import cast
 
 from irclib.parser import Message
 
@@ -96,7 +97,7 @@ def decode(bytestring):
     return bytestring.decode("utf-8", errors="ignore")
 
 
-def _get_param(msg: Message, index_map: Mapping[str, int]) -> Optional[str]:
+def _get_param(msg: Message, index_map: Mapping[str, int]) -> str | None:
     if msg.command in index_map:
         idx = index_map[msg.command]
         if idx < len(msg.parameters):
@@ -130,7 +131,7 @@ class IrcClient(Client):
             conn_config.get("bind_port"),
         )
 
-        self.local_bind: Union[bool, Tuple[str, str]]
+        self.local_bind: bool | tuple[str, str]
         if not (local_bind[0] or local_bind[1]):
             self.local_bind = False
         else:
@@ -145,7 +146,7 @@ class IrcClient(Client):
 
         self._connecting = False
 
-        self._channel_keys: Dict[str, str] = {}
+        self._channel_keys: dict[str, str] = {}
 
     def set_channel_key(
         self, channel: str, key: str, *, override: bool = True
@@ -166,10 +167,10 @@ class IrcClient(Client):
     def get_channel_key(
         self,
         channel: str,
-        default: Optional[str] = None,
+        default: str | None = None,
         *,
         set_key: bool = True,
-    ) -> Optional[str]:
+    ) -> str | None:
         if channel in self._channel_keys:
             key = self._channel_keys[channel]
             if key is not None:

@@ -18,7 +18,7 @@ from decimal import Decimal
 from numbers import Real
 from operator import itemgetter
 from threading import RLock
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, Union, cast
 
 import requests
 from requests import Response
@@ -63,7 +63,7 @@ class APIResponse:
 class SchemaField:
     empty = object()
 
-    def __init__(self, name: str, field_type: Type, default=empty):
+    def __init__(self, name: str, field_type: type, default=empty):
         self.name = name
         self.field_type = field_type
         self.default = default
@@ -112,7 +112,7 @@ class Schema(metaclass=SchemaMeta):
         self.unknown_fields = {}
         self.unknown_fields.update(kwargs)
 
-    def cast_to(self, new_type: Type[T]) -> T:
+    def cast_to(self, new_type: type[T]) -> T:
         return read_data(serialize(self), new_type)
 
 
@@ -203,8 +203,8 @@ class CryptoCurrency(Schema):
         num_market_pairs: int,
         cmc_rank: int,
         last_updated: str,
-        tags: List[str],
-        quote: Dict[str, Quote],
+        tags: list[str],
+        quote: dict[str, Quote],
         max_supply: Real = None,
         market_cap_by_total_supply: Real = None,
         platform: Platform = None,
@@ -228,7 +228,7 @@ class CryptoCurrency(Schema):
 
 
 class QuoteRequestResponse(APIRequestResponse):
-    def __init__(self, data: Dict[str, CryptoCurrency], status: ResponseStatus):
+    def __init__(self, data: dict[str, CryptoCurrency], status: ResponseStatus):
         super().__init__(status)
         self.data = data
 
@@ -243,7 +243,7 @@ class FiatCurrency(Schema):
 
 
 class FiatCurrencyMap(APIRequestResponse):
-    def __init__(self, data: List[FiatCurrency], status: ResponseStatus):
+    def __init__(self, data: list[FiatCurrency], status: ResponseStatus):
         super().__init__(status)
         self.data = data
 
@@ -278,7 +278,7 @@ class CryptoCurrencyEntry(Schema):
 
 
 class CryptoCurrencyMap(APIRequestResponse):
-    def __init__(self, data: List[CryptoCurrencyEntry], status: ResponseStatus):
+    def __init__(self, data: list[CryptoCurrencyEntry], status: ResponseStatus):
         super().__init__(status)
         self.data = data
 
@@ -364,11 +364,11 @@ def _hydrate_object(_value, _cls):
     return _value
 
 
-def read_data(data: Dict, schema_cls: Type[T]) -> T:
-    fields: Tuple[SchemaField, ...] = schema_cls._fields
+def read_data(data: dict, schema_cls: type[T]) -> T:
+    fields: tuple[SchemaField, ...] = schema_cls._fields
 
-    out: Dict[str, Any] = {}
-    field_names: List[str] = []
+    out: dict[str, Any] = {}
+    field_names: list[str] = []
 
     for schema_field in fields:
         try:
@@ -456,7 +456,7 @@ class Cache:
             self._data[key] = out = CacheEntry(value, time.time() + ttl)
             return out
 
-    def get(self, key: str) -> Optional[CacheEntry]:
+    def get(self, key: str) -> CacheEntry | None:
         with self._lock:
             try:
                 entry = self._data[key]
@@ -526,7 +526,7 @@ class CoinMarketCapAPI:
         )
 
     def _request_cache(
-        self, name: str, endpoint: str, fmt: Type[T], ttl: int
+        self, name: str, endpoint: str, fmt: type[T], ttl: int
     ) -> T:
         out = self.cache.get(name)
         if out is None:
@@ -651,7 +651,7 @@ def crypto_command(text, event):
     )
 
 
-def format_price(price: Union[int, float, Real]) -> str:
+def format_price(price: int | float | Real) -> str:
     price = float(price)
     if price < 1:
         precision = max(2, min(10, len(str(Decimal(str(price)))) - 2))

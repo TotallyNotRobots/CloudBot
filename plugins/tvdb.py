@@ -1,23 +1,9 @@
 import datetime
 import logging
-from collections.abc import Sized
+from collections.abc import Container, Iterable, Iterator, Sized
 from enum import Enum
 from functools import wraps
-from typing import (
-    Any,
-    Container,
-    Dict,
-    Generic,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Generic, TypeVar, Union, cast, overload
 
 import requests
 
@@ -31,8 +17,8 @@ logger = logging.getLogger(__name__)
 token_lifetime = datetime.timedelta(hours=1)
 
 JsonPrimitive = Union[int, str, bool, None]
-JsonObject = Dict[
-    str, Union[JsonPrimitive, List[JsonPrimitive], Dict[str, JsonPrimitive]]
+JsonObject = dict[
+    str, Union[JsonPrimitive, list[JsonPrimitive], dict[str, JsonPrimitive]]
 ]
 
 
@@ -43,14 +29,14 @@ class NoMatchingSeries(LookupError):
 class TvdbApi:
     def __init__(self) -> None:
         self.token_lifetime = token_lifetime
-        self._headers: Optional[Dict[str, str]] = None
+        self._headers: dict[str, str] | None = None
         self.base_url = "https://api.thetvdb.com"
         self.api_version = "3.0.0"
         self.default_headers = {
             "Accept": f"application/vnd.thetvdb.v{self.api_version}"
         }
 
-        self.jwt_token: Optional[str] = None
+        self.jwt_token: str | None = None
         self.refresh_time = datetime.datetime.min
 
     @property
@@ -59,7 +45,7 @@ class TvdbApi:
 
     def set_api_key(self, bot: CloudBot) -> None:
         res = cast(
-            Dict[str, str],
+            dict[str, str],
             self._post(
                 "/login", json={"apikey": bot.config.get_api_key("tvdb")}
             ),
@@ -72,7 +58,7 @@ class TvdbApi:
             return
 
         try:
-            res = cast(Dict[str, str], self._get("/refresh_token"))
+            res = cast(dict[str, str], self._get("/refresh_token"))
         except requests.HTTPError as e:
             if e.response.status_code == 401:
                 self.set_api_key(bot)
@@ -87,7 +73,7 @@ class TvdbApi:
         # Clear header cache
         self._headers = None
 
-    def _get(self, path: str, params: Optional[GetParams] = None) -> JsonObject:
+    def _get(self, path: str, params: GetParams | None = None) -> JsonObject:
         with requests.get(
             self.base_url + path, headers=self.headers, params=params or {}
         ) as response:
@@ -97,13 +83,13 @@ class TvdbApi:
     def _get_paged(
         self,
         path: str,
-        params: Optional[GetParams] = None,
+        params: GetParams | None = None,
         reverse: bool = False,
     ) -> Iterable[JsonObject]:
         params = params or {}
         params["page"] = 1
         first_page = self._get(path, params)
-        links = cast(Dict[str, int], first_page.get("links", {}))
+        links = cast(dict[str, int], first_page.get("links", {}))
         last_num = links.get("last", 1)
         if last_num == 1:
             yield first_page
@@ -120,7 +106,7 @@ class TvdbApi:
             res = self._get(path, params)
             yield res
 
-            links = cast(Dict[str, int], res["links"])
+            links = cast(dict[str, int], res["links"])
             if reverse:
                 if page == 2:
                     break
@@ -135,7 +121,7 @@ class TvdbApi:
         if reverse:
             yield first_page
 
-    def _post(self, path: str, json: Dict[str, Any]) -> JsonObject:
+    def _post(self, path: str, json: dict[str, Any]) -> JsonObject:
         with requests.post(
             self.base_url + path, headers=self.headers, json=json
         ) as response:
@@ -143,7 +129,7 @@ class TvdbApi:
             return cast(JsonObject, response.json())
 
     @property
-    def headers(self) -> Dict[str, str]:
+    def headers(self) -> dict[str, str]:
         if self._headers is not None:
             return self._headers
 
@@ -153,10 +139,10 @@ class TvdbApi:
 
         return self._headers
 
-    def find_series(self, name: str) -> List[JsonObject]:
+    def find_series(self, name: str) -> list[JsonObject]:
         try:
             return cast(
-                List[JsonObject],
+                list[JsonObject],
                 self._get("/search/series", params={"name": name})["data"],
             )
         except requests.HTTPError as e:
@@ -172,7 +158,7 @@ class TvdbApi:
             for page in self._get_paged(
                 f"/series/{series_id}/episodes", reverse=reverse
             ):
-                data = cast(List[JsonObject], page["data"])
+                data = cast(list[JsonObject], page["data"])
                 if not reverse:
                     yield from data
                 else:
@@ -209,7 +195,7 @@ class Holder(Generic[T]):
     """
 
     def __init__(self) -> None:
-        self._item: Optional[T] = None
+        self._item: T | None = None
         self._set = False
 
     def set(self, item: T) -> None:
@@ -231,7 +217,7 @@ class Holder(Generic[T]):
         return obj
 
     @classmethod
-    def of_optional(cls, item: Optional[T]) -> "Holder[T]":
+    def of_optional(cls, item: T | None) -> "Holder[T]":
         obj = cls()
         if item is not None:
             obj.set(item)
@@ -284,7 +270,7 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     """
 
     def __init__(self, it: Iterable[T]) -> None:
-        self._data: List[T] = []
+        self._data: list[T] = []
         self._it = iter(it)
         self._complete = False
 
@@ -349,9 +335,9 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     def __getitem__(self, item: int) -> T: ...
 
     @overload
-    def __getitem__(self, item: slice) -> List[T]: ...
+    def __getitem__(self, item: slice) -> list[T]: ...
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[T, List[T]]:
+    def __getitem__(self, item: int | slice) -> T | list[T]:
         if isinstance(item, slice):
             self._gen_bounds(item.start)
             self._gen_bounds(item.stop)
@@ -364,10 +350,10 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
 class EpisodeInfo:
     def __init__(
         self,
-        first_aired: Optional[datetime.date],
+        first_aired: datetime.date | None,
         episode_number: int,
         season: int,
-        name: Optional[str],
+        name: str | None,
     ) -> None:
         self.episode_number = episode_number
         self.season = season
@@ -375,7 +361,7 @@ class EpisodeInfo:
         self.name = name
 
     @classmethod
-    def from_json(cls, json: Dict[str, Any]) -> "EpisodeInfo":
+    def from_json(cls, json: dict[str, Any]) -> "EpisodeInfo":
         first_aired = json.get("firstAired")
         if not first_aired:
             air_date = None
@@ -419,7 +405,7 @@ class Status(Enum):
 
 class SeriesInfo:
     def __init__(
-        self, name: str, episodes: Iterable[Dict[str, Any]], status: Status
+        self, name: str, episodes: Iterable[dict[str, Any]], status: Status
     ) -> None:
         self.name = name
         self.episodes = LazyCollection(map(EpisodeInfo.from_json, episodes))
@@ -442,7 +428,7 @@ def get_episodes_for_series(series_name: str) -> SeriesInfo:
 
 def check_and_get_series(
     series: str,
-) -> Union[Tuple[SeriesInfo, None], Tuple[None, str]]:
+) -> tuple[SeriesInfo, None] | tuple[None, str]:
     if not api.authed:
         return None, "TVDB API not enabled."
 

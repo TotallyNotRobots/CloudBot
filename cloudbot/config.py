@@ -4,7 +4,7 @@ import sys
 import time
 from collections import OrderedDict
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 if TYPE_CHECKING:
     from cloudbot.bot import AbstractBot
@@ -21,14 +21,12 @@ class Config(OrderedDict):
         self.path = Path(self.filename).resolve()
         self.bot = bot
 
-        self._api_keys: Dict[str, Optional[str]] = {}
+        self._api_keys: dict[str, str | None] = {}
 
         # populate self with config data
         self.load_config()
 
-    def get_api_key(
-        self, name: str, default: Optional[str] = None
-    ) -> Optional[str]:
+    def get_api_key(self, name: str, default: str | None = None) -> str | None:
         try:
             return self._api_keys[name]
         except LookupError:

@@ -3,7 +3,7 @@ import random
 from collections import defaultdict
 from threading import Lock
 from time import sleep, time
-from typing import Dict, List, NamedTuple, TypeVar
+from typing import NamedTuple, TypeVar
 
 from sqlalchemy import (
     Boolean,
@@ -113,13 +113,13 @@ class ChannelState:
 
 
 T = TypeVar("T")
-ConnMap = Dict[str, Dict[str, T]]
-scripters: Dict[str, float] = defaultdict(float)
+ConnMap = dict[str, dict[str, T]]
+scripters: dict[str, float] = defaultdict(float)
 chan_locks: ConnMap[Lock] = defaultdict(lambda: defaultdict(Lock))
 game_status: ConnMap[ChannelState] = defaultdict(
     lambda: defaultdict(ChannelState)
 )
-opt_out: Dict[str, List[str]] = defaultdict(list)
+opt_out: dict[str, list[str]] = defaultdict(list)
 
 
 def _get_conf_value(conf, field):
@@ -563,7 +563,7 @@ class ScoreType:
 
 
 def get_channel_scores(db, score_type: ScoreType, conn, chan):
-    scores_dict: Dict[str, int] = defaultdict(int)
+    scores_dict: dict[str, int] = defaultdict(int)
     scores = get_scores(db, score_type.column_name, conn.name, chan)
     if not scores:
         return None
@@ -578,8 +578,8 @@ def get_channel_scores(db, score_type: ScoreType, conn, chan):
 
 
 def _get_global_scores(db, score_type: ScoreType, conn):
-    scores_dict: Dict[str, int] = defaultdict(int)
-    chancount: Dict[str, int] = defaultdict(int)
+    scores_dict: dict[str, int] = defaultdict(int)
+    chancount: dict[str, int] = defaultdict(int)
     scores = get_scores(db, score_type.column_name, conn.name)
     if not scores:
         return None, None
@@ -758,10 +758,10 @@ def duck_merge(text, conn, db, message):
         .where(table.c.name == newnick)
     ).fetchall()
 
-    duckmerge: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    duckmerge: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     total_kills = 0
     total_friends = 0
-    channelkey: Dict[str, List[str]] = {"update": [], "insert": []}
+    channelkey: dict[str, list[str]] = {"update": [], "insert": []}
     if not oldnickscore:
         return f"There are no duck scores to migrate from {oldnick}"
 
@@ -831,7 +831,7 @@ def ducks_user(text, nick, chan, conn, db, message):
     if text:
         name = text.split()[0].lower()
 
-    ducks: Dict[str, int] = defaultdict(int)
+    ducks: dict[str, int] = defaultdict(int)
     scores = db.execute(
         select(
             table.c.name, table.c.chan, table.c.shot, table.c.befriend
@@ -904,8 +904,8 @@ def duck_stats(chan, conn, db, message):
             table.c.network == conn.name,
         )
     ).fetchall()
-    friend_chan: Dict[str, int] = defaultdict(int)
-    kill_chan: Dict[str, int] = defaultdict(int)
+    friend_chan: dict[str, int] = defaultdict(int)
+    kill_chan: dict[str, int] = defaultdict(int)
     chan_killed = 0
     chan_friends = 0
     killed = 0

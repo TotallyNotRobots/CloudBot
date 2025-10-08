@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -120,7 +120,7 @@ def init_response(
         )
 
     if quote:
-        response_data: Dict[str, Any] = {
+        response_data: dict[str, Any] = {
             "1": {
                 "id": 1,
                 "name": "Bitcoin",
@@ -195,7 +195,7 @@ def test_api(mock_requests, mock_api_keys):
 
 
 class SomeSchema(cryptocurrency.Schema):
-    def __init__(self, a: List[List[Dict[str, List[str]]]]):
+    def __init__(self, a: list[list[dict[str, list[str]]]]):
         super().__init__()
         self.a = a
 
@@ -456,7 +456,7 @@ def test_cmd_api_error(mock_requests):
         channel="#foo",
         nick="foobaruser",
     )
-    res: List[HookResult] = []
+    res: list[HookResult] = []
     with pytest.raises(cryptocurrency.APIError, match="FooBar"):
         wrap_hook_response(cryptocurrency.crypto_command, event, res)
 

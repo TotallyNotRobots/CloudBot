@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Tuple
 
 import requests
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
@@ -21,7 +20,7 @@ table = Table(
     PrimaryKeyConstraint("nick"),
 )
 
-last_cache: List[Tuple[str, str]] = []
+last_cache: list[tuple[str, str]] = []
 
 
 def api_request(method, **params):

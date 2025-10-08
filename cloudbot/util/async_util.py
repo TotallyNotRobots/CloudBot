@@ -6,7 +6,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 from asyncio.tasks import Task
 from functools import partial
-from typing import List, Optional, cast
+from typing import cast
 
 from cloudbot.util.func_utils import call_with_args
 
@@ -62,8 +62,8 @@ def create_future(loop):
     return loop.create_future()
 
 
-def get_all_tasks(loop: Optional[AbstractEventLoop] = None) -> List[Task]:
+def get_all_tasks(loop: AbstractEventLoop | None = None) -> list[Task]:
     """
     Get a list of all tasks for the current loop
     """
-    return cast(List[Task], _asyncio_get_tasks(loop))
+    return cast(list[Task], _asyncio_get_tasks(loop))

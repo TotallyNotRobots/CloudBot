@@ -9,7 +9,7 @@ import re
 from functools import wraps
 from numbers import Number
 from pathlib import Path
-from typing import Dict, List, Tuple, Union, cast
+from typing import cast
 from unittest.mock import patch
 
 import pytest
@@ -49,7 +49,7 @@ from cloudbot.util import HOOK_ATTR
 from tests.util.mock_bot import MockBot
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
-PLUGINS: List[Plugin] = []
+PLUGINS: list[Plugin] = []
 
 
 def patch_hook(wrapped):
@@ -121,7 +121,7 @@ def pytest_generate_tests(metafunc):
         )
 
 
-HOOK_ATTR_TYPES: Dict[str, Union[type, Tuple[type, ...]]] = {
+HOOK_ATTR_TYPES: dict[str, type | tuple[type, ...]] = {
     "permissions": (list, set, frozenset, tuple),
     "single_thread": bool,
     "action": Action,

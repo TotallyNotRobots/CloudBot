@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -28,7 +28,7 @@ class WordTestBase:
         raise NotImplementedError
 
     @classmethod
-    def get_params(cls) -> Dict[str, Any]:
+    def get_params(cls) -> dict[str, Any]:
         return {}
 
     @classmethod
@@ -36,8 +36,8 @@ class WordTestBase:
         return 5
 
     @classmethod
-    def make_query_params(cls, params: Optional[Dict[str, Any]] = None):
-        out: Dict[str, Any] = {}
+    def make_query_params(cls, params: dict[str, Any] | None = None):
+        out: dict[str, Any] = {}
         if limit := cls.get_result_limit():
             out["limit"] = limit
 
@@ -405,7 +405,7 @@ class TestSynonym(WordTestBase):
         return None
 
     @classmethod
-    def get_params(cls) -> Dict[str, Any]:
+    def get_params(cls) -> dict[str, Any]:
         return {"relationshipTypes": "synonym", "limitPerRelationshipType": "5"}
 
     @classmethod
@@ -455,7 +455,7 @@ class TestAntonym(WordTestBase):
         return None
 
     @classmethod
-    def get_params(cls) -> Dict[str, Any]:
+    def get_params(cls) -> dict[str, Any]:
         return {
             "relationshipTypes": "antonym",
             "limitPerRelationshipType": "5",
@@ -713,7 +713,7 @@ class TestRandomWord(WordsTestBase):
         return "randomWord"
 
     @classmethod
-    def get_params(cls) -> Dict[str, Any]:
+    def get_params(cls) -> dict[str, Any]:
         return {
             "hasDictionarydef": "true",
             "vulgar": "true",

@@ -1,7 +1,6 @@
 import datetime
 import importlib
 import logging
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import freezegun
@@ -60,7 +59,7 @@ def mock_db(tmp_path):
 
 @pytest.fixture()
 def mock_bot_factory(event_loop, tmp_path, unset_bot):
-    instances: List[MockBot] = []
+    instances: list[MockBot] = []
 
     def _factory(*args, **kwargs):
         kwargs.setdefault("loop", event_loop)

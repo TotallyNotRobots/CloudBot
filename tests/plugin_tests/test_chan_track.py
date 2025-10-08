@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,7 +12,7 @@ from plugins.core import chan_track, server_info
 class MockConn:
     def __init__(self, bot=None, loop=None):
         self.name = "foo"
-        self.memory: Dict[str, Any] = {
+        self.memory: dict[str, Any] = {
             "server_info": {
                 "statuses": {},
             },

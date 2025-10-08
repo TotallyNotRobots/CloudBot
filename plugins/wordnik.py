@@ -2,8 +2,9 @@ import logging
 import random
 import re
 import urllib.parse
+from collections.abc import Iterable
 from json import JSONDecodeError
-from typing import Any, Dict, Iterable, List, Optional, Tuple, cast
+from typing import Any, cast
 
 import requests
 
@@ -80,7 +81,7 @@ def raise_error(data):
     raise err
 
 
-def api_request(endpoint: str, params=(), **kwargs) -> List[Dict[str, Any]]:
+def api_request(endpoint: str, params=(), **kwargs) -> list[dict[str, Any]]:
     kwargs.update(params)
 
     api_key = bot.config.get_api_key("wordnik")
@@ -106,8 +107,8 @@ def api_request(endpoint: str, params=(), **kwargs) -> List[Dict[str, Any]]:
     return data
 
 
-def api_request_single(endpoint: str, params=(), **kwargs) -> Dict[str, Any]:
-    return cast(Dict[str, Any], api_request(endpoint, params, **kwargs))
+def api_request_single(endpoint: str, params=(), **kwargs) -> dict[str, Any]:
+    return cast(dict[str, Any], api_request(endpoint, params, **kwargs))
 
 
 class WordLookupRequest:
@@ -116,7 +117,7 @@ class WordLookupRequest:
         word: str,
         operation: str,
         *,
-        required_fields: Tuple[str, ...] = (),
+        required_fields: tuple[str, ...] = (),
     ) -> None:
         self.word = word
         self.operation = operation
@@ -142,12 +143,12 @@ class WordLookupRequest:
 
         return params
 
-    def get_results(self) -> List[Dict[str, Any]]:
+    def get_results(self) -> list[dict[str, Any]]:
         data = api_request(self.endpoint, params=self.get_params())
 
         return data
 
-    def is_result_valid(self, result: Dict[str, Any]) -> bool:
+    def is_result_valid(self, result: dict[str, Any]) -> bool:
         for field in self.required_fields:
             if field not in result:
                 return False
@@ -156,7 +157,7 @@ class WordLookupRequest:
 
     def get_filtered_results(
         self, min_results: int = 1
-    ) -> Iterable[Dict[str, Any]]:
+    ) -> Iterable[dict[str, Any]]:
         count = 0
         tries = 0
         results = []
@@ -185,13 +186,13 @@ class WordLookupRequest:
 
         raise NoValidResults(self.word, results)
 
-    def first(self) -> Optional[Dict[str, Any]]:
+    def first(self) -> dict[str, Any] | None:
         for item in self.get_filtered_results():
             return item
 
         return None
 
-    def random(self) -> Dict[str, Any]:
+    def random(self) -> dict[str, Any]:
         return random.choice(list(self.get_filtered_results()))
 
 

@@ -1,6 +1,5 @@
 import locale
 import math
-from typing import Dict, List
 
 import requests
 from requests import HTTPError
@@ -66,7 +65,7 @@ def mfp(text, reply):
 
 def get_headers(soup):
     """get nutrient headers from the soup"""
-    headers: Dict[str, List[str]] = {"captions": [], "units": []}
+    headers: dict[str, list[str]] = {"captions": [], "units": []}
 
     footer = soup.find("tfoot")
     for cell in footer.findAll("td", {"class": "nutrient-column"}):

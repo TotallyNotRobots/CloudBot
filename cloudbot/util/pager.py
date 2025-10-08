@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from threading import RLock
-from typing import Iterable, List, Tuple
 
 from cloudbot.util.formatting import chunk_str
 from cloudbot.util.sequence import chunk_iter
@@ -47,7 +47,7 @@ class Pager:
         # Added here due to extensive use of threads throughout plugins
         self.lock = RLock()
         self.chunk_size = chunk_size
-        self.chunks: Tuple[str, ...]
+        self.chunks: tuple[str, ...]
         if self.chunk_size == 0:
             self.chunks = (lines,)
         else:
@@ -55,7 +55,7 @@ class Pager:
 
         self.current_pos = 0
 
-    def format_chunk(self, chunk: Iterable[str], pagenum: int) -> List[str]:
+    def format_chunk(self, chunk: Iterable[str], pagenum: int) -> list[str]:
         chunk = list(chunk)
         if len(self.chunks) > 1:
             chunk[-1] += f" (page {pagenum + 1}/{len(self.chunks)})"
@@ -76,7 +76,7 @@ class Pager:
         """Get a specific page"""
         return self[index]
 
-    def __getitem__(self, item) -> List[str]:
+    def __getitem__(self, item) -> list[str]:
         """Get a specific page"""
         with self.lock:
             chunk = self.chunks[item]
@@ -92,7 +92,7 @@ class CommandPager(Pager):
     A `Pager` which is designed to be used with one of the .more* commands
     """
 
-    def handle_lookup(self, text) -> List[str]:
+    def handle_lookup(self, text) -> list[str]:
         if text:
             try:
                 index = int(text)

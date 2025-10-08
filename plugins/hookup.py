@@ -1,7 +1,7 @@
 import json
 import random
 import time
-from typing import Any, Dict
+from typing import Any
 
 from sqlalchemy import Float, String, and_, column, select, table
 
@@ -9,7 +9,7 @@ from cloudbot import hook
 from cloudbot.util.database import metadata
 from cloudbot.util.textgen import TextGenerator
 
-hookups: Dict[str, Any] = {}
+hookups: dict[str, Any] = {}
 
 seen_table = table(
     "seen_user",

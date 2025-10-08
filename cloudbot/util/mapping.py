@@ -1,6 +1,6 @@
 import weakref
 from collections import defaultdict
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 __all__ = (
     "KeyFoldDict",
@@ -25,15 +25,11 @@ if TYPE_CHECKING:
 
         def __setitem__(self, item: K_contra, value: V) -> None: ...
 
-        def get(self, item: K_contra, default: V = None) -> Optional[V]: ...
+        def get(self, item: K_contra, default: V = None) -> V | None: ...
 
-        def setdefault(
-            self, key: K_contra, default: Union[V, T] = None
-        ) -> Union[V, T]: ...
+        def setdefault(self, key: K_contra, default: V | T = None) -> V | T: ...
 
-        def pop(
-            self, key: K_contra, default: Union[V, T] = None
-        ) -> Union[V, T]: ...
+        def pop(self, key: K_contra, default: V | T = None) -> V | T: ...
 
 else:
 

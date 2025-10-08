@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import MagicMock
 
 import pytest
@@ -37,7 +36,7 @@ def make_search_url(query):
 
 
 def test_search(mock_requests):
-    err_results: List[HookResult] = []
+    err_results: list[HookResult] = []
     with pytest.raises(RequestException):
         do_search("some failed query", err_results)
 

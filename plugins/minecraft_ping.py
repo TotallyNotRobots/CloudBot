@@ -51,7 +51,7 @@ def mcping(text):
         s: JavaStatusResponse = server.status()
     except socket.gaierror:
         return "Invalid hostname"
-    except socket.timeout:
+    except TimeoutError:
         return "Request timed out"
     except ConnectionRefusedError:
         return "Connection refused"

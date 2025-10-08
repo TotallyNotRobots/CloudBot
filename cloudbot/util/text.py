@@ -1,5 +1,3 @@
-from typing import Optional
-
 __all__ = ("parse_bool",)
 
 _STR_TO_BOOL = {
@@ -18,7 +16,7 @@ _STR_TO_BOOL = {
 }
 
 
-def parse_bool(s: str, *, fail_on_unknown: bool = True) -> Optional[bool]:
+def parse_bool(s: str, *, fail_on_unknown: bool = True) -> bool | None:
     """
     Parse a string to a boolean value
 

@@ -2,7 +2,6 @@ import logging
 import random
 from collections import defaultdict
 from threading import RLock
-from typing import Dict, List, Tuple
 
 from sqlalchemy import Column, String, Table
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,7 +10,7 @@ from cloudbot import hook
 from cloudbot.util import database
 from cloudbot.util.pager import CommandPager, paginated_list
 
-search_pages: Dict[str, Dict[str, CommandPager]] = defaultdict(dict)
+search_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
 
 table = Table(
     "grab",
@@ -22,8 +21,8 @@ table = Table(
     Column("chan", String),
 )
 
-grab_cache: Dict[str, Dict[str, List[str]]] = {}
-grab_locks: Dict[str, Dict[str, RLock]] = defaultdict(dict)
+grab_cache: dict[str, dict[str, list[str]]] = {}
+grab_locks: dict[str, dict[str, RLock]] = defaultdict(dict)
 grab_locks_lock = RLock()
 cache_lock = RLock()
 
@@ -158,7 +157,7 @@ def grabrandom(text, chan, message):
         except KeyError:
             return f"I couldn't find any grabs in {chan}."
 
-        matching_quotes: List[Tuple[str, str]] = []
+        matching_quotes: list[tuple[str, str]] = []
 
         if text:
             for nick in text.split():
@@ -187,7 +186,7 @@ def grabrandom(text, chan, message):
 @hook.command("grabsearch", "grabs", autohelp=False)
 def grabsearch(text, chan, conn):
     """[text] - matches "text" against nicks or grab strings in the database"""
-    result: List[Tuple[str, str]] = []
+    result: list[tuple[str, str]] = []
     lower_text = text.lower()
     with cache_lock:
         try:

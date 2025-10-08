@@ -1,5 +1,7 @@
 import re
-from typing import Iterable, Mapping, Match, Optional, Union
+from collections.abc import Iterable, Mapping
+from re import Match
+from typing import Union
 
 import isodate
 import requests
@@ -25,7 +27,7 @@ base_url = "https://www.googleapis.com/youtube/v3/"
 
 class APIError(Exception):
     def __init__(
-        self, message: str, response: Optional[Union[str, Response]] = None
+        self, message: str, response: str | Response | None = None
     ) -> None:
         super().__init__(message)
         self.message = message
@@ -76,7 +78,7 @@ Parts = Iterable[str]
 def do_request(
     method: str,
     parts: Parts,
-    params: Optional[ParamMap] = None,
+    params: ParamMap | None = None,
     **kwargs: ParamValues,
 ) -> requests.Response:
     api_key = bot.config.get_api_key("google_dev_key")
@@ -189,7 +191,7 @@ def get_video_id(text: str) -> str:
 
 
 @hook.regex(youtube_re)
-def youtube_url(match: Match[str]) -> Optional[str]:
+def youtube_url(match: Match[str]) -> str | None:
     try:
         return get_video_description(match.group(1))
     except NoResultsError:
@@ -257,7 +259,7 @@ def youtime(text: str, reply) -> str:
 
 
 @hook.regex(ytpl_re)
-def ytplaylist_url(match: Match[str]) -> Optional[str]:
+def ytplaylist_url(match: Match[str]) -> str | None:
     location = match.group(4).split("=")[-1]
     request = get_playlist(location, ["contentDetails", "snippet"])
     raise_api_errors(request)

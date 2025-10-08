@@ -15,13 +15,12 @@ License:
 """
 
 import string
-from typing import Dict, List
 
 import nltk
 
 from cloudbot import hook
 
-pronunciations: Dict[str, List[List[str]]] = {}
+pronunciations: dict[str, list[list[str]]] = {}
 
 
 # Translate functions by J.F. Sebastian

@@ -1,13 +1,12 @@
 import random
 import re
-from typing import List
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
 
 cheer_re = re.compile(r"\\o/", re.IGNORECASE)
 
-cheers: List[str] = []
+cheers: list[str] = []
 
 
 @hook.on_start()

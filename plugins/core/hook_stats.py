@@ -6,7 +6,7 @@ Author:
 """
 
 from collections import defaultdict
-from typing import Callable, Dict, List, Tuple
+from collections.abc import Callable
 
 from cloudbot import hook
 from cloudbot.hook import Priority
@@ -93,8 +93,8 @@ def do_hook_stats(data, hook_name):
     ]
 
 
-Handler = Callable[..., Tuple[Tuple[str, ...], List[Tuple[str, ...]]]]
-stats_funcs: Dict[str, Tuple[Handler, int]] = {
+Handler = Callable[..., tuple[tuple[str, ...], list[tuple[str, ...]]]]
+stats_funcs: dict[str, tuple[Handler, int]] = {
     "global": (do_global_stats, 0),
     "network": (do_network_stats, 1),
     "channel": (do_channel_stats, 2),

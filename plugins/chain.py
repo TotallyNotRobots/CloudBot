@@ -1,5 +1,4 @@
 import itertools
-from typing import Dict
 
 from sqlalchemy import Boolean, Column, PrimaryKeyConstraint, String, Table
 
@@ -16,7 +15,7 @@ commands = Table(
     PrimaryKeyConstraint("hook", "allowed"),
 )
 
-allow_cache: Dict[str, bool] = {}
+allow_cache: dict[str, bool] = {}
 
 
 @hook.on_start()

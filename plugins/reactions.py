@@ -1,6 +1,5 @@
 import json
 import random
-from typing import Dict, List
 
 from cloudbot import hook
 
@@ -10,7 +9,7 @@ deal_with_it_phrases = [
     "Looks like \x02{}\x02 needs to",
     "Ever think that \x02{}\x02 just needs to",
 ]
-reaction_macros: Dict[str, List[str]] = {}
+reaction_macros: dict[str, list[str]] = {}
 
 
 @hook.on_start()

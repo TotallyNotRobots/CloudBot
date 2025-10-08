@@ -1,10 +1,9 @@
 import random
-from typing import List
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
 
-fmklist: List[str] = []
+fmklist: list[str] = []
 
 
 @hook.on_start()

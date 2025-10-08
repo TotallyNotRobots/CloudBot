@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import CancelledError
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -65,7 +65,7 @@ class TestLineParsing:
                 raise  # pragma: no cover
 
     @staticmethod
-    def _filter_event(event: Event) -> Dict[str, Any]:
+    def _filter_event(event: Event) -> dict[str, Any]:
         return {k: v for k, v in dict(event).items() if not callable(v)}
 
     def make_proto(self, event_loop):

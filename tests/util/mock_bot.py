@@ -1,5 +1,5 @@
 import logging
-from typing import Awaitable, Dict, Optional
+from collections.abc import Awaitable
 
 from watchdog.observers import Observer
 
@@ -17,7 +17,7 @@ class MockBot(AbstractBot):
         *,
         config=None,
         loop=None,
-        db: Optional[MockDB] = None,
+        db: MockDB | None = None,
         base_dir=None,
     ):
         self.old_db = None
@@ -50,7 +50,7 @@ class MockBot(AbstractBot):
         self.observer = Observer()
         self.repo_link = "https://github.com/foobar/baz"
         self.user_agent = "User agent"
-        self.connections: Dict[str, Client] = {}
+        self.connections: dict[str, Client] = {}
 
     def close(self):
         self.observer.stop()

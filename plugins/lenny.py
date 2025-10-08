@@ -1,10 +1,9 @@
 import json
 import random
-from typing import Dict, List
 
 from cloudbot import hook
 
-lenny_data: Dict[str, List[str]] = {}
+lenny_data: dict[str, list[str]] = {}
 
 
 @hook.on_start()

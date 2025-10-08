@@ -1,6 +1,5 @@
 import json
 import random
-from typing import Dict, List
 
 import requests
 
@@ -10,7 +9,7 @@ BASE_URL = "http://www.foaas.com/{fuck}/{target}"
 
 headers = {"Accept": "text/plain"}
 
-fuck_offs: Dict[str, List[str]] = {}
+fuck_offs: dict[str, list[str]] = {}
 
 
 def format_url(fucker, fuckee=None):

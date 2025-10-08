@@ -1,7 +1,6 @@
 import operator
 import re
 from collections import defaultdict
-from typing import Dict
 
 import sqlalchemy
 from sqlalchemy import (
@@ -206,7 +205,7 @@ def parse_lookup(text, db, chan, name):
 
 
 def do_list(text, db, chan, loved=True):
-    counts: Dict[str, int] = defaultdict(int)
+    counts: dict[str, int] = defaultdict(int)
     out, items = parse_lookup(text, db, chan, "loved" if loved else "hated")
     if not items:
         return None

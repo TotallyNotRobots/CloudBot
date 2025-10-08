@@ -1,6 +1,5 @@
 import logging
 from time import time
-from typing import Dict, Optional
 
 from cloudbot import hook
 from cloudbot.bot import CloudBot
@@ -9,7 +8,7 @@ from cloudbot.plugin_hooks import Hook
 from cloudbot.util.tokenbucket import TokenBucket
 
 ready = False
-buckets: Dict[str, TokenBucket] = {}
+buckets: dict[str, TokenBucket] = {}
 logger = logging.getLogger("cloudbot")
 
 
@@ -21,7 +20,7 @@ def task_clear():
 
 
 @hook.sieve()
-def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
+def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
     """
     Handle config ACLs
     """
@@ -50,9 +49,7 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
 
 
 @hook.sieve()
-async def perm_sieve(
-    bot: CloudBot, event: Event, _hook: Hook
-) -> Optional[Event]:
+async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
     """check permissions"""
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -72,7 +69,7 @@ async def perm_sieve(
 @hook.sieve()
 def check_disabled(
     bot: CloudBot, event: CommandEvent, _hook: Hook
-) -> Optional[Event]:
+) -> Event | None:
     """
     check disabled_commands
     """
@@ -86,7 +83,7 @@ def check_disabled(
 
 
 @hook.sieve()
-def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Optional[Event]:
+def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
     """
     Handle rate limiting certain hooks
     """

@@ -13,7 +13,6 @@ License:
 
 import time
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 from sqlalchemy import Column, DateTime, PrimaryKeyConstraint, String, Table
 
@@ -34,9 +33,9 @@ table = Table(
     PrimaryKeyConstraint("network", "added_user", "added_time"),
 )
 
-ReminderCacheEntry = Tuple[str, datetime, datetime, str, str]
+ReminderCacheEntry = tuple[str, datetime, datetime, str, str]
 
-reminder_cache: List[ReminderCacheEntry] = []
+reminder_cache: list[ReminderCacheEntry] = []
 
 
 async def delete_reminder(async_call, db, network, remind_time, user):

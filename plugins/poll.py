@@ -1,10 +1,9 @@
 from re import findall
-from typing import Dict
 
 from cloudbot import hook
 from cloudbot.util.formatting import get_text_list
 
-polls: Dict[str, "Poll"] = {}
+polls: dict[str, "Poll"] = {}
 
 
 class PollError(Exception):

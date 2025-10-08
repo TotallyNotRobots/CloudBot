@@ -1,7 +1,7 @@
 import random
 import re
 from contextlib import suppress
-from typing import Match, Optional
+from re import Match
 
 from imgurpython import ImgurClient
 
@@ -18,7 +18,7 @@ NO_NSFW = False
 
 
 class APIContainer:
-    api: Optional[ImgurClient] = None
+    api: ImgurClient | None = None
 
 
 container = APIContainer()
@@ -41,7 +41,7 @@ def set_api():
 
 
 def get_items(text):
-    reddit_search: Optional[Match[str]]
+    reddit_search: Match[str] | None
     if text:
         reddit_search = re.search(r"/r/([^\s/]+)", text)
         user_search = re.search(r"/user/([^\s/]+)", text)
