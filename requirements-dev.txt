@@ -3,7 +3,7 @@ mypy == 1.9.0
 pre-commit ==4.3.0
 pylint ==3.2.7
 pytest ==8.4.2
-pytest-asyncio == 0.20.3
+pytest-asyncio ==0.21.2
 pytest-cov == 4.1.0
 pytest-pythonhashseed == 1.0.1
 pytest-random-order ==1.2.0
