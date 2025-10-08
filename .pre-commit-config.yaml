@@ -13,7 +13,7 @@ repos:
   - id: check-yaml
   - id: check-added-large-files
   - id: check-ast
-  - id: check-byte-order-marker
+  - id: fix-byte-order-marker
   - id: check-merge-conflict
   - id: debug-statements
   - id: detect-private-key
@@ -32,9 +32,6 @@ repos:
     - --autofix
     - --no-sort-keys
   - id: check-toml
-  - id: fix-encoding-pragma
-    args:
-    - --remove
 - repo: https://github.com/psf/black
   rev: af0ba72a73598c76189d6dd1b21d8532255d5942  # frozen: 25.9.0
   hooks:
