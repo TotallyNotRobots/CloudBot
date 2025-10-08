@@ -1,5 +1,5 @@
 import inspect
-from collections.abc import Awaitable, Mapping
+from collections.abc import Mapping
 from pathlib import Path
 from unittest.mock import patch
 
