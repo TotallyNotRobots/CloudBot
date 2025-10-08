@@ -89,6 +89,7 @@ disable = [
   "too-many-instance-attributes",
   "broad-exception-raised",
   "use-implicit-booleaness-not-comparison",
+  "comparison-with-callable",
 ]
 
 enable = ["c-extension-no-member"]
