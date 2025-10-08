@@ -50,7 +50,7 @@ def test_qrcode(data, url, patch_try_shorten):
     "text,output",
     [
         ("\2foo\2", "foo"),
-        ("\x0301,03foo\x0F", "foo"),
+        ("\x0301,03foo\x0f", "foo"),
     ],
 )
 def test_strip(text, output):
@@ -266,8 +266,8 @@ def test_length(text, text_length):
 @pytest.mark.parametrize(
     "text,out",
     [
-        ("$(red)foo$(clear)", "\x0304foo\x0F"),
-        ("$(bold)foo$(clear)", "\x02foo\x0F"),
+        ("$(red)foo$(clear)", "\x0304foo\x0f"),
+        ("$(bold)foo$(clear)", "\x02foo\x0f"),
     ],
 )
 def test_color_parse(text, out):

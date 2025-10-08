@@ -73,15 +73,15 @@ IRC_FORMATTING_DICT = {
     "color": "\x03",
     "bold": "\x02",
     "b": "\x02",
-    "underlined": "\x1F",
-    "underline": "\x1F",
-    "ul": "\x1F",
-    "italics": "\x1D",
-    "italic": "\x1D",
-    "i": "\x1D",
+    "underlined": "\x1f",
+    "underline": "\x1f",
+    "ul": "\x1f",
+    "italics": "\x1d",
+    "italic": "\x1d",
+    "i": "\x1d",
     "reverse": "\x16",
-    "reset": "\x0F",
-    "clear": "\x0F",
+    "reset": "\x0f",
+    "clear": "\x0f",
 }
 
 COLOR_RE = re.compile(r"\$\(.*?\)", re.I)

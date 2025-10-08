@@ -106,7 +106,7 @@ def boobies(text):
 @hook.command(autohelp=False)
 def zombs():
     """- Prints some fucked up shit."""
-    out = "\u2299\u2299\u0505\u0F0D\u0020\u0E88\u0020\u25DE\u0C6A\u25DF\u0E88\u0020\u0F0D\u0648"
+    out = "\u2299\u2299\u0505\u0f0d\u0020\u0e88\u0020\u25de\u0c6a\u25df\u0e88\u0020\u0f0d\u0648"
     return out
 
 

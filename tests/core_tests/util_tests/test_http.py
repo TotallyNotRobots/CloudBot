@@ -4,9 +4,10 @@ from cloudbot.util import http
 
 
 def test_open_request():
-    with patch("urllib.request.Request") as mocked, patch(
-        "urllib.request.build_opener"
-    ) as mocked_open_build:
+    with (
+        patch("urllib.request.Request") as mocked,
+        patch("urllib.request.build_opener") as mocked_open_build,
+    ):
         http.open_request("https://host.invalid")
         assert mocked.mock_calls == [
             call("https://host.invalid", None, method=None),
@@ -18,11 +19,11 @@ def test_open_request():
 
 
 def test_open_request_with_cookies():
-    with patch("urllib.request.Request") as mocked, patch(
-        "urllib.request.build_opener"
-    ) as mocked_open_build, patch(
-        "urllib.request.HTTPCookieProcessor"
-    ) as mocked_cookie_proc:
+    with (
+        patch("urllib.request.Request") as mocked,
+        patch("urllib.request.build_opener") as mocked_open_build,
+        patch("urllib.request.HTTPCookieProcessor") as mocked_cookie_proc,
+    ):
         http.open_request(
             "https://host.invalid", cookies=True, referer="https://example.com"
         )

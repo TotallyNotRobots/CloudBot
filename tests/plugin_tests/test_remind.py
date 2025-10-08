@@ -100,7 +100,7 @@ async def test_add_reminder(mock_db, freeze_time, setup_db):
         mock_event,
     )
 
-    expected = 'Alright, I\'ll remind you "some reminder" in \x022 hours and 30 minutes\x0F!'
+    expected = 'Alright, I\'ll remind you "some reminder" in \x022 hours and 30 minutes\x0f!'
 
     assert result == expected
 

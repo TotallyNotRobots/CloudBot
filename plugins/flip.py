@@ -91,7 +91,7 @@ def flip(text, message, chan):
         message(
             random.choice(
                 [
-                    random.choice(flippers) + FLIP_CHAR + "\u253B\u2501\u253B",
+                    random.choice(flippers) + FLIP_CHAR + "\u253b\u2501\u253b",
                     table_flipper,
                 ]
             )

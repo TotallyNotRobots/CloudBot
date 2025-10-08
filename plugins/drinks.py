@@ -35,7 +35,7 @@ def drink_cmd(text, chan, action):
     else:
         article = "a"
 
-    out += "\x0F and makes {} {} \x02{}\x02. {}".format(
+    out += "\x0f and makes {} {} \x02{}\x02. {}".format(
         text, article, drink, url
     )
     action(out, chan)

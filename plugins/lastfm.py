@@ -27,7 +27,7 @@ def format_user(user):
     >>> format_user('someuser')
     's\u200bomeuser'
     """
-    return "\u200B".join((user[:1], user[1:]))
+    return "\u200b".join((user[:1], user[1:]))
 
 
 def filter_tags(tags, artist, limit=4):

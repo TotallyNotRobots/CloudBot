@@ -46,7 +46,7 @@ def load_cache(db):
 
 def format_profile(nick, category, text):
     # Add zwsp to avoid pinging users
-    nick = "{}{}{}".format(nick[0], "\u200B", nick[1:])
+    nick = "{}{}{}".format(nick[0], "\u200b", nick[1:])
     msg = f"{nick}->{category}: {text}"
     return msg
 
