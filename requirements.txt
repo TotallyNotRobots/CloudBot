@@ -1,6 +1,6 @@
 SQLAlchemy ==1.4.54
 attrs == 23.2.0
-beautifulsoup4 == 4.12.3
+beautifulsoup4 ==4.13.5
 chardet == 5.2.0
 cleverwrap == 0.3.0.2
 feedparser ==6.0.12
