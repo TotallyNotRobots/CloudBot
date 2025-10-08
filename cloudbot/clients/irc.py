@@ -9,7 +9,6 @@ from collections.abc import Mapping
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from typing import cast
 
 from irclib.parser import Message
 
@@ -101,7 +100,7 @@ def _get_param(msg: Message, index_map: Mapping[str, int]) -> str | None:
     if msg.command in index_map:
         idx = index_map[msg.command]
         if idx < len(msg.parameters):
-            return cast(str, msg.parameters[idx])
+            return msg.parameters[idx]
 
     return None
 
