@@ -16,5 +16,5 @@ py-irclib ==0.7.0
 pyowm ==3.5.0
 requests ==2.32.5
 urllib3 ==2.5.0
-watchdog ==4.0.2
+watchdog ==6.0.0
 yarl ==1.22.0
