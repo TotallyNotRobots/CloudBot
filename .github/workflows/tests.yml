@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: Tests
 on:
   push:
     branches:
@@ -9,8 +6,20 @@ on:
   pull_request:
     branches:
     - main
+
+concurrency:
+  group: test-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -18,11 +27,14 @@ jobs:
         - '3.10'
         - '3.11'
         - '3.12'
-    runs-on: ubuntu-22.04
+        os:
+        - 'ubuntu-latest'
+    runs-on: ${{matrix.os}}
+    name: "Python ${{matrix.python-ver}} tests on ${{matrix.os}}"
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
-    - name: Setup Python
+    - name: Setup Python ${{matrix.python-ver}}
       uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6
       with:
         python-version: "${{matrix.python-ver}}"
@@ -37,6 +49,9 @@ jobs:
       run: |
         pip install -U pip wheel
         pip install -Ur requirements-dev.txt
+
+    - name: Run pre-commit
+      run: pre-commit run --all
 
     - name: Test with pytest
       run: pytest
