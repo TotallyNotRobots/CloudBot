@@ -45,7 +45,7 @@ Setting up Python 3.4 on most OSs usually goes as follows.
   **On Linux (Debian Based):**
   Run the following in your terminal:
   ```
-  [sudo] apt-get install python python3.4-dev git libenchant-dev libxml2-dev libxslt-dev zlib1g-dev
+  [sudo] apt-get install python python3.4-dev git libxml2-dev libxslt-dev zlib1g-dev
   ```
 
   **On OS X:**

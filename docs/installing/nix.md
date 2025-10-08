@@ -22,11 +22,11 @@ cd CloudBot
 
 All of CloudBot's python dependencies are stored in the `requirements.txt` file, and can be installed with pip.
 
-But first, you will need `git`, `python3-dev` and `libenchant1c2a`, `libxml2-dev`, `libxslt-dev` and `zlib1g-dev`. Install these with your system's package manager.
+But first, you will need `git`, `python3-dev` and `libxml2-dev`, `libxslt-dev` and `zlib1g-dev`. Install these with your system's package manager.
 
 For example, on a Debian-based system, you could use:
 ```bash
-[sudo] apt-get install -y python3-dev git libenchant-dev libxml2-dev libxslt-dev zlib1g-dev
+[sudo] apt-get install -y python3-dev git libxml2-dev libxslt-dev zlib1g-dev
 ```
 
 You will also need to install `pip`, which can be done by following [this guide](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-pip)

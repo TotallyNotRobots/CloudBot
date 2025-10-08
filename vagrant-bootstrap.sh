@@ -4,11 +4,10 @@
 sudo apt-get -qq update
 
 # install things:
-# libenchant1c2a    pyenchant dependency
 # libxml2-dev       python-lxml dependency
 # libxslt-dev       python-lxml dependency
 # zlib1g-dev        python-lxml dependency
-sudo apt-get install -qq -y python3-pip git libenchant-dev libxml2-dev libxslt1-dev
+sudo apt-get install -qq -y python3-pip git libxml2-dev libxslt1-dev
 
 # install requirements using pip
 sudo pip3 install -Ur /vagrant/requirements-dev.txt
