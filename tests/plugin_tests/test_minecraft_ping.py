@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import mcstatus
 import pytest
-from mcstatus.status_response import JavaStatusResponse
+from mcstatus.responses import JavaStatusResponse
 
 from plugins import minecraft_ping
 

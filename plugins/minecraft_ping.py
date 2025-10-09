@@ -2,7 +2,7 @@ import socket
 
 # TODO(linuxdaemon): Implement bedrock support
 from mcstatus import JavaServer as MinecraftServer
-from mcstatus.status_response import JavaStatusResponse
+from mcstatus.responses import JavaStatusResponse
 
 from cloudbot import hook
 from cloudbot.util import colors
