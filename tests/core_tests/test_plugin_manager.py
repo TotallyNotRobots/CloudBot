@@ -1,6 +1,8 @@
+import asyncio
 import itertools
 import logging
 import re
+from asyncio import Task
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -361,6 +363,68 @@ class TestPluginLoad:
         assert caplog.record_tuples == [
             ("cloudbot", 20, "Unloaded all plugins from test")
         ]
+
+    @pytest.mark.asyncio
+    async def test_load_periodic_hooks(
+        self,
+        mock_manager,
+        tmp_path,
+        mock_bot,
+        patch_import_module,
+        patch_import_reload,
+        caplog,
+    ):
+        mod = MockModule()
+
+        @hook.periodic(60)
+        def periodic():
+            raise NotImplementedError
+
+        mod.periodic = periodic  # type: ignore[attr-defined]
+        patch_import_module.return_value = mod
+        plugin_dir = mock_bot.base_dir / "plugins"
+        plugin_dir.mkdir(exist_ok=True)
+        (plugin_dir / "__init__.py").touch()
+        plugin_file = plugin_dir / "test.py"
+        plugin_file.touch()
+
+        await mock_manager.load_plugin(str(plugin_file))
+
+        assert caplog.record_tuples == [
+            (
+                "cloudbot",
+                20,
+                "Loaded periodic hook (60 seconds) periodic from test.py",
+            ),
+            (
+                "cloudbot",
+                10,
+                "Loaded Periodic[interval: [60], type: periodic, plugin: test, permissions: [], "
+                "single_thread: False, threaded: True]",
+            ),
+        ]
+        plugin: Plugin | None = mock_manager.get_plugin(str(plugin_file))
+        assert plugin is not None
+        assert len(plugin.tasks) == 1
+        task: Task = plugin.tasks[0]
+        caplog.clear()
+
+        await mock_manager.unload_plugin(str(plugin_file))
+        await asyncio.sleep(0)
+        assert caplog.record_tuples == [
+            (
+                "cloudbot",
+                10,
+                "Cancelling running tasks in test",
+            ),
+            (
+                "cloudbot",
+                20,
+                "Cancelled 1 tasks from test",
+            ),
+            ("cloudbot", 20, "Unloaded all plugins from test"),
+        ]
+        assert task.cancelled()
 
 
 @pytest.mark.asyncio
