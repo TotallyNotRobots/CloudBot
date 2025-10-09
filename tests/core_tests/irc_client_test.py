@@ -1,7 +1,7 @@
 import asyncio
 from asyncio import CancelledError
 from typing import TYPE_CHECKING, Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
@@ -20,6 +20,7 @@ def make_mock_conn(event_loop, *, name="testconn"):
     conn.name = name
     conn.loop = event_loop
     conn.describe_server.return_value = "server.name:port"
+    conn.auto_reconnect.return_value = asyncio.Future(loop=event_loop)
 
     return conn
 
@@ -661,6 +662,31 @@ class TestConnect:
         assert client.bot.mock_calls == [
             ("plugin_manager.connect_hooks.__iter__", (), {})
         ]
+
+
+class TestProtocol:
+    def test_connection_made(self, caplog_bot, event_loop):
+        conn = make_mock_conn(event_loop=event_loop)
+        proto = irc._IrcProtocol(conn)
+        transport = MagicMock()
+        proto.connection_made(transport)
+
+        assert proto._connected is True
+        assert proto._connecting is False
+        assert caplog_bot.record_tuples == []
+        assert conn.mock_calls == []
+
+    def test_connection_lost(self, caplog_bot, event_loop):
+        conn = make_mock_conn(event_loop=event_loop)
+        proto = irc._IrcProtocol(conn)
+        proto._connected = True
+        proto._connecting = True
+        proto.connection_lost(None)
+
+        assert proto._connected is False
+        assert proto._connecting is True
+        assert caplog_bot.record_tuples == []
+        assert conn.mock_calls == [call.auto_reconnect()]
 
 
 class TestSend:
