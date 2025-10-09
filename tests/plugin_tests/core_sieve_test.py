@@ -153,7 +153,7 @@ def test_check_acls_no_chan() -> None:
 
 
 @pytest.mark.asyncio()
-async def test_permissions(event_loop) -> None:
+async def test_permissions() -> None:
     event = make_command_event()
     event.hook.permissions = ["admin"]
 
@@ -167,7 +167,7 @@ async def test_permissions(event_loop) -> None:
 
 
 @pytest.mark.asyncio()
-async def test_permissions_no_perms(event_loop) -> None:
+async def test_permissions_no_perms() -> None:
     event = make_command_event()
     event.hook.permissions = []
 

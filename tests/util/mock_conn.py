@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 
 class MockConn:
-    def __init__(self, *, nick=None, name=None):
+    def __init__(self, *, nick=None, name=None, loop=None):
         self.nick = nick or "TestBot"
         self.name = name or "testconn"
         self.config = {}
@@ -11,6 +11,7 @@ class MockConn:
         self.try_connect = MagicMock()
         self.notice = MagicMock()
         self.join = MagicMock()
+        self.loop = loop
         self.ready = True
 
     def is_nick_valid(self, nick):

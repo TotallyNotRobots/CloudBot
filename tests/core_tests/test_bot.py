@@ -23,9 +23,7 @@ def test_no_instance_config(unset_bot):
 
 
 @pytest.mark.asyncio()
-async def test_migrate_db(
-    mock_db, mock_bot_factory, event_loop, mock_requests, tmp_path
-):
+async def test_migrate_db(mock_db, mock_bot_factory, mock_requests, tmp_path):
     old_db_url = "sqlite:///" + str(tmp_path / "database1.db")
     old_db = MockDB(old_db_url, True)
     table = Table(
@@ -52,7 +50,6 @@ async def test_migrate_db(
     table.create(old_db.engine)
     other_table.create(old_db.engine)
     mock_bot = mock_bot_factory(
-        loop=event_loop,
         db=mock_db,
         config={"old_database": old_db_url, "migrate_db": True},
     )
@@ -81,8 +78,8 @@ async def test_migrate_db(
 
 
 @pytest.mark.asyncio()
-async def test_connect_clients(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(loop=event_loop)
+async def test_connect_clients(mock_bot_factory):
+    bot = mock_bot_factory()
     conn = MockConn()
     bot.connections = {"foo": conn}
     future = bot.loop.create_future()
@@ -128,8 +125,8 @@ class MockConn:
 
 class TestProcessing:
     @pytest.mark.asyncio()
-    async def test_irc_catch_all(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_irc_catch_all(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -160,10 +157,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_catch_all_block(
-        self, mock_bot_factory, event_loop
-    ) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_irc_catch_all_block(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -200,8 +195,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_command(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_command(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -234,8 +229,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_command_partial(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_command_partial(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -270,8 +265,8 @@ class TestProcessing:
         ]
 
     @pytest.mark.asyncio()
-    async def test_event(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_event(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -305,8 +300,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_event_block(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_event_block(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -352,8 +347,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_raw(self, mock_bot_factory, event_loop) -> None:
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_irc_raw(self, mock_bot_factory) -> None:
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -383,8 +378,8 @@ class TestProcessing:
         )
 
     @pytest.mark.asyncio()
-    async def test_irc_raw_block(self, mock_bot_factory, event_loop):
-        bot = mock_bot_factory(loop=event_loop)
+    async def test_irc_raw_block(self, mock_bot_factory):
+        bot = mock_bot_factory()
         conn = MockConn(nick="bot")
         event = Event(
             irc_command="PRIVMSG",
@@ -422,8 +417,8 @@ class TestProcessing:
 
 
 @pytest.mark.asyncio()
-async def test_reload_config(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(loop=event_loop)
+async def test_reload_config(mock_bot_factory):
+    bot = mock_bot_factory()
     conn = MockConn()
     bot.connections = {"foo": conn}
     bot.config.load_config = MagicMock()

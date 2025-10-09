@@ -23,7 +23,7 @@ from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import ConfigReloader, PluginReloader
-from cloudbot.util import CLIENT_ATTR, async_util, database, formatting
+from cloudbot.util import CLIENT_ATTR, database, formatting
 from cloudbot.util.mapping import KeyFoldDict
 
 logger = logging.getLogger("cloudbot")
@@ -111,7 +111,7 @@ class CloudBot(AbstractBot):
         self.running = True
         self.clients: dict[str, type[Client]] = {}
         # future which will be called when the bot stopsIf you
-        self.stopped_future = async_util.create_future(self.loop)
+        self.stopped_future = self.loop.create_future()
 
         # stores each bot server connection
         self.connections = KeyFoldDict()
