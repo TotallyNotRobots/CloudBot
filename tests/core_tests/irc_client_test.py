@@ -15,7 +15,10 @@ if TYPE_CHECKING:
     from typing import Tuple
 
 
-def make_mock_conn(loop, *, name="testconn"):
+def make_mock_conn(loop=None, *, name="testconn"):
+    if loop is None:
+        loop = asyncio.get_running_loop()
+
     conn = MagicMock()
     conn.name = name
     conn.loop = loop
@@ -682,8 +685,9 @@ class TestConnect:
 
 
 class TestProtocol:
-    def test_connection_made(self, caplog_bot, event_loop):
-        conn = make_mock_conn(event_loop)
+    @pytest.mark.asyncio
+    async def test_connection_made(self, caplog_bot):
+        conn = make_mock_conn()
         proto = irc._IrcProtocol(conn)
         transport = MagicMock()
         proto.connection_made(transport)
@@ -693,8 +697,9 @@ class TestProtocol:
         assert caplog_bot.record_tuples == []
         assert conn.mock_calls == []
 
-    def test_connection_lost(self, caplog_bot, event_loop):
-        conn = make_mock_conn(event_loop)
+    @pytest.mark.asyncio
+    async def test_connection_lost(self, caplog_bot):
+        conn = make_mock_conn()
         proto = irc._IrcProtocol(conn)
         proto._connected = True
         proto._connecting = True
