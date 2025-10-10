@@ -1,7 +1,6 @@
 SQLAlchemy ==1.4.54
 attrs ==25.4.0
 beautifulsoup4 ==4.14.2
-chardet == 5.2.0
 cleverwrap == 0.3.0.2
 feedparser ==6.0.12
 googlemaps == 4.10.0
