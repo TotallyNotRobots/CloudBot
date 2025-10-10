@@ -15,12 +15,12 @@ if TYPE_CHECKING:
     from typing import Tuple
 
 
-def make_mock_conn(event_loop, *, name="testconn"):
+def make_mock_conn(loop, *, name="testconn"):
     conn = MagicMock()
     conn.name = name
-    conn.loop = event_loop
+    conn.loop = loop
     conn.describe_server.return_value = "server.name:port"
-    conn.auto_reconnect.return_value = asyncio.Future(loop=event_loop)
+    conn.auto_reconnect.return_value = asyncio.Future(loop=loop)
 
     return conn
 
@@ -666,7 +666,7 @@ class TestConnect:
 
 class TestProtocol:
     def test_connection_made(self, caplog_bot, event_loop):
-        conn = make_mock_conn(event_loop=event_loop)
+        conn = make_mock_conn(event_loop)
         proto = irc._IrcProtocol(conn)
         transport = MagicMock()
         proto.connection_made(transport)
@@ -677,7 +677,7 @@ class TestProtocol:
         assert conn.mock_calls == []
 
     def test_connection_lost(self, caplog_bot, event_loop):
-        conn = make_mock_conn(event_loop=event_loop)
+        conn = make_mock_conn(event_loop)
         proto = irc._IrcProtocol(conn)
         proto._connected = True
         proto._connecting = True
@@ -692,7 +692,7 @@ class TestProtocol:
 class TestSend:
     @pytest.mark.asyncio()
     async def test_send_sieve_error(self, caplog_bot):
-        conn = make_mock_conn(event_loop=asyncio.get_running_loop())
+        conn = make_mock_conn(asyncio.get_running_loop())
         proto = irc._IrcProtocol(conn)
         proto.connection_made(MagicMock())
         sieve = object()
