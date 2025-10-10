@@ -83,7 +83,7 @@ class KeyFoldMixin(MapBase[K_contra, V]):
                     self[k] = v
 
         for k in kwargs:
-            self[k] = kwargs[k]
+            self[cast(K_contra, k)] = kwargs[k]
 
 
 class KeyFoldDict(KeyFoldMixin, dict):
