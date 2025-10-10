@@ -239,7 +239,10 @@ class TestRegexStatus:
 
 
 class TestRegexSieve:
-    def test_block_regex_hook(self, mock_bot_factory, mock_db: MockDB, caplog):
+    @pytest.mark.asyncio
+    async def test_block_regex_hook(
+        self, mock_bot_factory, mock_db: MockDB, caplog
+    ):
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
@@ -311,7 +314,10 @@ class TestRegexSieve:
             assert res is None
             assert caplog.messages == ["[net] Denying my_func from #chan"]
 
-    def test_allow_regex_hook(self, mock_bot_factory, mock_db: MockDB, caplog):
+    @pytest.mark.asyncio
+    async def test_allow_regex_hook(
+        self, mock_bot_factory, mock_db: MockDB, caplog
+    ):
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
@@ -383,7 +389,8 @@ class TestRegexSieve:
             assert res is event
             assert caplog.messages == ["[net] Allowing my_func to #chan"]
 
-    def test_no_block_other_hook(
+    @pytest.mark.asyncio
+    async def test_no_block_other_hook(
         self, mock_bot_factory, mock_db: MockDB, caplog
     ):
         mock_bot = mock_bot_factory(db=mock_db)
@@ -452,7 +459,10 @@ class TestRegexSieve:
             assert res is event
             assert caplog.messages == []
 
-    def test_allow_other_hook(self, mock_bot_factory, mock_db: MockDB, caplog):
+    @pytest.mark.asyncio
+    async def test_allow_other_hook(
+        self, mock_bot_factory, mock_db: MockDB, caplog
+    ):
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
@@ -536,7 +546,8 @@ class SetStatusBase:
     def get_initial_db_data(self):
         return []
 
-    def test_set(self, mock_db: MockDB, mock_bot_factory):
+    @pytest.mark.asyncio
+    async def test_set(self, mock_db: MockDB, mock_bot_factory):
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
         mock_db.load_data(regex_chans.table, self.get_initial_db_data())

@@ -18,7 +18,8 @@ def test_format_url(fucker, fuckee, out):
     assert foaas.format_url(fucker, fuckee) == out
 
 
-def test_load_data(mock_bot_factory):
+@pytest.mark.asyncio
+async def test_load_data(mock_bot_factory):
     mock_bot = mock_bot_factory(base_dir=Path().resolve())
     res = foaas.load_fuck_offs(mock_bot)
     assert res is None

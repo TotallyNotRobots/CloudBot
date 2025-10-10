@@ -34,8 +34,8 @@ def test_parse_targets(text, chan, out):
 @pytest.mark.asyncio
 async def test_reload_config():
     bot = MagicMock()
-    event_loop = asyncio.get_running_loop()
-    future = event_loop.create_future()
+    loop = asyncio.get_running_loop()
+    future = loop.create_future()
     bot.reload_config.return_value = future
     future.set_result(True)
     res = await admin_bot.rehash_config(bot)

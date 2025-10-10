@@ -315,7 +315,8 @@ class TestTopTrack:
         assert out == expected
 
 
-def test_save_account(
+@pytest.mark.asyncio
+async def test_save_account(
     mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
 ):
     lastfm.table.create(mock_db.engine)
@@ -413,7 +414,8 @@ def test_save_account(
     ]
 
 
-def test_update_account(
+@pytest.mark.asyncio
+async def test_update_account(
     mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
 ):
     lastfm.table.create(mock_db.engine)

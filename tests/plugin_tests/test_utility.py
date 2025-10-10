@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 
 from cloudbot.util.http import compare_urls
 from plugins import utility
@@ -313,8 +314,8 @@ def test_hash_command(text, out):
     assert utility.hash_command(text) == out
 
 
-@pytest.fixture()
-def leet_data(mock_bot_factory):
+@pytest_asyncio.fixture()
+async def leet_data(mock_bot_factory):
     mock_bot = mock_bot_factory(base_dir=Path().resolve())
     utility.load_text(mock_bot)
     yield

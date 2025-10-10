@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import importlib
 import logging
@@ -5,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import freezegun
 import pytest
+import pytest_asyncio
 from responses import RequestsMock
 from sqlalchemy.orm import close_all_sessions
 
@@ -58,11 +60,15 @@ def mock_db(tmp_path):
 
 
 @pytest.fixture()
-def mock_bot_factory(event_loop, tmp_path, unset_bot):
+def mock_bot_factory(tmp_path, unset_bot):
     instances: list[MockBot] = []
 
     def _factory(*args, **kwargs):
-        kwargs.setdefault("loop", event_loop)
+        loop = kwargs.get("loop")
+        if loop is None:
+            loop = asyncio.get_running_loop()
+
+        kwargs["loop"] = loop
         kwargs.setdefault("base_dir", tmp_path)
         _bot = MockBot(*args, **kwargs)
         bot.set(_bot)
@@ -76,8 +82,8 @@ def mock_bot_factory(event_loop, tmp_path, unset_bot):
             b.close()
 
 
-@pytest.fixture()
-def mock_bot(mock_bot_factory):
+@pytest_asyncio.fixture()
+async def mock_bot(mock_bot_factory):
     yield mock_bot_factory()
 
 

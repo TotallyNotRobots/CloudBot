@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+import pytest_asyncio
 
 from cloudbot import bot
 from plugins import spotify
@@ -53,11 +54,10 @@ def test_format_response(data, item_type, output):
     assert spotify._format_response(data, item_type) == output
 
 
-@pytest.fixture()
-def setup_api(mock_bot_factory, unset_bot, mock_requests, event_loop):
+@pytest_asyncio.fixture()
+async def setup_api(mock_bot_factory, unset_bot, mock_requests):
     bot.bot.set(
         mock_bot_factory(
-            loop=event_loop,
             config={
                 "api_keys": {
                     "spotify_client_id": "APIKEY",

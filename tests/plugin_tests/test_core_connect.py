@@ -14,8 +14,8 @@ class MockClient(IrcClient):
         pass
 
 
-def test_ssl_client(mock_bot_factory):
-    bot = mock_bot_factory()
+def test_ssl_client(mock_bot):
+    bot = mock_bot
     client = MockClient(
         bot,
         "mock",
@@ -38,8 +38,8 @@ def test_ssl_client(mock_bot_factory):
     assert client.ssl_context.verify_mode is ssl.CERT_REQUIRED
 
 
-def test_ssl_client_no_verify(mock_bot_factory):
-    bot = mock_bot_factory()
+def test_ssl_client_no_verify(mock_bot):
+    bot = mock_bot
     client = MockClient(
         bot,
         "mock",

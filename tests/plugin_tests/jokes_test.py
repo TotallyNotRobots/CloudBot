@@ -8,7 +8,8 @@ from plugins import jokes
 from tests.util.mock_conn import MockConn
 
 
-def test_load_jokes(mock_bot_factory):
+@pytest.mark.asyncio
+async def test_load_jokes(mock_bot_factory):
     mock_bot = mock_bot_factory(
         base_dir=Path(__file__).parent.parent.parent.resolve()
     )

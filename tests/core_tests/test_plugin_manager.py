@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+import pytest_asyncio
 import sqlalchemy as sa
 from sqlalchemy import Column, String, Table, inspect
 
@@ -17,8 +18,8 @@ from cloudbot.util import database
 from tests.util.mock_module import MockModule
 
 
-@pytest.fixture()
-def mock_bot(mock_bot_factory, tmp_path):
+@pytest_asyncio.fixture()
+async def mock_bot(mock_bot_factory, tmp_path):
     tmp_base = tmp_path / "tmp"
     tmp_base.mkdir(exist_ok=True)
 

@@ -31,9 +31,7 @@ def _do_test(
     bot_nick=None,
 ):
     plugin = importlib.import_module("plugins." + plugin_name)
-    bot = mock_bot_factory(base_dir=Path().resolve())
-
-    bot.loop = event_loop
+    bot = mock_bot_factory(base_dir=Path().resolve(), loop=event_loop)
     event = Event(
         hook=MagicMock(),
         bot=bot,

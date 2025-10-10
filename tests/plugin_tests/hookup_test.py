@@ -2,12 +2,15 @@ import random
 from datetime import timedelta
 from pathlib import Path
 
+import pytest
+
 from cloudbot.util import database
 from plugins import hookup, seen
 from tests.util.mock_db import MockDB
 
 
-def test_load_data(mock_bot_factory):
+@pytest.mark.asyncio
+async def test_load_data(mock_bot_factory):
     bot = mock_bot_factory(
         base_dir=Path(__file__).parent.parent.parent.resolve()
     )
