@@ -8,8 +8,9 @@ from cloudbot.bot import bot
 from plugins import brew
 
 
-def test_no_key(mock_bot_factory, mock_requests, unset_bot, event_loop):
-    bot.set(mock_bot_factory(loop=event_loop, config={"api_keys": {}}))
+@pytest.mark.asyncio
+async def test_no_key(mock_bot_factory, mock_requests, unset_bot):
+    bot.set(mock_bot_factory(config={"api_keys": {}}))
     reply = MagicMock()
     result = brew.brew("some text", reply)
 
@@ -18,12 +19,9 @@ def test_no_key(mock_bot_factory, mock_requests, unset_bot, event_loop):
     assert result == "No brewerydb API key set."
 
 
-def test_empty_body(mock_bot_factory, mock_requests, unset_bot, event_loop):
-    bot.set(
-        mock_bot_factory(
-            loop=event_loop, config={"api_keys": {"brewerydb": "APIKEY"}}
-        )
-    )
+@pytest.mark.asyncio
+async def test_empty_body(mock_bot_factory, mock_requests, unset_bot):
+    bot.set(mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}}))
     mock_requests.add(
         "GET",
         "http://api.brewerydb.com/v2/search",
@@ -49,12 +47,9 @@ def test_empty_body(mock_bot_factory, mock_requests, unset_bot, event_loop):
     assert result == "No results found."
 
 
-def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
-    bot.set(
-        mock_bot_factory(
-            loop=event_loop, config={"api_keys": {"brewerydb": "APIKEY"}}
-        )
-    )
+@pytest.mark.asyncio
+async def test_no_results(mock_bot_factory, mock_requests, unset_bot):
+    bot.set(mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}}))
     mock_requests.add(
         "GET",
         "http://api.brewerydb.com/v2/search",
@@ -80,6 +75,7 @@ def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
     assert result == "No results found."
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "style,abv,website,out",
     [
@@ -109,21 +105,16 @@ def test_no_results(mock_bot_factory, mock_requests, unset_bot, event_loop):
         ),
     ],
 )
-def test_results(
+async def test_results(
     mock_bot_factory,
     mock_requests,
     unset_bot,
-    event_loop,
     style,
     abv,
     website,
     out,
 ):
-    bot.set(
-        mock_bot_factory(
-            loop=event_loop, config={"api_keys": {"brewerydb": "APIKEY"}}
-        )
-    )
+    bot.set(mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}}))
     brewery = {"name": "foo"}
     if website:
         brewery["website"] = website

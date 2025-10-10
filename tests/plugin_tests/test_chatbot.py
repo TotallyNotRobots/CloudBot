@@ -1,12 +1,13 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from plugins import chatbot
 
 
-def test_make_api(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(
-        config={"api_keys": {"cleverbot": "testapikey"}}, loop=event_loop
-    )
+@pytest.mark.asyncio
+async def test_make_api(mock_bot_factory):
+    bot = mock_bot_factory(config={"api_keys": {"cleverbot": "testapikey"}})
     chatbot.make_api(bot)
     assert chatbot.container.api.key == "testapikey"
 

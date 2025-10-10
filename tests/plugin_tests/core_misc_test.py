@@ -8,8 +8,8 @@ from plugins.core import core_misc
 from tests.util.mock_irc_client import MockIrcClient
 
 
-def test_invite_join(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(loop=event_loop)
+def test_invite_join(mock_bot):
+    bot = mock_bot
     conn = MockIrcClient(
         bot, "fooconn", "foo", {"connection": {"server": "host.invalid"}}
     )
@@ -18,8 +18,8 @@ def test_invite_join(mock_bot_factory, event_loop):
     assert cast(MagicMock, conn.send).mock_calls == [call("JOIN #bar")]
 
 
-def test_invite_join_disabled(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(loop=event_loop)
+def test_invite_join_disabled(mock_bot):
+    bot = mock_bot
     conn = MockIrcClient(
         bot,
         "fooconn",

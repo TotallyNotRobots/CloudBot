@@ -1,3 +1,4 @@
+import asyncio
 from itertools import product
 from unittest.mock import MagicMock, call, patch
 
@@ -482,12 +483,11 @@ def config_mock(config):
     return _make_config
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "config_enabled,plugin_enabled", list(product([True, False], [True, False]))
 )
-def test_reloaders(
-    event_loop, tmp_path, config_enabled, plugin_enabled, unset_bot
-):
+async def test_reloaders(tmp_path, config_enabled, plugin_enabled, unset_bot):
     with patch(
         "cloudbot.bot.Config",
         new=config_mock(
@@ -500,13 +500,14 @@ def test_reloaders(
             }
         ),
     ):
-        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
+        bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         assert bot.config_reloading_enabled is config_enabled
         assert bot.plugin_reloading_enabled is plugin_enabled
         bot.observer.stop()
 
 
-def test_set_error(event_loop, tmp_path, unset_bot):
+@pytest.mark.asyncio
+async def test_set_error(tmp_path, unset_bot):
     with patch(
         "cloudbot.bot.Config",
         new=config_mock(
@@ -515,14 +516,15 @@ def test_set_error(event_loop, tmp_path, unset_bot):
             }
         ),
     ):
-        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
+        bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         with pytest.raises(ValueError):
-            CloudBot(loop=event_loop, base_dir=tmp_path)
+            CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
 
         bot.observer.stop()
 
 
-def test_load_clients(event_loop, tmp_path, unset_bot):
+@pytest.mark.asyncio
+async def test_load_clients(tmp_path, unset_bot):
     with patch(
         "cloudbot.bot.Config",
         new=config_mock(
@@ -540,7 +542,7 @@ def test_load_clients(event_loop, tmp_path, unset_bot):
         ),
     ):
         (tmp_path / "data").mkdir(exist_ok=True, parents=True)
-        bot = CloudBot(loop=event_loop, base_dir=tmp_path)
+        bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         conn = bot.connections["foobar"]
         assert conn.nick == "TestBot"
         assert conn.type == "irc"

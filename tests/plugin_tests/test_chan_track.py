@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -32,8 +33,9 @@ class MockConn:
         return [self.memory["server_info"]["statuses"][c] for c in chars]
 
 
-def test_replace_user_data(event_loop):
-    conn = MockConn(loop=event_loop)
+@pytest.mark.asyncio
+async def test_replace_user_data():
+    conn = MockConn(loop=asyncio.get_running_loop())
     serv_info = conn.memory["server_info"]
     server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
     users = chan_track.UsersDict(conn)
@@ -63,8 +65,9 @@ def test_replace_user_data(event_loop):
     assert not chan.users["exampleuser2"].status
 
 
-def test_missing_on_nick(event_loop):
-    conn = MockConn(loop=event_loop)
+@pytest.mark.asyncio
+async def test_missing_on_nick():
+    conn = MockConn(loop=asyncio.get_running_loop())
     chans = chan_track.get_chans(conn)
     chan = chans.getchan("#foo")
 
@@ -72,8 +75,9 @@ def test_missing_on_nick(event_loop):
         chan.users.pop("exampleuser3")
 
 
-def test_channel_members(event_loop):
-    conn = MockConn(loop=event_loop)
+@pytest.mark.asyncio
+async def test_channel_members():
+    conn = MockConn(loop=asyncio.get_running_loop())
     serv_info = conn.memory["server_info"]
     server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
     server_info.handle_chan_modes(
@@ -141,7 +145,8 @@ NAMES_MOCK_TRAFFIC = [
 ]
 
 
-def test_names_handling(event_loop):
+@pytest.mark.asyncio
+async def test_names_handling():
     handlers = {
         "JOIN": chan_track.on_join,
         "PART": chan_track.on_part,
@@ -152,7 +157,7 @@ def test_names_handling(event_loop):
     }
 
     bot = MagicMock()
-    bot.loop = event_loop
+    bot.loop = asyncio.get_running_loop()
 
     conn = MockConn(bot)
     serv_info = conn.memory["server_info"]
@@ -166,9 +171,10 @@ def test_names_handling(event_loop):
         call_with_args(handlers[event.irc_command], event)
 
 
-def test_account_tag(event_loop):
+@pytest.mark.asyncio
+async def test_account_tag():
     bot = MagicMock()
-    bot.loop = event_loop
+    bot.loop = asyncio.get_running_loop()
 
     conn = MockConn(bot)
     data = {

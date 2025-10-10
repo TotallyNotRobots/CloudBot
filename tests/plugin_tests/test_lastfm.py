@@ -25,12 +25,9 @@ def test_get_account(mock_db, mock_requests):
     assert lastfm.get_account("foo1", "baa") == "baa"
 
 
-def test_api(mock_bot_factory, unset_bot, event_loop):
-    bot.set(
-        mock_bot_factory(
-            loop=event_loop, config={"api_keys": {"lastfm": "hunter20"}}
-        )
-    )
+@pytest.mark.asyncio
+async def test_api(mock_bot_factory, unset_bot):
+    bot.set(mock_bot_factory(config={"api_keys": {"lastfm": "hunter20"}}))
 
     with RequestsMock() as reqs:
         with pytest.raises(requests.ConnectionError):

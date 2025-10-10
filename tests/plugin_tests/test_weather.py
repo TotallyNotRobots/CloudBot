@@ -1,3 +1,4 @@
+import asyncio
 import json
 from copy import deepcopy
 from unittest.mock import MagicMock
@@ -117,10 +118,13 @@ def setup_api(
     return bot
 
 
-def test_rounding(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+@pytest.mark.asyncio
+async def test_rounding(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ):
-    bot = setup_api(mock_requests, mock_db, event_loop, mock_bot_factory)
+    bot = setup_api(
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
+    )
 
     conn = MagicMock()
     conn.config = {}
@@ -172,10 +176,11 @@ def test_rounding(
     assert wrap_hook_response(weather.weather, cmd_event) == calls
 
 
-def test_find_location(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+@pytest.mark.asyncio
+async def test_find_location(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ):
-    bot = mock_bot_factory(config={}, db=mock_db, loop=event_loop)
+    bot = mock_bot_factory(config={}, db=mock_db)
     weather.create_maps_api(bot)
     weather.create_owm_api(bot)
     weather.location_cache.clear()
@@ -185,7 +190,7 @@ def test_find_location(
     bot = setup_api(
         mock_requests,
         mock_db,
-        event_loop,
+        asyncio.get_running_loop(),
         mock_bot_factory,
     )
 
@@ -314,7 +319,7 @@ def test_find_location(
     setup_api(
         mock_requests,
         mock_db,
-        event_loop,
+        asyncio.get_running_loop(),
         mock_bot_factory,
     )
     mock_requests.add(
@@ -362,8 +367,9 @@ def test_update_location(mock_db):
     assert table_data == [[nick, "newloc"]]
 
 
-def test_parse_no_results(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db, event_loop
+@pytest.mark.asyncio
+async def test_parse_no_results(
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ):
     mock_requests.add(
         "GET",
@@ -377,7 +383,6 @@ def test_parse_no_results(
     weather.table.create(mock_db.engine, True)
 
     bot = mock_bot_factory(
-        loop=event_loop,
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",
