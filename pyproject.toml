@@ -138,6 +138,7 @@ in-place = true
 addopts = [
     "--ignore=venv",
     "--ignore=.*",
+    "--ignore=tools",
     "--cov=.",
     "--cov-report=xml",
     "--cov-report=html",
@@ -154,13 +155,11 @@ asyncio_mode = "strict"
 [tool.coverage.report]
 fail_under = 80
 exclude_lines = [
-    "if TYPE_CHECKING:",
+    "if TYPE_CHECKING:", # Type checking blocks are never accessible at test/runtime
     "pragma: no cover",
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if sys.version_info",
     "class .*\\(.*(Error|Exception)\\):",
     "^ *\\.\\.\\.$",
 ]
@@ -170,6 +169,7 @@ branch = true
 omit = [
     "tests/data/*",
     "tests/util/*",
-    ".*",
+    ".*", # Ignore any .cache, .venv, etc directories
     "venv/*",
+    "tools/*", # Build/CI tools
 ]

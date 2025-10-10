@@ -87,5 +87,7 @@ def main():
     asyncio.run(async_main())
 
 
-if __name__ == "__main__":
+# This is a simple call to main, so test coverage doesn't matter. We will
+# track coverage of `main`.
+if __name__ == "__main__":  # pragma: no cover
     main()
