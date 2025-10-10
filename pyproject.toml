@@ -148,9 +148,6 @@ addopts = [
 testpaths = ["."]
 filterwarnings = [
     "error",
-    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
-    "ignore:pkg_resources is deprecated as an API:UserWarning",
-    "ignore:datetime.*:DeprecationWarning:sqlalchemy.*`",
 ]
 asyncio_mode = "strict"
 
