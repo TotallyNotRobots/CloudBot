@@ -1,4 +1,5 @@
 import feedparser
+from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
@@ -10,7 +11,7 @@ class FeedAlias:
         self.limit = limit
 
 
-ALIASES = {
+ALIASES: dict[str, FeedAlias] = {
     "xkcd": FeedAlias("http://xkcd.com/rss.xml"),
     "ars": FeedAlias("http://feeds.arstechnica.com/arstechnica/index"),
     "pip": FeedAlias("https://pypi.python.org/pypi?%3Aaction=rss", 6),
@@ -42,14 +43,14 @@ ALIASES = {
 }
 
 
-def format_item(item):
+def format_item(item) -> str:
     url = web.try_shorten(item.link)
     title = formatting.strip_html(item.title)
     return f"{title} ({url})"
 
 
 @hook.command("feed", "rss", "news")
-def rss(text):
+def rss(text: str) -> str:
     """<feed> - Gets the first three items from the RSS/ATOM feed <feed>."""
     t = text.lower().strip()
     if t in ALIASES:
@@ -60,7 +61,15 @@ def rss(text):
         addr = text
         limit = 3
 
-    feed = feedparser.parse(addr)
+    try:
+        url = URL(addr)
+    except ValueError:
+        return "Invalid URL."
+
+    if url.scheme not in ("http", "https", "feed"):
+        return "Invalid URL scheme."
+
+    feed = feedparser.parse(str(url))
     if not feed.entries:
         return "Feed not found."
 
