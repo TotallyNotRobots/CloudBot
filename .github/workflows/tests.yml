@@ -30,6 +30,14 @@ jobs:
         - '3.13'
         os:
         - 'ubuntu-latest'
+        - 'windows-latest'
+        - 'macos-latest'
+        exclude:
+        - os: 'macos-latest'
+          python-ver: '3.10'
+        - os: 'macos-latest'
+          python-ver: '3.11'
+
     runs-on: ${{matrix.os}}
     name: "Python ${{matrix.python-ver}} tests on ${{matrix.os}}"
     steps:
@@ -46,6 +54,7 @@ jobs:
           **/*requirements*.txt
 
     - name: Install apt deps
+      if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -qq -y libxml2-dev libxslt1-dev
 
     - name: Install dependencies
@@ -55,6 +64,12 @@ jobs:
 
     - name: Run pre-commit
       run: pre-commit run --all
+      env:
+        SKIP: yamlfmt
+
+    - name: Run yamlfmt
+      if: runner.os != 'Windows'
+      run: pre-commit run yamlfmt --all
 
     - name: Test with pytest
       run: pytest --junitxml=junit.xml -o junit_family=legacy
