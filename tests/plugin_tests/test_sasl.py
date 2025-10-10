@@ -1,6 +1,8 @@
 import asyncio
 from unittest.mock import MagicMock, call
 
+import pytest
+
 from cloudbot.event import CapEvent
 from plugins.core import sasl
 from tests.util.mock_conn import MockConn
@@ -36,6 +38,7 @@ def test_sasl_available_no_config():
     assert sasl.sasl_available(event.conn) is False
 
 
+@pytest.mark.asyncio
 async def test_sasl_ack_plain():
     event = CapEvent(
         cap="sasl",

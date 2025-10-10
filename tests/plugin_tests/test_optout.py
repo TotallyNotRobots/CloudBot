@@ -168,6 +168,7 @@ def test_exact_override():
         )
 
 
+@pytest.mark.asyncio
 async def test_check_channel_permissions():
     event = MagicMock()
     event.chan = "#foo"
@@ -366,6 +367,7 @@ def test_format():
 
 
 class TestSetOptOut:
+    @pytest.mark.asyncio
     async def test_cmd(self, mock_db: MockDB, mock_bot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
@@ -436,6 +438,7 @@ class TestSetOptOut:
 
 
 class TestDelOptOut:
+    @pytest.mark.asyncio
     async def test_del_cmd(self, mock_db: MockDB, mock_bot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
@@ -530,6 +533,7 @@ class TestDelOptOut:
 
 
 class TestClearOptOut:
+    @pytest.mark.asyncio
     async def test_clear_cmd(self, mock_db: MockDB, mock_bot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)

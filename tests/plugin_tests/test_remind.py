@@ -61,6 +61,7 @@ async def test_invalid_reminder_time(mock_db, freeze_time, setup_db):
     assert mock_db.get_data(remind.table) == []
 
 
+@pytest.mark.asyncio
 async def test_invalid_reminder_overtime(mock_db, freeze_time, setup_db):
     await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()
@@ -83,6 +84,7 @@ async def test_invalid_reminder_overtime(mock_db, freeze_time, setup_db):
     assert mock_db.get_data(remind.table) == []
 
 
+@pytest.mark.asyncio
 async def test_add_reminder(mock_db, freeze_time, setup_db):
     await remind.load_cache(async_call, mock_db.session())
     mock_conn = MagicMock()

@@ -152,7 +152,7 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:UserWarning",
     "ignore:datetime.*:DeprecationWarning:sqlalchemy.*`",
 ]
-asyncio_mode = "auto"
+asyncio_mode = "strict"
 
 [tool.coverage.report]
 fail_under = 60

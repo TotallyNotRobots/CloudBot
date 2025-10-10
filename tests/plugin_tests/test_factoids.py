@@ -2,11 +2,14 @@ import itertools
 import string
 from unittest.mock import MagicMock, call
 
+import pytest
+
 from cloudbot.event import CommandEvent
 from plugins import factoids
 from tests.util import wrap_hook_response_async
 
 
+@pytest.mark.asyncio
 async def test_add_fact(mock_db, mock_bot):
     factoids.table.create(mock_db.engine)
     factoids.load_cache(mock_db.session())
@@ -43,6 +46,7 @@ async def test_add_fact(mock_db, mock_bot):
     ]
 
 
+@pytest.mark.asyncio
 async def test_update_fact(mock_db, mock_bot):
     factoids.table.create(mock_db.engine)
     mock_db.load_data(
