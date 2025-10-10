@@ -13,50 +13,13 @@ License:
     GPL v3
 """
 
-import datetime
-
-import requests
-from lxml import html
+from typing_extensions import LiteralString
 
 from cloudbot import hook
-from cloudbot.util import timeformat
 
 
 @hook.command("pre", "scene")
-def pre(text, reply):
-    """<query> - searches scene releases using orlydb.com"""
+def pre() -> LiteralString:
+    """- This command has been removed, orlydb.com is down permanently."""
 
-    try:
-        request = requests.get("http://orlydb.com/", params={"q": text})
-        request.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        reply(f"Unable to fetch results: {e}")
-        raise
-
-    h = html.fromstring(request.text)
-
-    results = h.xpath("//div[@id='releases']/div/span[@class='release']/..")
-
-    if not results:
-        return "No results found."
-
-    result = results[0]
-
-    date = result.xpath("span[@class='timestamp']/text()")[0]
-    section = result.xpath("span[@class='section']//text()")[0]
-    name = result.xpath("span[@class='release']/text()")[0]
-
-    # parse date/time
-    date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    date_string = date.strftime("%d %b %Y")
-    since = timeformat.time_since(date)
-
-    size = result.xpath("span[@class='inforight']//text()")
-    if size:
-        size = " - " + size[0].split()[0]
-    else:
-        size = ""
-
-    return "{} - {}{} - {} ({} ago)".format(
-        section, name, size, date_string, since
-    )
+    return "This command has been removed, orlydb.com is down permanently."
