@@ -7,15 +7,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cloudbot.event import CommandEvent, Event
-from cloudbot.util.func_utils import call_with_args
+from cloudbot.util import async_util
 from plugins import attacks, foods
 
 
 async def _call(func, event):
-    if asyncio.iscoroutinefunction(func):
-        return await call_with_args(func, event)
-
-    return call_with_args(func, event)
+    return await async_util.run_func_with_args(
+        asyncio.get_running_loop(), func, event
+    )
 
 
 async def _do_test(

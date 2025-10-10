@@ -170,6 +170,7 @@ addopts = [
 testpaths = ["."]
 filterwarnings = [
     "error",
+    "ignore:.*asyncio\\.iscoroutinefunction.*:DeprecationWarning:mcstatus.*",
 ]
 asyncio_mode = "strict"
 

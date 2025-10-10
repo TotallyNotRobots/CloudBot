@@ -27,9 +27,7 @@ class Hook:
             arg for arg in sig.parameters.keys() if not arg.startswith("_")
         ]
 
-        if asyncio.iscoroutine(self.function) or asyncio.iscoroutinefunction(
-            self.function
-        ):
+        if inspect.iscoroutinefunction(self.function):
             self.threaded = False
         else:
             self.threaded = True
