@@ -62,7 +62,7 @@ class Pager:
 
         return chunk
 
-    def next(self):
+    def next(self) -> None | list[str]:
         with self.lock:
             if self.current_pos >= len(self.chunks):
                 return None
@@ -72,7 +72,7 @@ class Pager:
 
         return chunk
 
-    def get(self, index):
+    def get(self, index) -> list[str]:
         """Get a specific page"""
         return self[index]
 
