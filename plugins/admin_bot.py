@@ -96,7 +96,7 @@ async def get_user_groups(event):
     return f"User {user} is in no permission groups"
 
 
-def remove_user_from_group(user, group, event):
+def remove_user_from_group(user, group: str, event):
     permission_manager = event.conn.permissions
     changed_masks = permission_manager.remove_group_user(
         group.lower(), user.lower()
@@ -114,15 +114,15 @@ def remove_user_from_group(user, group, event):
 
 
 @hook.command("deluser", permissions=["permissions_users"])
-async def remove_permission_user(text, event, bot, conn, notice, reply):
+async def remove_permission_user(text, event, conn):
     """<user> [group] - removes <user> from [group], or from all groups if no group is specified"""
     split = text.split()
     if len(split) > 2:
-        notice("Too many arguments")
+        event.notice("Too many arguments")
         return
 
     if not split:
-        notice("Not enough arguments")
+        event.notice("Not enough arguments")
         return
 
     perm_manager = conn.permissions
@@ -131,26 +131,19 @@ async def remove_permission_user(text, event, bot, conn, notice, reply):
         group = split[1]
 
         if group and not perm_manager.group_exists(group.lower()):
-            notice(f"Unknown group '{group}'")
+            event.notice(f"Unknown group '{group}'")
             return
 
         groups = [group] if perm_manager.user_in_group(user, group) else []
     else:
-        group = None
-        groups = perm_manager.get_user_groups(user.lower())
+        groups = [g.name for g in perm_manager.get_user_groups(user.lower())]
 
     if not groups:
-        reply(f"No masks with elevated permissions matched {user}")
+        event.reply(f"No masks with elevated permissions matched {user}")
         return
 
-    changed = False
     for group in groups:
-        if remove_user_from_group(user, group, event):
-            changed = True
-
-    if changed:
-        bot.config.save_config()
-        perm_manager.reload()
+        remove_user_from_group(user, group, event)
 
 
 @hook.command("adduser", permissions=["permissions_users"])
@@ -191,9 +184,6 @@ async def add_permissions_user(text, nick, conn, bot, notice, reply, admin_log):
                 nick, group, user
             )
         )
-
-    bot.config.save_config()
-    permission_manager.reload()
 
 
 @hook.command("stopthebot", permissions=["botcontrol"])

@@ -8,8 +8,9 @@ from plugins.core import core_misc
 from tests.util.mock_irc_client import MockIrcClient
 
 
-def test_invite_join(mock_bot):
-    bot = mock_bot
+@pytest.mark.asyncio
+async def test_invite_join(mock_bot_factory, mock_db):
+    bot = mock_bot_factory(db=mock_db)
     conn = MockIrcClient(
         bot, "fooconn", "foo", {"connection": {"server": "host.invalid"}}
     )
@@ -18,8 +19,9 @@ def test_invite_join(mock_bot):
     assert cast(MagicMock, conn.send).mock_calls == [call("JOIN #bar")]
 
 
-def test_invite_join_disabled(mock_bot):
-    bot = mock_bot
+@pytest.mark.asyncio
+async def test_invite_join_disabled(mock_bot_factory, mock_db):
+    bot = mock_bot_factory(db=mock_db)
     conn = MockIrcClient(
         bot,
         "fooconn",
@@ -65,7 +67,7 @@ def test_invite_join_disabled(mock_bot):
         ({"mode": "+I"}, [call("MODE foobot +I")]),
     ],
 )
-async def test_on_connect(config, calls):
+async def test_on_connect(config, calls, mock_db):
     bot = MagicMock()
     config = config.copy()
     config.setdefault("connection", {}).setdefault("server", "host.invalid")

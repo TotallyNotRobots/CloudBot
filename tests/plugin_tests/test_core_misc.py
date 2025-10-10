@@ -15,9 +15,9 @@ class MockClient(Client):  # pylint: disable=abstract-method
 
 
 @pytest.mark.asyncio
-async def test_do_joins(mock_bot_factory):
+async def test_do_joins(mock_bot_factory, mock_db):
     client = MockClient(
-        mock_bot_factory(),
+        mock_bot_factory(db=mock_db),
         "foo",
         "foobot",
         channels=[
