@@ -98,7 +98,9 @@ class CloudBot(AbstractBot):
         loop: asyncio.AbstractEventLoop = None,
         base_dir: Path | None = None,
     ) -> None:
-        loop = loop or asyncio.get_event_loop()
+        if loop is None:
+            loop = asyncio.get_running_loop()
+
         if bot.get():
             raise ValueError("There seems to already be a bot running!")
 

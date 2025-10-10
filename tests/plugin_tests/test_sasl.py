@@ -43,7 +43,7 @@ async def test_sasl_ack_plain():
     event = CapEvent(
         cap="sasl",
         cap_param=None,
-        conn=MockConn(loop=asyncio.get_event_loop()),
+        conn=MockConn(loop=asyncio.get_running_loop()),
     )
     event.conn.memory = {}
     event.conn.config = {
