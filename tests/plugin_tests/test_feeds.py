@@ -47,5 +47,5 @@ def test_feeds_block_file(mock_feedparse, patch_try_shorten):
     assert feeds.rss("data:text/plain,HelloWorld") == "Invalid URL scheme."
     assert feeds.rss("/dev/null") == "Invalid URL scheme."
     assert feeds.rss("C:\\Windows\\System32") == "Invalid URL scheme."
-    assert feeds.rss("not a url") == "Invalid URL."
+    assert feeds.rss("not a url") == "Invalid URL scheme."
     mock_feedparse.assert_not_called()
