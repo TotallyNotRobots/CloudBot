@@ -246,7 +246,7 @@ class Event(Mapping[str, Any]):
             if conn and conn.connected:
                 conn.admin_log(message, console=not broadcast)
 
-    def reply(self, *messages, target=None):
+    def reply(self, *messages: str, target: str | None = None) -> None:
         """sends a message to the current channel/user with a prefix"""
         reply_ping = self.conn.config.get("reply_ping", True)
         if target is None:

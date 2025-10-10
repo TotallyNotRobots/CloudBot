@@ -48,7 +48,7 @@ def test_paste_error(mock_requests):
 
 
 def test_registry_items():
-    registry = web.Registry()
+    registry = web.Registry[object]()
     obj = object()
     registry.register("test", obj)
     item = registry.get_item("test")
@@ -57,9 +57,10 @@ def test_registry_items():
 
 
 def test_registry_item_working(freeze_time):
-    registry = web.Registry()
+    registry = web.Registry[object]()
     registry.register("test", object())
     item = registry.get_item("test")
+    assert item is not None
     assert item.should_use
 
     item.failed()
@@ -271,18 +272,20 @@ def test_expand(mock_requests):
 def test_register_duplicate_paste():
     obj = object()
     obj1 = object()
+    registry = web.Registry[object]()
 
-    web.pastebins.register("test", obj)
+    registry.register("test", obj)
     with pytest.raises(ValueError):
-        web.pastebins.register("test", obj1)
+        registry.register("test", obj1)
 
-    web.pastebins.remove("test")
+    registry.remove("test")
 
 
 def test_remove_paste():
     obj = object()
+    registry = web.Registry[object]()
 
-    web.pastebins.register("test", obj)
-    assert web.pastebins.get("test") is obj
-    web.pastebins.remove("test")
-    assert web.pastebins.get("test") is None
+    registry.register("test", obj)
+    assert registry.get("test") is obj
+    registry.remove("test")
+    assert registry.get("test") is None

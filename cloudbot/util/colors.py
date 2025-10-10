@@ -154,7 +154,7 @@ def get_available_colours():
     return ret[:-2]
 
 
-def parse(string):
+def parse(string: str) -> str:
     """
     parse: Formats a string, replacing words wrapped in $( ) with actual colours or formatting.
     example:

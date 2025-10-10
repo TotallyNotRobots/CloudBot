@@ -10,279 +10,170 @@ License:
     GPL v3
 """
 
-import inspect
 import time
-import typing
-import warnings
+from collections.abc import Callable
 from decimal import Decimal
-from numbers import Real
 from operator import itemgetter
 from threading import RLock
-from typing import Any, TypeVar, Union, cast
+from typing import Any, ContextManager, Generic, TypeVar, cast
 
 import requests
+from pydantic import BaseModel, Field, computed_field
 from requests import Response
+from typing_extensions import Self
 from yarl import URL
 
 from cloudbot import hook
+from cloudbot.bot import AbstractBot
+from cloudbot.event import CommandEvent
 from cloudbot.util import colors, web
 from cloudbot.util.func_utils import call_with_args
 
 
 class APIError(Exception):
-    def __init__(self, msg: str):
+    def __init__(self, msg: str) -> None:
         super().__init__(msg)
         self.msg = msg
 
 
 class UnknownSymbolError(APIError):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
         self.name = name
 
 
 class UnknownFiatCurrencyError(APIError):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
         self.name = name
 
 
 class APIResponse:
     def __init__(
-        self, api, data: "UntypedResponse", response: Response
+        self,
+        api: "CoinMarketCapAPI",
+        data: "UntypedResponse",
+        response: Response,
     ) -> None:
         self.api = api
         self.data = data
         self.response = response
 
     @classmethod
-    def from_response(cls, api: "CoinMarketCapAPI", response: Response):
-        return cls(api, read_data(response.json(), UntypedResponse), response)
+    def from_response(cls, api: "CoinMarketCapAPI", response: Response) -> Self:
+        return cls(
+            api, UntypedResponse.model_validate(response.json()), response
+        )
 
 
-class SchemaField:
-    empty = object()
-
-    def __init__(self, name: str, field_type: type, default=empty):
-        self.name = name
-        self.field_type = field_type
-        self.default = default
+_ModelT = TypeVar("_ModelT", bound="ApiModel")
 
 
-def _get_fields(init_func):
-    signature = inspect.signature(init_func)
-    for parameter in signature.parameters.values():
-        if parameter.annotation is parameter.empty:
-            continue
-
-        if parameter.default is parameter.empty:
-            default = SchemaField.empty
-        else:
-            default = parameter.default
-
-        yield SchemaField(parameter.name, parameter.annotation, default)
+class ApiModel(BaseModel, extra="forbid"):
+    def cast_to(self, new_type: type[_ModelT]) -> _ModelT:
+        return new_type.model_validate(
+            self.model_dump(mode="json", by_alias=True)
+        )
 
 
-class SchemaMeta(type):
-    def __new__(cls, name, bases, members):
-        if members.setdefault("_abstract", False):
-            super_fields = ()
-            for base in bases:
-                if not getattr(base, "_abstract", False) and isinstance(
-                    base, cls
-                ):
-                    super_fields = getattr(base, "_fields")
-                    break
-
-            members["_fields"] = super_fields
-        else:
-            members["_fields"] = tuple(_get_fields(members["__init__"]))
-
-        return type.__new__(cls, name, bases, members)
+class ResponseStatus(ApiModel):
+    timestamp: str
+    error_code: int
+    elapsed: int
+    credit_count: int
+    error_message: str | None = None
+    notice: str | None = None
 
 
-T = TypeVar("T", bound="Schema")
+class APIRequestResponse(ApiModel):
+    status: ResponseStatus
 
 
-class Schema(metaclass=SchemaMeta):
-    _abstract = True
-    _fields = ()
-
-    def __init__(self, **kwargs):
-        self.unknown_fields = {}
-        self.unknown_fields.update(kwargs)
-
-    def cast_to(self, new_type: type[T]) -> T:
-        return read_data(serialize(self), new_type)
+class UntypedResponse(APIRequestResponse, extra="allow"):
+    data: Any = None
 
 
-class ResponseStatus(Schema):
-    def __init__(
-        self,
-        timestamp: str,
-        error_code: int,
-        elapsed: int,
-        credit_count: int,
-        error_message: str = None,
-        notice: str = None,
-    ):
-        super().__init__()
-        self.timestamp = timestamp
-        self.error_code = error_code
-        self.error_message = error_message
-        self.elapsed = elapsed
-        self.credit_count = credit_count
-        self.notice = notice
+class Platform(ApiModel):
+    platform_id: int = Field(alias="id")
+    name: str
+    symbol: str
+    slug: str
+    token_address: str
 
 
-class APIRequestResponse(Schema):
-    def __init__(self, status: ResponseStatus):
-        super().__init__()
-        self.status = status
+class Quote(ApiModel):
+    price: float
+    volume_24h: float
+    market_cap: float
+    percent_change_1h: int | float
+    percent_change_24h: int | float
+    percent_change_7d: int | float
+    last_updated: str
+    volume_24h_reported: float | None = None
+    volume_7d: float | None = None
+    volume_7d_reported: float | None = None
+    volume_30d: float | None = None
+    volume_30d_reported: float | None = None
 
 
-class UntypedResponse(APIRequestResponse):
-    def __init__(self, status: ResponseStatus, data: Any = None):
-        super().__init__(status)
-        self.data = data
-
-
-class Platform(Schema):
-    def __init__(
-        self, id: int, name: str, symbol: str, slug: str, token_address: str
-    ):
-        super().__init__()
-        self.id = id
-        self.name = name
-        self.symbol = symbol
-        self.slug = slug
-        self.token_address = token_address
-
-
-class Quote(Schema):
-    def __init__(
-        self,
-        price: Real,
-        volume_24h: Real,
-        market_cap: Real,
-        percent_change_1h: Real,
-        percent_change_24h: Real,
-        percent_change_7d: Real,
-        last_updated: str,
-        volume_24h_reported: Real = None,
-        volume_7d: Real = None,
-        volume_7d_reported: Real = None,
-        volume_30d: Real = None,
-        volume_30d_reported: Real = None,
-    ):
-        super().__init__()
-        self.price = price
-        self.volume_24h = volume_24h
-        self.volume_24h_reported = volume_24h_reported
-        self.volume_7d = volume_7d
-        self.volume_7d_reported = volume_7d_reported
-        self.volume_30d = volume_30d
-        self.volume_30d_reported = volume_30d_reported
-        self.market_cap = market_cap
-        self.percent_change_1h = percent_change_1h
-        self.percent_change_24h = percent_change_24h
-        self.percent_change_7d = percent_change_7d
-        self.last_updated = last_updated
-
-
-class CryptoCurrency(Schema):
-    def __init__(
-        self,
-        id: int,
-        name: str,
-        symbol: str,
-        slug: str,
-        circulating_supply: Real,
-        total_supply: Real,
-        date_added: str,
-        num_market_pairs: int,
-        cmc_rank: int,
-        last_updated: str,
-        tags: list[str],
-        quote: dict[str, Quote],
-        max_supply: Real = None,
-        market_cap_by_total_supply: Real = None,
-        platform: Platform = None,
-    ):
-        super().__init__()
-        self.id = id
-        self.name = name
-        self.symbol = symbol
-        self.slug = slug
-        self.circulating_supply = circulating_supply
-        self.total_supply = total_supply
-        self.max_supply = max_supply
-        self.market_cap_by_total_supply = market_cap_by_total_supply
-        self.date_added = date_added
-        self.num_market_pairs = num_market_pairs
-        self.cmc_rank = cmc_rank
-        self.last_updated = last_updated
-        self.tags = tags
-        self.platform = platform
-        self.quote = quote
+class CryptoCurrency(ApiModel):
+    currency_id: int = Field(alias="id")
+    name: str
+    symbol: str
+    slug: str
+    circulating_supply: float
+    total_supply: float
+    date_added: str
+    num_market_pairs: int
+    cmc_rank: int
+    last_updated: str
+    tags: list[str]
+    quote: dict[str, Quote]
+    max_supply: float | None = None
+    market_cap_by_total_supply: float | None = None
+    platform: Platform | None = None
 
 
 class QuoteRequestResponse(APIRequestResponse):
-    def __init__(self, data: dict[str, CryptoCurrency], status: ResponseStatus):
-        super().__init__(status)
-        self.data = data
+    data: dict[str, CryptoCurrency]
 
 
-class FiatCurrency(Schema):
-    def __init__(self, id: int, name: str, sign: str, symbol: str):
-        super().__init__()
-        self.id = id
-        self.name = name
-        self.sign = sign
-        self.symbol = symbol
+class FiatCurrency(ApiModel):
+    id: int
+    name: str
+    sign: str
+    symbol: str
 
 
 class FiatCurrencyMap(APIRequestResponse):
-    def __init__(self, data: list[FiatCurrency], status: ResponseStatus):
-        super().__init__(status)
-        self.data = data
+    data: list[FiatCurrency]
 
-        self.symbols = {
-            currency.symbol: currency.sign for currency in self.data
-        }
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def symbols(self) -> dict[str, str]:
+        return {currency.symbol: currency.sign for currency in self.data}
 
 
-class CryptoCurrencyEntry(Schema):
-    def __init__(
-        self,
-        id: int,
-        name: str,
-        symbol: str,
-        slug: str,
-        is_active: int,
-        first_historical_data: str = None,
-        last_historical_data: str = None,
-        platform: Platform = None,
-        status: str = None,
-    ) -> None:
-        super().__init__()
-        self.id = id
-        self.name = name
-        self.symbol = symbol
-        self.slug = slug
-        self.is_active = is_active
-        self.status = status
-        self.first_historical_data = first_historical_data
-        self.last_historical_data = last_historical_data
-        self.platform = platform
+class CryptoCurrencyEntry(ApiModel):
+    id: int
+    name: str
+    symbol: str
+    slug: str
+    is_active: int
+    first_historical_data: str | None = None
+    last_historical_data: str | None = None
+    platform: Platform | None = None
+    status: str | None = None
 
 
 class CryptoCurrencyMap(APIRequestResponse):
-    def __init__(self, data: list[CryptoCurrencyEntry], status: ResponseStatus):
-        super().__init__(status)
-        self.data = data
+    data: list[CryptoCurrencyEntry]
+    status: ResponseStatus
 
-        self.names = {currency.symbol for currency in self.data}
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def names(self) -> set[str]:
+        return {currency.symbol for currency in self.data}
 
 
 BAD_FIELD_TYPE_MSG = (
@@ -290,173 +181,31 @@ BAD_FIELD_TYPE_MSG = (
 )
 
 
-def sentinel(name: str):
-    try:
-        storage = getattr(sentinel, "_sentinels")
-    except AttributeError:
-        storage = {}
-        setattr(sentinel, "_sentinels", storage)
-
-    try:
-        return storage[name]
-    except KeyError:
-        storage[name] = obj = object()
-        return obj
+_T = TypeVar("_T")
+_K = TypeVar("_K")
+_V = TypeVar("_V")
 
 
-_unset = sentinel("unset")
-
-
-class TypeAssertError(TypeError):
-    def __init__(self, obj, cls):
-        super().__init__()
-        self.cls = cls
-        self.obj = obj
-
-
-class MissingSchemaField(KeyError):
-    pass
-
-
-class ParseError(ValueError):
-    pass
-
-
-def _assert_type(obj, cls, display_cls=_unset):
-    if display_cls is _unset:
-        display_cls = cls
-
-    if not isinstance(obj, cls):
-        raise TypeAssertError(obj, display_cls)
-
-
-def _hydrate_object(_value, _cls):
-    if _cls is Any:
-        return _value
-
-    if isinstance(_cls, type) and issubclass(_cls, Schema):
-        _assert_type(_value, dict)
-        return read_data(_value, _cls)
-
-    typing_cls = typing.get_origin(_cls)
-    if typing_cls is not None:
-        type_args = typing.get_args(_cls)
-        if issubclass(typing_cls, list):
-            _assert_type(_value, list, _cls)
-
-            return [_hydrate_object(v, type_args[0]) for v in _value]
-
-        if issubclass(typing_cls, dict):
-            _assert_type(_value, dict, _cls)
-
-            return {
-                _hydrate_object(k, type_args[0]): _hydrate_object(
-                    v, type_args[1]
-                )
-                for k, v in _value.items()
-            }
-
-        # pragma: no cover
-        raise TypeError(f"Can't match typing alias {typing_cls!r}")
-
-    _assert_type(_value, _cls)
-
-    return _value
-
-
-def read_data(data: dict, schema_cls: type[T]) -> T:
-    fields: tuple[SchemaField, ...] = schema_cls._fields
-
-    out: dict[str, Any] = {}
-    field_names: list[str] = []
-
-    for schema_field in fields:
-        try:
-            param_type = schema_field.field_type
-            name = schema_field.name
-            field_names.append(name)
-            try:
-                value = data[name]
-            except KeyError as e:
-                if schema_field.default is schema_field.empty:
-                    raise MissingSchemaField(name) from e
-
-                value = schema_field.default
-
-            if value is None and schema_field.default is None:
-                out[name] = value
-                continue
-
-            try:
-                out[name] = _hydrate_object(value, param_type)
-            except TypeAssertError as e:
-                raise TypeError(
-                    BAD_FIELD_TYPE_MSG.format(
-                        field=name, exp_type=e.cls, act_type=type(e.obj)
-                    )
-                ) from e
-        except (MissingSchemaField, TypeAssertError, ParseError) as e:
-            raise ParseError(
-                f"Unable to parse schema {schema_cls.__name__!r}"
-            ) from e
-
-    obj = schema_cls(**out)
-
-    obj.unknown_fields.update(
-        {key: data[key] for key in data if key not in field_names}
-    )
-
-    if obj.unknown_fields:
-        warnings.warn(
-            "Unknown fields: {} while parsing schema {!r}".format(
-                list(obj.unknown_fields.keys()), schema_cls.__name__
-            )
-        )
-
-    return obj
-
-
-def serialize(obj):
-    if isinstance(obj, Schema):
-        out = {}
-        for field in obj._fields:  # type: SchemaField
-            val = getattr(obj, field.name)
-            out[field.name] = serialize(val)
-
-        if obj.unknown_fields:
-            out.update(obj.unknown_fields)
-
-        return out
-
-    if isinstance(obj, list):
-        return [serialize(o) for o in obj]
-
-    if isinstance(obj, dict):
-        return {k: serialize(v) for k, v in obj.items()}
-
-    return obj
-
-
-class CacheEntry:
-    def __init__(self, value, expire):
+class CacheEntry(Generic[_T]):
+    def __init__(self, value: _T, expire: float) -> None:
         self.value = value
         self.expire = expire
 
 
-class Cache:
-    def __init__(self, lock_cls=RLock):
-        self._data = {}
+class Cache(Generic[_K, _V]):
+    def __init__(self, lock_cls: type[ContextManager[Any]] = RLock) -> None:
+        self._data: dict[_K, CacheEntry[_V]] = {}
         self._lock = lock_cls()
 
-    def clear(self):
+    def clear(self) -> None:
         self._data.clear()
 
-    def put(self, key, value, ttl) -> CacheEntry:
+    def put(self, key: _K, value: _V, ttl: float) -> CacheEntry[_V]:
         with self._lock:
             self._data[key] = out = CacheEntry(value, time.time() + ttl)
             return out
 
-    def get(self, key: str) -> CacheEntry | None:
+    def get(self, key: _K) -> CacheEntry[_V] | None:
         with self._lock:
             try:
                 entry = self._data[key]
@@ -473,16 +222,16 @@ class Cache:
 class CoinMarketCapAPI:
     def __init__(
         self,
-        api_key: str = None,
+        api_key: str | None = None,
         api_url: str = "https://pro-api.coinmarketcap.com/v1/",
     ) -> None:
         self.api_key = api_key
         self.show_btc = False
         self.api_url = URL(api_url)
-        self.cache = Cache()
+        self.cache = Cache[str, ApiModel]()
 
     @property
-    def request_headers(self):
+    def request_headers(self) -> dict[str, str | None]:
         return {
             "Accepts": "application/json",
             "X-CMC_PRO_API_KEY": self.api_key,
@@ -509,6 +258,7 @@ class CoinMarketCapAPI:
             symbol=symbol.upper(),
             convert=convert,
         ).data.cast_to(QuoteRequestResponse)
+
         _, out = data.data.popitem()
         return out
 
@@ -526,16 +276,16 @@ class CoinMarketCapAPI:
         )
 
     def _request_cache(
-        self, name: str, endpoint: str, fmt: type[T], ttl: int
-    ) -> T:
+        self, name: str, endpoint: str, fmt: type[_ModelT], ttl: int
+    ) -> _ModelT:
         out = self.cache.get(name)
         if out is None:
             currencies = self.request(endpoint).data.cast_to(fmt)
             out = self.cache.put(name, currencies, ttl)
 
-        return out.value
+        return cast(_ModelT, out.value)
 
-    def request(self, endpoint: str, **params) -> APIResponse:
+    def request(self, endpoint: str, **params: str) -> APIResponse:
         url = str(self.api_url / endpoint)
         with requests.get(
             url, headers=self.request_headers, params=params
@@ -554,15 +304,15 @@ class CoinMarketCapAPI:
 api = CoinMarketCapAPI()
 
 
-def get_plugin_config(conf, name, default):
+def get_plugin_config(conf: dict[str, Any], name: str, default: _T) -> _T:
     try:
-        return conf["plugins"]["cryptocurrency"][name]
+        return cast(_T, conf["plugins"]["cryptocurrency"][name])
     except LookupError:
         return default
 
 
-@hook.onload()
-def init_api(bot):
+@hook.on_start()
+def init_api(bot: "AbstractBot") -> None:
     api.api_key = bot.config.get_api_key("coinmarketcap")
 
     # Enabling this requires a paid CoinMarketCap API plan
@@ -572,7 +322,7 @@ def init_api(bot):
 class Alias:
     __slots__ = ("name", "cmds")
 
-    def __init__(self, symbol, *cmds):
+    def __init__(self, symbol: str, *cmds: str) -> None:
         self.name = symbol
         if symbol not in cmds:
             cmds += (symbol,)
@@ -580,15 +330,8 @@ class Alias:
         self.cmds = cmds
 
 
-ALIASES = (
-    Alias("btc", "bitcoin"),
-    Alias("ltc", "litecoin"),
-    Alias("doge", "dogecoin"),
-)
-
-
-def alias_wrapper(alias):
-    def func(text, event):
+def alias_wrapper(alias: Alias) -> Callable[[str, CommandEvent], str]:
+    def func(text: str, event: CommandEvent) -> str:
         event.text = alias.name + " " + text
         return call_with_args(crypto_command, event)
 
@@ -600,7 +343,7 @@ def alias_wrapper(alias):
 
 # main command
 @hook.command("crypto", "cryptocurrency")
-def crypto_command(text, event):
+def crypto_command(text: str, event: CommandEvent) -> str:
     """<symbol> [currency] - Returns current value of a cryptocurrency"""
     args = text.split()
     ticker = args.pop(0)
@@ -621,7 +364,7 @@ def crypto_command(text, event):
         raise
 
     quote = data.quote[currency]
-    change = cast(Union[int, float], quote.percent_change_24h)
+    change = quote.percent_change_24h
     if change > 0:
         change_str = colors.parse("$(dark_green)+{}%$(clear)").format(change)
     elif change < 0:
@@ -651,7 +394,7 @@ def crypto_command(text, event):
     )
 
 
-def format_price(price: int | float | Real) -> str:
+def format_price(price: int | float) -> str:
     price = float(price)
     if price < 1:
         precision = max(2, min(10, len(str(Decimal(str(price)))) - 2))
@@ -663,7 +406,7 @@ def format_price(price: int | float | Real) -> str:
 
 
 @hook.command("currencies", "currencylist", autohelp=False)
-def currency_list():
+def currency_list() -> str:
     """- List all available currencies from the API"""
     currency_map = api.get_crypto_currency_map()
     currencies = sorted(
@@ -676,11 +419,11 @@ def currency_list():
     return "Available currencies: " + web.paste("\n".join(lst))
 
 
-def make_alias(alias):
+def make_alias(alias: Alias) -> Callable[[str, CommandEvent], str]:
     _hook = alias_wrapper(alias)
     return hook.command(*alias.cmds, autohelp=False)(_hook)
 
 
 btc_alias = make_alias(Alias("btc", "bitcoin"))
-ltc_alias = make_alias(Alias("ltc", "litecoin"))
+ltc_alias = make_alias(Alias("ltc", "litecoin", "ltc"))
 doge_alias = make_alias(Alias("doge", "dogecoin"))
