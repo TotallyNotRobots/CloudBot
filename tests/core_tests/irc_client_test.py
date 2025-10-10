@@ -15,10 +15,8 @@ if TYPE_CHECKING:
     from typing import Tuple
 
 
-def make_mock_conn(loop=None, *, name="testconn"):
-    if loop is None:
-        loop = asyncio.get_running_loop()
-
+def make_mock_conn(*, name="testconn"):
+    loop = asyncio.get_running_loop()
     conn = MagicMock()
     conn.name = name
     conn.loop = loop
@@ -74,11 +72,8 @@ class TestLineParsing:
     def _filter_event(event: Event) -> dict[str, Any]:
         return {k: v for k, v in dict(event).items() if not callable(v)}
 
-    def make_proto(self, loop=None):
-        if loop is None:
-            loop = asyncio.get_running_loop()
-
-        conn = make_mock_conn(loop)
+    def make_proto(self):
+        conn = make_mock_conn()
         conn.nick = "me"
         out = []
 
@@ -714,7 +709,7 @@ class TestProtocol:
 class TestSend:
     @pytest.mark.asyncio()
     async def test_send_sieve_error(self, caplog_bot):
-        conn = make_mock_conn(asyncio.get_running_loop())
+        conn = make_mock_conn()
         proto = irc._IrcProtocol(conn)
         proto.connection_made(MagicMock())
         sieve = object()
