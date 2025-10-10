@@ -155,7 +155,7 @@ filterwarnings = [
 asyncio_mode = "strict"
 
 [tool.coverage.report]
-fail_under = 60
+fail_under = 80
 exclude_lines = [
     "if TYPE_CHECKING:",
     "pragma: no cover",
