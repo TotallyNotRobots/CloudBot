@@ -9,5 +9,4 @@ pytest-pythonhashseed ==2.0.0
 pytest-random-order ==1.2.0
 responses ==0.25.8
 types-requests ~=2.32.4.20250913
-typing_extensions ==4.15.0
 -r requirements.txt
