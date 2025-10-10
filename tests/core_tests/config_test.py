@@ -15,11 +15,10 @@ def test_missing_config(
     tmp_path,
     capsys,
     mock_sleep,
-    event_loop,
-    mock_bot_factory,
+    mock_bot,
 ):
     config_file = tmp_path / "config.json"
-    bot = mock_bot_factory(loop=event_loop)
+    bot = mock_bot
     with pytest.raises(SystemExit):
         Config(bot, filename=str(config_file))
 
@@ -36,10 +35,10 @@ def test_missing_config(
     )
 
 
-def test_save(mock_bot_factory, tmp_path, event_loop):
+def test_save(mock_bot, tmp_path):
     config_file = tmp_path / "config.json"
     config_file.write_text("{}", encoding="utf-8")
-    bot = mock_bot_factory(loop=event_loop)
+    bot = mock_bot
     config = Config(bot, filename=str(config_file))
     config["foo"] = "bar"
     config.save_config()
