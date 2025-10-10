@@ -1,4 +1,4 @@
-SQLAlchemy ==1.4.54
+SQLAlchemy ==2.0.44
 attrs ==25.4.0
 beautifulsoup4 ==4.14.2
 cleverwrap == 0.3.0.2
