@@ -68,8 +68,8 @@ class TestLineParsing:
     def _filter_event(event: Event) -> dict[str, Any]:
         return {k: v for k, v in dict(event).items() if not callable(v)}
 
-    def make_proto(self, event_loop):
-        conn = make_mock_conn(event_loop)
+    def make_proto(self, loop):
+        conn = make_mock_conn(loop)
         conn.nick = "me"
         out = []
 

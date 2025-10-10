@@ -77,11 +77,11 @@ def get_test_data():
 def setup_api(
     mock_requests,
     mock_db,
-    event_loop,
+    loop,
     mock_bot_factory,
 ):
     bot = mock_bot_factory(
-        loop=event_loop,
+        loop=loop,
         config={
             "api_keys": {
                 "google_dev_key": "AIzatestapikey",

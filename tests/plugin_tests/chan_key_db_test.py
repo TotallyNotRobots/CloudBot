@@ -6,8 +6,8 @@ from plugins.core import chan_key_db, server_info
 from tests.util.mock_irc_client import MockIrcClient
 
 
-def make_conn(mock_bot_factory, event_loop):
-    bot = mock_bot_factory(loop=event_loop)
+def make_conn(mock_bot_factory, loop):
+    bot = mock_bot_factory(loop=loop)
     conn = MockIrcClient(
         bot,
         "conn",

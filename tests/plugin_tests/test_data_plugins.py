@@ -23,7 +23,7 @@ def _do_test(
     loader,
     data_name,
     cmd,
-    event_loop,
+    loop,
     mock_bot_factory,
     text: str | None = "test _ data",
     is_nick_valid=None,
@@ -31,7 +31,7 @@ def _do_test(
     bot_nick=None,
 ):
     plugin = importlib.import_module("plugins." + plugin_name)
-    bot = mock_bot_factory(base_dir=Path().resolve(), loop=event_loop)
+    bot = mock_bot_factory(base_dir=Path().resolve(), loop=loop)
     event = Event(
         hook=MagicMock(),
         bot=bot,
