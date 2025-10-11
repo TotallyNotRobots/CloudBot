@@ -2,7 +2,6 @@
 Validates all hook registrations in all plugins
 """
 
-import asyncio
 import importlib
 import inspect
 import re
@@ -234,7 +233,7 @@ def test_hook_args(hook, mock_bot):
 
 def test_coroutine_hooks(hook):
     if inspect.isgeneratorfunction(hook.function):  # pragma: no cover
-        assert asyncio.iscoroutinefunction(hook.function), (
+        assert inspect.iscoroutinefunction(hook.function), (
             "Non-coroutine generator function used for a hook. This is most liekly due to incorrect ordering of the "
             "hook/coroutine decorators."
         )
