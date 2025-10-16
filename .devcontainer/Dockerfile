@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.13@sha256:b4b3a3f0cf67b787061d77bc4b76cdd37f78cc6829050ed3f7dcb7269a99beb5
+FROM mcr.microsoft.com/devcontainers/python:3.13@sha256:3b72285e434158a9827616e905bfced3da101c8ad13705468962fae67bbd5c04
 
 RUN \
     pipx uninstall pydocstyle \
