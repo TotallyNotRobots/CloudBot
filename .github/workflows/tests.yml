@@ -87,7 +87,7 @@ jobs:
         PYTHONPATH: .
         SQLALCHEMY_WARN_20: 1
 
-    - uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
+    - uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
       with:
         name: build-${{ matrix.python-ver }}
         fail_ci_if_error: true
