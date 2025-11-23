@@ -57,9 +57,12 @@ async def test_cap_req(patch_import_module, mock_bot: MockBot) -> None:
 
     calls = []
 
+    nak_caps = ["a.vendor/cap"]
+
     def cmd(cmd, subcmd, *args) -> None:
         calls.append((cmd, subcmd) + args)
-        p = ParamList.parse(f"* ACK :{' '.join(args)}")
+        nak = any(arg in nak_caps for arg in args)
+        p = ParamList.parse(f"* {'NAK' if nak else 'ACK'} :{' '.join(args)}")
         cmd_event = Event(
             irc_paramlist=p,
             bot=event.bot,
@@ -73,7 +76,7 @@ async def test_cap_req(patch_import_module, mock_bot: MockBot) -> None:
         assert res is None
 
     info = cap.CapInfoExt.ensure(event.conn)
-    assert info.server_caps == {c: True for c in cap_names}
+    assert info.server_caps == {c: c not in nak_caps for c in cap_names}
 
     assert calls == [("CAP", "REQ", c) for c in cap_names]
     assert conn.mock_calls() == [call.send("CAP LS 302"), call.send("CAP END")]
