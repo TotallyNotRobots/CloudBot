@@ -1,147 +1,150 @@
 exclude: ^\.vscode/.*$
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c   # frozen: v6.0.0
-  hooks:
-  - id: trailing-whitespace
-    args: ['--markdown-linebreak-ext=md,markdown']
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: check-added-large-files
-  - id: check-ast
-  - id: fix-byte-order-marker
-  - id: check-merge-conflict
-  - id: debug-statements
-  - id: detect-private-key
-    exclude: tests/data/.*
-  - id: check-builtin-literals
-  - id: check-case-conflict
-  - id: check-docstring-first
-  - id: check-executables-have-shebangs
-  - id: check-json
-    exclude: '.devcontainer/.*'
-  - id: pretty-format-json
-    exclude: '.devcontainer/.*'
-    args:
-    - --indent
-    - '4'
-    - --autofix
-    - --no-sort-keys
-  - id: check-toml
-- repo: https://github.com/psf/black
-  rev: 782e5605c86aab56be6f905da10dcd3e463fd9c2  # frozen: 25.12.0
-  hooks:
-  - id: black
-- repo: https://github.com/pycqa/isort
-  rev: 0a09c783808cfe77bb3269250f663ff733d23302   # frozen: 7.0.0
-  hooks:
-  - id: isort
-- repo: https://github.com/pre-commit/pygrep-hooks
-  rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316   # frozen: v1.10.0
-  hooks:
-  - id: python-no-eval
-  - id: python-no-log-warn
-- repo: https://github.com/asottile/pyupgrade
-  rev: 75992aaa40730136014f34227e0135f63fc951b4  # frozen: v3.21.2
-  hooks:
-  - id: pyupgrade
-    args:
-    - "--py310-plus"
-- repo: https://github.com/PyCQA/autoflake
-  rev: 0544741e2b4a22b472d9d93e37d4ea9153820bb1   # frozen: v2.3.1
-  hooks:
-  - id: autoflake
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: ['--markdown-linebreak-ext=md,markdown']
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-ast
+      - id: fix-byte-order-marker
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: detect-private-key
+        exclude: tests/data/.*
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+        exclude: '.devcontainer/.*'
+      - id: pretty-format-json
+        exclude: '.devcontainer/.*'
+        args:
+          - --indent
+          - '4'
+          - --autofix
+          - --no-sort-keys
+      - id: check-toml
+  - repo: https://github.com/psf/black
+    rev: 782e5605c86aab56be6f905da10dcd3e463fd9c2 # frozen: 25.12.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: 0a09c783808cfe77bb3269250f663ff733d23302 # frozen: 7.0.0
+    hooks:
+      - id: isort
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316 # frozen: v1.10.0
+    hooks:
+      - id: python-no-eval
+      - id: python-no-log-warn
+  - repo: https://github.com/asottile/pyupgrade
+    rev: 75992aaa40730136014f34227e0135f63fc951b4 # frozen: v3.21.2
+    hooks:
+      - id: pyupgrade
+        args:
+          - "--py310-plus"
+  - repo: https://github.com/PyCQA/autoflake
+    rev: 0544741e2b4a22b472d9d93e37d4ea9153820bb1 # frozen: v2.3.1
+    hooks:
+      - id: autoflake
 
-- repo: local
-  hooks:
-  - id: mypy
-    name: mypy
-    entry: mypy
-    language: system
-    types_or: [python, pyi]
-  - id: ruff-check
-    name: ruff check
-    entry: ruff check --fix
-    language: system
-    types_or:
-    - python
-    - pyi
-  - id: ruff-format
-    name: ruff format
-    entry: ruff format
-    language: system
-    types_or:
-    - python
-    - pyi
-  - id: replace-non-ascii
-    name: replace non ascii characters
-    entry: python3 tools/escape_non_ascii.py
-    language: python
-    types: [python]
-- repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-  rev: 8d1b9cadaf854cb25bb0b0f5870e1cc66a083d6b   # frozen: 0.2.3
-  hooks:
-  - id: yamlfmt
-    args:
-    - --mapping
-    - '2'
-    - --sequence
-    - '2'
-    - --offset
-    - '0'
-    - --width
-    - '120'
-    - -e
-    - -p
-- repo: https://github.com/commitizen-tools/commitizen
-  rev: 9f3ec868c0429155a46b4819b625d47a8522a3d5  # frozen: v4.10.0
-  hooks:
-  - id: commitizen
-- repo: https://github.com/andreoliwa/nitpick
-  rev: '3ba97e5d57882cca6ef1eccaae683753c8a26630'  # frozen: v0.38.1
-  hooks:
-  - id: nitpick
-- repo: https://github.com/ikamensh/flynt
-  rev: '97be693bf18bc2f050667dd282d243e2824b81e2'    # frozen: 1.0.6
-  hooks:
-  - id: flynt
-- repo: https://github.com/codespell-project/codespell
-  rev: '63c8f8312b7559622c0d82815639671ae42132ac'    # frozen: v2.4.1
-  hooks:
-  - id: codespell
-    exclude: data/.*
-    additional_dependencies:
-    - tomli ; python_version < '3.11'
-- repo: https://github.com/MarcoGorelli/auto-walrus
-  rev: 'ba0661836089a532a710f68713a3e3e53f7f0113'    # frozen: 0.3.4
-  hooks:
-  - id: auto-walrus
-    additional_dependencies:
-    - tomli ; python_version < '3.11'
-- repo: https://github.com/JelleZijlstra/autotyping
-  rev: 4dcb8d9dcb3dceedce8de4df074d18de0b7cfe3c  # frozen: 24.9.0
-  hooks:
-  - id: autotyping
-    stages:
-    - pre-commit
-    args:
-    - --annotate-named-param
-    - conn:cloudbot.client.Client
-    - --safe
-- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: '19b28a9f0a0102b30776f054bea4176e7af50dbe'    # frozen: v2.15.0
-  hooks:
-  - id: pretty-format-toml
-    args:
-    - --autofix
-    - --no-sort
-    - --trailing-commas
-    - --indent
-    - '4'
-    - --inline-comment-spaces
-    - '1'
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --fix
+        language: system
+        types_or:
+          - python
+          - pyi
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types_or:
+          - python
+          - pyi
+      - id: replace-non-ascii
+        name: replace non ascii characters
+        entry: python3 tools/escape_non_ascii.py
+        language: python
+        types: [python]
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 8d1b9cadaf854cb25bb0b0f5870e1cc66a083d6b # frozen: 0.2.3
+    hooks:
+      - id: yamlfmt
+        args:
+          - --mapping
+          - '2'
+          - --sequence
+          - '2'
+          - --offset
+          - '0'
+          - --width
+          - '120'
+          - -e
+          - -p
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 9f3ec868c0429155a46b4819b625d47a8522a3d5 # frozen: v4.10.0
+    hooks:
+      - id: commitizen
+  - repo: https://github.com/andreoliwa/nitpick
+    rev: '3ba97e5d57882cca6ef1eccaae683753c8a26630' # frozen: v0.38.1
+    hooks:
+      - id: nitpick
+  - repo: https://github.com/ikamensh/flynt
+    rev: '97be693bf18bc2f050667dd282d243e2824b81e2'  # frozen: 1.0.6
+    hooks:
+      - id: flynt
+  - repo: https://github.com/codespell-project/codespell
+    rev: '63c8f8312b7559622c0d82815639671ae42132ac'  # frozen: v2.4.1
+    hooks:
+      - id: codespell
+        exclude: data/.*
+        additional_dependencies:
+          - tomli ; python_version < '3.11'
+  - repo: https://github.com/MarcoGorelli/auto-walrus
+    rev: 'ba0661836089a532a710f68713a3e3e53f7f0113'  # frozen: 0.3.4
+    hooks:
+      - id: auto-walrus
+        additional_dependencies:
+          - tomli ; python_version < '3.11'
+  - repo: https://github.com/JelleZijlstra/autotyping
+    rev: 4dcb8d9dcb3dceedce8de4df074d18de0b7cfe3c # frozen: 24.9.0
+    hooks:
+      - id: autotyping
+        stages:
+          - pre-commit
+        args:
+          - --annotate-named-param
+          - conn:cloudbot.client.Client
+          - --safe
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: '19b28a9f0a0102b30776f054bea4176e7af50dbe'  # frozen: v2.15.0
+    hooks:
+      - id: pretty-format-toml
+        args:
+          - --autofix
+          - --no-sort
+          - --trailing-commas
+          - --indent
+          - '4'
+          - --inline-comment-spaces
+          - '1'
+  - repo: https://github.com/TotallyNotRobots/check-spdx-header
+    hooks:
+      - id: fix-spdx-header
 minimum_pre_commit_version: 4.3.0
 default_install_hook_types:
-- pre-commit
-- pre-push
-- commit-msg
+  - pre-commit
+  - pre-push
+  - commit-msg
