@@ -1,3 +1,4 @@
+import json
 import requests
 from requests import HTTPError, RequestException
 
@@ -10,25 +11,25 @@ from cloudbot.util.web import (
 )
 
 
-class Sprunge(Pastebin):
+class Sharey(Pastebin):
     def __init__(self, base_url) -> None:
         super().__init__()
         self.url = base_url
 
     def paste(self, data, ext) -> str:
-        if isinstance(data, str):
-            encoded = data.encode()
-        else:
-            encoded = data
+        try:
+            encoded = json.loads(data)
+        except json.JSONDecodeError:
+            encoded = {"content": data}
 
-        params = {
-            "sprunge": encoded,
-        }
+        # params = {
+        #     "content": encoded,
+        # }
 
         try:
-            with requests.post(self.url, data=params) as response:
+            with requests.post(self.url, json=encoded) as response:
                 response.raise_for_status()
-                url = response.text.strip()
+                url = response.json()["url"]
         except HTTPError as e:
             r = e.response
             raise ServiceHTTPError(r.reason, r) from e
@@ -43,9 +44,9 @@ class Sprunge(Pastebin):
 
 @hook.on_start()
 def register() -> None:
-    pastebins.register("sprunge", Sprunge("http://sprunge.us"))
+    pastebins.register("sharey", Sharey("https://sharey.org/api/paste"))
 
 
 @hook.on_stop()
 def unregister() -> None:
-    pastebins.remove("sprunge")
+    pastebins.remove("sharey")
