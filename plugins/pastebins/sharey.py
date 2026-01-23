@@ -1,4 +1,5 @@
 import json
+
 import requests
 from requests import HTTPError, RequestException
 
@@ -16,15 +17,11 @@ class Sharey(Pastebin):
         super().__init__()
         self.url = base_url
 
-    def paste(self, data, ext) -> str:
+    def paste(self, data: str | bytes, ext: str) -> str:
         try:
             encoded = json.loads(data)
         except json.JSONDecodeError:
             encoded = {"content": data}
-
-        # params = {
-        #     "content": encoded,
-        # }
 
         try:
             with requests.post(self.url, json=encoded) as response:

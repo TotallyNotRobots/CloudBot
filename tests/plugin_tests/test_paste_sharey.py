@@ -1,5 +1,6 @@
-import pytest
 import json
+
+import pytest
 
 from cloudbot.util import web
 from plugins.pastebins import sharey
@@ -21,7 +22,9 @@ def test_paste(mock_requests) -> None:
     paster = web.pastebins["sharey"]
 
     mock_requests.add(
-        "POST", "https://sharey.org/api/paste", json={"url": "https://sharey.org/foobar"}
+        "POST",
+        "https://sharey.org/api/paste",
+        json={"url": "https://sharey.org/foobar"},
     )
     assert paster.paste("test data", "txt") == "https://sharey.org/foobar?txt"
     sharey.unregister()
@@ -30,7 +33,7 @@ def test_paste(mock_requests) -> None:
 def test_data_params(mock_requests) -> None:
     sharey.register()
 
-    body = None
+    body: str | bytes | None = None
 
     def req_cb(req):
         nonlocal body
@@ -38,8 +41,11 @@ def test_data_params(mock_requests) -> None:
         return 200, {}, json.dumps({"url": "https://sharey.org/foobar"})
 
     paster = web.pastebins["sharey"]
-    mock_requests.add_callback("POST", "https://sharey.org/api/paste", callback=req_cb)
+    mock_requests.add_callback(
+        "POST", "https://sharey.org/api/paste", callback=req_cb
+    )
     assert paster.paste("test data", "txt") == "https://sharey.org/foobar?txt"
+    assert body is not None
     assert json.loads(body) == {"content": "test data"}
     sharey.unregister()
 
@@ -47,7 +53,7 @@ def test_data_params(mock_requests) -> None:
 def test_paste_json_input(mock_requests) -> None:
     sharey.register()
 
-    body = None
+    body: str | bytes | None = None
 
     def req_cb(req):
         nonlocal body
@@ -55,8 +61,13 @@ def test_paste_json_input(mock_requests) -> None:
         return 200, {}, json.dumps({"url": "https://sharey.org/foobar"})
 
     paster = web.pastebins["sharey"]
-    mock_requests.add_callback("POST", "https://sharey.org/api/paste", callback=req_cb)
-    assert paster.paste('{"foo": "bar"}', "txt") == "https://sharey.org/foobar?txt"
+    mock_requests.add_callback(
+        "POST", "https://sharey.org/api/paste", callback=req_cb
+    )
+    assert (
+        paster.paste('{"foo": "bar"}', "txt") == "https://sharey.org/foobar?txt"
+    )
+    assert body is not None
     assert json.loads(body) == {"foo": "bar"}
     sharey.unregister()
 
