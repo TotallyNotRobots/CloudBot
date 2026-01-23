@@ -7,6 +7,6 @@ pytest-pythonhashseed==2.0.1
 pytest-random-order==1.2.0
 pytest==9.0.2
 responses==0.25.8
-ruff==0.14.10
+ruff==0.14.14
 types-requests==2.32.4.20260107
 -r requirements.txt
