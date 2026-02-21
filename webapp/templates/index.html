@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Who Am I? – LLM Persona Guessing Game</title>
+  <meta name="description" content="Generate mysterious LLM persona prompts, ask questions, and guess the fictional character!">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- ── HEADER ───────────────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">🎭</span>
+          <span>Who Am I?</span>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-btn active" data-view="home">Home</button>
+          <button class="nav-btn" data-view="game">Play</button>
+          <button class="nav-btn" data-view="leaderboard">🏆 Leaderboard</button>
+          <button class="nav-btn" data-view="facts">💡 Fun Facts</button>
+          <button class="btn-icon" id="btn-set-user" title="Set your name">
+            <span id="header-username">Set Name</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- ════════════════════════════════════════════════════════════════
+           VIEW: HOME
+           ════════════════════════════════════════════════════════════════ -->
+      <section id="view-home" class="view active">
+
+        <div class="hero">
+          <div class="badge">✨ Daily Challenge Available</div>
+          <h1>Guess the Fictional Character</h1>
+          <p>
+            We generate a mysterious LLM persona prompt. You paste it into any AI chatbot,
+            ask questions, and figure out <em>who</em> the character is. Then submit your
+            answer to climb the leaderboard!
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="btn-daily">
+              🗓️ Today's Daily Challenge
+            </button>
+            <button class="btn btn-secondary" id="btn-freeplay">
+              🎲 Random Free Play
+            </button>
+          </div>
+        </div>
+
+        <!-- Daily countdown -->
+        <div class="card text-center" style="max-width:420px; margin: 0 auto 2rem;">
+          <p class="text-muted" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem">
+            Next daily challenge in
+          </p>
+          <div style="font-size:2rem; font-weight:700; font-family:'Fira Code',monospace; color:var(--accent2)">
+            <span id="daily-countdown">00:00:00</span>
+          </div>
+        </div>
+
+        <!-- How it works -->
+        <h2 style="margin-bottom:.5rem">How It Works</h2>
+        <p class="text-muted" style="margin-bottom:1rem">Five simple steps to play</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h3>Generate a Prompt</h3>
+            <p>Click <em>Daily Challenge</em> or <em>Free Play</em> to get a unique mystery persona prompt.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <h3>Copy to any LLM</h3>
+            <p>Paste the prompt into ChatGPT, Claude, Gemini, or any AI chat as the system message.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <h3>Ask Questions</h3>
+            <p>The LLM will speak as a mystery character. Ask yes/no or open questions to gather clues.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <h3>Make Your Guess</h3>
+            <p>Come back here, enter how many questions you asked, and submit your answer.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">5</div>
+            <h3>Hit the Leaderboard</h3>
+            <p>Correct guesses go on the board — fewer questions = higher rank. Can you beat 5?</p>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ════════════════════════════════════════════════════════════════
+           VIEW: GAME
+           ════════════════════════════════════════════════════════════════ -->
+      <section id="view-game" class="view">
+
+        <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap; gap:.75rem">
+          <div>
+            <h2>Play</h2>
+            <p class="text-muted" style="font-size:.85rem">Copy the prompt below into any LLM and start interrogating!</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-new-round">🎲 New Random Character</button>
+        </div>
+
+        <!-- Game content injected by JS -->
+        <div id="game-section" class="hidden">
+          <p class="text-muted text-center" style="padding:3rem">Generating your character…</p>
+        </div>
+
+        <!-- Placeholder before a game starts -->
+        <div id="game-placeholder" class="card text-center" style="padding:3rem">
+          <div style="font-size:3rem;margin-bottom:1rem">🎭</div>
+          <h3>No active game</h3>
+          <p class="mt-1 mb-2">Start a Daily Challenge or generate a random character to begin.</p>
+          <div class="flex gap-2 items-center" style="justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="startDaily()">🗓️ Daily Challenge</button>
+            <button class="btn btn-secondary" onclick="startFreePlay()">🎲 Random</button>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ════════════════════════════════════════════════════════════════
+           VIEW: LEADERBOARD
+           ════════════════════════════════════════════════════════════════ -->
+      <section id="view-leaderboard" class="view">
+
+        <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap; gap:.75rem">
+          <div>
+            <h2>🏆 Leaderboard</h2>
+            <p class="text-muted" style="font-size:.85rem">Today's daily challenge — ranked by fewest questions asked.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh-lb">↻ Refresh</button>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th style="width:56px">#</th>
+                <th>Player</th>
+                <th>Questions</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="lb-tbody">
+              <tr>
+                <td colspan="4" class="text-center text-muted" style="padding:2rem">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card mt-2" style="text-align:center; padding:1.5rem">
+          <p class="text-muted" style="margin-bottom:1rem">Think you can top the board?</p>
+          <div class="flex gap-2 items-center" style="justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="startDaily()">🗓️ Play Today's Challenge</button>
+            <button class="btn btn-secondary" onclick="showView('home')">← Back Home</button>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ════════════════════════════════════════════════════════════════
+           VIEW: FUN FACTS
+           ════════════════════════════════════════════════════════════════ -->
+      <section id="view-facts" class="view">
+
+        <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap; gap:.75rem">
+          <div>
+            <h2>💡 Fun Facts</h2>
+            <p class="text-muted" style="font-size:.85rem">Random things about LLMs, prompting, and AI you might not know.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-new-fact">↻ New Set</button>
+        </div>
+
+        <div id="facts-grid" class="facts-grid">
+          <p class="text-muted">Loading facts…</p>
+        </div>
+
+        <div class="card mt-2" style="background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(167,139,250,.06)); border-color:rgba(108,99,255,.25)">
+          <h3 style="margin-bottom:.4rem">🤖 What even is a Persona Prompt?</h3>
+          <p style="font-size:.9rem; color:var(--text); line-height:1.8">
+            A <strong>persona prompt</strong> is a special system message you put at the start of a
+            conversation with an LLM. It tells the AI <em>how to behave</em>: its personality, speaking
+            style, background, and worldview. Done right, the AI fully embodies the character —
+            answering questions exactly as that person would, without breaking immersion.
+            This game exploits exactly that power to create a guessing game!
+          </p>
+        </div>
+
+        <div class="card mt-2">
+          <h3 style="margin-bottom:.75rem">🔑 Prompting Tips for This Game</h3>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:.6rem">
+            <li style="display:flex;gap:.6rem;align-items:flex-start"><span style="color:var(--accent2)">→</span> <span style="font-size:.9rem;color:var(--text)">Ask <strong>yes/no questions</strong> first to narrow down era, world, and genre.</span></li>
+            <li style="display:flex;gap:.6rem;align-items:flex-start"><span style="color:var(--accent2)">→</span> <span style="font-size:.9rem;color:var(--text)">Try <strong>"Are you human?"</strong>, <strong>"Are you alive?"</strong>, <strong>"Do you have supernatural powers?"</strong></span></li>
+            <li style="display:flex;gap:.6rem;align-items:flex-start"><span style="color:var(--accent2)">→</span> <span style="font-size:.9rem;color:var(--text)">Ask about <strong>relationships</strong>: "Do you have a nemesis?", "Do you have a family?"</span></li>
+            <li style="display:flex;gap:.6rem;align-items:flex-start"><span style="color:var(--accent2)">→</span> <span style="font-size:.9rem;color:var(--text)">Reference <strong>time period</strong>: "Did you live before the 20th century?"</span></li>
+            <li style="display:flex;gap:.6rem;align-items:flex-start"><span style="color:var(--accent2)">→</span> <span style="font-size:.9rem;color:var(--text)">Ask about <strong>medium</strong>: "Am I more likely to find your story in a book or on screen?"</span></li>
+          </ul>
+        </div>
+
+      </section>
+
+    </div><!-- /container -->
+  </main>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>
+        Who Am I? — Free forever · Powered by
+        <a href="https://www.anthropic.com" target="_blank" rel="noopener">Claude</a> ·
+        Built for fun 🎭
+      </p>
+    </div>
+  </footer>
+
+</div><!-- /app-wrapper -->
+
+
+<!-- ── USERNAME MODAL ────────────────────────────────────────────────── -->
+<div id="modal-username" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>👤 What's your name?</h2>
+    <p>Your name will appear on the leaderboard when you solve a challenge.</p>
+    <input
+      class="input mt-2"
+      id="modal-username-input"
+      type="text"
+      placeholder="Enter a nickname…"
+      maxlength="80"
+      autocomplete="off"
+    />
+    <div class="modal-actions">
+      <button class="btn btn-primary full-width" id="modal-username-confirm">Save & Continue</button>
+      <button class="btn btn-secondary" id="modal-username-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST CONTAINER ───────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
