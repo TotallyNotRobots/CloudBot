@@ -85,3 +85,17 @@ This product uses data from <a href="http://wordnik.com">http://wordnik.com</a> 
 [latest source]: https://github.com/TotallyNotRobots/CloudBot/archive/main.zip
 [latest release]: https://github.com/TotallyNotRobots/CloudBot/releases/latest
 [TheTVDB.com]: https://thetvdb.com/
+
+## Running with Docker
+
+Build the image:
+
+docker build -t cloudbot .
+
+Run the bot:
+
+docker run cloudbot
+
+Or use docker compose:
+
+docker compose up
