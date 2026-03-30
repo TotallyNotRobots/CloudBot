@@ -64,7 +64,7 @@ jobs:
         pip install -Ur requirements-dev.txt
 
     - name: cache pre-commit
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
       with:
         path: ~/.cache/pre-commit
         key: pre-commit-${{runner.os}}-${{matrix.python-ver}}
