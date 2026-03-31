@@ -9,7 +9,7 @@ isodate==0.7.2
 lxml==6.0.2
 mcstatus==12.0.6
 multidict==6.7.0
-nltk==3.9.2
+nltk==3.9.4
 psutil==7.2.1
 py-irclib==0.8.1
 pydantic-extra-types==2.11.0
