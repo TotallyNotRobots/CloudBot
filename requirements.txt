@@ -6,7 +6,7 @@ feedparser==6.0.12
 googlemaps==4.10.0
 imgurpython==1.1.7
 isodate==0.7.2
-lxml==6.0.2
+lxml==6.1.0
 mcstatus==12.0.6
 multidict==6.7.0
 nltk==3.9.4
