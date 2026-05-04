@@ -29,11 +29,11 @@ repos:
     - --no-sort-keys
   - id: check-toml
 - repo: https://github.com/psf/black
-  rev: 782e5605c86aab56be6f905da10dcd3e463fd9c2  # frozen: 25.12.0
+  rev: c6755bb741b6481d6b3d3bb563c83fa060db96c9  # frozen: 26.3.1
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: 0a09c783808cfe77bb3269250f663ff733d23302   # frozen: 7.0.0
+  rev: dac090ce4d9ee313d086e2e89ab1acb8c2664fa1  # frozen: 9.0.0a3
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
@@ -48,7 +48,7 @@ repos:
     args:
     - "--py310-plus"
 - repo: https://github.com/PyCQA/autoflake
-  rev: 0544741e2b4a22b472d9d93e37d4ea9153820bb1   # frozen: v2.3.1
+  rev: 2d3853a9f31d97783fb2e181d41cd82a6babd666  # frozen: v2.3.3
   hooks:
   - id: autoflake
 
@@ -94,7 +94,7 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: 9f3ec868c0429155a46b4819b625d47a8522a3d5  # frozen: v4.10.0
+  rev: 460d83c603b0ddf80dc2a11d5e7ec2f464142737  # frozen: v4.15.0
   hooks:
   - id: commitizen
 - repo: https://github.com/andreoliwa/nitpick
@@ -106,14 +106,14 @@ repos:
   hooks:
   - id: flynt
 - repo: https://github.com/codespell-project/codespell
-  rev: '63c8f8312b7559622c0d82815639671ae42132ac'    # frozen: v2.4.1
+  rev: '2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a'  # frozen: v2.4.2
   hooks:
   - id: codespell
     exclude: data/.*
     additional_dependencies:
     - tomli ; python_version < '3.11'
 - repo: https://github.com/MarcoGorelli/auto-walrus
-  rev: 'ba0661836089a532a710f68713a3e3e53f7f0113'    # frozen: 0.3.4
+  rev: '1743edbed52f3d61886b59d98a27164a8af29c0d'  # frozen: 0.4.1
   hooks:
   - id: auto-walrus
     additional_dependencies:
@@ -129,7 +129,7 @@ repos:
     - conn:cloudbot.client.Client
     - --safe
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: '19b28a9f0a0102b30776f054bea4176e7af50dbe'    # frozen: v2.15.0
+  rev: '4380fbb73a154b5f5624794c1c78d9719ccc860f'  # frozen: v2.16.0
   hooks:
   - id: pretty-format-toml
     args:
