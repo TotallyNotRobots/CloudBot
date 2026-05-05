@@ -8,7 +8,7 @@ imgurpython==1.1.7
 isodate==0.7.2
 lxml==6.1.0
 mcstatus==12.0.6
-multidict==6.7.0
+multidict==6.7.1
 nltk==3.9.4
 psutil==7.2.1
 py-irclib==0.8.1
