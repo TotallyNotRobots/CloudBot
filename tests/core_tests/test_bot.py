@@ -496,9 +496,7 @@ def test_get_cmd_regex(mock_bot) -> None:
         conn=MockClient(bot=mock_bot, nick="Bot"),
     )
     regex = get_cmd_regex(event)
-    assert (
-        regex.pattern
-        == r"""
+    expected = r"""
         ^
         # Prefix or nick
         (?:
@@ -510,7 +508,8 @@ def test_get_cmd_regex(mock_bot) -> None:
         (?:$|\s+)
         (?P<text>.*)     # Text
         """
-    )
+
+    assert regex.pattern == expected
 
 
 def patch_config(config):

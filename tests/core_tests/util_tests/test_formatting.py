@@ -234,14 +234,11 @@ def test_gen_md_table() -> None:
         ["1", "2"],
         ["3", "4"],
     ]
-    assert (
-        gen_markdown_table(headers, data)
-        == dedent(
-            """
+    expected = """
     | ColumnA | Column B |
     | ------- | -------- |
     | 1       | 2        |
     | 3       | 4        |
     """
-        ).strip()
-    )
+
+    assert gen_markdown_table(headers, data) == dedent(expected).strip()

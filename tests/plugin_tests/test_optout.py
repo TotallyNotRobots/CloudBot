@@ -367,9 +367,7 @@ def test_format() -> None:
         ),
     ]
 
-    assert (
-        optout.format_optout_list(optouts)
-        == """\
+    expected = """\
 | Channel Pattern | Hook Pattern | Allowed |
 | --------------- | ------------ | ------- |
 | #other          | my.hook      | true    |
@@ -378,7 +376,8 @@ def test_format() -> None:
 | #foobar         | my.*         | true    |
 | #fooba*         | my.*         | false   |
 | #foobar*        | my.*         | false   |"""
-    )
+
+    assert optout.format_optout_list(optouts) == expected
 
 
 class TestSetOptOut:
