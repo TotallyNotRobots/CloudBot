@@ -8,5 +8,5 @@ pytest-random-order==1.2.0
 pytest==9.0.3
 responses==0.25.8
 ruff==0.14.10
-types-requests==2.32.4.20260107
+types-requests==2.32.4.20260324
 -r requirements.txt
