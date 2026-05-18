@@ -12,7 +12,7 @@ multidict==6.7.1
 nltk==3.9.4
 psutil==7.2.2
 py-irclib==0.8.1
-pydantic-extra-types==2.11.0
+pydantic-extra-types==2.11.1
 pydantic[email]==2.12.5
 pyowm==3.5.0
 requests==2.33.1
