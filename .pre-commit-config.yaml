@@ -29,7 +29,7 @@ repos:
     - --no-sort-keys
   - id: check-toml
 - repo: https://github.com/psf/black
-  rev: c6755bb741b6481d6b3d3bb563c83fa060db96c9  # frozen: 26.3.1
+  rev: 87928e6d6761a4a6d22250e1fee5601b3998086e  # frozen: 26.5.1
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
