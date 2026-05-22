@@ -13,7 +13,7 @@ nltk==3.9.4
 psutil==7.2.2
 py-irclib==0.8.2
 pydantic-extra-types==2.11.1
-pydantic[email]==2.12.5
+pydantic[email]==2.13.4
 pyowm==3.5.0
 requests==2.33.1
 sqlalchemy==2.0.49
