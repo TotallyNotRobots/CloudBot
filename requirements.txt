@@ -15,7 +15,7 @@ py-irclib==0.8.2
 pydantic-extra-types==2.11.1
 pydantic[email]==2.12.5
 pyowm==3.5.0
-requests==2.33.1
+requests==2.34.2
 sqlalchemy==2.0.49
 typing_extensions==4.15.0
 urllib3==2.7.0
