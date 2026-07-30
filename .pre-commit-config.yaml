@@ -33,7 +33,7 @@ repos:
   hooks:
   - id: black
 - repo: https://github.com/pycqa/isort
-  rev: dac090ce4d9ee313d086e2e89ab1acb8c2664fa1  # frozen: 9.0.0a3
+  rev: 7f321d375f31a2f03833bc9a548e8783f2b5c420  # frozen: 9.0.0b1
   hooks:
   - id: isort
 - repo: https://github.com/pre-commit/pygrep-hooks
@@ -94,7 +94,7 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: 0fedbbe40de438359fdf74bb0ef645ed23063999  # frozen: v4.16.2
+  rev: 1afca4a81ca3e578ba142fe15a0f8a1a94b894ad  # frozen: v4.17.0
   hooks:
   - id: commitizen
 - repo: https://github.com/andreoliwa/nitpick
@@ -106,7 +106,7 @@ repos:
   hooks:
   - id: flynt
 - repo: https://github.com/codespell-project/codespell
-  rev: '2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a'  # frozen: v2.4.2
+  rev: '57b21406f092110c18776e39b0bda50d37c945c8'  # frozen: v2.4.3
   hooks:
   - id: codespell
     exclude: data/.*
