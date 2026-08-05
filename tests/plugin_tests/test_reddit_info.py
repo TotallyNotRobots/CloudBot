@@ -287,7 +287,7 @@ def test_reddit_random_post_sub_not_found(mock_requests: RequestsMock) -> None:
     ]
 
 
-def test_karma(mock_requests) -> None:
+def test_karma(mock_requests, freeze_time) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",
@@ -381,12 +381,12 @@ def test_karma(mock_requests) -> None:
     assert wrap_hook_response(reddit_info.karma, event) == [
         (
             "return",
-            "\x02foo\x02 \x028\x02 link karma and \x0264\x02 comment karma | email has been verified | cake day is July 26 | redditor for 20 years.",
+            "\x02foo\x02 \x028\x02 link karma and \x0264\x02 comment karma | email has been verified | cake day is July 25 | redditor for 14 years.",
         ),
     ]
 
 
-def test_cake_day(mock_requests) -> None:
+def test_cake_day(mock_requests, freeze_time) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",
@@ -480,6 +480,6 @@ def test_cake_day(mock_requests) -> None:
     assert wrap_hook_response(reddit_info.cake_day, event) == [
         (
             "return",
-            "\x02foo's\x02 cake day is July 26, they have been a redditor for 20 years.",
+            "\x02foo's\x02 cake day is July 25, they have been a redditor for 14 years.",
         ),
     ]
