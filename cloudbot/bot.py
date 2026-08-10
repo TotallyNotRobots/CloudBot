@@ -25,6 +25,7 @@ from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
 from cloudbot.reloader import ConfigReloader, PluginReloader
 from cloudbot.util import CLIENT_ATTR, database, formatting
+from cloudbot.util.extensible_data import Extensible
 from cloudbot.util.mapping import KeyFoldDict
 
 if TYPE_CHECKING:
@@ -42,10 +43,11 @@ __all__ = [
 logger = logging.getLogger("cloudbot")
 
 
-class AbstractBot:
+class AbstractBot(Extensible):
     def __init__(
         self, *, config: Config, loop: asyncio.AbstractEventLoop | None = None
     ) -> None:
+        super().__init__()
         self.config = config
         self.loop = loop
 

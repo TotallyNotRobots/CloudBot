@@ -67,11 +67,15 @@ def wrap_hook_response(func, event, results=None):
     def action(*args, **kwargs) -> None:  # pragma: no cover
         add_result("action", args, kwargs)
 
+    def admin_log(*args, **kwargs) -> None:  # pragma: no cover
+        add_result("admin_log", args, kwargs)
+
     patch_notice = patch.object(event.conn, "notice", notice)
     patch_message = patch.object(event.conn, "message", message)
     patch_action = patch.object(event.conn, "action", action)
+    patch_admin_log = patch.object(event, "admin_log", admin_log)
 
-    with patch_action, patch_message, patch_notice:
+    with patch_action, patch_message, patch_notice, patch_admin_log:
         res = call_with_args(func, event)
         if res is not None:
             add_result("return", res)
@@ -102,12 +106,22 @@ async def wrap_hook_response_async(func, event, results=None):
     def action(*args, **kwargs) -> None:  # pragma: no cover
         add_result("action", args, kwargs)
 
+    def admin_log(*args, **kwargs) -> None:  # pragma: no cover
+        add_result("admin_log", args, kwargs)
+
     patch_notice = patch.object(event.conn, "notice", notice)
     patch_message = patch.object(event.conn, "message", message)
     patch_action = patch.object(event.conn, "action", action)
     patch_async_call = patch.object(event, "async_call", async_call)
+    patch_admin_log = patch.object(event, "admin_log", admin_log)
 
-    with patch_action, patch_message, patch_notice, patch_async_call:
+    with (
+        patch_action,
+        patch_message,
+        patch_notice,
+        patch_async_call,
+        patch_admin_log,
+    ):
         res = call_with_args(func, event)
         if inspect.isawaitable(res):
             res = await res

@@ -1,19 +1,25 @@
+from __future__ import annotations
+
 import asyncio
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from typing import TYPE_CHECKING
+from unittest.mock import call, patch
 
 import pytest
 from irclib.parser import ParamList
 
 from cloudbot import hook
 from cloudbot.event import Event
-from cloudbot.plugin import PluginManager
 from plugins.core import cap
+from tests.util.mock_irc_client import MockIrcClient
 from tests.util.mock_module import MockModule
+
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.asyncio()
-async def test_cap_req(patch_import_module) -> None:
+async def test_cap_req(patch_import_module, mock_bot: MockBot) -> None:
+    conn = MockIrcClient(bot=mock_bot)
     caps = [
         "some-cap",
         "another-cap",
@@ -26,14 +32,9 @@ async def test_cap_req(patch_import_module) -> None:
     params = ParamList.parse(f"* LS :{' '.join(caps)}")
     event = Event(
         irc_paramlist=params,
-        bot=MagicMock(),
-        conn=MagicMock(),
+        bot=mock_bot,
+        conn=conn,
     )
-    event.conn.loop = event.bot.loop = asyncio.get_running_loop()
-    event.bot.config = {}
-    event.conn.type = "irc"
-    event.bot.base_dir = Path(".").resolve()
-    event.bot.plugin_manager = manager = PluginManager(event.bot)
 
     called = False
 
@@ -46,20 +47,22 @@ async def test_cap_req(patch_import_module) -> None:
         func = hook.on_cap_available(c)(func)
 
     patch_import_module.return_value = MockModule(func=func)
-    await manager.load_plugin("plugins/test.py")
-
-    event.conn.memory = {}
+    await mock_bot.get_plugin_manager().load_plugin(
+        mock_bot.base_dir / "plugins" / "test.py"
+    )
 
     cap.send_cap_ls(event.conn)
-    event.conn.cmd.assert_called_with("CAP", "LS", "302")
 
-    event.conn.cmd.reset_mock()
+    assert conn.mock_calls() == [call.send("CAP LS 302")]
 
     calls = []
 
+    nak_caps = ["a.vendor/cap"]
+
     def cmd(cmd, subcmd, *args) -> None:
         calls.append((cmd, subcmd) + args)
-        p = ParamList.parse(f"* ACK :{' '.join(args)}")
+        nak = any(arg in nak_caps for arg in args)
+        p = ParamList.parse(f"* {'NAK' if nak else 'ACK'} :{' '.join(args)}")
         cmd_event = Event(
             irc_paramlist=p,
             bot=event.bot,
@@ -72,7 +75,8 @@ async def test_cap_req(patch_import_module) -> None:
         assert called
         assert res is None
 
-    caps = event.conn.memory["server_caps"]
-    assert caps == {c: True for c in cap_names}
+    info = cap.CapInfoExt.ensure(event.conn)
+    assert info.server_caps == {c: c not in nak_caps for c in cap_names}
 
     assert calls == [("CAP", "REQ", c) for c in cap_names]
+    assert conn.mock_calls() == [call.send("CAP LS 302"), call.send("CAP END")]
