@@ -52,13 +52,18 @@ class TvdbApi:
         return self.jwt_token is not None
 
     def set_api_key(self, bot: CloudBot) -> None:
-        res = cast(
-            "dict[str, str]",
-            self._post(
-                "/login", json={"apikey": bot.config.get_api_key("tvdb")}
-            ),
-        )
-        self.set_token(res["token"])
+        if key := bot.config.get_api_key("tvdb"):
+            try:
+                res = cast(
+                    "dict[str, str]",
+                    self._post("/login", json={"apikey": key}),
+                )
+            except requests.HTTPError:
+                self.set_token(None)
+            else:
+                self.set_token(res["token"])
+        else:
+            self.set_token(None)
 
     def refresh_token(self, bot: CloudBot) -> None:
         if self.jwt_token is None:
@@ -75,7 +80,7 @@ class TvdbApi:
         else:
             self.set_token(res["token"])
 
-    def set_token(self, token: str) -> None:
+    def set_token(self, token: str | None) -> None:
         self.jwt_token = token
         self.refresh_time = datetime.datetime.now() + self.token_lifetime
         # Clear header cache
