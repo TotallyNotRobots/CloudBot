@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 # Constants
 DEFAULT_SHORTENER = "is.gd"
-DEFAULT_PASTEBIN = ""
+DEFAULT_PASTEBIN = "sharey"
 
 HASTEBIN_SERVER = "https://hastebin.com"
 
