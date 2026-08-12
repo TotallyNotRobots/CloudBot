@@ -2,7 +2,7 @@ alembic==1.18.4
 attrs==25.4.0
 beautifulsoup4==4.14.3
 cleverwrap==0.3.0.2
-feedparser==6.0.12
+feedparser==6.0.14
 googlemaps==4.10.0
 imgurpython==1.1.7
 isodate==0.7.2
