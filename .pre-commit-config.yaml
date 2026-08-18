@@ -94,7 +94,7 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: 1afca4a81ca3e578ba142fe15a0f8a1a94b894ad  # frozen: v4.17.0
+  rev: 1d15260852147c8eee82293c13a43a7985517a1e  # frozen: v4.17.1
   hooks:
   - id: commitizen
 - repo: https://github.com/andreoliwa/nitpick
