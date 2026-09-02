@@ -1,6 +1,6 @@
 alembic==1.19.1
 attrs==25.4.0
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
 cleverwrap==0.3.0.2
 feedparser==6.0.14
 googlemaps==4.10.0
