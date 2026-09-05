@@ -1,4 +1,4 @@
-alembic==1.19.1
+alembic==1.19.2
 attrs==25.4.0
 beautifulsoup4==4.14.3
 cleverwrap==0.3.0.2
