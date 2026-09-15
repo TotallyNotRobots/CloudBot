@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import CLIENT_ATTR
+from cloudbot.util.extensible_data import Extensible
 
 if TYPE_CHECKING:
     from cloudbot.bot import AbstractBot
@@ -32,7 +33,7 @@ class ClientConnectError(Exception):
         self.server = server
 
 
-class Client:
+class Client(Extensible):
     """
     A Client representing each connection the bot makes to a single server
     """
@@ -47,6 +48,7 @@ class Client:
         channels=None,
         config=None,
     ) -> None:
+        super().__init__()
         self.bot = bot
         if bot.loop is None:
             raise ValueError("Missing event loop on bot")

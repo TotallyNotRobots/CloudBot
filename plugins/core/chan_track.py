@@ -27,12 +27,14 @@ from cloudbot.hook import Priority
 from cloudbot.util import web
 from cloudbot.util.irc import parse_mode_string
 from cloudbot.util.mapping import KeyFoldDict, KeyFoldWeakValueDict
+from plugins.core import server_info
+from plugins.core.cap import CapInfoExt
 
 if TYPE_CHECKING:
     from irclib.parser import TagList
 
     import cloudbot.bot
-    from cloudbot.util.irc import ChannelMode, StatusMode
+    from cloudbot.util.irc import StatusMode
 
 logger = logging.getLogger("cloudbot")
 
@@ -330,9 +332,9 @@ def do_caps() -> bool:
     return True
 
 
-def is_cap_available(conn: Client, cap):
-    caps = conn.memory.get("server_caps", {})
-    return bool(caps.get(cap, False))
+def is_cap_available(conn: Client, cap: str) -> bool:
+    info = CapInfoExt.ensure(conn)
+    return info.server_caps.get(cap, False)
 
 
 @hook.on_start()
@@ -416,7 +418,7 @@ def parse_names_item(item, statuses, has_multi_prefix, has_userhost):
 def replace_user_data(conn: Client, chan_data) -> None:
     statuses = {
         status.prefix: status
-        for status in set(conn.memory["server_info"]["statuses"].values())
+        for status in set(server_info.get_server_info(conn).statuses.values())
     }
     new_data = chan_data.data.pop("new_users", [])
     has_uh_i_n = is_cap_available(conn, "userhost-in-names")
@@ -663,9 +665,9 @@ def on_mode(chan, irc_paramlist, conn: Client) -> None:
         # this is a user mode line
         return
 
-    serv_info = conn.memory["server_info"]
-    statuses: dict[str, StatusMode] = serv_info["statuses"]
-    mode_types: dict[str, ChannelMode] = serv_info["channel_modes"]
+    serv_info = server_info.get_server_info(conn)
+    statuses = serv_info.statuses
+    mode_types = serv_info.channel_modes
 
     chan_data = get_chans(conn).getchan(chan)
 

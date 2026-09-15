@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cloudbot import hook
+from plugins.core import server_info
 
 if TYPE_CHECKING:
     from cloudbot.clients.irc import IrcClient
@@ -17,9 +18,9 @@ REMOVE_LOG = "{nick} used REMOVE on {target} in {channel} because {reason!r}."
 
 
 def check_for_chan_mode(char, mode_warn, event) -> bool:
-    serv_info = event.conn.memory["server_info"]
-    modes = serv_info.get("channel_modes", "")
-    status = serv_info.get("statuses", [])
+    serv_info = server_info.get_server_info(event.conn)
+    modes = serv_info.channel_modes
+    status = serv_info.statuses
     if char in modes or char in status:
         return True
 
@@ -85,11 +86,11 @@ def mode_cmd_no_target(mode, action, param, event, mode_warn=True) -> bool:
 
 
 def do_extban(char, action, param, event, adding=True) -> bool:
-    serv_info = event.conn.memory["server_info"]
-    if char not in serv_info.get("extbans", ""):
+    serv_info = server_info.get_server_info(event.conn)
+    if serv_info.extbans is None or char not in serv_info.extbans:
         return False
 
-    extban_pfx = serv_info["extban_prefix"]
+    extban_pfx = serv_info.extban_prefix
 
     split = param.split(" ")
     if split[0].startswith("#"):
