@@ -104,7 +104,7 @@ def test_reddit_no_posts(mock_requests) -> None:
     assert response == "There do not appear to be any posts to show."
 
 
-def test_reddit_random_post(mock_requests) -> None:
+def test_reddit_random_post(mock_requests, freeze_time) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/r/foobar/.json",
@@ -169,7 +169,7 @@ def test_reddit_random_post(mock_requests) -> None:
                             "content_categories": None,
                             "is_self": True,
                             "mod_note": None,
-                            "created": 1631424037.0,
+                            "created": 1231424037.0,
                             "link_flair_type": "text",
                             "wls": None,
                             "removed_by_category": None,
@@ -219,7 +219,7 @@ def test_reddit_random_post(mock_requests) -> None:
                             "stickied": False,
                             "url": "https://www.reddit.com/r/foobar/comments/pmmq8h/need_foobar/",
                             "subreddit_subscribers": 66,
-                            "created_utc": 1631424037.0,
+                            "created_utc": 1231424037.0,
                             "num_crossposts": 0,
                             "media": None,
                             "is_video": False,
@@ -246,7 +246,7 @@ def test_reddit_random_post(mock_requests) -> None:
     assert wrap_hook_response(reddit_info.reddit, event) == [
         (
             "return",
-            "\x02Need foobar : foobar\x02 - 3 comments, 1 point - \x02HEROFIGHTERy\x02 4y ago - https://redd.it/pmmq8h \x02\x0304NSFW\x0f",
+            "\x02Need foobar : foobar\x02 - 3 comments, 1 point - \x02HEROFIGHTERy\x02 10y ago - https://redd.it/pmmq8h \x02\x0304NSFW\x0f",
         ),
     ]
 
