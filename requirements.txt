@@ -20,4 +20,4 @@ sqlalchemy==2.0.54
 typing_extensions==4.16.0
 urllib3==2.8.0
 watchdog==6.0.0
-yarl==1.22.0
+yarl==1.23.0
