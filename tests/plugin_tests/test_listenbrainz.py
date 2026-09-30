@@ -1,4 +1,5 @@
 """listenbrainz plugin tests."""
+
 from __future__ import annotations
 
 from json import JSONDecodeError
@@ -93,7 +94,7 @@ def _make_event(bot, text, nick="foo"):
     return event
 
 
-def _add_now_playing_playback(reqs, user, playing_now, listened_at):
+def _add_now_playing_playback(reqs, user, playing_now, listened_at) -> None:
     reqs.add(
         "GET",
         f"{API_URL}/user/{user}/playing-now",
@@ -141,7 +142,7 @@ async def test_listenbrainz_now_playing(
             "return",
             (
                 "m\u200bockuser is listening to "
-                "\"some track\" by \x02some artist\x0f "
+                '"some track" by \x02some artist\x0f '
                 "from the album \x02some album\x0f."
             ),
         )
@@ -194,7 +195,7 @@ async def test_listenbrainz_last_listened(
             "return",
             (
                 "m\u200bockuser last listened to "
-                "\"some track\" by \x02some artist\x0f "
+                '"some track" by \x02some artist\x0f '
                 "from the album \x02some album\x0f "
                 "(44 years and 8 months ago)"
             ),
@@ -222,7 +223,14 @@ async def test_listenbrainz_stale_now_playing(
         "GET",
         f"{API_URL}/user/mockuser/playing-now",
         match=[query_param_matcher({"limit": "1"})],
-        json={"payload": {"count": 0, "listens": [], "playing_now": True, "user_id": "mockuser"}},
+        json={
+            "payload": {
+                "count": 0,
+                "listens": [],
+                "playing_now": True,
+                "user_id": "mockuser",
+            }
+        },
     )
     mock_requests.add(
         "GET",
@@ -256,7 +264,7 @@ async def test_listenbrainz_stale_now_playing(
             "return",
             (
                 "m\u200bockuser last listened to "
-                "\"some track\" by \x02some artist\x0f "
+                '"some track" by \x02some artist\x0f '
                 "from the album \x02some album\x0f "
                 "(44 years and 8 months ago)"
             ),
@@ -289,7 +297,7 @@ async def test_listenbrainz_update_account(
             "return",
             (
                 "m\u200bockuser is listening to "
-                "\"some track\" by \x02some artist\x0f "
+                '"some track" by \x02some artist\x0f '
                 "from the album \x02some album\x0f."
             ),
         )
@@ -313,7 +321,14 @@ async def test_listenbrainz_no_recent_tracks(
         "GET",
         f"{API_URL}/user/mockuser/playing-now",
         match=[query_param_matcher({"limit": "1"})],
-        json={"payload": {"count": 0, "listens": [], "playing_now": False, "user_id": "mockuser"}},
+        json={
+            "payload": {
+                "count": 0,
+                "listens": [],
+                "playing_now": False,
+                "user_id": "mockuser",
+            }
+        },
     )
     mock_requests.add(
         "GET",
@@ -329,7 +344,7 @@ async def test_listenbrainz_no_recent_tracks(
     assert results == [
         (
             "return",
-            "No recent tracks for user \"m\u200bockuser\" found.",
+            'No recent tracks for user "m\u200bockuser" found.',
         )
     ]
     assert mock_db.get_data(listenbrainz.table) == []
@@ -403,7 +418,7 @@ async def test_listenbrainz_dontsave(
             "return",
             (
                 "m\u200bockuser is listening to "
-                "\"some track\" by \x02some artist\x0f "
+                '"some track" by \x02some artist\x0f '
                 "from the album \x02some album\x0f."
             ),
         )

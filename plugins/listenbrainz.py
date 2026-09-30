@@ -3,12 +3,13 @@
 The plugin remembers each user's ListenBrainz username in the database, so
 after the first run the user does not need to supply it every time.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
+from json import JSONDecodeError
 
 import requests
-from json import JSONDecodeError
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
@@ -80,11 +81,9 @@ def _track_info(track) -> str:
     """Format a ListenBrainz track entry into the "by artist from the album" tail."""
     meta = track.get("track_metadata", {})
     out = ""
-    artist = meta.get("artist_name")
-    if artist:
+    if (artist := meta.get("artist_name")):
         out += f" by \x02{artist}\x0f"
-    album = meta.get("release_name")
-    if album:
+    if (album := meta.get("release_name")):
         out += f" from the album \x02{album}\x0f"
     return out
 
@@ -137,9 +136,8 @@ def listenbrainz(event, db, text, nick, bot):
         time_since = timeformat.time_since(time_listened)
         ending = f" ({time_since} ago)"
 
-    title = listen.get("track_metadata", {}).get("track_name")
-    out = f'{format_user(user)} {status}'
-    if title:
+    out = f"{format_user(user)} {status}"
+    if (title := listen.get("track_metadata", {}).get("track_name")):
         out += f' "{title}"'
     out += _track_info(listen)
     out += ending
