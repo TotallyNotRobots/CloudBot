@@ -81,9 +81,9 @@ def _track_info(track) -> str:
     """Format a ListenBrainz track entry into the "by artist from the album" tail."""
     meta = track.get("track_metadata", {})
     out = ""
-    if (artist := meta.get("artist_name")):
+    if artist := meta.get("artist_name"):
         out += f" by \x02{artist}\x0f"
-    if (album := meta.get("release_name")):
+    if album := meta.get("release_name"):
         out += f" from the album \x02{album}\x0f"
     return out
 
@@ -137,7 +137,7 @@ def listenbrainz(event, db, text, nick, bot):
         ending = f" ({time_since} ago)"
 
     out = f"{format_user(user)} {status}"
-    if (title := listen.get("track_metadata", {}).get("track_name")):
+    if title := listen.get("track_metadata", {}).get("track_name"):
         out += f' "{title}"'
     out += _track_info(listen)
     out += ending
