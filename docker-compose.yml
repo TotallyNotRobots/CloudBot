@@ -1,0 +1,7 @@
+services:
+  cloudbot:
+    build: .
+    container_name: cloudbot
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json
