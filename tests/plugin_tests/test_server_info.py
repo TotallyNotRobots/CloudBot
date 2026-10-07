@@ -1,11 +1,10 @@
-from unittest.mock import MagicMock
-
 from cloudbot.util.irc import ChannelMode, ModeType, StatusMode
 from plugins.core import server_info
+from tests.util.mock_conn import MockClient
 
 
-def test_parse_isupport() -> None:
-    conn = MagicMock(memory={})
+def test_parse_isupport(mock_bot) -> None:
+    conn = MockClient(bot=mock_bot)
     server_info.clear_isupport(conn)
     tokens = [
         "PREFIX=(ohv)@%+",
@@ -22,32 +21,31 @@ def test_parse_isupport() -> None:
     op = StatusMode.make("@", "o", 3)
     hop = StatusMode.make("%", "h", 2)
     voice = StatusMode.make("+", "v", 1)
-    assert conn.memory == {
-        "server_info": {
-            "channel_modes": {
-                "a": mode_a,
-                "b": mode_b,
-                "c": mode_c,
-                "d": mode_d,
-                "h": hop,
-                "o": op,
-                "v": voice,
-            },
-            "extban_prefix": "$",
-            "extbans": "abcd",
-            "isupport_tokens": {
-                "CHANMODES": "a,b,c,d,e",
-                "EXTBAN": "$,abcd",
-                "FOO": "bar",
-                "PREFIX": "(ohv)@%+",
-            },
-            "statuses": {
-                "%": hop,
-                "+": voice,
-                "@": op,
-                "h": hop,
-                "o": op,
-                "v": voice,
-            },
-        }
-    }
+
+    assert server_info.get_server_info(conn) == server_info.ServerInfo(
+        channel_modes={
+            "a": mode_a,
+            "b": mode_b,
+            "c": mode_c,
+            "d": mode_d,
+            "h": hop,
+            "o": op,
+            "v": voice,
+        },
+        extban_prefix="$",
+        extbans="abcd",
+        isupport_tokens={
+            "CHANMODES": "a,b,c,d,e",
+            "EXTBAN": "$,abcd",
+            "FOO": "bar",
+            "PREFIX": "(ohv)@%+",
+        },
+        statuses={
+            "%": hop,
+            "+": voice,
+            "@": op,
+            "h": hop,
+            "o": op,
+            "v": voice,
+        },
+    )

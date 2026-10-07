@@ -7,12 +7,16 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, TypeVar
 
+import attrs
+
 from cloudbot import hook
+from cloudbot.util.extensible_data import ExtItem
 from cloudbot.util.irc import ChannelMode, ModeType, StatusMode
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from cloudbot.bot import CloudBot
     from cloudbot.client import Client
 
 DEFAULT_STATUS = (
@@ -21,8 +25,28 @@ DEFAULT_STATUS = (
 )
 
 
+@attrs.define
+class ServerInfo:
+    isupport_tokens: dict[str, str | None] = attrs.field(factory=dict)
+    statuses: dict[str, StatusMode] = attrs.field(factory=dict)
+    channel_modes: dict[str, ChannelMode] = attrs.field(factory=dict)
+    extbans: str | None = None
+    extban_prefix: str | None = None
+
+
+class ServerInfoExtItem(ExtItem[ServerInfo]):
+    def __init__(self) -> None:
+        super().__init__("server_info", ephemeral=True)
+
+    def create(self) -> ServerInfo:
+        return ServerInfo()
+
+
+ServerInfoExt = ServerInfoExtItem()
+
+
 @hook.on_start()
-def do_isupport(bot) -> None:
+def do_isupport(bot: CloudBot) -> None:
     for conn in bot.connections.values():
         if conn.connected:
             clear_isupport(conn)
@@ -31,15 +55,15 @@ def do_isupport(bot) -> None:
 
 @hook.connect()
 def clear_isupport(conn: Client) -> None:
-    serv_info = conn.memory.setdefault("server_info", {})
-    statuses = get_status_modes(serv_info, clear=True)
+    serv_info = get_server_info(conn)
+    statuses: dict[str, StatusMode] = get_status_modes(serv_info, clear=True)
     for s in DEFAULT_STATUS:
         statuses[s.prefix] = s
         statuses[s.character] = s
 
     get_channel_modes(serv_info, clear=True)
 
-    isupport_data = serv_info.setdefault("isupport_tokens", {})
+    isupport_data = serv_info.isupport_tokens
     isupport_data.clear()
 
 
@@ -47,41 +71,31 @@ K = TypeVar("K")
 V = TypeVar("V", bound=MutableMapping)
 
 
-def _get_set_clear(
-    mapping: MutableMapping[K, V],
-    key: K,
-    default_factory: Callable[[], V],
-    *,
-    clear: bool = False,
-) -> V:
-    try:
-        out = mapping[key]
-    except KeyError:
-        mapping[key] = out = default_factory()
-
-    if clear:
-        out.clear()
-
-    return out
-
-
-def get_server_info(conn: Client):
-    return conn.memory["server_info"]
+def get_server_info(conn: Client) -> ServerInfo:
+    return ServerInfoExt.ensure(conn)
 
 
 def get_status_modes(
-    serv_info, *, clear: bool = False
+    serv_info: ServerInfo, *, clear: bool = False
 ) -> dict[str, StatusMode]:
-    return _get_set_clear(serv_info, "statuses", dict, clear=clear)
+    statuses = serv_info.statuses
+    if clear:
+        statuses.clear()
+
+    return statuses
 
 
 def get_channel_modes(
-    serv_info, *, clear: bool = False
+    serv_info: ServerInfo, *, clear: bool = False
 ) -> dict[str, ChannelMode]:
-    return _get_set_clear(serv_info, "channel_modes", dict, clear=clear)
+    modes = serv_info.channel_modes
+    if clear:
+        modes.clear()
+
+    return modes
 
 
-def sync_statuses(serv_info) -> None:
+def sync_statuses(serv_info: ServerInfo) -> None:
     """
     Copy channel status modes to the modelist
     """
@@ -92,11 +106,14 @@ def sync_statuses(serv_info) -> None:
         modes[status.character] = status
 
 
-def handle_prefixes(data, serv_info) -> None:
+def handle_prefixes(data: str | None, serv_info: ServerInfo) -> None:
+    statuses = get_status_modes(serv_info, clear=True)
+    if data is None:
+        return
+
     modes, prefixes = data.split(")", 1)
     modes = modes.strip("(")
     parsed = enumerate(reversed(list(zip(modes, prefixes))))
-    statuses = get_status_modes(serv_info, clear=True)
     for lvl, (mode, prefix) in parsed:
         status = StatusMode.make(prefix, mode, lvl + 1)
         statuses[status.prefix] = status
@@ -105,9 +122,12 @@ def handle_prefixes(data, serv_info) -> None:
     sync_statuses(serv_info)
 
 
-def handle_chan_modes(value, serv_info) -> None:
+def handle_chan_modes(value: str | None, serv_info: ServerInfo) -> None:
     types = "ABCD"
     modelist = get_channel_modes(serv_info, clear=True)
+    if value is None:
+        return
+
     for i, modes in enumerate(value.split(",")):
         if i >= len(types):
             break
@@ -118,13 +138,16 @@ def handle_chan_modes(value, serv_info) -> None:
     sync_statuses(serv_info)
 
 
-def handle_extbans(value, serv_info) -> None:
+def handle_extbans(value: str | None, serv_info: ServerInfo) -> None:
+    if value is None:
+        return
+
     pfx, extbans = value.split(",", 1)
-    serv_info["extbans"] = extbans
-    serv_info["extban_prefix"] = pfx
+    serv_info.extbans = extbans
+    serv_info.extban_prefix = pfx
 
 
-isupport_handlers = {
+isupport_handlers: dict[str, Callable[[str | None, ServerInfo], None]] = {
     "PREFIX": handle_prefixes,
     "CHANMODES": handle_chan_modes,
     "EXTBAN": handle_extbans,
@@ -132,9 +155,9 @@ isupport_handlers = {
 
 
 @hook.irc_raw("005", singlethread=True)
-def on_isupport(conn: Client, irc_paramlist) -> None:
+def on_isupport(conn: Client, irc_paramlist: list[str]) -> None:
     serv_info = get_server_info(conn)
-    token_data = serv_info["isupport_tokens"]
+    token_data = serv_info.isupport_tokens
     # strip the nick and trailing ':are supported by this server' message
     tokens = irc_paramlist[1:-1]
     for token in tokens:

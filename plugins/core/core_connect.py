@@ -3,9 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cloudbot import hook
+from cloudbot.hook import Priority
 
 if TYPE_CHECKING:
+    from cloudbot.client import Client
     from cloudbot.clients.irc import IrcClient
+
+
+@hook.on_connect(priority=Priority.HIGHEST)
+def clear_exts(conn: Client) -> None:
+    conn.clear_ephemeral_extents()
 
 
 @hook.connect(priority=0, clients="irc")

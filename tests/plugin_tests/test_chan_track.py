@@ -8,33 +8,30 @@ from irclib.parser import Prefix, TagList
 from cloudbot.clients.irc import _IrcProtocol
 from cloudbot.util.func_utils import call_with_args
 from plugins.core import chan_track, server_info
+from plugins.core.cap import CapInfoExt
 from tests.util.mock_conn import MockClient
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.util.irc import StatusMode
 
 
-def get_statuses(conn: Client, chars: str):
-    return [conn.memory["server_info"]["statuses"][c] for c in chars]
+def get_statuses(conn: Client, chars: str) -> list[StatusMode]:
+    return [server_info.get_server_info(conn).statuses[c] for c in chars]
 
 
 @pytest.mark.asyncio
 async def test_replace_user_data(mock_db, mock_bot_factory) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
-    conn.memory.update(
+    CapInfoExt.ensure(conn).server_caps.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "userhost-in-names": True,
+            "multi-prefix": True,
         }
     )
-    serv_info = conn.memory["server_info"]
+    serv_info = server_info.get_server_info(conn)
     server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
     users = chan_track.UsersDict(conn)
     conn.memory["users"] = users
@@ -78,18 +75,14 @@ async def test_missing_on_nick(mock_db, mock_bot_factory) -> None:
 async def test_channel_members(mock_db, mock_bot_factory) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
-    conn.memory.update(
+    CapInfoExt.ensure(conn).server_caps.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "userhost-in-names": True,
+            "multi-prefix": True,
         }
     )
-    serv_info = conn.memory["server_info"]
+
+    serv_info = server_info.get_server_info(conn)
     server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
     server_info.handle_chan_modes(
         "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
@@ -179,18 +172,15 @@ async def test_names_handling(mock_db, mock_bot_factory) -> None:
             },
         },
     )
-    conn.memory.update(
+
+    CapInfoExt.ensure(conn).server_caps.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "userhost-in-names": True,
+            "multi-prefix": True,
         }
     )
-    serv_info = conn.memory["server_info"]
+
+    serv_info = server_info.get_server_info(conn)
     server_info.handle_prefixes("(YohvV)!@%+-", serv_info)
     server_info.handle_chan_modes(
         "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
