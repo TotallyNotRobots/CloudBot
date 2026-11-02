@@ -270,6 +270,12 @@ fixable = ["ALL"]
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ["pydantic.BaseModel", "sqlalchemy.orm.DeclarativeBase", "cloudbot.util.database.Base"]
 
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+skip-magic-trailing-comma = true
 [tool.alembic]
 # path to migration scripts.
 # this is typically a path given in POSIX (e.g. forward slashes)
@@ -292,3 +298,10 @@ prepend_sys_path = ["."]
 # type = "exec"
 # executable = "ruff"
 # options = "check --fix REVISION_SCRIPT_FILENAME"
+
+[tool.basedpyright]
+analyzeUnannotatedFunctions = true
+reportUnusedCallResult = "none"
+reportImplicitStringConcatenation = "none"
+reportImportCycles = "none"
+pythonVersion = "3.10"
