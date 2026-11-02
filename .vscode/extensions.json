@@ -1,6 +1,5 @@
 {
-    "recommendations": [
-        "github.vscode-pull-request-github",
-        "charliermarsh.ruff"
-    ]
+  "recommendations": [
+    "detachhead.basedpyright"
+  ]
 }
