@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 
 import pytest
 import requests
@@ -8,9 +8,7 @@ from cloudbot.util import web
 
 def test_paste(mock_requests) -> None:
     mock_requests.add(
-        "POST",
-        "https://hastebin.com/documents",
-        json={"key": "foobar"},
+        "POST", "https://hastebin.com/documents", json={"key": "foobar"}
     )
     assert (
         web.paste("test data", service="hastebin")
@@ -23,9 +21,7 @@ def test_paste(mock_requests) -> None:
 def test_paste_try(mock_requests) -> None:
     web.pastebins.set_working()
     mock_requests.add(
-        "POST",
-        "https://hastebin.com/documents",
-        json={"key": "foobar"},
+        "POST", "https://hastebin.com/documents", json={"key": "foobar"}
     )
 
     expected = "https://hastebin.com/foobar.txt"
@@ -66,7 +62,7 @@ def test_registry_item_working(freeze_time) -> None:
     item.failed()
     assert not item.should_use
 
-    freeze_time.tick(datetime.timedelta(minutes=6))
+    freeze_time.tick(dt.timedelta(minutes=6))
 
     assert item.should_use
 
@@ -120,11 +116,7 @@ def test_shorten(mock_requests) -> None:
     with pytest.raises(web.ServiceError):
         web.shorten("https://example.com", service="git.io")
 
-    mock_requests.add(
-        "POST",
-        "https://git.io",
-        status=400,
-    )
+    mock_requests.add("POST", "https://git.io", status=400)
     with pytest.raises(web.ServiceHTTPError):
         web.shorten("https://example.com", service="git.io")
 
@@ -243,9 +235,7 @@ def test_expand(mock_requests) -> None:
         web.expand("http://goo.gl/foobar")
 
     mock_requests.add(
-        "GET",
-        "https://www.googleapis.com/urlshortener/v1/url",
-        status=404,
+        "GET", "https://www.googleapis.com/urlshortener/v1/url", status=404
     )
 
     with pytest.raises(web.ServiceHTTPError):

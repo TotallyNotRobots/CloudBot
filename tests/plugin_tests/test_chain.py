@@ -105,13 +105,11 @@ async def test_chainallow_del_hook_not_set(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -137,13 +135,11 @@ async def test_chainallow_del_hook(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -173,13 +169,11 @@ async def test_chainallow_add_hook_no_arg(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -189,9 +183,7 @@ async def test_chainallow_add_hook_no_arg(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.other_hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.other_hook_func", True),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
 
 
 @pytest.mark.asyncio
@@ -207,13 +199,11 @@ async def test_chainallow_add_hook_allow(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -225,9 +215,7 @@ async def test_chainallow_add_hook_allow(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.other_hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.other_hook_func", True),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
 
 
 @pytest.mark.asyncio
@@ -245,13 +233,11 @@ async def test_chainallow_add_hook_allow_update(
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -271,9 +257,7 @@ async def test_chainallow_add_hook_allow_update(
     )
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.other_hook_func", True),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
 
 
 @pytest.mark.asyncio
@@ -289,13 +273,11 @@ async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -307,9 +289,7 @@ async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.other_hook_func' as a denied command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.other_hook_func", False),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", False)]
 
 
 @pytest.mark.asyncio
@@ -325,13 +305,11 @@ async def test_chainallow_add_hook_bad_arg(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -359,13 +337,11 @@ async def test_chainallow_add_cmd(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -375,9 +351,7 @@ async def test_chainallow_add_cmd(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.hook_func", True),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.hook_func", True)]
 
 
 @pytest.mark.asyncio
@@ -393,13 +367,11 @@ async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
     mock_bot: MockBot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin,
-        _get_hook(hook_func, "command"),
+        plugin, _get_hook(hook_func, "command")
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin,
-        _get_hook(other_hook_func, "command"),
+        plugin, _get_hook(other_hook_func, "command")
     )
 
     chain.commands.create(mock_db.engine)
@@ -414,6 +386,4 @@ async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [
-        ("foo.hook_func", True),
-    ]
+    assert mock_db.get_data(chain.commands) == [("foo.hook_func", True)]

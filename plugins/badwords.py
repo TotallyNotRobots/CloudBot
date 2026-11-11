@@ -45,8 +45,7 @@ def load_bad(db) -> None:
         words.append(word)
 
     new_regex = re.compile(
-        rf"(?:\s|^|[^\w\s])({'|'.join(words)})(?:\s|$|[^\w\s])",
-        re.IGNORECASE,
+        rf"(?:\s|^|[^\w\s])({'|'.join(words)})(?:\s|$|[^\w\s])", re.IGNORECASE
     )
 
     matcher.regex = new_regex

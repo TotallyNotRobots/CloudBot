@@ -18,15 +18,9 @@ def test_mcping(mock_mcserver) -> None:
     mock_mcserver.return_value = server = MagicMock()
     server.status.return_value = JavaStatusResponse.build(
         {
-            "version": {
-                "name": "1.12.2",
-                "protocol": 340,
-            },
+            "version": {"name": "1.12.2", "protocol": 340},
             "description": "A description",
-            "players": {
-                "online": 2,
-                "max": 10,
-            },
+            "players": {"online": 2, "max": 10},
         },
         12.345,
     )

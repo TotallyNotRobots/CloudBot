@@ -43,26 +43,12 @@ def test_wind_dir_error() -> None:
         weather.bearing_to_card(400)
 
 
-@pytest.mark.parametrize(
-    "temp_f,temp_c",
-    [
-        (32, 0),
-        (212, 100),
-        (-40, -40),
-    ],
-)
+@pytest.mark.parametrize("temp_f,temp_c", [(32, 0), (212, 100), (-40, -40)])
 def test_temp_convert(temp_f, temp_c) -> None:
     assert weather.convert_f2c(temp_f) == temp_c
 
 
-@pytest.mark.parametrize(
-    "mph,kph",
-    [
-        (0, 0),
-        (20, 32.18688),
-        (43, 69.201792),
-    ],
-)
+@pytest.mark.parametrize("mph,kph", [(0, 0), (20, 32.18688), (43, 69.201792)])
 def test_mph_to_kph(mph, kph) -> None:
     assert weather.mph_to_kph(mph) == kph
 
@@ -75,12 +61,7 @@ def get_test_data():
     }
 
 
-def setup_api(
-    mock_requests,
-    mock_db,
-    loop,
-    mock_bot_factory,
-):
+def setup_api(mock_requests, mock_db, loop, mock_bot_factory):
     bot = mock_bot_factory(
         loop=loop,
         config={
@@ -96,12 +77,7 @@ def setup_api(
         "status": "OK",
         "results": [
             {
-                "geometry": {
-                    "location": {
-                        "lat": 30.123,
-                        "lng": 123.456,
-                    }
-                },
+                "geometry": {"location": {"lat": 30.123, "lng": 123.456}},
                 "formatted_address": "123 Test St, Example City, CA",
             }
         ],
@@ -163,15 +139,7 @@ async def test_rounding(
         "(\x1dTo get a forecast, use .fc\x1d)"
     )
 
-    calls: list[HookResult] = [
-        HookResult(
-            "message",
-            (
-                "#foo",
-                out_text,
-            ),
-        )
-    ]
+    calls: list[HookResult] = [HookResult("message", ("#foo", out_text))]
 
     assert wrap_hook_response(weather.weather, cmd_event) == calls
 
@@ -191,10 +159,7 @@ async def test_weather_no_args(
     mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     assert weather.find_location("Foo Bar") == {
@@ -234,10 +199,7 @@ async def test_find_location(
     mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     assert weather.find_location("Foo Bar") == {
@@ -310,10 +272,7 @@ async def test_api_error(
     mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     conn = MagicMock()
@@ -360,10 +319,7 @@ async def test_no_owm_key(
     mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     conn = MagicMock()
@@ -406,10 +362,7 @@ async def test_no_google_key(
     mock_bot_factory, mock_requests, patch_try_shorten, mock_db
 ) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     conn = MagicMock()
@@ -451,10 +404,7 @@ async def test_no_google_key(
 @pytest.mark.asyncio
 async def test_db_save(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
-        mock_requests,
-        mock_db,
-        asyncio.get_running_loop(),
-        mock_bot_factory,
+        mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
 
     conn = MagicMock()
@@ -528,10 +478,7 @@ async def test_parse_no_results(
     mock_requests.add(
         "GET",
         "https://maps.googleapis.com/maps/api/geocode/json",
-        json={
-            "status": "OK",
-            "results": [],
-        },
+        json={"status": "OK", "results": []},
     )
 
     weather.table.create(mock_db.engine, True)

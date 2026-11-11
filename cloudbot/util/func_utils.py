@@ -21,7 +21,7 @@ _T = TypeVar("_T")
 
 def call_with_args(func: Callable[..., _T], arg_data: Mapping[str, Any]) -> _T:
     """
-    >>> call_with_args(lambda a: a, {'a':1, 'b':2})
+    >>> call_with_args(lambda a: a, {"a": 1, "b": 2})
     1
     """
     sig = inspect.signature(func, follow_wrapped=False)

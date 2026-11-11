@@ -52,12 +52,7 @@ class TestWelcome:
         nick = "foobaruser"
         chan = "#foo"
         herald.table.create(mock_db.engine)
-        mock_db.add_row(
-            herald.table,
-            name=nick,
-            chan=chan,
-            quote=text,
-        )
+        mock_db.add_row(herald.table, name=nick, chan=chan, quote=text)
         herald.load_cache(mock_db.session())
         result = self._run()
         assert result == [("message", (chan, out))]
@@ -84,12 +79,7 @@ class TestWelcome:
         conn.mock_add_spec(["name", "bot", "action", "message", "notice"])
         event = Event(conn=conn, bot=conn.bot, channel=chan, nick=nick)
         event1 = Event(conn=conn, bot=conn.bot, channel=chan, nick=nick1)
-        event2 = Event(
-            conn=conn,
-            bot=conn.bot,
-            channel=chan1,
-            nick=nick,
-        )
+        event2 = Event(conn=conn, bot=conn.bot, channel=chan1, nick=nick)
         event3 = Event(conn=conn, bot=conn.bot, channel=chan1, nick=nick1)
 
         def check(ev):
@@ -122,9 +112,7 @@ def test_add_herald(mock_db: MockDB, clear_cache) -> None:
     herald.load_cache(mock_db.session())
     reply = MagicMock()
     res = herald.herald("foobar baz", "nick", "#chan", mock_db.session(), reply)
-    assert mock_db.get_data(herald.table) == [
-        ("nick", "#chan", "foobar baz"),
-    ]
+    assert mock_db.get_data(herald.table) == [("nick", "#chan", "foobar baz")]
 
     assert res is None
     assert reply.mock_calls == [call("greeting successfully added")]
@@ -132,18 +120,11 @@ def test_add_herald(mock_db: MockDB, clear_cache) -> None:
 
 def test_update_herald(mock_db: MockDB, clear_cache) -> None:
     herald.table.create(mock_db.engine)
-    mock_db.add_row(
-        herald.table,
-        name="nick",
-        chan="#chan",
-        quote="foo baz",
-    )
+    mock_db.add_row(herald.table, name="nick", chan="#chan", quote="foo baz")
     herald.load_cache(mock_db.session())
     reply = MagicMock()
     res = herald.herald("foobar baz", "nick", "#chan", mock_db.session(), reply)
-    assert mock_db.get_data(herald.table) == [
-        ("nick", "#chan", "foobar baz"),
-    ]
+    assert mock_db.get_data(herald.table) == [("nick", "#chan", "foobar baz")]
 
     assert res is None
     assert reply.mock_calls == [call("greeting successfully added")]
@@ -151,12 +132,7 @@ def test_update_herald(mock_db: MockDB, clear_cache) -> None:
 
 def test_delete_herald(mock_db: MockDB, clear_cache) -> None:
     herald.table.create(mock_db.engine)
-    mock_db.add_row(
-        herald.table,
-        name="nick",
-        chan="#chan",
-        quote="foo baz",
-    )
+    mock_db.add_row(herald.table, name="nick", chan="#chan", quote="foo baz")
     herald.load_cache(mock_db.session())
     reply = MagicMock()
     res = herald.herald("delete", "nick", "#chan", mock_db.session(), reply)
@@ -170,12 +146,7 @@ def test_delete_herald(mock_db: MockDB, clear_cache) -> None:
 
 def test_op_delete_herald(mock_db, clear_cache) -> None:
     herald.table.create(mock_db.engine)
-    mock_db.add_row(
-        herald.table,
-        name="nick",
-        chan="#chan",
-        quote="foo baz",
-    )
+    mock_db.add_row(herald.table, name="nick", chan="#chan", quote="foo baz")
     herald.load_cache(mock_db.session())
     reply = MagicMock()
     res = herald.deleteherald("nick", "#chan", mock_db.session(), reply)

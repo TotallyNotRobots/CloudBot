@@ -61,7 +61,7 @@ async def setup_api(mock_bot_factory, unset_bot, mock_requests):
                 "spotify_client_id": "APIKEY",
                 "spotify_client_secret": "APIKEY",
             }
-        },
+        }
     )
 
     mock_requests.add(

@@ -351,13 +351,13 @@ def smart_split(text):
 
 def get_text_list(list_, last_word="or"):
     """
-    >>> get_text_list(['a', 'b', 'c', 'd'])
+    >>> get_text_list(["a", "b", "c", "d"])
     'a, b, c or d'
-    >>> get_text_list(['a', 'b', 'c'], 'and')
+    >>> get_text_list(["a", "b", "c"], "and")
     'a, b and c'
-    >>> get_text_list(['a', 'b'], 'and')
+    >>> get_text_list(["a", "b"], "and")
     'a and b'
-    >>> get_text_list(['a'])
+    >>> get_text_list(["a"])
     'a'
     >>> get_text_list([])
     ''
@@ -368,7 +368,7 @@ def get_text_list(list_, last_word="or"):
     if len(list_) == 1:
         return list_[0]
 
-    return f"{', '.join([i for i in list_][:-1])} {last_word} {list_[-1]}"
+    return f"{', '.join([*list_][:-1])} {last_word} {list_[-1]}"
 
 
 def gen_markdown_table(headers, rows):

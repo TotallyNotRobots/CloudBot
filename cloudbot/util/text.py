@@ -35,14 +35,14 @@ def parse_bool(s: str, *, fail_on_unknown: bool = True) -> bool | None:
     """
     Parse a string to a boolean value
 
-    >>> parse_bool('true')
+    >>> parse_bool("true")
     True
-    >>> parse_bool('yes')
+    >>> parse_bool("yes")
     True
-    >>> parse_bool('no')
+    >>> parse_bool("no")
     False
-    >>> parse_bool('maybe', fail_on_unknown=False)
-    >>> parse_bool('maybe')
+    >>> parse_bool("maybe", fail_on_unknown=False)
+    >>> parse_bool("maybe")
     Traceback (most recent call last):
         [...]
     KeyError: 'maybe'

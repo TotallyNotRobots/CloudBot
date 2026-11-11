@@ -18,19 +18,13 @@ def test_format_game(
     data = {
         "name": "foo",
         "about_the_game": "<h1>foo</h1>bar",
-        "genres": [
-            {"description": "foobar"},
-            {"description": "foobar1"},
-        ],
+        "genres": [{"description": "foobar"}, {"description": "foobar1"}],
         "release_date": {"coming_soon": False, "date": "10/24/16"},
         "is_free": is_free,
         "steam_appid": "foobar",
     }
     if price_now:
-        data["price_overview"] = {
-            "final": price_now,
-            "initial": price_original,
-        }
+        data["price_overview"] = {"final": price_now, "initial": price_original}
 
     mock_requests.add(
         "GET",

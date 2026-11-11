@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import time
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
@@ -13,7 +13,7 @@ from plugins import remind
 if TYPE_CHECKING:
     from cloudbot.client import Client
 
-second = datetime.timedelta(seconds=1)
+second = dt.timedelta(seconds=1)
 minute = 60 * second
 hour = 60 * minute
 
@@ -99,7 +99,7 @@ async def test_add_reminder(mock_db, freeze_time, setup_db) -> None:
     mock_conn.name = "test"
     mock_event = MagicMock()
 
-    now = datetime.datetime.fromtimestamp(time.time())
+    now = dt.datetime.fromtimestamp(time.time())
     remind_time = now + (2.5 * hour)
     result = await make_reminder(
         "2 hours, 30 minutes: some reminder",
@@ -125,7 +125,7 @@ async def test_add_reminder_fail_count(mock_db, freeze_time, setup_db) -> None:
     mock_conn.name = "test"
     mock_event = MagicMock()
 
-    now = datetime.datetime.fromtimestamp(time.time())
+    now = dt.datetime.fromtimestamp(time.time())
     remind_time = now + (2.5 * hour)
 
     data = [
@@ -186,7 +186,7 @@ class TestCheckReminders:
 
     @property
     def now(self):
-        return datetime.datetime.now()
+        return dt.datetime.now()
 
     @property
     def set_time(self):
@@ -211,11 +211,7 @@ class TestCheckReminders:
 
     @pytest.mark.asyncio()
     async def test_no_conn(
-        self,
-        mock_bot_factory,
-        mock_db,
-        setup_db,
-        freeze_time,
+        self, mock_bot_factory, mock_db, setup_db, freeze_time
     ) -> None:
         await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory()
@@ -241,11 +237,7 @@ class TestCheckReminders:
 
     @pytest.mark.asyncio()
     async def test_conn_not_ready(
-        self,
-        mock_bot_factory,
-        mock_db,
-        setup_db,
-        freeze_time,
+        self, mock_bot_factory, mock_db, setup_db, freeze_time
     ) -> None:
         await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory()
@@ -271,11 +263,7 @@ class TestCheckReminders:
 
     @pytest.mark.asyncio()
     async def test_late(
-        self,
-        mock_bot_factory,
-        mock_db,
-        setup_db,
-        freeze_time,
+        self, mock_bot_factory, mock_db, setup_db, freeze_time
     ) -> None:
         await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory()
@@ -303,11 +291,7 @@ class TestCheckReminders:
 
     @pytest.mark.asyncio()
     async def test_normal(
-        self,
-        mock_bot_factory,
-        mock_db,
-        setup_db,
-        freeze_time,
+        self, mock_bot_factory, mock_db, setup_db, freeze_time
     ) -> None:
         await remind.load_cache(async_call, mock_db.session())
         bot = mock_bot_factory()
@@ -330,7 +314,7 @@ class TestCheckReminders:
 
 @pytest.mark.asyncio()
 async def test_clear_reminders(mock_db, setup_db) -> None:
-    now = datetime.datetime.now()
+    now = dt.datetime.now()
 
     mock_db.add_row(
         remind.table,

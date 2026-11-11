@@ -23,7 +23,7 @@ table = Table(
 
 def format_user(user) -> str:
     """
-    >>> format_user('someuser')
+    >>> format_user("someuser")
     's\u200bomeuser'
     """
     return f"{user[:1]}\u200b{user[1:]}"
@@ -37,15 +37,23 @@ def filter_tags(tags, artist, limit=4):
      * Artist name removed
      * Blacklist of words removed
 
-    >>> filter_tags(['sometag', 'artist', 'seen live', 'Some RaNDoM tAG',
-    ... 'tag5', 'tag6', 'tag7'], 'artist')
+    >>> filter_tags(
+    ...     [
+    ...         "sometag",
+    ...         "artist",
+    ...         "seen live",
+    ...         "Some RaNDoM tAG",
+    ...         "tag5",
+    ...         "tag6",
+    ...         "tag7",
+    ...     ],
+    ...     "artist",
+    ... )
     ['sometag', 'some random tag', 'tag5', 'tag6']
     """
 
     # We never want to see these specific tags
-    blacklist = [
-        "seen live",
-    ]
+    blacklist = ["seen live"]
 
     # Force all tags to lowercase first
     # This allows easy comparisons with artist and blacklist
@@ -418,10 +426,7 @@ def lastfmcompare(text, nick, bot):
         ("Medium", 40),
         ("Low", 10),
         # Everything is > -math.inf so this acts as an `else:`
-        (
-            "Very Low",
-            -math.inf,
-        ),
+        ("Very Low", -math.inf),
     )
     level = ""
     for name, threshold in levels:

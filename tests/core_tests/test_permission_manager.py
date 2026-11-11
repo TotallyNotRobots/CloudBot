@@ -120,10 +120,7 @@ async def test_db(mock_db, mock_bot_factory) -> None:
     group_member_table.create(mock_db.engine)
     permission_table.create(mock_db.engine)
 
-    conn = MockClient(
-        bot=bot,
-        name="testconn",
-    )
+    conn = MockClient(bot=bot, name="testconn")
 
     perm = "bar"
     group = Group(
@@ -179,10 +176,7 @@ async def test_db(mock_db, mock_bot_factory) -> None:
         config={
             "permissions": {
                 "admins": {"users": ["a", "d"], "perms": ["foo"]},
-                "foo": {
-                    "users": ["b", "c", "thing"],
-                    "perms": ["bar", "baz"],
-                },
+                "foo": {"users": ["b", "c", "thing"], "perms": ["bar", "baz"]},
             }
         },
     )
@@ -228,10 +222,7 @@ async def test_db_config_merge(mock_db, mock_bot_factory) -> None:
     group_member_table.create(mock_db.engine)
     permission_table.create(mock_db.engine)
 
-    conn = MockClient(
-        bot=bot,
-        name="testconn",
-    )
+    conn = MockClient(bot=bot, name="testconn")
 
     perm = "bar"
     group = Group(

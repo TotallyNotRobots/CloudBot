@@ -27,9 +27,7 @@ def test_add_bad(mock_db: MockDB) -> None:
     with mock_db.session() as session:
         res = badwords.add_bad("foo #bar", "testnick", session)
         assert res == "Current badwords: foo"
-        assert mock_db.get_data(badwords.table) == [
-            ("foo", "testnick", "#bar"),
-        ]
+        assert mock_db.get_data(badwords.table) == [("foo", "testnick", "#bar")]
 
 
 def test_del_bad(mock_db: MockDB) -> None:
@@ -37,9 +35,7 @@ def test_del_bad(mock_db: MockDB) -> None:
     with mock_db.session() as session:
         mock_db.load_data(
             badwords.table,
-            [
-                {"word": "foo", "nick": "testnick", "chan": "#bar"},
-            ],
+            [{"word": "foo", "nick": "testnick", "chan": "#bar"}],
         )
         badwords.load_bad(session)
         res = badwords.del_bad("foo #bar", session)
@@ -52,9 +48,7 @@ def test_check_badwords(mock_db: MockDB) -> None:
     with mock_db.session() as session:
         mock_db.load_data(
             badwords.table,
-            [
-                {"word": "foo", "nick": "testnick", "chan": "#bar"},
-            ],
+            [{"word": "foo", "nick": "testnick", "chan": "#bar"}],
         )
 
         badwords.load_bad(session)
@@ -84,9 +78,7 @@ def test_check_badwords_wrong_channel(mock_db: MockDB) -> None:
     with mock_db.session() as session:
         mock_db.load_data(
             badwords.table,
-            [
-                {"word": "foo", "nick": "testnick", "chan": "#bar"},
-            ],
+            [{"word": "foo", "nick": "testnick", "chan": "#bar"}],
         )
 
         badwords.load_bad(session)
@@ -107,9 +99,7 @@ def test_check_badwords_no_match(mock_db: MockDB) -> None:
     with mock_db.session() as session:
         mock_db.load_data(
             badwords.table,
-            [
-                {"word": "foo", "nick": "testnick", "chan": "#bar"},
-            ],
+            [{"word": "foo", "nick": "testnick", "chan": "#bar"}],
         )
 
         badwords.load_bad(session)

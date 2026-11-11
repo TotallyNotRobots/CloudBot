@@ -47,11 +47,7 @@ def mode_cmd(mode, action, param, event, mode_warn=True) -> bool:
     event.notice(f"Attempting to {action} {target} in {channel}...")
     event.admin_log(
         MODE_CMD_LOG.format(
-            nick=nick,
-            cmd=action,
-            mode=mode,
-            target=target,
-            channel=channel,
+            nick=nick, cmd=action, mode=mode, target=target, channel=channel
         )
     )
     event.conn.send(f"MODE {channel} {mode} {target}")
@@ -74,10 +70,7 @@ def mode_cmd_no_target(mode, action, param, event, mode_warn=True) -> bool:
     event.notice(f"Attempting to {action} {channel}...")
     event.admin_log(
         MODE_CMD_NO_TARGET_LOG.format(
-            nick=event.nick,
-            cmd=action,
-            mode=mode,
-            channel=channel,
+            nick=event.nick, cmd=action, mode=mode, channel=channel
         )
     )
     event.conn.send(f"MODE {channel} {mode}")

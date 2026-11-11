@@ -448,12 +448,7 @@ class TestRegexSieve:
             )
             hook.mock_add_spec(spec=EventHook, spec_set=True)
 
-            event = Event(
-                bot=mock_bot,
-                conn=conn,
-                hook=hook,
-                channel="#chan",
-            )
+            event = Event(bot=mock_bot, conn=conn, hook=hook, channel="#chan")
 
             res = regex_chans.sieve_regex(mock_bot, event, hook)
 
@@ -518,12 +513,7 @@ class TestRegexSieve:
             )
             hook.mock_add_spec(spec=EventHook, spec_set=True)
 
-            event = Event(
-                bot=mock_bot,
-                conn=conn,
-                hook=hook,
-                channel="#chan",
-            )
+            event = Event(bot=mock_bot, conn=conn, hook=hook, channel="#chan")
 
             res = regex_chans.sieve_regex(mock_bot, event, hook)
 
@@ -623,9 +613,7 @@ class TestEnable(SetStatusBase):
         return ""
 
     def get_expected_db_data(self):
-        return [
-            ("net", "#chan", "ENABLED"),
-        ]
+        return [("net", "#chan", "ENABLED")]
 
 
 class TestDisable(SetStatusBase):
@@ -654,9 +642,7 @@ class TestDisable(SetStatusBase):
         return ""
 
     def get_expected_db_data(self):
-        return [
-            ("net", "#chan", "DISABLED"),
-        ]
+        return [("net", "#chan", "DISABLED")]
 
 
 class TestEnableWithArg(TestEnable):
@@ -682,9 +668,7 @@ class TestEnableWithArg(TestEnable):
         ]
 
     def get_expected_db_data(self):
-        return [
-            ("net", "#chan2", "ENABLED"),
-        ]
+        return [("net", "#chan2", "ENABLED")]
 
 
 class TestDisableWithArg(TestDisable):
@@ -692,9 +676,7 @@ class TestDisableWithArg(TestDisable):
         return "#chan2"
 
     def get_expected_db_data(self):
-        return [
-            ("net", "#chan2", "DISABLED"),
-        ]
+        return [("net", "#chan2", "DISABLED")]
 
     def get_expected_results(self):
         return [
@@ -760,5 +742,5 @@ def test_bad_value(mock_db: MockDB, caplog_bot) -> None:
 
     assert caplog_bot.messages == [
         "[regex_chans] Unknown status: ('net', '#chan', 'UNKNOWN'), falling back "
-        "to default",
+        "to default"
     ]

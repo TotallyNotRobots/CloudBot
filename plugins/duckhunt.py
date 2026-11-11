@@ -536,7 +536,7 @@ def no_ping_nick(nick: str) -> str:
 
 def top_list(prefix, data, join_char=" \u2022 "):
     r"""
-    >>> foods = [('Spam', 1), ('Eggs', 4)]
+    >>> foods = [("Spam", 1), ("Eggs", 4)]
     >>> top_list("Top Foods: ", foods)
     'Top Foods: \x02E\u200bggs\x02: 4 \u2022 \x02S\u200bpam\x02: 1'
     """
@@ -652,13 +652,7 @@ def display_scores(
         return None
 
     scores_dict = call_with_args(
-        func,
-        {
-            "db": db,
-            "score_type": score_type,
-            "conn": conn,
-            "chan": chan,
-        },
+        func, {"db": db, "score_type": score_type, "conn": conn, "chan": chan}
     )
 
     if not scores_dict:
@@ -837,12 +831,7 @@ def ducks_user(text, nick, chan, conn: Client, db, message):
     scores = db.execute(
         select(
             table.c.name, table.c.chan, table.c.shot, table.c.befriend
-        ).where(
-            and_(
-                table.c.network == conn.name,
-                table.c.name == name,
-            ),
-        )
+        ).where(and_(table.c.network == conn.name, table.c.name == name))
     ).fetchall()
 
     if text:
@@ -902,9 +891,7 @@ def duck_stats(chan, conn: Client, db, message):
     scores = db.execute(
         select(
             table.c.name, table.c.chan, table.c.shot, table.c.befriend
-        ).where(
-            table.c.network == conn.name,
-        )
+        ).where(table.c.network == conn.name)
     ).fetchall()
     friend_chan: dict[str, int] = defaultdict(int)
     kill_chan: dict[str, int] = defaultdict(int)
@@ -931,9 +918,7 @@ def duck_stats(chan, conn: Client, db, message):
             kill_chan.items(), key=operator.itemgetter(1), reverse=True
         )[0]
         friendchan, friendscore = sorted(
-            friend_chan.items(),
-            key=operator.itemgetter(1),
-            reverse=True,
+            friend_chan.items(), key=operator.itemgetter(1), reverse=True
         )[0]
         message(
             "\x02Duck Stats:\x02 {:,} killed and {:,} befriended in \x02{}\x02. "

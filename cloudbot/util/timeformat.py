@@ -42,7 +42,7 @@ License:
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import datetime
+import datetime as dt
 
 from cloudbot.util import formatting
 from cloudbot.util.formatting import pluralize_select
@@ -56,15 +56,15 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
     This function has a number of optional arguments that can be combined:
 
     SIMPLE: displays the time in a simple format
-    >>> NOW = datetime.datetime.now()
-    >>> SECONDS = NOW - datetime.timedelta(hours=1, minutes=2, seconds=34)
+    >>> NOW = dt.datetime.now()
+    >>> SECONDS = NOW - dt.timedelta(hours=1, minutes=2, seconds=34)
     >>> timesince(SECONDS, now=NOW)
     '1 hour and 2 minutes'
     >>> timesince(SECONDS, simple=True, now=NOW)
     '1h 2m'
 
     COUNT: how many periods should be shown (default 3)
-    >>> DIFF = datetime.timedelta(seconds=4663419154)
+    >>> DIFF = dt.timedelta(seconds=4663419154)
     >>> SECONDS = NOW - DIFF
     >>> timesince(SECONDS, now=NOW)
     '147 years and 10 months'
@@ -74,22 +74,22 @@ def time_since(d, now=None, count=2, accuracy=6, simple=False):
 
     # Convert int or float (unix epoch) to datetime.datetime for comparison
     if isinstance(d, (int, float)):
-        d = datetime.datetime.fromtimestamp(d)
+        d = dt.datetime.fromtimestamp(d)
 
     if isinstance(now, (int, float)):
-        now = datetime.datetime.fromtimestamp(now)
+        now = dt.datetime.fromtimestamp(now)
 
     # Convert datetime.date to datetime.datetime for comparison.
-    if not isinstance(d, datetime.datetime):
-        d = datetime.datetime(d.year, d.month, d.day)
-    if now and not isinstance(now, datetime.datetime):
-        now = datetime.datetime(now.year, now.month, now.day)
+    if not isinstance(d, dt.datetime):
+        d = dt.datetime(d.year, d.month, d.day)
+    if now and not isinstance(now, dt.datetime):
+        now = dt.datetime(now.year, now.month, now.day)
 
     if not now:
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
 
     # ignore microsecond part of 'd' since we removed it from 'now'
-    delta = now - (d - datetime.timedelta(0, 0, d.microsecond))
+    delta = now - (d - dt.timedelta(0, 0, d.microsecond))
     since = delta.days * 24 * 60 * 60 + delta.seconds
 
     if since <= 0:
@@ -110,7 +110,7 @@ def time_until(d, now=None, count=2, accuracy=6, simple=False):
     the given time.
     """
     if not now:
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
     return time_since(now, d, count, accuracy, simple)
 
 
@@ -120,7 +120,7 @@ timeuntil = time_until
 
 class TimeUnit:
     """
-    >>> t = TimeUnit(3600, 'h', 'hour', 'hours')
+    >>> t = TimeUnit(3600, "h", "hour", "hours")
     >>> t * 24
     86400
     >>> t * 2
@@ -212,7 +212,9 @@ def format_time(seconds, count=3, accuracy=6, simple=False):
     This function has a number of optional arguments that can be combined:
 
     SIMPLE: displays the time in a simple format
-    >>> SECONDS = int(datetime.timedelta(hours=1, minutes=2, seconds=34).total_seconds())
+    >>> SECONDS = int(
+    ...     dt.timedelta(hours=1, minutes=2, seconds=34).total_seconds()
+    ... )
     >>> format_time(SECONDS)
     '1 hour, 2 minutes and 34 seconds'
     >>> format_time(SECONDS, simple=True)

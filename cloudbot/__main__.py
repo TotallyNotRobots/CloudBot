@@ -45,8 +45,7 @@ async def async_main() -> int:
                 raise ShouldBeUnreachable
 
             asyncio.run_coroutine_threadsafe(
-                _bot.stop(f"Killed (Received SIGINT {signum})"),
-                _bot.loop,
+                _bot.stop(f"Killed (Received SIGINT {signum})"), _bot.loop
             )
 
         logger.warning("Bot received Signal Interrupt (%s)", signum)

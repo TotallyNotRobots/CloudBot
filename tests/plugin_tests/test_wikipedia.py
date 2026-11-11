@@ -58,12 +58,7 @@ def test_search(mock_requests) -> None:
         make_search_url("a search"),
         json={
             "query": {
-                "search": [
-                    {"title": "Other title"},
-                    {
-                        "title": "A title",
-                    },
-                ]
+                "search": [{"title": "Other title"}, {"title": "A title"}]
             }
         },
     )

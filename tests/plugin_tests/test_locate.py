@@ -29,13 +29,7 @@ def test_check_status(status, out) -> None:
 
 
 def test_locate_no_bias(mock_requests, mock_bot) -> None:
-    mock_bot.config.update(
-        {
-            "api_keys": {
-                "google_dev_key": "FOOBAR",
-            }
-        }
-    )
+    mock_bot.config.update({"api_keys": {"google_dev_key": "FOOBAR"}})
 
     conn = MagicMock(bot=mock_bot)
     event = CommandEvent(
@@ -96,32 +90,20 @@ def test_locate_no_bias(mock_requests, mock_bot) -> None:
                 }
             ],
         },
-        match=[
-            query_param_matcher(
-                {
-                    "address": "nyc",
-                    "key": "FOOBAR",
-                }
-            )
-        ],
+        match=[query_param_matcher({"address": "nyc", "key": "FOOBAR"})],
     )
 
     assert wrap_hook_response(locate.locate, event) == [
         (
             "return",
             "\x02New York, NY, USA\x02 - https://google.com/maps/@40.7127753,-74.0059728,16z/data=!3m1!1e3 (locality)",
-        ),
+        )
     ]
 
 
 def test_locate_with_bias(mock_requests, mock_bot) -> None:
     mock_bot.config.update(
-        {
-            "api_keys": {
-                "google_dev_key": "FOOBAR",
-            },
-            "location_bias_cc": "us",
-        }
+        {"api_keys": {"google_dev_key": "FOOBAR"}, "location_bias_cc": "us"}
     )
 
     conn = MagicMock(bot=mock_bot)
@@ -185,11 +167,7 @@ def test_locate_with_bias(mock_requests, mock_bot) -> None:
         },
         match=[
             query_param_matcher(
-                {
-                    "address": "nyc",
-                    "key": "FOOBAR",
-                    "region": "us",
-                }
+                {"address": "nyc", "key": "FOOBAR", "region": "us"}
             )
         ],
     )
@@ -198,5 +176,5 @@ def test_locate_with_bias(mock_requests, mock_bot) -> None:
         (
             "return",
             "\x02New York, NY, USA\x02 - https://google.com/maps/@40.7127753,-74.0059728,16z/data=!3m1!1e3 (locality)",
-        ),
+        )
     ]

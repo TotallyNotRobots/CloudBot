@@ -35,9 +35,7 @@ def test_getartisttags(mock_requests) -> None:
     mock_requests.add(
         "GET",
         url,
-        json={
-            "toptags": {},
-        },
+        json={"toptags": {}},
         match=[
             query_param_matcher(
                 {
@@ -69,9 +67,7 @@ class TestGetArtistTags:
         mock_requests.add(
             "GET",
             self.url,
-            json={
-                "toptags": {},
-            },
+            json={"toptags": {}},
             match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
@@ -81,9 +77,7 @@ class TestGetArtistTags:
         mock_requests.add(
             "GET",
             self.url,
-            json={
-                "toptags": {"tags": []},
-            },
+            json={"toptags": {"tags": []}},
             match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
@@ -117,7 +111,7 @@ class TestGetArtistTags:
                             "tag7",
                         ]
                     ]
-                },
+                }
             },
             match=[query_param_matcher(self.get_params())],
         )
@@ -180,26 +174,11 @@ class TestTopArtists:
             json={
                 "topartists": {
                     "artist": [
-                        {
-                            "name": "artist1",
-                            "playcount": 10,
-                        },
-                        {
-                            "name": "artist2",
-                            "playcount": 7,
-                        },
-                        {
-                            "name": "artist3",
-                            "playcount": 5,
-                        },
-                        {
-                            "name": "artist4",
-                            "playcount": 5,
-                        },
-                        {
-                            "name": "artist5",
-                            "playcount": 4,
-                        },
+                        {"name": "artist1", "playcount": 10},
+                        {"name": "artist2", "playcount": 7},
+                        {"name": "artist3", "playcount": 5},
+                        {"name": "artist4", "playcount": 5},
+                        {"name": "artist5", "playcount": 4},
                     ]
                 }
             },
@@ -310,10 +289,7 @@ class TestTopTrack:
 
 
 def test_now_playing_no_plays(
-    mock_db: MockDB,
-    mock_bot,
-    mock_requests: RequestsMock,
-    freeze_time,
+    mock_db: MockDB, mock_bot, mock_requests: RequestsMock, freeze_time
 ) -> None:
     librefm.table.create(mock_db.engine)
     librefm.load_cache(mock_db.session())
@@ -348,7 +324,7 @@ def test_now_playing_no_plays(
 
     results = wrap_hook_response(librefm.librefm, event)
     assert results == [
-        ("return", "libre.fm Error: Invalid resource specified Code: 7."),
+        ("return", "libre.fm Error: Invalid resource specified Code: 7.")
     ]
     assert mock_db.get_data(librefm.table) == []
 
@@ -423,11 +399,9 @@ def test_save_account(
         (
             "return",
             'myaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f https://example.com (thing) (44 years and 8 months ago)',
-        ),
+        )
     ]
-    assert mock_db.get_data(librefm.table) == [
-        ("foo", "myaccount"),
-    ]
+    assert mock_db.get_data(librefm.table) == [("foo", "myaccount")]
 
 
 def test_update_account(
@@ -501,12 +475,10 @@ def test_update_account(
         (
             "return",
             'myaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f https://example.com (thing) (44 years and 8 months ago)',
-        ),
+        )
     ]
 
-    assert mock_db.get_data(librefm.table) == [
-        ("foo", "myaccount"),
-    ]
+    assert mock_db.get_data(librefm.table) == [("foo", "myaccount")]
 
 
 @pytest.mark.asyncio
@@ -549,12 +521,10 @@ async def test_displaybandinfo_no_tags(
         ],
         json={
             "artist": {
-                "bio": {
-                    "summary": "my summary",
-                },
+                "bio": {"summary": "my summary"},
                 "name": "foo BAR!",
                 "url": "https://foo.invalid",
-            },
+            }
         },
     )
 
@@ -575,6 +545,6 @@ async def test_displaybandinfo_no_tags(
 
     results = wrap_hook_response(librefm.displaybandinfo, event)
     assert results == [
-        ("return", "foo BAR!: my summary https://foo.invalid (no tags)"),
+        ("return", "foo BAR!: my summary https://foo.invalid (no tags)")
     ]
     assert mock_db.get_data(librefm.table) == []

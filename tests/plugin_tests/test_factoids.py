@@ -51,9 +51,7 @@ async def test_update_fact(mock_db, mock_bot) -> None:
     factoids.table.create(mock_db.engine)
     mock_db.load_data(
         factoids.table,
-        [
-            {"word": "foo", "data": "data", "nick": "nick", "chan": "#chan"},
-        ],
+        [{"word": "foo", "data": "data", "nick": "nick", "chan": "#chan"}],
     )
     factoids.load_cache(mock_db.session())
     hook = MagicMock()
@@ -95,11 +93,7 @@ def test_forget(mock_db, patch_paste) -> None:
     factoids.table.create(mock_db.engine)
     chan = "#example"
     mock_db.add_row(
-        factoids.table,
-        chan=chan,
-        word="foo",
-        nick="bar",
-        data="things",
+        factoids.table, chan=chan, word="foo", nick="bar", data="things"
     )
     factoids.load_cache(mock_db.session())
 
@@ -129,11 +123,7 @@ def test_remove_fact_no_paste(mock_requests, mock_db) -> None:
     event.reset_mock()
 
     mock_db.add_row(
-        factoids.table,
-        chan=chan,
-        word="foo",
-        nick="bar",
-        data="things",
+        factoids.table, chan=chan, word="foo", nick="bar", data="things"
     )
     factoids.load_cache(mock_db.session())
 
@@ -156,11 +146,7 @@ def test_remove_fact(patch_paste, mock_db) -> None:
     assert event.mock_calls == [call.notice("Unknown factoids: 'foo'")]
 
     mock_db.add_row(
-        factoids.table,
-        chan="#example",
-        word="foo",
-        nick="bar",
-        data="things",
+        factoids.table, chan="#example", word="foo", nick="bar", data="things"
     )
 
     factoids.load_cache(mock_db.session())

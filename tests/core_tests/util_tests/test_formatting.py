@@ -230,10 +230,7 @@ def test_smart_split() -> None:
 
 def test_gen_md_table() -> None:
     headers = ["ColumnA", "Column B"]
-    data = [
-        ["1", "2"],
-        ["3", "4"],
-    ]
+    data = [["1", "2"], ["3", "4"]]
     expected = """
     | ColumnA | Column B |
     | ------- | -------- |

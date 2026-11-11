@@ -22,19 +22,12 @@ from operator import attrgetter
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 import requests
-from requests import (
-    HTTPError,
-    RequestException,
-)
+from requests import HTTPError, RequestException
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
-    from requests import (
-        PreparedRequest,
-        Request,
-        Response,
-    )
+    from requests import PreparedRequest, Request, Response
 
 # Constants
 DEFAULT_SHORTENER = "is.gd"
@@ -205,8 +198,7 @@ class ServiceError(Exception):
 class ServiceHTTPError(ServiceError):
     def __init__(self, message: str, response: Response) -> None:
         super().__init__(
-            response.request,
-            f"[HTTP {response.status_code}] {message}",
+            response.request, f"[HTTP {response.status_code}] {message}"
         )
         self.message = message
         self.response = response

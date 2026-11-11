@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import re
 import time
 from typing import TYPE_CHECKING
@@ -62,7 +62,7 @@ def time_command(text: str, reply, bot: CloudBot) -> str:
 
         if len(utcoffset) == 2:
             try:
-                offset = datetime.timedelta(
+                offset = dt.timedelta(
                     hours=int(utcoffset[0]), minutes=int(utcoffset[1])
                 )
             except Exception:
@@ -71,9 +71,9 @@ def time_command(text: str, reply, bot: CloudBot) -> str:
                 )
                 raise
 
-            curtime = datetime.datetime.now(datetime.timezone.utc)
+            curtime = dt.datetime.now(dt.timezone.utc)
             tztime = curtime + offset
-            formatted_time = datetime.datetime.strftime(
+            formatted_time = dt.datetime.strftime(
                 tztime, "%I:%M %p, %A, %B %d, %Y"
             )
             return f"\x02{formatted_time}\x02 ({timezone})"

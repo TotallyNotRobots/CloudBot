@@ -78,18 +78,14 @@ chan_params = {
     "318": 1,
 }
 
-target_params = {
-    "KICK": 1,
-    "INVITE": 0,
-    "MODE": 0,
-}
+target_params = {"KICK": 1, "INVITE": 0, "MODE": 0}
 
 
 def decode(bytestring):
     """
     Tries to decode a bytestring using multiple encoding formats
 
-    >>> decode(bytes([0x80, 0xbf, 0x81]) + '\u200b'.encode())
+    >>> decode(bytes([0x80, 0xBF, 0x81]) + "\u200b".encode())
     '\u200b'
     """
     for codec in ("utf-8", "shift_jis", "cp1252"):
@@ -171,11 +167,7 @@ class IrcClient(Client):
         return False
 
     def get_channel_key(
-        self,
-        channel: str,
-        default: str | None = None,
-        *,
-        set_key: bool = True,
+        self, channel: str, default: str | None = None, *, set_key: bool = True
     ) -> str | None:
         if channel in self._channel_keys:
             key = self._channel_keys[channel]

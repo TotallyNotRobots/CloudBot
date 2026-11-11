@@ -47,11 +47,7 @@ async def test_grab_duplicate(mock_db, mock_bot_factory) -> None:
         grab.table, name=target_nick, time="123", quote=quote, chan=chan
     )
     conn = MockClient(bot=bot)
-    conn.history[chan] = deque(
-        [
-            (target_nick, 1234, quote),
-        ]
-    )
+    conn.history[chan] = deque([(target_nick, 1234, quote)])
     db = mock_db.session()
     grab.load_cache(db)
     res = grab.grab(target_nick, nick, chan, db, conn)
@@ -68,11 +64,7 @@ async def test_grab_error(mock_db, caplog_bot, mock_bot_factory) -> None:
     chan = "#foo"
     target_nick = "bar"
     conn = MockClient(bot=bot)
-    conn.history[chan] = deque(
-        [
-            (target_nick, 1234, quote),
-        ]
-    )
+    conn.history[chan] = deque([(target_nick, 1234, quote)])
     grab.grab_cache.clear()
     db = mock_db.session()
     res = grab.grab(target_nick, nick, chan, db, conn)

@@ -38,9 +38,7 @@ async def test_api(mock_bot_factory, unset_bot) -> None:
             lastfm.api_request("track.getTopTags")
 
         reqs.add(
-            "GET",
-            "http://ws.audioscrobbler.com/2.0/",
-            json={"data": "thing"},
+            "GET", "http://ws.audioscrobbler.com/2.0/", json={"data": "thing"}
         )
 
         res, _ = lastfm.api_request("track.getTopTags")
@@ -71,10 +69,7 @@ def test_api_error_message(mock_requests, mock_api_keys) -> None:
     mock_requests.add(
         "GET",
         "http://ws.audioscrobbler.com/2.0/",
-        json={
-            "error": 10,
-            "message": "Invalid API Key",
-        },
+        json={"error": 10, "message": "Invalid API Key"},
     )
 
     _, error = lastfm.api_request("track.getTopTags")
@@ -87,9 +82,7 @@ def test_getartisttags(mock_requests, mock_api_keys) -> None:
     mock_requests.add(
         "GET",
         url,
-        json={
-            "toptags": {},
-        },
+        json={"toptags": {}},
         match=[
             query_param_matcher(
                 {
@@ -125,9 +118,7 @@ class TestGetArtistTags:
         mock_requests.add(
             "GET",
             self.url,
-            json={
-                "toptags": {},
-            },
+            json={"toptags": {}},
             match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
@@ -137,9 +128,7 @@ class TestGetArtistTags:
         mock_requests.add(
             "GET",
             self.url,
-            json={
-                "toptags": {"tags": []},
-            },
+            json={"toptags": {"tags": []}},
             match=[query_param_matcher(self.get_params())],
         )
         res = self.get_tags()
@@ -173,7 +162,7 @@ class TestGetArtistTags:
                             "tag7",
                         ]
                     ]
-                },
+                }
             },
             match=[query_param_matcher(self.get_params())],
         )
@@ -404,14 +393,12 @@ async def test_save_account(
     )
 
     results = wrap_hook_response(lastfm.lastfm, event)
-    assert mock_db.get_data(lastfm.table) == [
-        ("foo", "myaccount"),
-    ]
+    assert mock_db.get_data(lastfm.table) == [("foo", "myaccount")]
     assert results == [
         (
             "return",
             'm\u200byaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f [playcount: 3] https://example.com (thing) (44 years and 8 months ago)',
-        ),
+        )
     ]
 
 
@@ -504,12 +491,10 @@ async def test_update_account(
     )
 
     results = wrap_hook_response(lastfm.lastfm, event)
-    assert mock_db.get_data(lastfm.table) == [
-        ("foo", "myaccount"),
-    ]
+    assert mock_db.get_data(lastfm.table) == [("foo", "myaccount")]
     assert results == [
         (
             "return",
             'm\u200byaccount last listened to "some track" by \x02bar\x0f from the album \x02foo\x0f [playcount: 3] https://example.com (thing) (44 years and 8 months ago)',
-        ),
+        )
     ]

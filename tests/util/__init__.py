@@ -5,11 +5,7 @@ from unittest.mock import patch
 
 from cloudbot.util.func_utils import call_with_args
 
-__all__ = (
-    "HookResult",
-    "wrap_hook_response",
-    "get_data_file",
-)
+__all__ = ("HookResult", "wrap_hook_response", "get_data_file")
 
 
 class HookResult:
@@ -22,11 +18,7 @@ class HookResult:
         if not self.data:
             return self.return_type, self.value
 
-        return (
-            self.return_type,
-            self.value,
-            self.data,
-        )
+        return (self.return_type, self.value, self.data)
 
     def __eq__(self, other):
         if isinstance(other, HookResult):

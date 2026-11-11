@@ -22,11 +22,7 @@ def test_imgur_no_api(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur_no_results(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
@@ -42,11 +38,7 @@ def test_imgur_no_results(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur_meme(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
@@ -56,9 +48,7 @@ def test_imgur_meme(mock_requests: RequestsMock, mock_api_keys) -> None:
             {
                 "is_album": False,
                 "title": "foo",
-                "meme_metadata": {
-                    "meme_name": "foo",
-                },
+                "meme_metadata": {"meme_name": "foo"},
                 "section": "",
                 "nsfw": True,
                 "link": "foo.bar",
@@ -88,11 +78,7 @@ def test_imgur_meme(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur_reddit(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
@@ -101,9 +87,7 @@ def test_imgur_reddit(mock_requests: RequestsMock, mock_api_keys) -> None:
             {
                 "is_album": False,
                 "title": "foo",
-                "meme_metadata": {
-                    "meme_name": "foo",
-                },
+                "meme_metadata": {"meme_name": "foo"},
                 "section": "",
                 "nsfw": True,
                 "link": "foo.bar",
@@ -136,11 +120,7 @@ def test_imgur_reddit(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur_user(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
@@ -150,9 +130,7 @@ def test_imgur_user(mock_requests: RequestsMock, mock_api_keys) -> None:
             {
                 "is_album": False,
                 "title": "foo",
-                "meme_metadata": {
-                    "meme_name": "foo",
-                },
+                "meme_metadata": {"meme_name": "foo"},
                 "section": "",
                 "nsfw": True,
                 "link": "foo.bar",
@@ -182,11 +160,7 @@ def test_imgur_user(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur_random(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
@@ -195,9 +169,7 @@ def test_imgur_random(mock_requests: RequestsMock, mock_api_keys) -> None:
             {
                 "is_album": False,
                 "title": "foo",
-                "meme_metadata": {
-                    "meme_name": "foo",
-                },
+                "meme_metadata": {"meme_name": "foo"},
                 "section": "",
                 "nsfw": True,
                 "link": "foo.bar",
@@ -227,25 +199,17 @@ def test_imgur_random(mock_requests: RequestsMock, mock_api_keys) -> None:
 
 def test_imgur(mock_requests: RequestsMock, mock_api_keys) -> None:
     random.seed(0)
-    mock_requests.add(
-        responses.GET,
-        "https://api.imgur.com/3/credits",
-        json={},
-    )
+    mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
     mock_requests.add(
         responses.GET,
         "https://api.imgur.com/3/gallery/hot/viral/0",
-        match=[
-            query_param_matcher({"showViral": "true"}),
-        ],
+        match=[query_param_matcher({"showViral": "true"})],
         json=[
             {
                 "is_album": False,
                 "title": "foo",
-                "meme_metadata": {
-                    "meme_name": "foo",
-                },
+                "meme_metadata": {"meme_name": "foo"},
                 "section": "",
                 "nsfw": True,
                 "link": "foo.bar",

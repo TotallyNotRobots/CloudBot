@@ -13,11 +13,7 @@ def make_conn(mock_bot_factory, loop=None):
         bot=bot,
         name="conn",
         nick="foobot",
-        config={
-            "connection": {
-                "server": "host.invalid",
-            },
-        },
+        config={"connection": {"server": "host.invalid"}},
     )
     return conn
 
@@ -28,10 +24,7 @@ async def test_load_keys(mock_bot_factory, mock_db) -> None:
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(
-        chan_key_db.table,
-        conn=conn.name.lower(),
-        chan="#foo",
-        key="foobar",
+        chan_key_db.table, conn=conn.name.lower(), chan="#foo", key="foobar"
     )
     assert chan_key_db.load_keys(conn, db) is None
     assert conn.get_channel_key("#foo") == "foobar"
@@ -66,9 +59,7 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
         is None
     )
     assert conn.get_channel_key("#foo") == "beep"
-    assert mock_db.get_data(chan_key_db.table) == [
-        ("conn", "#foo", "beep"),
-    ]
+    assert mock_db.get_data(chan_key_db.table) == [("conn", "#foo", "beep")]
 
     assert (
         chan_key_db.handle_modes(
@@ -77,9 +68,7 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
         is None
     )
     assert conn.get_channel_key("#foo") == "boop"
-    assert mock_db.get_data(chan_key_db.table) == [
-        ("conn", "#foo", "boop"),
-    ]
+    assert mock_db.get_data(chan_key_db.table) == [("conn", "#foo", "boop")]
 
     assert (
         chan_key_db.handle_modes(
@@ -106,22 +95,16 @@ async def test_check_send_key(mock_bot_factory, mock_db) -> None:
     msg = Message(None, None, "JOIN", ["#foo,#bar", "bing"])
     assert chan_key_db.check_send_key(conn, msg, db) is msg
     assert conn.get_channel_key("#foo") == "bing"
-    assert mock_db.get_data(chan_key_db.table) == [
-        ("conn", "#foo", "bing"),
-    ]
+    assert mock_db.get_data(chan_key_db.table) == [("conn", "#foo", "bing")]
 
     msg = Message(None, None, "PRIVMSG", ["#foo,#bar", "bing"])
     assert chan_key_db.check_send_key(conn, msg, db) is msg
-    assert mock_db.get_data(chan_key_db.table) == [
-        ("conn", "#foo", "bing"),
-    ]
+    assert mock_db.get_data(chan_key_db.table) == [("conn", "#foo", "bing")]
 
     msg = Message(None, None, "JOIN", ["#foo,#bar"])
     assert chan_key_db.check_send_key(conn, msg, db) is msg
     assert conn.get_channel_key("#foo") == "bing"
-    assert mock_db.get_data(chan_key_db.table) == [
-        ("conn", "#foo", "bing"),
-    ]
+    assert mock_db.get_data(chan_key_db.table) == [("conn", "#foo", "bing")]
 
 
 @pytest.mark.asyncio
@@ -130,10 +113,7 @@ async def test_key_use(mock_bot_factory, mock_db) -> None:
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
     mock_db.add_row(
-        chan_key_db.table,
-        conn=conn.name.lower(),
-        chan="#foo",
-        key="foobar",
+        chan_key_db.table, conn=conn.name.lower(), chan="#foo", key="foobar"
     )
     chan_key_db.load_keys(conn, db)
     conn.join("#foo")

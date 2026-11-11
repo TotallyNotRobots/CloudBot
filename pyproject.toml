@@ -3,76 +3,12 @@ name = "cloudbot"
 requires-python = ">=3.10"
 version = "1.5.0"
 
-[tool.isort]
-line_length = 80
-known_first_party = ["cloudbot", "plugins", "tests"]
-known_third_party = ["alembic"]
-float_to_top = true
-profile = "black"
-
-[tool.black]
-line-length = 80
-include = '\.pyi?$'
-
-[tool.mypy]
-namespace_packages = true
-python_version = "3.10"
-warn_unused_configs = true
-strict = false
-strict_optional = true
-ignore_missing_imports = true
-check_untyped_defs = true
-show_error_codes = true
-warn_unused_ignores = true
-warn_redundant_casts = true
-# strict_equality = true
-plugins = ["pydantic.mypy"]
-follow_imports = "silent"
-# disallow_any_generics = true
-no_implicit_reexport = true
-enable_error_code = [
-    "deprecated",
-    "exhaustive-match",
-    # "explicit-override",
-    "ignore-without-code",
-    "mutable-override",
-    # "possibly-undefined",
-    # "redundant-expr",
-    "redundant-self",
-    "truthy-bool",
-    "truthy-iterable",
-    "unimported-reveal",
-    # "unused-awaitable",
-    "unused-ignore",
-]
-
-[[tool.mypy.overrides]]
-module = 'cloudbot.*'
-warn_return_any = true
-
-[[tool.mypy.overrides]]
-module = 'cloudbot.config'
-disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = 'cloudbot.util.*'
-warn_return_any = true
-
-[[tool.mypy.overrides]]
-module = 'plugins.cryptocurrency'
-warn_return_any = true
-
-[tool.pydantic-mypy]
-init_forbid_extra = true
-init_typed = true
-warn_required_dynamic_aliases = true
-
 [tool.autoflake]
 remove-all-unused-imports = true
 in-place = true
 expand-star-imports = true
 
-[tool.pytest.ini_options]
+[tool.pytest]
 addopts = [
     "--ignore=venv",
     "--ignore=.*",
@@ -92,7 +28,7 @@ filterwarnings = [
 ]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
-minversion = "8.0"
+minversion = "9.0"
 
 [tool.coverage.report]
 fail_under = 80
@@ -143,6 +79,12 @@ line-length = 80
 
 [tool.ruff.lint]
 ignore = [
+    "CPY001",
+    "ISC001",
+    "EXE002",
+    "FURB192",
+    "ASYNC240",
+    "FURB110",
     "ANN001", # missing function arg type annotation
     "ANN002", # no annotation for *args
     "ANN003", # no annotation for kwargs
@@ -205,6 +147,8 @@ ignore = [
     "PLR0912", # too-many-branches
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
+    "PLR0917",
+    "ISC004",
     "PLR1730", # replace if with max
     "PLR2004", # Magic value
     "PLR2044", # line with empty comment
@@ -263,12 +207,21 @@ ignore = [
 select = [
     "ALL",
 ]
-extend-safe-fixes = ["TC", "UP", "RUF046"]
+extend-safe-fixes = ["TC", "UP", "RUF046", "ICN001"]
 future-annotations = true
 fixable = ["ALL"]
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ["pydantic.BaseModel", "sqlalchemy.orm.DeclarativeBase", "cloudbot.util.database.Base"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]
+split-on-trailing-comma = false
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+skip-magic-trailing-comma = true
 
 [tool.alembic]
 # path to migration scripts.
@@ -279,16 +232,9 @@ script_location = "%(here)s/alembic"
 # additional paths to be prepended to sys.path. defaults to the current working directory.
 prepend_sys_path = ["."]
 
-# [[tool.alembic.post_write_hooks]]
-# lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
-# name = "ruff"
-# type = "module"
-# module = "ruff"
-# options = "check --fix REVISION_SCRIPT_FILENAME"
-#
-# [[tool.alembic.post_write_hooks]]
-# Alternatively, use the exec runner to execute a binary found on your PATH
-# name = "ruff"
-# type = "exec"
-# executable = "ruff"
-# options = "check --fix REVISION_SCRIPT_FILENAME"
+[tool.basedpyright]
+analyzeUnannotatedFunctions = true
+reportUnusedCallResult = "none"
+reportImplicitStringConcatenation = "none"
+reportImportCycles = "none"
+pythonVersion = "3.10"

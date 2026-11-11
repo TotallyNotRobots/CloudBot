@@ -10,9 +10,7 @@ def test_autohelp() -> None:
     def f() -> None:
         """foo"""
 
-    event = Event(
-        hook=Hook("foo", None, _Hook(f, "foo")),
-    )
+    event = Event(hook=Hook("foo", None, _Hook(f, "foo")))
     res = core_hooks.cmd_autohelp(event.bot, event, event.hook)
     assert res is event
 

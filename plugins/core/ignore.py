@@ -185,7 +185,7 @@ def listignores(db, conn: Client, chan):
             and_(
                 table.c.connection == conn.name.lower(),
                 table.c.channel == chan.lower(),
-            ),
+            )
         )
     ).fetchall()
 

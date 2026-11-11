@@ -24,11 +24,7 @@ async def test_cap_req(patch_import_module) -> None:
     cap_names = [s.split("=")[0] for s in caps]
 
     params = ParamList.parse(f"* LS :{' '.join(caps)}")
-    event = Event(
-        irc_paramlist=params,
-        bot=MagicMock(),
-        conn=MagicMock(),
-    )
+    event = Event(irc_paramlist=params, bot=MagicMock(), conn=MagicMock())
     event.conn.loop = event.bot.loop = asyncio.get_running_loop()
     event.bot.config = {}
     event.conn.type = "irc"
@@ -60,11 +56,7 @@ async def test_cap_req(patch_import_module) -> None:
     def cmd(cmd, subcmd, *args) -> None:
         calls.append((cmd, subcmd) + args)
         p = ParamList.parse(f"* ACK :{' '.join(args)}")
-        cmd_event = Event(
-            irc_paramlist=p,
-            bot=event.bot,
-            conn=event.conn,
-        )
+        cmd_event = Event(irc_paramlist=p, bot=event.bot, conn=event.conn)
         asyncio.ensure_future(cap.on_cap(p, cmd_event), loop=event.loop)
 
     with patch.object(event.conn, "cmd", new=cmd):

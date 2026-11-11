@@ -107,11 +107,7 @@ def test_rate_limit_other() -> None:
     hook = MagicMock()
     hook.type = "event"
     event = Event(
-        hook=hook,
-        bot=conn.bot,
-        conn=conn,
-        channel="#foo",
-        nick="foobaruser",
+        hook=hook, bot=conn.bot, conn=conn, channel="#foo", nick="foobaruser"
     )
     for _ in range(3):
         res = core_sieve.rate_limit(event.bot, event, event.hook)

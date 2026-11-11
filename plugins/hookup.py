@@ -37,9 +37,7 @@ def hookup(db, chan):
     times = time.time() - 86400
     results = db.execute(
         select(seen_table.c.name)
-        .where(
-            and_(seen_table.c.chan == chan, seen_table.c.time > times),
-        )
+        .where(and_(seen_table.c.chan == chan, seen_table.c.time > times))
         .order_by(seen_table.c.time)
     ).fetchall()
 
@@ -50,10 +48,7 @@ def hookup(db, chan):
     people = sorted({row[0] for row in results})
     random.shuffle(people)
     person1, person2 = people[:2]
-    variables = {
-        "user1": person1,
-        "user2": person2,
-    }
+    variables = {"user1": person1, "user2": person2}
 
     generator = TextGenerator(
         hookups["templates"], hookups["parts"], variables=variables

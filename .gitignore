@@ -66,3 +66,4 @@ config.json
 .DS_Store
 *.bak
 .cache/nitpick/
+junit.xml

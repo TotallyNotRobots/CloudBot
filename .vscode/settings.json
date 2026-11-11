@@ -2,6 +2,7 @@
     "python.testing.pytestArgs": [
         "."
     ],
+    "basedpyright.analysis.baselineMode": "discard",
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.analysis.enablePytestSupport": true,
@@ -9,17 +10,17 @@
         "diffEditor.ignoreTrimWhitespace": false,
         "editor.formatOnType": true,
         "editor.wordBasedSuggestions": "off",
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "evenBetterToml.formatter.allowedBlankLines": 1,
     "evenBetterToml.formatter.arrayAutoCollapse": false,
     "evenBetterToml.formatter.arrayAutoExpand": true,
     "evenBetterToml.formatter.arrayTrailingComma": true,
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": [],
     "python.analysis.diagnosticMode": "workspace",
     "evenBetterToml.formatter.columnWidth": 60,
     "[toml]": {
       "editor.defaultFormatter": "tamasfe.even-better-toml"
-    }
+    },
+    "basedpyright.analysis.diagnosticMode": "workspace"
 }

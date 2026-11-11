@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 
 import cloudbot
 from cloudbot import hook
@@ -19,4 +19,4 @@ async def ctcp_version(notice, irc_ctcp_text) -> None:
             notice(f"\x01PING {params}\x01")
         elif command == "TIME":
             # General convention is to return the asc time
-            notice(f"\x01TIME {datetime.datetime.now().ctime()}\x01")
+            notice(f"\x01TIME {dt.datetime.now().ctime()}\x01")

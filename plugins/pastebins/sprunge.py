@@ -21,9 +21,7 @@ class Sprunge(Pastebin):
         else:
             encoded = data
 
-        params = {
-            "sprunge": encoded,
-        }
+        params = {"sprunge": encoded}
 
         try:
             with requests.post(self.url, data=params) as response:

@@ -46,12 +46,7 @@ def test_get_plugin(mock_manager) -> None:
     file_path = mock_manager.bot.plugin_dir / "test.py"
     file_name = file_path.name
 
-    obj = Plugin(
-        str(file_path),
-        file_name,
-        "test",
-        MockModule(),
-    )
+    obj = Plugin(str(file_path), file_name, "test", MockModule())
 
     mock_manager._add_plugin(obj)
 
@@ -78,12 +73,7 @@ def test_find_tables(mock_manager) -> None:
         test_id: Mapped[int] = mapped_column(primary_key=True)
 
     mod = MockModule(tbl=TestTable)
-    obj = Plugin(
-        str(file_path),
-        file_name,
-        "test",
-        mod,
-    )
+    obj = Plugin(str(file_path), file_name, "test", mod)
 
     table_names = [t.name for t in obj.tables]
 
@@ -99,9 +89,7 @@ def test_can_load(mock_manager) -> None:
         {
             "plugin_loading": {
                 "use_whitelist": True,
-                "whitelist": [
-                    "plugins.bar",
-                ],
+                "whitelist": ["plugins.bar"],
             }
         }
     )
@@ -111,9 +99,7 @@ def test_can_load(mock_manager) -> None:
         {
             "plugin_loading": {
                 "use_whitelist": True,
-                "whitelist": [
-                    "plugins.foo",
-                ],
+                "whitelist": ["plugins.foo"],
             }
         }
     )
@@ -123,12 +109,8 @@ def test_can_load(mock_manager) -> None:
         {
             "plugin_loading": {
                 "use_whitelist": False,
-                "whitelist": [
-                    "plugins.bar",
-                ],
-                "blacklist": [
-                    "plugins.foo",
-                ],
+                "whitelist": ["plugins.bar"],
+                "blacklist": ["plugins.foo"],
             }
         }
     )
@@ -138,9 +120,7 @@ def test_can_load(mock_manager) -> None:
         {
             "plugin_loading": {
                 "use_whitelist": False,
-                "whitelist": [
-                    "plugins.bar",
-                ],
+                "whitelist": ["plugins.bar"],
                 "blacklist": [],
             }
         }
@@ -236,11 +216,7 @@ def test_plugin_with_objs_full_dict_attr(
     _test_weird_obj(
         patch_import_module,
         mock_manager,
-        WeirdObject(
-            lambda *args: {
-                "some_thing": object(),
-            }
-        ),
+        WeirdObject(lambda *args: {"some_thing": object()}),
     )
 
 
@@ -254,9 +230,7 @@ def test_plugin_load_disabled(
         {
             "plugin_loading": {
                 "use_whitelist": True,
-                "whitelist": [
-                    "plugins.bar",
-                ],
+                "whitelist": ["plugins.bar"],
             }
         }
     )
@@ -436,16 +410,8 @@ class TestPluginLoad:
         await mock_manager.unload_plugin(str(plugin_file))
         await asyncio.sleep(0)
         assert caplog_bot.record_tuples == [
-            (
-                "cloudbot",
-                10,
-                "Cancelling running tasks in test",
-            ),
-            (
-                "cloudbot",
-                20,
-                "Cancelled 1 tasks from test",
-            ),
+            ("cloudbot", 10, "Cancelling running tasks in test"),
+            ("cloudbot", 20, "Cancelled 1 tasks from test"),
             ("cloudbot", 20, "Unloaded all plugins from test"),
         ]
         assert task.cancelled()
@@ -873,17 +839,13 @@ async def test_create_tables(
 ) -> None:
     db = mock_db
     bot = mock_bot_factory(db=db)
-    table = Table(
-        "test",
-        database.metadata,
-        Column("a", String),
-    )
+    table = Table("test", database.metadata, Column("a", String))
     plugin = MagicMock()
     plugin.title = "test.py"
     plugin.tables = [table]
     await Plugin.create_tables(plugin, bot)
     assert caplog_bot.record_tuples == [
-        ("cloudbot", 20, "Registering tables for test.py"),
+        ("cloudbot", 20, "Registering tables for test.py")
     ]
     assert plugin.mock_calls == []
     inspector = inspect(bot.db_engine)

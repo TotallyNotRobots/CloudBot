@@ -44,9 +44,7 @@ def test_addpoint(mock_db) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     karma.addpoint("foo", "foo", "#bar", db)
-    assert mock_db.get_data(karma.karma_table) == [
-        ("foo", "#bar", "foo", 1),
-    ]
+    assert mock_db.get_data(karma.karma_table) == [("foo", "#bar", "foo", 1)]
 
 
 def test_re_addpt(mock_db: MockDB) -> None:
@@ -57,7 +55,7 @@ def test_re_addpt(mock_db: MockDB) -> None:
     karma.re_addpt(match, "testnick", "#chan", db, notice)
     assert notice.mock_calls == []
     assert mock_db.get_data(karma.karma_table) == [
-        ("testnick", "#chan", "foo", 1),
+        ("testnick", "#chan", "foo", 1)
     ]
 
 
@@ -75,9 +73,7 @@ def test_re_addpt_single_get(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     mock_db.load_data(
         karma.karma_table,
-        [
-            {"name": "testnick", "thing": "foo", "chan": "#chan", "score": 4},
-        ],
+        [{"name": "testnick", "thing": "foo", "chan": "#chan", "score": 4}],
     )
     db = mock_db.session()
     match = karma.karmaplus_re.search("++")
@@ -117,7 +113,7 @@ def test_re_rmpt(mock_db: MockDB) -> None:
     karma.re_rmpt(match, "testnick", "#chan", db, notice)
     assert notice.mock_calls == []
     assert mock_db.get_data(karma.karma_table) == [
-        ("testnick", "#chan", "foo", -1),
+        ("testnick", "#chan", "foo", -1)
     ]
 
 
@@ -135,9 +131,7 @@ def test_re_rmpt_single_get(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     mock_db.load_data(
         karma.karma_table,
-        [
-            {"name": "testnick", "thing": "foo", "chan": "#chan", "score": -4},
-        ],
+        [{"name": "testnick", "thing": "foo", "chan": "#chan", "score": -4}],
     )
 
     db = mock_db.session()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import datetime
+import datetime as dt
 import importlib
 import logging
 from typing import TYPE_CHECKING
@@ -117,8 +117,8 @@ def mock_requests():
 @pytest.fixture()
 def freeze_time():
     # Make sure some randomness in the time doesn't break a test
-    dt = datetime.datetime(2019, 8, 22, 18, 14, 36)
-    with freezegun.freeze_time(dt, tz_offset=-5) as ft:
+    ts = dt.datetime(2019, 8, 22, 18, 14, 36)
+    with freezegun.freeze_time(ts, tz_offset=-5) as ft:
         yield ft
 
 

@@ -205,7 +205,7 @@ async def test_foods(food, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("attack", [attack for attack in attacks.ATTACKS])
+@pytest.mark.parametrize("attack", [*attacks.ATTACKS])
 async def test_attacks(attack, mock_bot_factory) -> None:
     _, event = await _do_test(
         "attacks",

@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, call, patch
 
@@ -36,12 +36,7 @@ def test_tellcmd(mock_db) -> None:
 
     def _test(text, output) -> None:
         tell.tell_cmd(
-            text,
-            sender.nick,
-            session,
-            mock_conn,
-            sender.mask,
-            mock_event,
+            text, sender.nick, session, mock_conn, sender.mask, mock_event
         )
 
         mock_event.notice.assert_called_with(output)
@@ -49,12 +44,7 @@ def test_tellcmd(mock_db) -> None:
         mock_event.reset_mock()
 
     tell.tell_cmd(
-        "OtherUser",
-        sender.nick,
-        session,
-        mock_conn,
-        sender.mask,
-        mock_event,
+        "OtherUser", sender.nick, session, mock_conn, sender.mask, mock_event
     )
 
     mock_event.notice_doc.assert_called_once_with()
@@ -124,12 +114,12 @@ async def test_showtells(mock_db, freeze_time, mock_bot_factory) -> None:
             "other",
             "bar",
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
             None,
         )
     ]
 
-    freeze_time.tick(datetime.timedelta(minutes=1))
+    freeze_time.tick(dt.timedelta(minutes=1))
     res = tell.showtells(nick, event.notice, db, conn)
     assert res is None
     assert event.mock_calls == [
@@ -143,7 +133,7 @@ async def test_showtells(mock_db, freeze_time, mock_bot_factory) -> None:
             "other",
             "bar",
             True,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
             None,
         )
     ]
@@ -245,7 +235,7 @@ def test_read_tell_spam(mock_db, freeze_time, mock_bot) -> None:
             nick,
             message,
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
             None,
         ),
         (
@@ -255,7 +245,7 @@ def test_read_tell_spam(mock_db, freeze_time, mock_bot) -> None:
             nick,
             message,
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 37),
+            dt.datetime(2019, 8, 22, 13, 14, 37),
             None,
         ),
         (
@@ -265,7 +255,7 @@ def test_read_tell_spam(mock_db, freeze_time, mock_bot) -> None:
             nick,
             message,
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 38),
+            dt.datetime(2019, 8, 22, 13, 14, 38),
             None,
         ),
         (
@@ -275,7 +265,7 @@ def test_read_tell_spam(mock_db, freeze_time, mock_bot) -> None:
             nick,
             message2,
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 39),
+            dt.datetime(2019, 8, 22, 13, 14, 39),
             None,
         ),
     ]
@@ -316,8 +306,8 @@ def test_tellinput_multiple(mock_db, freeze_time, mock_bot) -> None:
             "other",
             "bar",
             True,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
         ),
         (
             2,
@@ -326,7 +316,7 @@ def test_tellinput_multiple(mock_db, freeze_time, mock_bot) -> None:
             "other",
             "test",
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
             None,
         ),
         (
@@ -336,7 +326,7 @@ def test_tellinput_multiple(mock_db, freeze_time, mock_bot) -> None:
             "other",
             "z",
             False,
-            datetime.datetime(2019, 8, 22, 13, 14, 36),
+            dt.datetime(2019, 8, 22, 13, 14, 36),
             None,
         ),
     ]
@@ -395,7 +385,7 @@ def test_load_disabled(mock_db, freeze_time) -> None:
         conn="foo",
         target="bar",
         setter="baz",
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
 
     tell.load_disabled(session)
@@ -410,12 +400,12 @@ async def test_add_disabled(mock_db, freeze_time, mock_bot_factory) -> None:
     tell.disable_table.create(db_engine)
     session = mock_db.session()
     conn = MockClient(bot=bot)
-    now = datetime.datetime.now()
+    now = dt.datetime.now()
     tell.add_disable(session, conn, "foo", "bar", now=now)
 
     assert tell.disable_cache == {"testconn": {"bar"}}
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "bar", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "bar", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -431,7 +421,7 @@ async def test_del_disabled(mock_db, freeze_time, mock_bot_factory) -> None:
         conn=conn.name.lower(),
         target="bar",
         setter="baz",
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
 
     tell.load_disabled(session)
@@ -452,7 +442,7 @@ def test_load_ignored(mock_db, freeze_time) -> None:
         conn="foo",
         nick="bar",
         mask="baz",
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
 
     tell.load_ignores(session)
@@ -475,7 +465,7 @@ async def test_tell_disable(mock_db, freeze_time, mock_bot_factory) -> None:
     assert res == "Tells are now disabled for you."
     assert event.mock_calls == []
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "foo", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "foo", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -496,7 +486,7 @@ async def test_tell_disable_self(
     assert res == "Tells are now disabled for you."
     assert event.mock_calls == []
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "foo", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "foo", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -540,7 +530,7 @@ async def test_tell_disable_other(
     assert res == "Tells are now disabled for 'other'."
     assert event.mock_calls == [call.has_permission("botcontrol")]
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "other", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "other", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -560,7 +550,7 @@ async def test_tell_disable_already_disabled(
         conn=conn.name.lower(),
         target=nick,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     event.has_permission.return_value = True
@@ -569,7 +559,7 @@ async def test_tell_disable_already_disabled(
     assert res == "Tells are already disabled for you."
     assert event.mock_calls == []
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "foo", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "foo", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -589,7 +579,7 @@ async def test_tell_disable_already_disabled_other(
         conn=conn.name.lower(),
         target=text,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     event.has_permission.return_value = True
@@ -598,7 +588,7 @@ async def test_tell_disable_already_disabled_other(
     assert res == "Tells are already disabled for 'other'."
     assert event.mock_calls == [call.has_permission("botcontrol")]
     assert mock_db.get_data(tell.disable_table) == [
-        ("testconn", "other", "foo", datetime.datetime(2019, 8, 22, 13, 14, 36))
+        ("testconn", "other", "foo", dt.datetime(2019, 8, 22, 13, 14, 36))
     ]
 
 
@@ -616,7 +606,7 @@ async def test_tell_enable(mock_db, freeze_time, mock_bot_factory) -> None:
         conn=conn.name.lower(),
         target=nick,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     event.has_permission.return_value = True
@@ -643,7 +633,7 @@ async def test_tell_enable_self(mock_db, freeze_time, mock_bot_factory) -> None:
         conn=conn.name.lower(),
         target=nick,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     res = tell.tell_enable(conn, db, text, event, nick)
@@ -693,7 +683,7 @@ async def test_tell_enable_other(
         conn=conn.name.lower(),
         target=text,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     res = tell.tell_enable(conn, db, text, event, nick)
@@ -759,7 +749,7 @@ async def test_tell_list_disabled(
         conn=conn.name.lower(),
         target=text,
         setter=nick,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_disabled(mock_db.session())
     res = tell.list_tell_disabled(conn, db)
@@ -794,7 +784,7 @@ async def test_tell_ignore(mock_db, freeze_time, mock_bot_factory) -> None:
         call.notice("You are now ignoring tells from 'other'")
     ]
     assert mock_db.get_data(tell.ignore_table) == [
-        ("testconn", datetime.datetime(2019, 8, 22, 13, 14, 36), "foo", "other")
+        ("testconn", dt.datetime(2019, 8, 22, 13, 14, 36), "foo", "other")
     ]
 
 
@@ -811,14 +801,14 @@ async def test_tell_ignore_existing(
     nick = "foo"
     text = "other"
     db = mock_db.session()
-    tell.add_ignore(db, conn, nick, text, now=datetime.datetime.now())
+    tell.add_ignore(db, conn, nick, text, now=dt.datetime.now())
     res = tell.tell_ignore(db, conn, nick, text, event.notice)
     assert res is None
     assert event.mock_calls == [
         call.notice("You are already ignoring tells from 'other'")
     ]
     assert mock_db.get_data(tell.ignore_table) == [
-        ("testconn", datetime.datetime(2019, 8, 22, 13, 14, 36), "foo", "other")
+        ("testconn", dt.datetime(2019, 8, 22, 13, 14, 36), "foo", "other")
     ]
 
 
@@ -860,7 +850,7 @@ async def test_tell_unignore(mock_db, freeze_time, mock_bot_factory) -> None:
         conn=conn.name.lower(),
         nick=nick,
         mask=text,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_ignores(mock_db.session())
     res = tell.tell_unignore(db, conn, nick, text, event.notice)
@@ -886,7 +876,7 @@ async def test_tell_list_ignores(
         conn=conn.name.lower(),
         nick=nick,
         mask=text,
-        set_at=datetime.datetime.now(),
+        set_at=dt.datetime.now(),
     )
     tell.load_ignores(mock_db.session())
     res = tell.list_tell_ignores(conn, nick)

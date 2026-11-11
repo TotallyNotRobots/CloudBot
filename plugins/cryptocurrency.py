@@ -57,10 +57,7 @@ class UnknownFiatCurrencyError(APIError):
 
 class APIResponse:
     def __init__(
-        self,
-        api: CoinMarketCapAPI,
-        data: UntypedResponse,
-        response: Response,
+        self, api: CoinMarketCapAPI, data: UntypedResponse, response: Response
     ) -> None:
         self.api = api
         self.data = data
@@ -419,8 +416,7 @@ def currency_list() -> str:
     """- List all available currencies from the API"""
     currency_map = api.get_crypto_currency_map()
     currencies = sorted(
-        {(obj.symbol, obj.name) for obj in currency_map.data},
-        key=itemgetter(0),
+        {(obj.symbol, obj.name) for obj in currency_map.data}, key=itemgetter(0)
     )
     lst = [f"{symbol: <10} {name}" for symbol, name in currencies]
     lst.insert(0, "Symbol     Name")

@@ -15,10 +15,7 @@ if TYPE_CHECKING:
 
     from cloudbot.client import Client
 
-DEFAULT_STATUS = (
-    StatusMode.make("@", "o", 2),
-    StatusMode.make("+", "v", 1),
-)
+DEFAULT_STATUS = (StatusMode.make("@", "o", 2), StatusMode.make("+", "v", 1))
 
 
 @hook.on_start()

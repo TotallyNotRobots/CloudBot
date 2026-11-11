@@ -41,9 +41,7 @@ def test_event_message_no_rarget() -> None:
 
 def test_event_reply_no_rarget() -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-    )
+    event = Event(conn=conn)
     with pytest.raises(ValueError):
         event.reply("foobar")
 
@@ -52,9 +50,7 @@ def test_event_reply_no_rarget() -> None:
 
 def test_event_action_no_rarget() -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-    )
+    event = Event(conn=conn)
     with pytest.raises(ValueError):
         event.action("foobar")
 
@@ -63,9 +59,7 @@ def test_event_action_no_rarget() -> None:
 
 def test_event_ctcp_no_rarget() -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-    )
+    event = Event(conn=conn)
     with pytest.raises(ValueError):
         event.ctcp("foobar", "PING")
 
@@ -75,11 +69,7 @@ def test_event_ctcp_no_rarget() -> None:
 @pytest.mark.asyncio()
 async def test_check_permission(mock_bot, caplog_bot) -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-        mask="n!u@h",
-        bot=mock_bot,
-    )
+    event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = True
     res = await event.check_permission("foo")
     assert res is True
@@ -91,11 +81,7 @@ async def test_check_permission(mock_bot, caplog_bot) -> None:
 @pytest.mark.asyncio()
 async def test_check_permission_no_hooks(mock_bot, caplog_bot) -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-        mask="n!u@h",
-        bot=mock_bot,
-    )
+    event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = False
     res = await event.check_permission("foo")
     assert res is False
@@ -109,11 +95,7 @@ async def test_check_permission_hooks(
     mock_bot, caplog_bot, patch_import_module
 ) -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-        mask="n!u@h",
-        bot=mock_bot,
-    )
+    event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
 
     @hook.permission("foo")
     def foo_perm() -> bool:
@@ -138,9 +120,7 @@ async def test_check_permission_hooks(
 
 def test_event_notice_with_rarget() -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-    )
+    event = Event(conn=conn)
     event.notice("foobar", target="foo")
 
     assert conn.mock_calls == [call.notice("foo", "foobar")]
@@ -148,9 +128,7 @@ def test_event_notice_with_rarget() -> None:
 
 def test_event_notice_no_rarget() -> None:
     conn = MagicMock(config={})
-    event = Event(
-        conn=conn,
-    )
+    event = Event(conn=conn)
     with pytest.raises(ValueError):
         event.notice("foobar")
 
@@ -183,11 +161,7 @@ def test_event_notice_no_rarget() -> None:
 )
 def test_reply(reply_ping, messages, chan, nick, target, calls) -> None:
     conn = MagicMock(config={"reply_ping": reply_ping})
-    event = Event(
-        channel=chan,
-        conn=conn,
-        nick=nick,
-    )
+    event = Event(channel=chan, conn=conn, nick=nick)
     event.reply(*messages, target=target)
     assert conn.mock_calls == calls
 

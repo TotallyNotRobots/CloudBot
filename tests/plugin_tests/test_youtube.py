@@ -81,7 +81,7 @@ class TestGetVideoDescription:
                 "error": {
                     "code": 500,
                     "errors": [{"domain": "foo", "reason": "bar"}],
-                },
+                }
             },
             status=500,
         )

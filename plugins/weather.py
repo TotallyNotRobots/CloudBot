@@ -215,10 +215,7 @@ def check_and_parse(event, db):
         location_data = find_location(location, bias=bias)
         owm_api = data.get_owm_api()
     except OwmApiNotConfigured:
-        return (
-            None,
-            "This command requires a OpenWeatherMap API key.",
-        )
+        return (None, "This command requires a OpenWeatherMap API key.")
     except MapsApiNotConfigured:
         return (
             None,
@@ -313,9 +310,7 @@ def forecast(reply, db, event):
     daily_conditions = one_call.forecast_daily
     today, tomorrow, *three_days = daily_conditions[:5]
 
-    today_data = {
-        "data": today,
-    }
+    today_data = {"data": today}
     tomorrow_data = {"data": tomorrow}
     three_days_data = [{"data": d} for d in three_days]
     today_data["name"] = "Today"

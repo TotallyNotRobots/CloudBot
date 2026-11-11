@@ -17,7 +17,7 @@ class Pager:
 
     Takes a string with newlines and paginates it to certain size chunks
 
-    >>> p = Pager(['a', 'b', 'c', 'd', 'e'], 2)
+    >>> p = Pager(["a", "b", "c", "d", "e"], 2)
     >>> p.next()
     ['a', 'b (page 1/3)']
     >>> p.next()
@@ -26,7 +26,7 @@ class Pager:
     ['e (page 3/3)']
     >>> p.next()
 
-    >>> p1 = Pager(['a', 'b', 'c', 'd', 'e'], 0)
+    >>> p1 = Pager(["a", "b", "c", "d", "e"], 0)
     >>> p1.next()
     ['a', 'b', 'c', 'd', 'e']
     >>> p1.next()
@@ -165,15 +165,15 @@ def paginated_list(
     pager_cls: type[_ClassT | Pager] = Pager,
 ) -> _ClassT | Pager:
     """
-    >>> list(paginated_list(['abc', 'def']))
+    >>> list(paginated_list(["abc", "def"]))
     [['abc \u2022 def']]
-    >>> list(paginated_list(['abc', 'def'], max_len=5))
+    >>> list(paginated_list(["abc", "def"], max_len=5))
     [['abc...', 'def']]
-    >>> list(paginated_list(list('foobarbaz'), max_len=2))
+    >>> list(paginated_list(list("foobarbaz"), max_len=2))
     [['f...', 'o... (page 1/5)'], ['o...', 'b... (page 2/5)'], ['a...', 'r... (page 3/5)'], ['b...', 'a... (page 4/5)'], ['z (page 5/5)']]
-    >>> list(paginated_list(['foo', 'bar'], max_len=1))
+    >>> list(paginated_list(["foo", "bar"], max_len=1))
     [['f...', 'o... (page 1/3)'], ['o...', 'b... (page 2/3)'], ['a...', 'r (page 3/3)']]
-    >>> list(paginated_list(['foo', 'bar'], max_len=2))
+    >>> list(paginated_list(["foo", "bar"], max_len=2))
     [['fo...', 'o... (page 1/2)'], ['ba...', 'r (page 2/2)']]
     """
     lines = [""]

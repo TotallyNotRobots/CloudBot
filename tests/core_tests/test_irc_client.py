@@ -594,7 +594,7 @@ class TestConnect:
                 "cloudbot",
                 20,
                 "[testconn|permissions] Created permission manager for testconn.",
-            ),
+            )
         ]
         assert bot.mock_calls == []
 
@@ -617,7 +617,7 @@ class TestConnect:
                 "cloudbot",
                 20,
                 "[testconn|permissions] Created permission manager for testconn.",
-            ),
+            )
         ]
         assert bot.mock_calls == []
 

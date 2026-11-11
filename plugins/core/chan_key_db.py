@@ -103,8 +103,7 @@ def make_clause(conn: Client, chan: str) -> sa.ColumnElement[bool]:
     Generate a WHERE clause to match keys for this conn+channel
     """
     return sa.and_(
-        table.c.conn == conn.name.lower(),
-        table.c.chan == chan.lower(),
+        table.c.conn == conn.name.lower(), table.c.chan == chan.lower()
     )
 
 

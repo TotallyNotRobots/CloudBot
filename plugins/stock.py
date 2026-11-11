@@ -123,9 +123,7 @@ def stock(text):
     price = data["close"]
     change = price - data["open"]
 
-    parts = [
-        "{close:,.2f}",
-    ]
+    parts = ["{close:,.2f}"]
 
     if price != 0 or change != 0:
         data["mcap"] = format_money(price * data["volume"])

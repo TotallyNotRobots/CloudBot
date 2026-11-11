@@ -27,11 +27,7 @@ async def test_help_command(
     def cmd_bar() -> None:
         """- bar foo"""
 
-    plugin_code = MockModule(
-        "foobar",
-        cmd_foo=cmd_foo,
-        cmd_bar=cmd_bar,
-    )
+    plugin_code = MockModule("foobar", cmd_foo=cmd_foo, cmd_bar=cmd_bar)
 
     patch_import_module.return_value = plugin_code
     patch_import_reload.return_value = plugin_code
@@ -42,10 +38,7 @@ async def test_help_command(
         triggered_command="help",
         cmd_prefix=".",
         base_event=Event(
-            channel="#foo",
-            conn=conn,
-            bot=conn.bot,
-            nick="testnick",
+            channel="#foo", conn=conn, bot=conn.bot, nick="testnick"
         ),
     )
 
@@ -83,11 +76,7 @@ async def test_help_command_single(
     def cmd_bar() -> None:
         """- bar foo"""
 
-    plugin_code = MockModule(
-        "foobar",
-        cmd_foo=cmd_foo,
-        cmd_bar=cmd_bar,
-    )
+    plugin_code = MockModule("foobar", cmd_foo=cmd_foo, cmd_bar=cmd_bar)
 
     patch_import_module.return_value = plugin_code
     patch_import_reload.return_value = plugin_code
@@ -98,15 +87,12 @@ async def test_help_command_single(
         triggered_command="help",
         cmd_prefix=".",
         base_event=Event(
-            channel="#foo",
-            conn=conn,
-            bot=conn.bot,
-            nick="testnick",
+            channel="#foo", conn=conn, bot=conn.bot, nick="testnick"
         ),
     )
 
     assert wrap_hook_response(help_plugin.help_command, event) == [
-        ("notice", ("testnick", ".foo - foo bar")),
+        ("notice", ("testnick", ".foo - foo bar"))
     ]
 
     assert conn.mock_calls == []
@@ -129,11 +115,7 @@ async def test_help_command_single_no_doc(
     def cmd_bar() -> None:
         """- bar foo"""
 
-    plugin_code = MockModule(
-        "foobar",
-        cmd_foo=cmd_foo,
-        cmd_bar=cmd_bar,
-    )
+    plugin_code = MockModule("foobar", cmd_foo=cmd_foo, cmd_bar=cmd_bar)
 
     patch_import_module.return_value = plugin_code
     patch_import_reload.return_value = plugin_code
@@ -144,18 +126,12 @@ async def test_help_command_single_no_doc(
         triggered_command="help",
         cmd_prefix=".",
         base_event=Event(
-            channel="#foo",
-            conn=conn,
-            bot=conn.bot,
-            nick="testnick",
+            channel="#foo", conn=conn, bot=conn.bot, nick="testnick"
         ),
     )
 
     assert wrap_hook_response(help_plugin.help_command, event) == [
-        (
-            "notice",
-            ("testnick", "Command foo has no additional documentation."),
-        ),
+        ("notice", ("testnick", "Command foo has no additional documentation."))
     ]
 
     assert conn.mock_calls == []
@@ -178,11 +154,7 @@ async def test_cmdinfo(
     def cmd_bar() -> None:
         """- bar foo"""
 
-    plugin_code = MockModule(
-        "foobar",
-        cmd_foo=cmd_foo,
-        cmd_bar=cmd_bar,
-    )
+    plugin_code = MockModule("foobar", cmd_foo=cmd_foo, cmd_bar=cmd_bar)
 
     patch_import_module.return_value = plugin_code
     patch_import_reload.return_value = plugin_code
@@ -193,10 +165,7 @@ async def test_cmdinfo(
         triggered_command="cmdinfo",
         cmd_prefix=".",
         base_event=Event(
-            channel="#foo",
-            conn=conn,
-            bot=conn.bot,
-            nick="testnick",
+            channel="#foo", conn=conn, bot=conn.bot, nick="testnick"
         ),
     )
 
@@ -207,7 +176,7 @@ async def test_cmdinfo(
                 "testnick",
                 "Command: foo, Aliases: [foo], Hook name: file.cmd_foo",
             ),
-        ),
+        )
     ]
 
     assert conn.mock_calls == []
@@ -230,11 +199,7 @@ async def test_cmdinfo_perms(
     def cmd_bar() -> None:
         """- bar foo"""
 
-    plugin_code = MockModule(
-        "foobar",
-        cmd_foo=cmd_foo,
-        cmd_bar=cmd_bar,
-    )
+    plugin_code = MockModule("foobar", cmd_foo=cmd_foo, cmd_bar=cmd_bar)
 
     patch_import_module.return_value = plugin_code
     patch_import_reload.return_value = plugin_code
@@ -245,10 +210,7 @@ async def test_cmdinfo_perms(
         triggered_command="cmdinfo",
         cmd_prefix=".",
         base_event=Event(
-            channel="#foo",
-            conn=conn,
-            bot=conn.bot,
-            nick="testnick",
+            channel="#foo", conn=conn, bot=conn.bot, nick="testnick"
         ),
     )
 
@@ -259,7 +221,7 @@ async def test_cmdinfo_perms(
                 "testnick",
                 "Command: foo, Aliases: [foo], Hook name: file.cmd_foo, Permissions: [foo]",
             ),
-        ),
+        )
     ]
 
     assert conn.mock_calls == []

@@ -706,10 +706,7 @@ class TestRandomWord(WordsTestBase):
 
     @classmethod
     def get_params(cls) -> dict[str, Any]:
-        return {
-            "hasDictionarydef": "true",
-            "vulgar": "true",
-        }
+        return {"hasDictionarydef": "true", "vulgar": "true"}
 
     @classmethod
     def get_result_limit(cls) -> int:

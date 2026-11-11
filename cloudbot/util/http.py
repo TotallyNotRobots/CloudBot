@@ -58,7 +58,7 @@ def parse_soup(text, features=None, **kwargs) -> BeautifulSoup:
     """
     Parse HTML using BeautifulSoup
 
-    >>> p = parse_soup('<p><h1>test</h1></p>')
+    >>> p = parse_soup("<p><h1>test</h1></p>")
     >>> p.h1.text
     'test'
     """
@@ -79,7 +79,7 @@ def get_xml(*args, **kwargs):
 
 def parse_xml(text):
     """
-    >>> elem = parse_xml('<foo>bar</foo>')
+    >>> elem = parse_xml("<foo>bar</foo>")
     >>> elem.tag
     'foo'
     >>> elem.text
@@ -171,7 +171,11 @@ def open(  # noqa: A001
 
 def prepare_url(url: str, queries: Mapping[str, str]) -> str:
     """
-    >>> str(unify_url(prepare_url("https://example.com?foo=bar", {'a': 1, 'b': 2})))
+    >>> str(
+    ...     unify_url(
+    ...         prepare_url("https://example.com?foo=bar", {"a": 1, "b": 2})
+    ...     )
+    ... )
     'https://example.com/?a=1&b=2&foo=bar'
     """
     if queries:
@@ -190,9 +194,9 @@ def prepare_url(url: str, queries: Mapping[str, str]) -> str:
 
 def to_utf8(s: Any) -> bytes:
     """
-    >>> to_utf8('foo bar')
+    >>> to_utf8("foo bar")
     b'foo bar'
-    >>> to_utf8(b'foo bar')
+    >>> to_utf8(b"foo bar")
     b'foo bar'
     >>> to_utf8(1)
     b'1'
@@ -208,7 +212,7 @@ def to_utf8(s: Any) -> bytes:
 
 def quote_plus(s):
     """
-    >>> quote_plus(b'foo bar')
+    >>> quote_plus(b"foo bar")
     'foo+bar'
     """
     return _quote_plus(to_utf8(s))
@@ -216,11 +220,11 @@ def quote_plus(s):
 
 def unescape(s: str):
     """
-    >>> unescape('')
+    >>> unescape("")
     ''
-    >>> unescape(' ')
+    >>> unescape(" ")
     ' '
-    >>> unescape('<p>&lt;</p>')
+    >>> unescape("<p>&lt;</p>")
     '<'
     """
     if not s.strip():

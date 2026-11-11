@@ -340,9 +340,7 @@ class PermissionManager:
 
         session.add(
             GroupMember(
-                mask=user_mask,
-                group=group,
-                connection=self.name.lower(),
+                mask=user_mask, group=group, connection=self.name.lower()
             )
         )
 

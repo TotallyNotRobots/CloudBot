@@ -5,14 +5,7 @@ from cloudbot.util import textgen
 
 def test_textgenerator() -> None:
     generator = textgen.TextGenerator(
-        ["{thing} is {stuff}"],
-        {
-            "thing": ["a", "b"],
-            "stuff": [
-                "c",
-                ("d", 2),
-            ],
-        },
+        ["{thing} is {stuff}"], {"thing": ["a", "b"], "stuff": ["c", ("d", 2)]}
     )
 
     for s in generator.generate_strings(4):
@@ -23,17 +16,8 @@ def test_textgenerator() -> None:
 
 def test_textgen_default_tmpl() -> None:
     generator = textgen.TextGenerator(
-        [
-            "{thing} is {stuff} {a}",
-            "{thing} are {stuff} {a}",
-        ],
-        {
-            "thing": ["a", "b"],
-            "stuff": [
-                "c",
-                ("d", 2),
-            ],
-        },
+        ["{thing} is {stuff} {a}", "{thing} are {stuff} {a}"],
+        {"thing": ["a", "b"], "stuff": ["c", ("d", 2)]},
         default_templates=[1],
         variables={"a": "foo"},
     )

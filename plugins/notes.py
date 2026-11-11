@@ -38,8 +38,7 @@ table = Table(
 def where_user(server, user):
     """Generate a whereclause to match a user"""
     return and_(
-        table.c.connection == server.lower(),
-        table.c.user == user.lower(),
+        table.c.connection == server.lower(), table.c.user == user.lower()
     )
 
 

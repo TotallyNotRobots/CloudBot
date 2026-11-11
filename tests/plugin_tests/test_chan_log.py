@@ -26,9 +26,5 @@ def test_format_exception_chain():
             raise err2 from None
     except ValueError as e:
         assert list(chan_log.format_error_chain(e)) == list(
-            chain(
-                _get_data(err2),
-                _get_data(err1),
-                _get_data(err),
-            )
+            chain(_get_data(err2), _get_data(err1), _get_data(err))
         )

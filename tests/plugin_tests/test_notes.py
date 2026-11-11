@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from unittest.mock import MagicMock, call
 
 from plugins import notes
@@ -14,7 +14,7 @@ def test_note_add(mock_db, freeze_time) -> None:
 
     assert event.mock_calls == [call.notice("Note added!")]
     assert mock_db.get_data(notes.table) == [
-        (1, "test", "bar", "foo", None, False, datetime.datetime.now())
+        (1, "test", "bar", "foo", None, False, dt.datetime.now())
     ]
 
 
@@ -33,8 +33,8 @@ def test_note_add_multiple(mock_db, freeze_time) -> None:
         call.notice("Note added!"),
     ]
     assert mock_db.get_data(notes.table) == [
-        (1, "test", "bar", "foo", None, False, datetime.datetime.now()),
-        (2, "test", "bar", "foo1", None, False, datetime.datetime.now()),
+        (1, "test", "bar", "foo", None, False, dt.datetime.now()),
+        (2, "test", "bar", "foo1", None, False, dt.datetime.now()),
     ]
 
 
@@ -61,15 +61,7 @@ def test_note_del_no_text(mock_db, freeze_time) -> None:
 
     assert event.mock_calls == []
     assert mock_db.get_data(notes.table) == [
-        (
-            1,
-            event.conn.name,
-            nick,
-            "testing",
-            None,
-            False,
-            datetime.datetime.now(),
-        )
+        (1, event.conn.name, nick, "testing", None, False, dt.datetime.now())
     ]
 
 
@@ -87,15 +79,7 @@ def test_note_get(mock_db, freeze_time) -> None:
         call.notice("\x02Note #1:\x02 testing - \x0222 Aug, 2019\x02")
     ]
     assert mock_db.get_data(notes.table) == [
-        (
-            1,
-            event.conn.name,
-            nick,
-            "testing",
-            None,
-            False,
-            datetime.datetime.now(),
-        )
+        (1, event.conn.name, nick, "testing", None, False, dt.datetime.now())
     ]
 
 
@@ -111,15 +95,7 @@ def test_note_get_no_id(mock_db, freeze_time) -> None:
 
     assert event.mock_calls == [call.notice("No note ID provided!")]
     assert mock_db.get_data(notes.table) == [
-        (
-            1,
-            event.conn.name,
-            nick,
-            "testing",
-            None,
-            False,
-            datetime.datetime.now(),
-        )
+        (1, event.conn.name, nick, "testing", None, False, dt.datetime.now())
     ]
 
 
@@ -265,24 +241,8 @@ def test_note_clear(mock_db, freeze_time) -> None:
 
     assert event.mock_calls == [call.notice("All notes deleted!")]
     assert mock_db.get_data(notes.table) == [
-        (
-            1,
-            event.conn.name,
-            nick,
-            "testing",
-            None,
-            True,
-            datetime.datetime.now(),
-        ),
-        (
-            2,
-            event.conn.name,
-            nick,
-            "testing1",
-            None,
-            True,
-            datetime.datetime.now(),
-        ),
+        (1, event.conn.name, nick, "testing", None, True, dt.datetime.now()),
+        (2, event.conn.name, nick, "testing1", None, True, dt.datetime.now()),
     ]
 
 

@@ -32,12 +32,7 @@ if TYPE_CHECKING:
 
     from cloudbot.client import Client
 
-__all__ = [
-    "bot",
-    "bot_instance",
-    "AbstractBot",
-    "CloudBot",
-]
+__all__ = ["bot", "bot_instance", "AbstractBot", "CloudBot"]
 
 logger = logging.getLogger("cloudbot")
 
@@ -378,7 +373,7 @@ class CloudBot(AbstractBot):
 
         # Connect to servers
         await asyncio.gather(
-            *[conn.try_connect() for conn in self.connections.values()],
+            *[conn.try_connect() for conn in self.connections.values()]
         )
         logger.debug("Connections created.")
 

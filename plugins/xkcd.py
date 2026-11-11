@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import re
 
 import requests
@@ -19,10 +19,8 @@ def xkcd_info(xkcd_id, url=False) -> str:
     request.raise_for_status()
     data = request.json()
 
-    date = datetime.date(
-        year=int(data["year"]),
-        month=int(data["month"]),
-        day=int(data["day"]),
+    date = dt.date(
+        year=int(data["year"]), month=int(data["month"]), day=int(data["day"])
     )
     date_str = date.strftime("%d %B %Y")
 

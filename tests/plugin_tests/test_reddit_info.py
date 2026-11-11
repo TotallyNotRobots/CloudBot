@@ -224,7 +224,7 @@ def test_reddit_random_post(mock_requests, freeze_time) -> None:
                             "media": None,
                             "is_video": False,
                         },
-                    },
+                    }
                 ],
                 "before": None,
             },
@@ -233,10 +233,7 @@ def test_reddit_random_post(mock_requests, freeze_time) -> None:
 
     conn = MagicMock()
     event = CommandEvent(
-        base_event=Event(
-            conn=conn,
-            bot=conn.bot,
-        ),
+        base_event=Event(conn=conn, bot=conn.bot),
         text="/r/foobar",
         triggered_command="reddit",
         cmd_prefix=".",
@@ -247,25 +244,16 @@ def test_reddit_random_post(mock_requests, freeze_time) -> None:
         (
             "return",
             "\x02Need foobar : foobar\x02 - 3 comments, 1 point - \x02HEROFIGHTERy\x02 10y ago - https://redd.it/pmmq8h \x02\x0304NSFW\x0f",
-        ),
+        )
     ]
 
 
 def test_reddit_random_post_sub_not_found(mock_requests: RequestsMock) -> None:
-    mock_requests.add(
-        "GET",
-        "https://reddit.com/r/foobar/.json",
-        status=404,
-    )
+    mock_requests.add("GET", "https://reddit.com/r/foobar/.json", status=404)
 
     conn = MagicMock()
     event = CommandEvent(
-        base_event=Event(
-            conn=conn,
-            bot=conn.bot,
-            channel="#foo",
-            nick="foo",
-        ),
+        base_event=Event(conn=conn, bot=conn.bot, channel="#foo", nick="foo"),
         text="/r/foobar",
         triggered_command="reddit",
         cmd_prefix=".",
@@ -283,7 +271,7 @@ def test_reddit_random_post_sub_not_found(mock_requests: RequestsMock) -> None:
                 "#foo",
                 "(foo) Error: 404 Client Error: Not Found for url: https://reddit.com/r/foobar/.json",
             ),
-        ),
+        )
     ]
 
 
@@ -368,10 +356,7 @@ def test_karma(mock_requests, freeze_time) -> None:
 
     conn = MagicMock()
     event = CommandEvent(
-        base_event=Event(
-            conn=conn,
-            bot=conn.bot,
-        ),
+        base_event=Event(conn=conn, bot=conn.bot),
         text="foo",
         triggered_command="ruser",
         cmd_prefix=".",
@@ -382,7 +367,7 @@ def test_karma(mock_requests, freeze_time) -> None:
         (
             "return",
             "\x02foo\x02 \x028\x02 link karma and \x0264\x02 comment karma | email has been verified | cake day is July 25 | redditor for 14 years.",
-        ),
+        )
     ]
 
 
@@ -467,10 +452,7 @@ def test_cake_day(mock_requests, freeze_time) -> None:
 
     conn = MagicMock()
     event = CommandEvent(
-        base_event=Event(
-            conn=conn,
-            bot=conn.bot,
-        ),
+        base_event=Event(conn=conn, bot=conn.bot),
         text="foo",
         triggered_command="cakeday",
         cmd_prefix=".",
@@ -481,5 +463,5 @@ def test_cake_day(mock_requests, freeze_time) -> None:
         (
             "return",
             "\x02foo's\x02 cake day is July 25, they have been a redditor for 14 years.",
-        ),
+        )
     ]

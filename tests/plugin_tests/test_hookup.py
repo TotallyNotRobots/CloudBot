@@ -52,7 +52,7 @@ def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
                 "quote": "foo bar baz",
                 "chan": "#chan",
                 "host": "user@host",
-            },
+            }
         ],
     )
 
@@ -62,12 +62,7 @@ def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
 
 
 def test_hookup_basic(mock_db: MockDB, freeze_time) -> None:
-    hookup.hookups = {
-        "templates": [
-            "{user1} : {user2}",
-        ],
-        "parts": {},
-    }
+    hookup.hookups = {"templates": ["{user1} : {user2}"], "parts": {}}
 
     database.metadata._add_table(seen.table.name, seen.table.schema, seen.table)
     seen.table.create(mock_db.engine)

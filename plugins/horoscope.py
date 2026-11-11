@@ -57,11 +57,11 @@ def set_sign(db, nick, sign) -> None:
 
 def parse_input(text):
     """
-    >>> parse_input('')
+    >>> parse_input("")
     (None, False)
-    >>> parse_input('aries')
+    >>> parse_input("aries")
     ('aries', False)
-    >>> parse_input('aries dontsave')
+    >>> parse_input("aries dontsave")
     ('aries', True)
     """
     if not text:
@@ -102,7 +102,7 @@ class HoroscopeParseError(Exception):
 def parse_page(content):
     """Parse the horoscope page
 
-    >>> parse_page('')
+    >>> parse_page("")
     Traceback (most recent call last):
         [...]
     plugins.horoscope.HoroscopeParseError: Unable to parse horoscope

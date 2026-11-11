@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -25,15 +25,11 @@ def load_data(xkcd_id):
 def test_info(xkcd_id, mock_requests) -> None:
     data = load_data(xkcd_id)
     mock_requests.add(
-        "GET",
-        f"http://www.xkcd.com/{xkcd_id}/info.0.json",
-        json=data,
+        "GET", f"http://www.xkcd.com/{xkcd_id}/info.0.json", json=data
     )
 
-    date = datetime.date(
-        year=int(data["year"]),
-        month=int(data["month"]),
-        day=int(data["day"]),
+    date = dt.date(
+        year=int(data["year"]), month=int(data["month"]), day=int(data["day"])
     )
 
     no_url = f"xkcd: \x02{data['title']}\x02 ({date:%d %B %Y})"

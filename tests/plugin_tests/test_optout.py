@@ -72,18 +72,8 @@ def test_get_first_matching_optout(mock_db) -> None:
     mock_db.load_data(
         optout.optout_table,
         [
-            {
-                "network": "my_net",
-                "chan": "#*",
-                "hook": "my.*",
-                "allow": False,
-            },
-            {
-                "network": "my_net",
-                "chan": "#my*",
-                "hook": "*.*",
-                "allow": True,
-            },
+            {"network": "my_net", "chan": "#*", "hook": "my.*", "allow": False},
+            {"network": "my_net", "chan": "#my*", "hook": "*.*", "allow": True},
         ],
     )
 
@@ -150,26 +140,10 @@ def test_exact_override() -> None:
     hook = "my.hook"
     optouts = {
         net: [
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar",
-                hook_pattern="my.*",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#fooba*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar", hook_pattern="my.*", allow=True),
+            optout.OptOut(channel="#fooba*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar*", hook_pattern="my.*", allow=False),
         ]
     }
 
@@ -196,38 +170,14 @@ async def test_check_channel_permissions() -> None:
 def test_get_global_optouts() -> None:
     optouts = {
         "net2": [
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=True,
-            ),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=True)
         ],
         "net": [
-            optout.OptOut(
-                "#baz",
-                hook_pattern="my.hook",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar",
-                hook_pattern="my.*",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#fooba*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
+            optout.OptOut("#baz", hook_pattern="my.hook", allow=True),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar", hook_pattern="my.*", allow=True),
+            optout.OptOut(channel="#fooba*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar*", hook_pattern="my.*", allow=False),
         ],
     }
 
@@ -236,74 +186,26 @@ def test_get_global_optouts() -> None:
 
     with patch.dict(optout.optout_cache, clear=True, values=optouts):
         assert optout.get_channel_optouts("net", None) == [
-            optout.OptOut(
-                channel="#foobar",
-                hook_pattern="my.*",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#foobar*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#fooba*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                "#baz",
-                hook_pattern="my.hook",
-                allow=True,
-            ),
+            optout.OptOut(channel="#foobar", hook_pattern="my.*", allow=True),
+            optout.OptOut(channel="#foobar*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#fooba*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=False),
+            optout.OptOut("#baz", hook_pattern="my.hook", allow=True),
         ]
 
 
 def test_match_optout() -> None:
     optouts = {
         "net2": [
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=True,
-            ),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=True)
         ],
         "net": [
-            optout.OptOut(
-                channel="#other",
-                hook_pattern="my.hook",
-                allow=True,
-            ),
-            optout.OptOut(
-                "#baz",
-                hook_pattern="my.hook",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#foo*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar",
-                hook_pattern="my.*",
-                allow=True,
-            ),
-            optout.OptOut(
-                channel="#fooba*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
-            optout.OptOut(
-                channel="#foobar*",
-                hook_pattern="my.*",
-                allow=False,
-            ),
+            optout.OptOut(channel="#other", hook_pattern="my.hook", allow=True),
+            optout.OptOut("#baz", hook_pattern="my.hook", allow=True),
+            optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar", hook_pattern="my.*", allow=True),
+            optout.OptOut(channel="#fooba*", hook_pattern="my.*", allow=False),
+            optout.OptOut(channel="#foobar*", hook_pattern="my.*", allow=False),
         ],
     }
 
@@ -335,36 +237,12 @@ def test_match_optout() -> None:
 
 def test_format() -> None:
     optouts = [
-        optout.OptOut(
-            channel="#other",
-            hook_pattern="my.hook",
-            allow=True,
-        ),
-        optout.OptOut(
-            "#baz",
-            hook_pattern="my.hook",
-            allow=True,
-        ),
-        optout.OptOut(
-            channel="#foo*",
-            hook_pattern="my.*",
-            allow=False,
-        ),
-        optout.OptOut(
-            channel="#foobar",
-            hook_pattern="my.*",
-            allow=True,
-        ),
-        optout.OptOut(
-            channel="#fooba*",
-            hook_pattern="my.*",
-            allow=False,
-        ),
-        optout.OptOut(
-            channel="#foobar*",
-            hook_pattern="my.*",
-            allow=False,
-        ),
+        optout.OptOut(channel="#other", hook_pattern="my.hook", allow=True),
+        optout.OptOut("#baz", hook_pattern="my.hook", allow=True),
+        optout.OptOut(channel="#foo*", hook_pattern="my.*", allow=False),
+        optout.OptOut(channel="#foobar", hook_pattern="my.*", allow=True),
+        optout.OptOut(channel="#fooba*", hook_pattern="my.*", allow=False),
+        optout.OptOut(channel="#foobar*", hook_pattern="my.*", allow=False),
     ]
 
     expected = """\

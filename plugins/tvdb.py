@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 from collections.abc import Container, Iterable, Sized
 from enum import Enum
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from cloudbot.util.http import GetParams
 
 logger = logging.getLogger(__name__)
-token_lifetime = datetime.timedelta(hours=1)
+token_lifetime = dt.timedelta(hours=1)
 
 JsonPrimitive = int | str | bool | None
 JsonObject = dict[
@@ -45,7 +45,7 @@ class TvdbApi:
         }
 
         self.jwt_token: str | None = None
-        self.refresh_time = datetime.datetime.min
+        self.refresh_time = dt.datetime.min
 
     @property
     def authed(self) -> bool:
@@ -77,7 +77,7 @@ class TvdbApi:
 
     def set_token(self, token: str) -> None:
         self.jwt_token = token
-        self.refresh_time = datetime.datetime.now() + self.token_lifetime
+        self.refresh_time = dt.datetime.now() + self.token_lifetime
         # Clear header cache
         self._headers = None
 
@@ -89,10 +89,7 @@ class TvdbApi:
             return cast("JsonObject", response.json())
 
     def _get_paged(
-        self,
-        path: str,
-        params: GetParams | None = None,
-        reverse: bool = False,
+        self, path: str, params: GetParams | None = None, reverse: bool = False
     ) -> Iterable[JsonObject]:
         params = params or {}
         params["page"] = 1
@@ -254,24 +251,24 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
     >>> col = LazyCollection([])
     >>> len(col)
     0
-    >>> col = LazyCollection(['a'])
-    >>> 'a' in col
+    >>> col = LazyCollection(["a"])
+    >>> "a" in col
     True
-    >>> 'a' in col
+    >>> "a" in col
     True
-    >>> 'b' in col
+    >>> "b" in col
     False
     >>> col[1]
     Traceback (most recent call last):
         ...
     IndexError: list index out of range
-    >>> col = LazyCollection(['a'])
-    >>> 'c' in col
+    >>> col = LazyCollection(["a"])
+    >>> "c" in col
     False
-    >>> col = LazyCollection(['a', 'b', 'c'])
+    >>> col = LazyCollection(["a", "b", "c"])
     >>> list(col)
     ['a', 'b', 'c']
-    >>> col = LazyCollection(['a'])
+    >>> col = LazyCollection(["a"])
     >>> col[0]
     'a'
     >>> col[0]
@@ -358,7 +355,7 @@ class LazyCollection(Sized, Iterable[T], Container[T]):
 class EpisodeInfo:
     def __init__(
         self,
-        first_aired: datetime.date | None,
+        first_aired: dt.date | None,
         episode_number: int,
         season: int,
         name: str | None,
@@ -374,9 +371,7 @@ class EpisodeInfo:
         if not first_aired:
             air_date = None
         else:
-            air_date = datetime.datetime.strptime(
-                first_aired, "%Y-%m-%d"
-            ).date()
+            air_date = dt.datetime.strptime(first_aired, "%Y-%m-%d").date()
 
         episode_number = json["airedEpisodeNumber"]
         season = json["airedSeason"]
@@ -486,7 +481,7 @@ def tv_next(text: str) -> str:
         return f"{series.name} has ended."
 
     next_eps = []
-    today = datetime.date.today()
+    today = dt.date.today()
 
     for episode in series.episodes:
         if episode.first_aired is not None and episode.first_aired < today:
@@ -524,7 +519,7 @@ def tv_last(text: str) -> str:
         return "Got empty series."
 
     prev_ep = None
-    today = datetime.date.today()
+    today = dt.date.today()
 
     for episode in series.episodes:
         if episode.first_aired is None:

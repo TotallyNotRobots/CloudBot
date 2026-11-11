@@ -14,9 +14,7 @@ from weakref import WeakValueDictionary
 import sqlalchemy
 
 from cloudbot.event import Event, PostHookEvent
-from cloudbot.plugin_hooks import (
-    hook_name_to_plugin,
-)
+from cloudbot.plugin_hooks import hook_name_to_plugin
 from cloudbot.util import HOOK_ATTR, LOADED_ATTR, database
 from cloudbot.util.func_utils import call_with_args
 
@@ -267,7 +265,7 @@ class PluginManager:
 
     async def unload_all(self) -> None:
         await asyncio.gather(
-            *[self.unload_plugin(path) for path in self.plugins],
+            *[self.unload_plugin(path) for path in self.plugins]
         )
 
     def _load_mod(

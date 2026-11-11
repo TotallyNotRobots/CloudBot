@@ -43,13 +43,7 @@ def test_setup_with_config_console_debug(tmp_path) -> None:
 
 def test_setup_with_config_console_log_info_false(tmp_path) -> None:
     (tmp_path / "config.json").write_text(
-        json.dumps(
-            {
-                "logging": {
-                    "console_log_info": False,
-                }
-            }
-        )
+        json.dumps({"logging": {"console_log_info": False}})
     )
     cloudbot._setup(tmp_path)
     logger = logging.getLogger("cloudbot")
@@ -61,13 +55,7 @@ def test_setup_with_config_console_log_info_false(tmp_path) -> None:
 
 def test_setup_with_config_file_log(tmp_path) -> None:
     (tmp_path / "config.json").write_text(
-        json.dumps(
-            {
-                "logging": {
-                    "file_log": True,
-                }
-            }
-        )
+        json.dumps({"logging": {"file_log": True}})
     )
     cloudbot._setup(tmp_path)
     logger = logging.getLogger("cloudbot")
@@ -80,13 +68,7 @@ def test_setup_with_config_file_log(tmp_path) -> None:
 
 def test_setup_with_config_file_debug(tmp_path) -> None:
     (tmp_path / "config.json").write_text(
-        json.dumps(
-            {
-                "logging": {
-                    "file_debug": True,
-                }
-            }
-        )
+        json.dumps({"logging": {"file_debug": True}})
     )
     cloudbot._setup(tmp_path)
     logger = logging.getLogger("cloudbot")

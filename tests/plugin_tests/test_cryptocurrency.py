@@ -63,7 +63,7 @@ def init_response(
                         "symbol": "BTC",
                         "slug": "bitcoin",
                         "is_active": 1,
-                    },
+                    }
                 ],
             },
         )
@@ -119,9 +119,9 @@ def init_response(
                         "last_updated": (now - timedelta(minutes=3)).strftime(
                             iso_fmt
                         ),
-                    },
+                    }
                 },
-            },
+            }
         }
         if show_btc:
             response_data["1"]["quote"]["BTC"] = {
@@ -141,7 +141,7 @@ def init_response(
                 "error_message": error_msg,
                 "elapsed": 1,
                 "credit_count": 1,
-            },
+            }
         }
         if not error_msg:
             data["data"] = response_data

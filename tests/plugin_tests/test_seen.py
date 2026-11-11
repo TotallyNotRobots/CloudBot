@@ -60,12 +60,7 @@ def test_seen_track_update(mock_db, freeze_time, mock_bot) -> None:
     nick = "bar"
     chan = "#foo"
     mock_db.add_row(
-        seen.table,
-        name=nick,
-        time=123,
-        quote="foo",
-        chan=chan,
-        host="foo.bar",
+        seen.table, name=nick, time=123, quote="foo", chan=chan, host="foo.bar"
     )
     assert mock_db.get_data(seen.table) == [
         ("bar", 123.0, "foo", "#foo", "foo.bar")

@@ -88,8 +88,7 @@ async def onjoin(conn: IrcClient, bot) -> None:
                 )
             else:
                 conn.message(
-                    nickserv_name,
-                    f"{nickserv_command} {nickserv_password}",
+                    nickserv_name, f"{nickserv_command} {nickserv_password}"
                 )
             if "censored_strings" in bot.config:
                 bot.config["censored_strings"].append(nickserv_password)

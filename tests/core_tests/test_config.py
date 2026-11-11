@@ -11,11 +11,7 @@ def mock_sleep():
         yield
 
 
-def test_missing_config(
-    tmp_path,
-    capsys,
-    mock_sleep,
-) -> None:
+def test_missing_config(tmp_path, capsys, mock_sleep) -> None:
     config_file = tmp_path / "config.json"
     with pytest.raises(SystemExit):
         Config(filename=str(config_file))

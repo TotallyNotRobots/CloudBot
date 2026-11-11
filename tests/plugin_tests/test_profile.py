@@ -21,9 +21,7 @@ def test_profile_add(mock_db, mock_bot) -> None:
     )
     event.db = mock_db.session()
     res = wrap_hook_response(profile.profileadd, event)
-    assert res == [
-        ("return", "Created new profile category foo"),
-    ]
+    assert res == [("return", "Created new profile category foo")]
     assert mock_db.get_data(profile.table) == [("#chan", "nick", "foo", "bar")]
     assert conn.mock_calls == []
 
@@ -48,9 +46,7 @@ def test_profile_update(mock_db, mock_bot) -> None:
 
     event.db = mock_db.session()
     res = wrap_hook_response(profile.profileadd, event)
-    assert res == [
-        ("return", "Updated profile category foo"),
-    ]
+    assert res == [("return", "Updated profile category foo")]
     assert mock_db.get_data(profile.table) == [("#chan", "nick", "foo", "bar")]
     assert conn.mock_calls == []
 
@@ -104,8 +100,6 @@ def test_profile_clear(mock_db, mock_bot) -> None:
 
     event.db = mock_db.session()
     res = wrap_hook_response(profile.profileclear, event)
-    assert res == [
-        ("return", "Profile data cleared for nick."),
-    ]
+    assert res == [("return", "Profile data cleared for nick.")]
     assert mock_db.get_data(profile.table) == []
     assert conn.mock_calls == []

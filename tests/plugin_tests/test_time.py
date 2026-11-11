@@ -14,9 +14,7 @@ from tests.util import wrap_hook_response
 async def setup_api(mock_bot_factory):
     yield mock_bot_factory(
         config={
-            "api_keys": {
-                "google_dev_key": "APIKEY",
-            },
+            "api_keys": {"google_dev_key": "APIKEY"},
             "location_bias_cc": None,
         }
     )
@@ -37,10 +35,7 @@ def test_time_command_no_key(mock_requests, freeze_time, setup_api) -> None:
     )
 
     assert wrap_hook_response(time_plugin.time_command, event) == [
-        (
-            "return",
-            "This command requires a Google Developers Console API key.",
-        ),
+        ("return", "This command requires a Google Developers Console API key.")
     ]
     assert conn.mock_calls == []
 
@@ -63,24 +58,12 @@ def test_time_command_api_disabled(
     mock_requests.add(
         responses.GET,
         "https://maps.googleapis.com/maps/api/geocode/json",
-        json={
-            "status": "REQUEST_DENIED",
-        },
-        match=[
-            query_param_matcher(
-                {
-                    "address": "New York",
-                    "key": "APIKEY",
-                }
-            )
-        ],
+        json={"status": "REQUEST_DENIED"},
+        match=[query_param_matcher({"address": "New York", "key": "APIKEY"})],
     )
 
     assert wrap_hook_response(time_plugin.time_command, event) == [
-        (
-            "return",
-            "The geocoding API is off in the Google Developers Console.",
-        ),
+        ("return", "The geocoding API is off in the Google Developers Console.")
     ]
     assert conn.mock_calls == []
 
@@ -103,21 +86,12 @@ def test_time_command_api_quota_limit(
     mock_requests.add(
         responses.GET,
         "https://maps.googleapis.com/maps/api/geocode/json",
-        json={
-            "status": "OVER_QUERY_LIMIT",
-        },
-        match=[
-            query_param_matcher(
-                {
-                    "address": "New York",
-                    "key": "APIKEY",
-                }
-            )
-        ],
+        json={"status": "OVER_QUERY_LIMIT"},
+        match=[query_param_matcher({"address": "New York", "key": "APIKEY"})],
     )
 
     assert wrap_hook_response(time_plugin.time_command, event) == [
-        ("return", "The geocoding API quota has run out."),
+        ("return", "The geocoding API quota has run out.")
     ]
     assert conn.mock_calls == []
 
@@ -143,23 +117,11 @@ def test_time_command(mock_requests, freeze_time, setup_api) -> None:
             "results": [
                 {
                     "formatted_address": "New York, USA",
-                    "geometry": {
-                        "location": {
-                            "lat": 123.1,
-                            "lng": -45.6,
-                        },
-                    },
+                    "geometry": {"location": {"lat": 123.1, "lng": -45.6}},
                 }
             ],
         },
-        match=[
-            query_param_matcher(
-                {
-                    "address": "New York",
-                    "key": "APIKEY",
-                }
-            )
-        ],
+        match=[query_param_matcher({"address": "New York", "key": "APIKEY"})],
     )
     mock_requests.add(
         responses.GET,
@@ -185,7 +147,7 @@ def test_time_command(mock_requests, freeze_time, setup_api) -> None:
         (
             "return",
             "\x0206:14 PM, Thursday, August 22, 2019\x02 - New York, USA (EDT)",
-        ),
+        )
     ]
 
     assert conn.mock_calls == []
@@ -205,7 +167,7 @@ def test_time_command_utc(mock_requests, freeze_time, setup_api) -> None:
     )
 
     assert wrap_hook_response(time_plugin.time_command, event) == [
-        ("return", "\x0203:14 PM, Thursday, August 22, 2019\x02 (GMT+2)"),
+        ("return", "\x0203:14 PM, Thursday, August 22, 2019\x02 (GMT+2)")
     ]
 
     assert conn.mock_calls == []
@@ -225,7 +187,7 @@ def test_time_command_utc_15m(mock_requests, freeze_time, setup_api) -> None:
     )
 
     assert wrap_hook_response(time_plugin.time_command, event) == [
-        ("return", "\x0203:29 PM, Thursday, August 22, 2019\x02 (GMT+2:15)"),
+        ("return", "\x0203:29 PM, Thursday, August 22, 2019\x02 (GMT+2:15)")
     ]
 
     assert conn.mock_calls == []
@@ -245,6 +207,6 @@ def test_beats(freeze_time) -> None:
     )
 
     assert wrap_hook_response(time_plugin.beats, event) == [
-        ("return", "Swatch Internet Time: @801.81"),
+        ("return", "Swatch Internet Time: @801.81")
     ]
     assert conn.mock_calls == []

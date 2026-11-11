@@ -25,13 +25,8 @@ async def test_replace_user_data(mock_db, mock_bot_factory) -> None:
     conn = MockClient(bot=bot)
     conn.memory.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "server_info": {"statuses": {}},
+            "server_caps": {"userhost-in-names": True, "multi-prefix": True},
         }
     )
     serv_info = conn.memory["server_info"]
@@ -80,13 +75,8 @@ async def test_channel_members(mock_db, mock_bot_factory) -> None:
     conn = MockClient(bot=bot)
     conn.memory.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "server_info": {"statuses": {}},
+            "server_caps": {"userhost-in-names": True, "multi-prefix": True},
         }
     )
     serv_info = conn.memory["server_info"]
@@ -173,21 +163,12 @@ async def test_names_handling(mock_db, mock_bot_factory) -> None:
         bot=bot,
         name="testconn",
         nick="BotFoo",
-        config={
-            "connection": {
-                "server": "foo.invalid",
-            },
-        },
+        config={"connection": {"server": "foo.invalid"}},
     )
     conn.memory.update(
         {
-            "server_info": {
-                "statuses": {},
-            },
-            "server_caps": {
-                "userhost-in-names": True,
-                "multi-prefix": True,
-            },
+            "server_info": {"statuses": {}},
+            "server_caps": {"userhost-in-names": True, "multi-prefix": True},
         }
     )
     serv_info = conn.memory["server_info"]

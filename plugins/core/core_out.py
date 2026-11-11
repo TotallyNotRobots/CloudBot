@@ -13,13 +13,7 @@ from cloudbot.util import colors
 if TYPE_CHECKING:
     from cloudbot.client import Client
 
-NEW_LINE_TRANS_TBL = str.maketrans(
-    {
-        "\r": None,
-        "\n": None,
-        "\0": None,
-    }
-)
+NEW_LINE_TRANS_TBL = str.maketrans({"\r": None, "\n": None, "\0": None})
 
 
 @hook.irc_out(priority=Priority.HIGHEST)

@@ -55,7 +55,7 @@ async def test_init_no_upgrade(
                     "channels": [],
                     "connection": {"server": "irc.example.com"},
                 }
-            ],
+            ]
         },
     )
 
@@ -70,7 +70,7 @@ async def test_init_no_upgrade(
             "Database schema is out of date and auto-updating is disabled! Use "
             '`alembic upgrade heads` or set `"upgrade_schema": true` in the '
             "config. NOTE: ALWAYS take a backup of the database before upgrading!",
-        ),
+        )
     ]
 
 
@@ -90,7 +90,7 @@ async def test_get_db_version(
                     "channels": [],
                     "connection": {"server": "irc.example.com"},
                 }
-            ],
+            ]
         },
     )
 
@@ -119,7 +119,7 @@ async def test_get_schema_version(
                     "channels": [],
                     "connection": {"server": "irc.example.com"},
                 }
-            ],
+            ]
         },
     )
 

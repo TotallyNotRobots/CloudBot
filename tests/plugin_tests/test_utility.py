@@ -9,16 +9,12 @@ from plugins import utility
 
 # Defined here because we use the same test cases for unescape
 # Except in reverse
-ESCAPE_DATA = [
-    ("\x00\x01345\x05", r"\x00\x01345\x05"),
-]
+ESCAPE_DATA = [("\x00\x01345\x05", r"\x00\x01345\x05")]
 
 
 @pytest.mark.parametrize(
     "a,b,match",
-    [
-        ("http://example.com/?a=1&b=1", "http://example.com/?b=1&a=1", True),
-    ],
+    [("http://example.com/?a=1&b=1", "http://example.com/?b=1&a=1", True)],
 )
 def test_compare_urls(a, b, match) -> None:
     assert compare_urls(a, b) == match
@@ -33,7 +29,7 @@ def test_compare_urls(a, b, match) -> None:
                 "http://chart.googleapis.com/chart"
                 "?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F"
             ),
-        ],
+        ]
     ],
 )
 def test_qrcode(data, url, patch_try_shorten) -> None:
@@ -41,32 +37,19 @@ def test_qrcode(data, url, patch_try_shorten) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
-    [
-        ("\2foo\2", "foo"),
-        ("\x0301,03foo\x0f", "foo"),
-    ],
+    "text,output", [("\2foo\2", "foo"), ("\x0301,03foo\x0f", "foo")]
 )
 def test_strip(text, output) -> None:
     assert utility.strip(text) == output
 
 
-@pytest.mark.parametrize(
-    "text,replace,out",
-    [
-        ("foo", {"f": "br"}, "broo"),
-    ],
-)
+@pytest.mark.parametrize("text,replace,out", [("foo", {"f": "br"}, "broo")])
 def test_translate(text, replace, out) -> None:
     assert utility.translate(text, replace) == out
 
 
 @pytest.mark.parametrize(
-    "text,output",
-    [
-        ("foo. bar", "Foo. Bar"),
-        ("foo. bar. ", "Foo. Bar. "),
-    ],
+    "text,output", [("foo. bar", "Foo. Bar"), ("foo. bar. ", "Foo. Bar. ")]
 )
 def test_capitalize(text, output) -> None:
     assert utility.capitalize(text) == output
@@ -198,13 +181,7 @@ def test_base64_decode(text, out) -> None:
         assert ret == out
 
 
-@pytest.mark.parametrize(
-    "text,valid",
-    [
-        ("aa", False),
-        ("aaa=", True),
-    ],
-)
+@pytest.mark.parametrize("text,valid", [("aa", False), ("aaa=", True)])
 def test_base64_check(text, valid) -> None:
     ret = utility.base64_check(text)
     if valid:
@@ -241,13 +218,7 @@ def test_reverse(text, output) -> None:
 
 @pytest.mark.parametrize(
     "text,text_length",
-    [
-        ("foo", 3),
-        ("foo bar", 7),
-        ("Foo", 3),
-        ("fOO", 3),
-        ("FOO", 3),
-    ],
+    [("foo", 3), ("foo bar", 7), ("Foo", 3), ("fOO", 3), ("FOO", 3)],
 )
 def test_length(text, text_length) -> None:
     assert (
@@ -279,10 +250,7 @@ def test_rainbow(text, out) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
-    [
-        ("foo bar baz", "\x0304foo \x0307bar \x0308baz"),
-    ],
+    "text,out", [("foo bar baz", "\x0304foo \x0307bar \x0308baz")]
 )
 def test_wrainbow(text, out) -> None:
     assert utility.wrainbow(text) == out
@@ -299,7 +267,7 @@ def test_wrainbow(text, out) -> None:
                 "sha256: "
                 "6afee6de002d236bd35ea0918848b8f85342acd887499b5e8567598af1e337b4"
             ),
-        ],
+        ]
     ],
 )
 def test_hash_command(text, out) -> None:
@@ -314,32 +282,17 @@ async def leet_data(mock_bot_factory):
     utility.leet_text.clear()
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        "foo bar baz!",
-    ],
-)
+@pytest.mark.parametrize("text", ["foo bar baz!"])
 def test_munge(text, leet_data) -> None:
     assert utility.munge(text)
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        "foo bar baz!",
-    ],
-)
+@pytest.mark.parametrize("text", ["foo bar baz!"])
 def test_leet(text, leet_data) -> None:
     assert utility.leet(text)
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        "foo bar baz!",
-    ],
-)
+@pytest.mark.parametrize("text", ["foo bar baz!"])
 def test_derpify(text) -> None:
     assert utility.derpify(text)
 
@@ -354,7 +307,7 @@ def test_derpify(text) -> None:
                 "\x0300b\x0302a\x0304r\x0300 "
                 "\x0302b\x0304a\x0300z\x0302!"
             ),
-        ],
+        ]
     ],
 )
 def test_usa(text, out) -> None:
@@ -367,7 +320,7 @@ def test_usa(text, out) -> None:
         (
             "foo bar baz!",
             "\u1da0\u1d52\u1d52 \u1d47\u1d43\u02b3 \u1d47\u1d43\u1dbb!",
-        ),
+        )
     ],
 )
 def test_superscript(text, out) -> None:

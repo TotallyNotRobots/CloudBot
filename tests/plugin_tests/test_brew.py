@@ -105,25 +105,14 @@ async def test_no_results(mock_bot_factory, mock_requests, unset_bot) -> None:
     ],
 )
 async def test_results(
-    mock_bot_factory,
-    mock_requests,
-    unset_bot,
-    style,
-    abv,
-    website,
-    out,
+    mock_bot_factory, mock_requests, unset_bot, style, abv, website, out
 ) -> None:
     bot = mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}})
     brewery = {"name": "foo"}
     if website:
         brewery["website"] = website
 
-    beer: dict[str, Any] = {
-        "breweries": [
-            brewery,
-        ],
-        "nameDisplay": "fooBar",
-    }
+    beer: dict[str, Any] = {"breweries": [brewery], "nameDisplay": "fooBar"}
     if abv:
         beer["abv"] = abv
 
@@ -144,10 +133,7 @@ async def test_results(
                 }
             )
         ],
-        json={
-            "totalResults": 1,
-            "data": [beer],
-        },
+        json={"totalResults": 1, "data": [beer]},
     )
 
     reply = MagicMock()

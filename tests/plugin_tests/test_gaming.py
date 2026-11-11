@@ -71,12 +71,7 @@ def test_dice_num_only() -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
-    [
-        ("a or b", "a"),
-        ("a, b", "a"),
-        ("a,b,c", "a"),
-    ],
+    "text,out", [("a or b", "a"), ("a, b", "a"), ("a,b,c", "a")]
 )
 def test_choose(text, out) -> None:
     random.seed(1)

@@ -27,10 +27,7 @@ if TYPE_CHECKING:
 
 @pytest.mark.parametrize(
     "chan,text,result",
-    [
-        ("#foo", "bar", ("#foo", "bar")),
-        ("#foo", "#bar baz", ("#bar", "baz")),
-    ],
+    [("#foo", "bar", ("#foo", "bar")), ("#foo", "#bar baz", ("#bar", "baz"))],
 )
 def test_get_chan(chan, text, result) -> None:
     assert admin_bot.get_chan(chan, text) == result
@@ -343,18 +340,9 @@ def test_get_permission_groups(mock_db: MockDB) -> None:
     permission_table.create(mock_db.engine)
     session.add_all(
         [
-            Group(
-                connection=conn.name,
-                name="foo",
-            ),
-            Group(
-                connection=conn.name,
-                name="bar",
-            ),
-            Group(
-                connection=conn.name,
-                name="baz",
-            ),
+            Group(connection=conn.name, name="foo"),
+            Group(connection=conn.name, name="bar"),
+            Group(connection=conn.name, name="baz"),
         ]
     )
     session.commit()
@@ -372,6 +360,6 @@ def test_get_permission_groups(mock_db: MockDB) -> None:
         nick="foobar",
     )
     assert wrap_hook_response(admin_bot.get_permission_groups, cmd_event) == [
-        ("return", "Valid groups: ['bar', 'baz', 'foo']"),
+        ("return", "Valid groups: ['bar', 'baz', 'foo']")
     ]
     assert conn.mock_calls == []

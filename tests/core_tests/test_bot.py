@@ -30,11 +30,7 @@ async def test_get_connection_configs(
     mock_bot_factory: Callable[..., MockBot],
 ) -> None:
     mock_bot = mock_bot_factory(config={"connections": [{"name": "foo"}]})
-    assert mock_bot.get_connection_configs() == {
-        "foo": {
-            "name": "foo",
-        },
-    }
+    assert mock_bot.get_connection_configs() == {"foo": {"name": "foo"}}
 
 
 @pytest.mark.asyncio
@@ -48,11 +44,7 @@ async def test_get_connection_configs_with_dupes(
         ValueError,
         match="Duplicate connection names found after sanitize: 'FOO' and 'foo'",
     ):
-        assert mock_bot.get_connection_configs() == {
-            "foo": {
-                "name": "FOO",
-            },
-        }
+        assert mock_bot.get_connection_configs() == {"foo": {"name": "FOO"}}
 
 
 def test_no_instance_config(unset_bot) -> None:
@@ -96,8 +88,7 @@ async def test_migrate_db(
         table.create(old_db.engine)
         other_table.create(old_db.engine)
         mock_bot = mock_bot_factory(
-            db=mock_db,
-            config={"old_database": old_db_url, "migrate_db": True},
+            db=mock_db, config={"old_database": old_db_url, "migrate_db": True}
         )
 
         mock_bot.do_db_migrate = True
@@ -139,10 +130,7 @@ async def test_connect_clients(mock_bot_factory) -> None:
 
 @pytest.mark.asyncio()
 async def test_start_plugin_reload(tmp_path) -> None:
-    bot = MagicMock(
-        old_db=None,
-        do_migrate_db=False,
-    )
+    bot = MagicMock(old_db=None, do_migrate_db=False)
 
     bot.plugin_manager.load_all = AsyncMock()
     bot.running = True
@@ -185,12 +173,7 @@ class TestProcessing:
         bot.plugin_manager.catch_all_triggers.append(full_hook)
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_irc_catch_all_block(self, mock_bot_factory) -> None:
@@ -223,12 +206,7 @@ class TestProcessing:
         bot.plugin_manager.catch_all_triggers.append(full_hook1)
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_command(self, mock_bot_factory) -> None:
@@ -257,12 +235,7 @@ class TestProcessing:
             bot.plugin_manager.commands[cmd] = full_hook
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_command_partial(self, mock_bot_factory) -> None:
@@ -291,13 +264,10 @@ class TestProcessing:
             bot.plugin_manager.commands[cmd] = full_hook
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([], key=id)
 
         assert conn.mock_calls() == [
-            call.notice("bar", "Possible matches: foob or fooc"),
+            call.notice("bar", "Possible matches: foob or fooc")
         ]
 
     @pytest.mark.asyncio()
@@ -328,12 +298,7 @@ class TestProcessing:
             )
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_event_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_event_block(self, mock_bot_factory, mock_db) -> None:
@@ -375,12 +340,7 @@ class TestProcessing:
             )
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_event_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_irc_raw(self, mock_bot_factory) -> None:
@@ -406,12 +366,7 @@ class TestProcessing:
         full_hook = RawHook(plugin, hook._get_hook(coro, "irc_raw"))
         bot.plugin_manager.raw_triggers["PRIVMSG"].append(full_hook)
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio()
     async def test_irc_raw_block(self, mock_bot_factory) -> None:
@@ -444,12 +399,7 @@ class TestProcessing:
         bot.plugin_manager.raw_triggers["PRIVMSG"].append(full_hook1)
 
         await CloudBot.process(bot, event)
-        assert sorted(run_hooks, key=id) == sorted(
-            [
-                full_hook,
-            ],
-            key=id,
-        )
+        assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
 
 @pytest.mark.asyncio()
@@ -547,11 +497,7 @@ async def test_reloaders(
 
 @pytest.mark.asyncio
 async def test_set_error(tmp_path, unset_bot) -> None:
-    with patch_config(
-        {
-            "connections": [],
-        }
-    ):
+    with patch_config({"connections": []}):
         bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         with pytest.raises(ValueError):
             CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)

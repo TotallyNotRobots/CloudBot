@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import random
 import time
 from typing import TYPE_CHECKING
@@ -21,13 +21,10 @@ if TYPE_CHECKING:
     [
         [
             "Duck friend scores in #TestChannel: ",
-            {
-                "testuser": 5,
-                "testuser1": 1,
-            },
+            {"testuser": 5, "testuser1": 1},
             "Duck friend scores in #TestChannel: "
             "\x02t\u200bestuser\x02: 5 \u2022 \x02t\u200bestuser1\x02: 1",
-        ],
+        ]
     ],
 )
 def test_top_list(prefix, items, result, mock_db) -> None:
@@ -157,9 +154,7 @@ def test_ignore_integration(mock_db) -> None:
 
     ignore_plugin.code.is_ignored.return_value = True
 
-    plugins = {
-        "core.ignore": ignore_plugin,
-    }
+    plugins = {"core.ignore": ignore_plugin}
 
     def find_plugin(name):
         return plugins.get(name)
@@ -443,7 +438,7 @@ class TestStatus:
         state.no_duck_kick = True
         duckhunt.save_status(mock_db.session(), _sleep=False)
         assert mock_db.get_data(duckhunt.status_table) == [
-            ("net", "#chan", False, True),
+            ("net", "#chan", False, True)
         ]
 
     def test_save_on_exit(self, mock_db) -> None:
@@ -455,7 +450,7 @@ class TestStatus:
         state.no_duck_kick = True
         duckhunt.save_on_exit(mock_db.session())
         assert mock_db.get_data(duckhunt.status_table) == [
-            ("net", "#chan", False, True),
+            ("net", "#chan", False, True)
         ]
 
 
@@ -581,7 +576,7 @@ class TestAttack:
 
         state = duckhunt.get_state_table("net", "#chan")
         state.duck_status = 1
-        state.duck_time = datetime.datetime.now().timestamp() - 3600.0
+        state.duck_time = dt.datetime.now().timestamp() - 3600.0
 
         conn = MockIrcClient(
             bot=bot,
@@ -622,7 +617,7 @@ class TestAttack:
 
         state = duckhunt.get_state_table("net", "#chan")
         state.duck_status = 1
-        state.duck_time = datetime.datetime.now().timestamp() - 3600.0
+        state.duck_time = dt.datetime.now().timestamp() - 3600.0
 
         conn = MockIrcClient(bot=bot, name="net", nick="bot", config={})
         event = MagicMock()
@@ -661,18 +656,14 @@ class TestAttack:
 
         state = duckhunt.get_state_table("net", "#chan")
         state.duck_status = 1
-        state.duck_time = datetime.datetime.now().timestamp() - 3600.0
+        state.duck_time = dt.datetime.now().timestamp() - 3600.0
 
         conn = MockIrcClient(bot=bot, name="net", nick="bot", config={})
         event = MagicMock()
         with patch.object(duckhunt, "hit_or_miss") as p:
             p.return_value = 0.06
             res = duckhunt.befriend(
-                "nick",
-                "#chan",
-                mock_db.session(),
-                conn,
-                event,
+                "nick", "#chan", mock_db.session(), conn, event
             )
 
         assert (
@@ -702,17 +693,11 @@ class TestAttack:
 
         state = duckhunt.get_state_table("net", "#chan")
         state.duck_status = 1
-        state.duck_time = datetime.datetime.now().timestamp() - 0.5
+        state.duck_time = dt.datetime.now().timestamp() - 0.5
 
         conn = MockIrcClient(bot=bot, name="net", nick="bot", config={})
         event = MagicMock()
-        res = duckhunt.befriend(
-            "nick",
-            "#chan",
-            mock_db.session(),
-            conn,
-            event,
-        )
+        res = duckhunt.befriend("nick", "#chan", mock_db.session(), conn, event)
 
         assert (
             res
@@ -720,9 +705,7 @@ class TestAttack:
         )
         assert event.mock_calls == []
         assert mock_db.get_data(duckhunt.table) == []
-        assert duckhunt.scripters == {
-            "nick": time.time() + 7200,
-        }
+        assert duckhunt.scripters == {"nick": time.time() + 7200}
         duckhunt.scripters.clear()
 
 

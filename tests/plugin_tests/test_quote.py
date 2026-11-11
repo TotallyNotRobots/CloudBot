@@ -34,7 +34,7 @@ def test_add_quote_existing(mock_db, freeze_time) -> None:
                 "add_nick": sender,
                 "msg": msg,
                 "time": 0,
-            },
+            }
         ],
     )
     assert (
@@ -42,7 +42,7 @@ def test_add_quote_existing(mock_db, freeze_time) -> None:
         == "Message already stored, doing nothing."
     )
     assert mock_db.get_data(quote.qtable) == [
-        ("#foo", "bar", "baz", "Some test quote", 0.0, False),
+        ("#foo", "bar", "baz", "Some test quote", 0.0, False)
     ]
 
 

@@ -85,12 +85,7 @@ def test_refresh_other_error(
 
 def generate_pages(mock_requests, url, count=5, per_page=5) -> None:
     for i in range(1, count + 1):
-        links = {
-            "previous": i - 1,
-            "next": i + 1,
-            "last": count,
-            "first": 1,
-        }
+        links = {"previous": i - 1, "next": i + 1, "last": count, "first": 1}
 
         if links["previous"] <= 0:
             links["previous"] = None
@@ -255,9 +250,7 @@ class _Base(ABC):
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
             match=[query_param_matcher({"page": 1})],
-            json={
-                "data": [],
-            },
+            json={"data": []},
         )
 
         res = self.call("Foo")
@@ -284,9 +277,7 @@ class _Base(ABC):
             "GET",
             "https://api.thetvdb.com/series/5/episodes",
             match=[query_param_matcher({"page": 1})],
-            json={
-                "data": [],
-            },
+            json={"data": []},
             status=404,
         )
 
@@ -355,7 +346,7 @@ class _Base(ABC):
                         "airedSeason": 1,
                         "firstAired": "2017-02-02",
                     }
-                ],
+                ]
             },
         )
 
@@ -400,7 +391,7 @@ class _Base(ABC):
                         "airedSeason": 1,
                         "firstAired": "2020-02-02",
                     }
-                ],
+                ]
             },
         )
 
@@ -465,11 +456,8 @@ class _Base(ABC):
                         "firstAired": "2020-02-05",
                         "episodeName": "baz",
                     },
-                    {
-                        "airedEpisodeNumber": 4,
-                        "airedSeason": 1,
-                    },
-                ],
+                    {"airedEpisodeNumber": 4, "airedSeason": 1},
+                ]
             },
         )
 
@@ -518,7 +506,7 @@ class _Base(ABC):
                             "airedEpisodeNumber": 1,
                             "airedSeason": 1,
                         }
-                    ],
+                    ]
                 },
             )
 
@@ -561,11 +549,8 @@ class _Base(ABC):
                         "airedSeason": 1,
                         "firstAired": "2020-02-02",
                     },
-                    {
-                        "airedEpisodeNumber": 2,
-                        "airedSeason": 1,
-                    },
-                ],
+                    {"airedEpisodeNumber": 2, "airedSeason": 1},
+                ]
             },
         )
 

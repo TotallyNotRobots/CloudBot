@@ -136,12 +136,7 @@ HOOK_ATTR_TYPES: dict[str, type | tuple[type, ...]] = {
 
 
 @pytest.mark.parametrize(
-    "text",
-    [
-        "- Foo",
-        "<text> - Uses <text>",
-        "[text] - Thing with [text]",
-    ],
+    "text", ["- Foo", "<text> - Uses <text>", "[text] - Thing with [text]"]
 )
 def test_doc_re_matches(text) -> None:
     assert DOC_RE.match(text)
@@ -149,13 +144,7 @@ def test_doc_re_matches(text) -> None:
 
 @pytest.mark.parametrize(
     "text",
-    [
-        "-- Foo",
-        "<text> -- Uses <text>",
-        "<text - Uses text>",
-        "Foobar",
-        "-Baz",
-    ],
+    ["-- Foo", "<text> -- Uses <text>", "<text - Uses text>", "Foobar", "-Baz"],
 )
 def test_doc_re_no_match(text) -> None:
     assert not DOC_RE.match(text)
@@ -245,12 +234,7 @@ def make_plugin():
     plugin_dir = Path("plugins").resolve()
     file_path = plugin_dir / "test.py"
     file_name = file_path.name
-    return Plugin(
-        str(file_path),
-        file_name,
-        "test",
-        MockModule(),
-    )
+    return Plugin(str(file_path), file_name, "test", MockModule())
 
 
 def get_and_wrap_hook(func, hook_type):

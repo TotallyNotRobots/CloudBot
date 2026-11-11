@@ -46,22 +46,14 @@ def upgrade() -> None:
 
     old_perm_table = sa.table(
         "group_perm_old",
-        sa.column(
-            "group_id",
-            sa.String(),
-        ),
+        sa.column("group_id", sa.String()),
         sa.column("name", sa.String()),
         sa.column("config", sa.Boolean()),
     )
     perm_table = op.create_table(
         "group_perm",
         sa.Column("connection", sa.String(), nullable=False, primary_key=True),
-        sa.Column(
-            "group_id",
-            sa.String(),
-            nullable=False,
-            primary_key=True,
-        ),
+        sa.Column("group_id", sa.String(), nullable=False, primary_key=True),
         sa.Column("name", sa.String(), nullable=False, primary_key=True),
         sa.Column("config", sa.Boolean()),
     )
@@ -76,22 +68,14 @@ def upgrade() -> None:
 
     old_member_table = sa.table(
         "group_member_old",
-        sa.column(
-            "group_id",
-            sa.String(),
-        ),
+        sa.column("group_id", sa.String()),
         sa.column("mask", sa.String()),
         sa.column("config", sa.Boolean()),
     )
     member_table = op.create_table(
         "group_member",
         sa.Column("connection", sa.String(), nullable=False, primary_key=True),
-        sa.Column(
-            "group_id",
-            sa.String(),
-            nullable=False,
-            primary_key=True,
-        ),
+        sa.Column("group_id", sa.String(), nullable=False, primary_key=True),
         sa.Column("mask", sa.String(), nullable=False, primary_key=True),
         sa.Column("config", sa.Boolean()),
     )
@@ -177,52 +161,33 @@ def downgrade() -> None:
     )
     perm_table = op.create_table(
         "group_perm",
-        sa.Column(
-            "group_id",
-            sa.String(),
-            nullable=False,
-            primary_key=True,
-        ),
+        sa.Column("group_id", sa.String(), nullable=False, primary_key=True),
         sa.Column("name", sa.String(), nullable=False, primary_key=True),
         sa.Column("config", sa.Boolean()),
     )
 
     with op.batch_alter_table(perm_table.name) as batch:
         batch.create_foreign_key(
-            "group_perm_group_fk",
-            group_table.name,
-            ["group_id"],
-            ["name"],
+            "group_perm_group_fk", group_table.name, ["group_id"], ["name"]
         )
 
     old_member_table = sa.table(
         "group_member_old",
         sa.column("connection", sa.String()),
-        sa.column(
-            "group_id",
-            sa.String(),
-        ),
+        sa.column("group_id", sa.String()),
         sa.column("mask", sa.String()),
         sa.column("config", sa.Boolean()),
     )
     member_table = op.create_table(
         "group_member",
-        sa.Column(
-            "group_id",
-            sa.String(),
-            nullable=False,
-            primary_key=True,
-        ),
+        sa.Column("group_id", sa.String(), nullable=False, primary_key=True),
         sa.Column("mask", sa.String(), nullable=False, primary_key=True),
         sa.Column("config", sa.Boolean()),
     )
 
     with op.batch_alter_table(member_table.name) as batch:
         batch.create_foreign_key(
-            "group_member_group_fk",
-            group_table.name,
-            ["group_id"],
-            ["name"],
+            "group_member_group_fk", group_table.name, ["group_id"], ["name"]
         )
 
     session = Session(bind=op.get_bind())
@@ -252,17 +217,10 @@ def downgrade() -> None:
                 "config": perm.config,
             }
 
+    op.bulk_insert(group_table, [dict(row) for row in existing_groups.values()])
+    op.bulk_insert(perm_table, [dict(row) for row in existing_perms.values()])
     op.bulk_insert(
-        group_table,
-        [dict(row) for row in existing_groups.values()],
-    )
-    op.bulk_insert(
-        perm_table,
-        [dict(row) for row in existing_perms.values()],
-    )
-    op.bulk_insert(
-        member_table,
-        [dict(row) for row in existing_members.values()],
+        member_table, [dict(row) for row in existing_members.values()]
     )
     op.drop_table(old_perm_table.name)
     op.drop_table(old_member_table.name)

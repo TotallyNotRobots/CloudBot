@@ -73,7 +73,7 @@ def _setup(base_path: Path | None = None) -> None:
             "formatter": "brief",
             "level": console_level,
             "stream": "ext://sys.stdout",
-        },
+        }
     }
 
     file_log = logging_config.get("file_log", False)

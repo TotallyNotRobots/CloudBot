@@ -63,11 +63,7 @@ def test_paste_error(mock_requests) -> None:
     with pytest.raises(web.ServiceError):
         paster.paste("test data", "txt")
 
-    mock_requests.add(
-        "POST",
-        "http://sprunge.us",
-        status=500,
-    )
+    mock_requests.add("POST", "http://sprunge.us", status=500)
 
     with pytest.raises(web.ServiceHTTPError):
         paster.paste("test data", "txt")

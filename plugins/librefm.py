@@ -199,7 +199,7 @@ def displaybandinfo(text: str):
     url = web.try_shorten(a["url"])
 
     out = f"{a['name']}: "
-    out += summary if summary else "No artist summary listed."
+    out += summary or "No artist summary listed."
     out += f" {url}"
     out += f" ({tags})"
 

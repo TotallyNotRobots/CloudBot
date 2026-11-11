@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import random
 import re
 from collections import defaultdict
@@ -27,17 +27,17 @@ table = Table(
 class ChannelData:
     def __init__(
         self,
-        chan_interval=datetime.timedelta(seconds=10),
-        user_interval=datetime.timedelta(minutes=5),
+        chan_interval=dt.timedelta(seconds=10),
+        user_interval=dt.timedelta(minutes=5),
     ) -> None:
         self.user_interval = user_interval
         self.chan_interval = chan_interval
-        self.next_send = datetime.datetime.min
-        self.user_times: dict[str, datetime.datetime] = defaultdict(
-            lambda: datetime.datetime.min
+        self.next_send = dt.datetime.min
+        self.user_times: dict[str, dt.datetime] = defaultdict(
+            lambda: dt.datetime.min
         )
 
-    def can_send(self, nick: str, join_time: datetime.datetime) -> bool:
+    def can_send(self, nick: str, join_time: dt.datetime) -> bool:
         if join_time < self.next_send:
             return False
 
@@ -162,7 +162,7 @@ def welcome(nick, message, bot, chan, conn: Client) -> None:
     if not greet:
         return
 
-    if not should_send(conn.name, chan, nick, datetime.datetime.now()):
+    if not should_send(conn.name, chan, nick, dt.datetime.now()):
         return
 
     stripped = greet.translate(

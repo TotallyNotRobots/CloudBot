@@ -21,7 +21,7 @@ def get_attrs(obj: object) -> list[str]:
     And with __slots__:
 
     >>> class C:
-    ...     __slots__ = ('a', 'b')
+    ...     __slots__ = ("a", "b")
     ...
     ...     def __init__(self):
     ...         self.a = 1
@@ -39,9 +39,9 @@ def is_dunder(name: str) -> bool:
     """
     Determines if a name represents a "dunder" (double underscore) method
 
-    >>> is_dunder('__iter__')
+    >>> is_dunder("__iter__")
     True
-    >>> is_dunder('some_func')
+    >>> is_dunder("some_func")
     False
 
     :param name: The name to check
@@ -66,7 +66,7 @@ def dump_attrs(obj: object, ignore_dunder: bool = False) -> AttrList:
     And with __slots__:
 
     >>> class C:
-    ...     __slots__ = ('a', 'b')
+    ...     __slots__ = ("a", "b")
     ...
     ...     def __init__(self):
     ...         self.a = 1
@@ -91,7 +91,7 @@ def indent(lines: Iterable[str], size: int = 2, char: str = " "):
     """
     Indent each line in an iterable and yield it, ignoring blank lines
 
-    >>> list(indent(['a', 'b', '', 'c']))
+    >>> list(indent(["a", "b", "", "c"]))
     ['  a', '  b', '', '  c']
 
     :param lines: The iterable of lines to indent
@@ -122,9 +122,7 @@ def format_requests_exc(exc: RequestException) -> Iterable[str]:
     yield from _format("Response Info", exc.response)
 
 
-SPECIAL_CASES = {
-    RequestException: format_requests_exc,
-}
+SPECIAL_CASES = {RequestException: format_requests_exc}
 
 
 def format_error_data(exc: BaseException) -> Iterable[str]:

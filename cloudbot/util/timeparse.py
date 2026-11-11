@@ -89,9 +89,15 @@ def _interpret_as_minutes(string: str, mdict):
     this function after parsing out a dictionary to change that assumption.
 
     >>> import pprint
-    >>> pprint.pprint(_interpret_as_minutes('1:24', {'secs': '24', 'mins': '1'}))
+    >>> pprint.pprint(
+    ...     _interpret_as_minutes("1:24", {"secs": "24", "mins": "1"})
+    ... )
     {'hours': '1', 'mins': '24'}
-    >>> pprint.pprint(_interpret_as_minutes('24:01', {'hours': '24', 'mins': '1', 'secs': '5'}))
+    >>> pprint.pprint(
+    ...     _interpret_as_minutes(
+    ...         "24:01", {"hours": "24", "mins": "1", "secs": "5"}
+    ...     )
+    ... )
     {'hours': '24', 'mins': '1', 'secs': '5'}
     """
     has_keys = (
@@ -119,36 +125,36 @@ def time_parse(
     Arguments:
     - `string`: the string value to parse
 
-    >>> time_parse('1:24')
+    >>> time_parse("1:24")
     84
-    >>> time_parse(':22')
+    >>> time_parse(":22")
     22
-    >>> time_parse('1 minute, 24 secs')
+    >>> time_parse("1 minute, 24 secs")
     84
-    >>> time_parse('1m24s')
+    >>> time_parse("1m24s")
     84
-    >>> time_parse('1.2 minutes')
+    >>> time_parse("1.2 minutes")
     72
-    >>> time_parse('1.2 seconds')
+    >>> time_parse("1.2 seconds")
     1.2
 
     Time expressions can be signed.
 
-    >>> time_parse('- 1 minute')
+    >>> time_parse("- 1 minute")
     -60
-    >>> time_parse('+ 1 minute')
+    >>> time_parse("+ 1 minute")
     60
 
     If granularity is specified as ``minutes``, then ambiguous digits following
     a colon will be interpreted as minutes; otherwise they are considered seconds.
 
-    >>> time_parse('1:30')
+    >>> time_parse("1:30")
     90
-    >>> time_parse('1:30', granularity='minutes')
+    >>> time_parse("1:30", granularity="minutes")
     5400
-    >>> time_parse('1:30:50', granularity='minutes')
+    >>> time_parse("1:30:50", granularity="minutes")
     5450
-    >>> time_parse('')
+    >>> time_parse("")
     """
     match = re.match(r"\s*" + SIGN + r"\s*(?P<unsigned>.*)$", string)
     if not match:

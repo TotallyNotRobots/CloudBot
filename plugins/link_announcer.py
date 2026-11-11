@@ -97,10 +97,7 @@ def get_encoding(soup: BeautifulSoup) -> str | None:
 
     meta_content_type = soup.find(
         "meta",
-        {
-            "http-equiv": match_attr_value("content-type"),
-            "content": True,
-        },
+        {"http-equiv": match_attr_value("content-type"), "content": True},
     )
     if (
         meta_content_type
