@@ -72,6 +72,11 @@ remove-all-unused-imports = true
 in-place = true
 expand-star-imports = true
 
+[tool.pytest]
+minversion = "9.0"
+addopts = ["--doctest-modules"]
+filterwarnings = ["error"]
+
 [tool.pytest.ini_options]
 addopts = [
     "--ignore=venv",
@@ -142,124 +147,7 @@ ignore-words-list = ["cypher", "decypher", "AHD", "ahd", "astroid"]
 line-length = 80
 
 [tool.ruff.lint]
-ignore = [
-    "ANN001", # missing function arg type annotation
-    "ANN002", # no annotation for *args
-    "ANN003", # no annotation for kwargs
-    "ANN201", # missing return type annotation
-    "ANN202", # missing return type for private function
-    "ANN204", # missing return type for special method
-    "ANN205", # missing return type for staticmethod
-    "ANN206", # missing return type for classmethod
-    "ANN401", # dynamically typed expressions
-    "ARG001", # unused function arg
-    "ARG002", # Unused arg
-    "ARG003", # unused arg in class method
-    "ARG004", # unused staticmethod args
-    "ARG005", # unused lambda arg
-    "ASYNC110", # use asyncio.Event
-    "ASYNC251", # no time.sleep in async func
-    "B007", # unused loop var
-    "B011", # don't assert False
-    "B024", # abstract class no abstract methods
-    "B027", # abstract empty method
-    "B028", # missing stacklevel
-    "B905", # strict zip
-    "BLE001", # catching Exception
-    "C406", # unnecessary list literal
-    "C416", # unnecessary list comp
-    "C417", # replace map with generator
-    "C420", # unnecessary dict comprehension
-    "C901", # complex code
-    "COM812", # trailing comma
-    "D", # Don't check docs
-    "D400", # first line should end with period
-    "D415", # end doc with punctuation
-    "DTZ", # set timezone for all datetimes
-    "E501", # line too long
-    "E731", # don't assign lambda
-    "E741", # ambiguous var name
-    "EM101", # Exception must not use a string literal, assign to variable first
-    "EM102", # don't use f-string for exception message, assign to var
-    "ERA001", # commented-out code
-    "FBT001", # boolean typed positional arg
-    "FBT002", # boolean positional arg
-    "FBT003", # boolean positional arg
-    "FIX002", # line has todo
-    "FURB129", # replace readlines() with iter
-    "FURB167", # re.I alias
-    "FURB177", # Path.cwd()
-    "FURB188", # str.removesuffix
-    "I001", # unsorted import block
-    "INP001", # namespace packages
-    "N802", # bad function name
-    "N806", # variable case
-    "N818", # exception class name
-    "PERF102", # use dict.values
-    "PERF203", # try-except in loop
-    "PERF401", # list comp
-    "PIE808", # unnecessary start in range
-    "PIE810", # merge startswith
-    "PLC0206", # consider using dict.items
-    "PLR0911", # too-many-return-statements
-    "PLR0912", # too-many-branches
-    "PLR0913", # too-many-arguments
-    "PLR0915", # too-many-statements
-    "PLR1730", # replace if with max
-    "PLR2004", # Magic value
-    "PLR2044", # line with empty comment
-    "PLW1641", # no __hash__
-    "PLW2901", # shadowing loop var
-    "PLW3301", # nested max calls
-    "PT001", # bare fixture annotation
-    "PT006", # parameterize non-tuple args
-    "PT007", # use list of tuples for parameterize
-    "PT011", # broad pytest.raises
-    "PT015", # assertion always fails
-    "PT017", # use pytest.raises
-    "PT018", # split assertions
-    "PT022", # missing teardown
-    "PT023", # bare asyncio mark
-    "PTH103", # use Path.mkdir
-    "PTH120", # use Path.parent
-    "PTH123", # use Path.open()
-    "PTH201", # don't pass current dir to path
-    "PTH208", # use pathlib iterdir
-    "RET501", # explicit return None
-    "RET502", # implicit return None
-    "RET503", # missing explicit return
-    "RET504", # unnecessary assignment before return
-    "RSE102", # unnecessary parentheses
-    "RUF005", # list star instead of concat
-    "RUF006", # store result from asyncio.ensure_future
-    "RUF022", # unsorted __all__
-    "RUF023", # sort slots
-    "S101", # use of assert
-    "S105", # possible hardcoded password
-    "S113", # requests without timeout
-    "S310", # url open scheme, disallow file: and others
-    "S311", # insecure random source
-    "S603", # subprocess untrusted input
-    "S606", # starting process without a shell
-    "SIM102", # combine if
-    "SIM103", # return condition
-    "SIM105", # suppress exception
-    "SIM108", # ternary
-    "SIM110", # use all()
-    "SIM114", # combine if
-    "SIM115", # open-with
-    "SIM118", # dict.keys contains
-    "SIM201", # use !=
-    "SLF001", # private memnber access
-    "T201", # found print
-    "TD002", # missing author in todo
-    "TD003", # no issue link
-    "TD004", # missing colon in todo
-    "TRY002", # create own exceptions
-    "TRY003", # avoid specifying long messages outside of the exception class
-    "TRY300", # use try-except-else
-    "TRY400", # use logging.exception
-]
+ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN204", "ANN205", "ANN206", "ANN401", "ARG001", "ARG002", "ARG003", "ARG004", "ARG005", "ASYNC110", "ASYNC251", "B007", "B011", "B024", "B027", "B028", "B905", "BLE001", "C406", "C416", "C417", "C420", "C901", "COM812", "D", "D400", "D415", "DTZ", "E501", "E731", "E741", "EM101", "EM102", "ERA001", "FBT001", "FBT002", "FBT003", "FIX002", "FURB129", "FURB167", "FURB177", "FURB188", "I001", "INP001", "N802", "N806", "N818", "PERF102", "PERF203", "PERF401", "PIE808", "PIE810", "PLC0206", "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR1730", "PLR2004", "PLR2044", "PLW1641", "PLW2901", "PLW3301", "PT001", "PT006", "PT007", "PT011", "PT015", "PT017", "PT018", "PT022", "PT023", "PTH103", "PTH120", "PTH123", "PTH201", "PTH208", "RET501", "RET502", "RET503", "RET504", "RSE102", "RUF005", "RUF006", "RUF022", "RUF023", "S101", "S105", "S113", "S310", "S311", "S603", "S606", "SIM102", "SIM103", "SIM105", "SIM108", "SIM110", "SIM114", "SIM115", "SIM118", "SIM201", "SLF001", "T201", "TD002", "TD003", "TD004", "TRY002", "TRY003", "TRY300", "TRY400", "CPY001", "ISC001", "EXE002"]
 select = [
     "ALL",
 ]
@@ -270,6 +158,13 @@ fixable = ["ALL"]
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ["pydantic.BaseModel", "sqlalchemy.orm.DeclarativeBase", "cloudbot.util.database.Base"]
 
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+skip-magic-trailing-comma = true
 [tool.alembic]
 # path to migration scripts.
 # this is typically a path given in POSIX (e.g. forward slashes)
@@ -292,3 +187,10 @@ prepend_sys_path = ["."]
 # type = "exec"
 # executable = "ruff"
 # options = "check --fix REVISION_SCRIPT_FILENAME"
+
+[tool.basedpyright]
+analyzeUnannotatedFunctions = true
+reportUnusedCallResult = "none"
+reportImplicitStringConcatenation = "none"
+reportImportCycles = "none"
+pythonVersion = "3.10"
