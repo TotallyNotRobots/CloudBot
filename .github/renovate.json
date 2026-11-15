@@ -9,6 +9,19 @@
         "docker:pinDigests",
         "helpers:pinGitHubActionDigests"
     ],
+    "packageRules": [
+        {
+            "matchManagers": [
+                "pre-commit"
+            ],
+            "matchUpdateTypes": [
+                "pin",
+                "digest",
+                "pinDigest"
+            ],
+            "enabled": true
+        }
+    ],
     "prConcurrentLimit": 5,
     "pre-commit": {
         "enabled": true
