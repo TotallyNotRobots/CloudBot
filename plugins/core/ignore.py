@@ -20,6 +20,7 @@ from cloudbot.util import database, web
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventAdminLog, EventNotice
 
 table = Table(
     "ignored",
@@ -150,7 +151,15 @@ def get_user(conn: Client, text):
 
 
 @hook.command(permissions=["ignore", "chanop"])
-def ignore(text, db, chan, conn: Client, notice, admin_log, nick) -> None:
+def ignore(
+    text,
+    db,
+    chan,
+    conn: Client,
+    notice: EventNotice,
+    admin_log: EventAdminLog,
+    nick,
+) -> None:
     """<nick|mask> - ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
@@ -163,7 +172,15 @@ def ignore(text, db, chan, conn: Client, notice, admin_log, nick) -> None:
 
 
 @hook.command(permissions=["ignore", "chanop"])
-def unignore(text, db, chan, conn: Client, notice, nick, admin_log) -> None:
+def unignore(
+    text,
+    db,
+    chan,
+    conn: Client,
+    notice: EventNotice,
+    nick,
+    admin_log: EventAdminLog,
+) -> None:
     """<nick|mask> - un-ignores all input from <nick|mask> in this channel."""
     target = get_user(conn, text)
 
@@ -196,7 +213,9 @@ def listignores(db, conn: Client, chan):
 
 
 @hook.command(permissions=["botcontrol"])
-def global_ignore(text, db, conn: Client, notice, nick, admin_log) -> None:
+def global_ignore(
+    text, db, conn: Client, notice: EventNotice, nick, admin_log: EventAdminLog
+) -> None:
     """<nick|mask> - ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 
@@ -211,7 +230,9 @@ def global_ignore(text, db, conn: Client, notice, nick, admin_log) -> None:
 
 
 @hook.command(permissions=["botcontrol"])
-def global_unignore(text, db, conn: Client, notice, nick, admin_log) -> None:
+def global_unignore(
+    text, db, conn: Client, notice: EventNotice, nick, admin_log: EventAdminLog
+) -> None:
     """<nick|mask> - un-ignores all input from <nick|mask> in ALL channels."""
     target = get_user(conn, text)
 

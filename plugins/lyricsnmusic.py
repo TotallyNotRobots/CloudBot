@@ -1,15 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import web
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 #
 api_url = "http://api.lyricsnmusic.com/songs"
 
 
 @hook.command("lyrics")
-def lyricsnmusic(text, reply, bot):
+def lyricsnmusic(text, reply: EventReply, bot):
     """<artist and/or song> - will fetch the first 150 characters of a song and a link to the full lyrics."""
     api_key = bot.config.get_api_key("lyricsnmusic")
     params = {"api_key": api_key, "q": text}

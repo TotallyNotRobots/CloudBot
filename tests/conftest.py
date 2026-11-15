@@ -4,6 +4,7 @@ import asyncio
 import datetime as dt
 import importlib
 import logging
+from collections.abc import Generator
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -67,7 +68,7 @@ def patch_import_reload():
 
 
 @pytest.fixture()
-def mock_db(tmp_path):
+def mock_db(tmp_path) -> Generator[MockDB]:
     db = MockDB(f"sqlite:///{tmp_path / 'database.db'!s}")
     database.configure(db.engine)
     try:

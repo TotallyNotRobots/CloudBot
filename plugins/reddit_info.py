@@ -17,6 +17,7 @@ from cloudbot.util.pager import CommandPager, paginated_list
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventReply
 
 search_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
 user_re = re.compile(
@@ -148,7 +149,7 @@ def reddit_post_url(match):
 
 
 @hook.command(autohelp=False, singlethread=True)
-def reddit(text, reply):
+def reddit(text, reply: EventReply):
     """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
 
@@ -194,7 +195,7 @@ def reddit(text, reply):
 
 
 @hook.command("subs", "moderates", singlethread=True)
-def moderates(text, chan, conn: Client, reply):
+def moderates(text, chan, conn: Client, reply: EventReply):
     """<username> - This plugin prints the list of subreddits a user moderates listed in a reddit users profile.
     Private subreddits will not be listed."""
     user = get_user(text)
@@ -223,7 +224,7 @@ def moderates(text, chan, conn: Client, reply):
     return page
 
 
-def get_user_data(page, user, reply):
+def get_user_data(page, user, reply: EventReply):
     url = user_url + page
     r = requests.get(url.format(user), headers=agent)
     try:
@@ -236,7 +237,7 @@ def get_user_data(page, user, reply):
 
 
 @hook.command("karma", "ruser", singlethread=True)
-def karma(text, reply):
+def karma(text, reply: EventReply):
     """<reddituser> - will return the information about the specified reddit username"""
     user = get_user(text)
     data = get_user_data("about.json", user, reply)
@@ -273,7 +274,7 @@ def karma(text, reply):
 
 
 @hook.command("cakeday", singlethread=True)
-def cake_day(text, reply):
+def cake_day(text, reply: EventReply):
     """<reddituser> - will return the cakeday for the given reddit username."""
     user = get_user(text)
     data = get_user_data("about.json", user, reply)
@@ -301,7 +302,7 @@ def time_format(numdays):
     return age
 
 
-def get_sub_data(url, sub, reply):
+def get_sub_data(url, sub, reply: EventReply):
     r = requests.get(url.format(sub), headers=agent)
 
     try:
@@ -318,7 +319,7 @@ def get_sub_data(url, sub, reply):
 
 
 @hook.command("submods", "mods", "rmods", singlethread=True)
-def submods(text, chan, conn: Client, reply):
+def submods(text, chan, conn: Client, reply: EventReply):
     """<subreddit> - prints the moderators of the specified subreddit."""
     sub = get_sub(text)
     url = f"{subreddit_url}about/moderators.json"
@@ -351,7 +352,7 @@ def submods(text, chan, conn: Client, reply):
 
 
 @hook.command("subinfo", "subreddit", "sub", "rinfo", singlethread=True)
-def subinfo(text, reply):
+def subinfo(text, reply: EventReply):
     """<subreddit> - fetches information about the specified subreddit."""
     sub = get_sub(text)
     url = f"{subreddit_url}about.json"

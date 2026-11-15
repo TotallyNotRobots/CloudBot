@@ -8,6 +8,7 @@ from cloudbot import hook
 
 if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
+    from cloudbot.event_functions import EventNotice
 
 gen = secrets.SystemRandom()
 common_words: list[str] = []
@@ -24,7 +25,7 @@ def load_words(bot: CloudBot) -> None:
 
 
 @hook.command(autohelp=False)
-def password(text, notice) -> None:
+def password(text, notice: EventNotice) -> None:
     """[length [types]] - generates a password of <length> (default 12).
     [types] can include 'alpha', 'no caps', 'numeric', 'symbols' or any combination: eg. 'numbers symbols'
     (default: alpha numeric no caps)"""
@@ -74,7 +75,7 @@ def password(text, notice) -> None:
 
 
 @hook.command("wpass", "wordpass", "wordpassword", autohelp=False)
-def word_password(text, notice) -> None:
+def word_password(text, notice: EventNotice) -> None:
     """[length] - generates an easy to remember password with [length] (default 4) commonly used words"""
     try:
         length = int(text)

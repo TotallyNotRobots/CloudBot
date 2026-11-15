@@ -12,6 +12,7 @@ from cloudbot.util.filesize import size as format_bytes
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventMessage, EventReply
 
 try:
     import psutil
@@ -29,7 +30,7 @@ def about(text, conn: Client, bot) -> str:
 
 
 @hook.command(autohelp=False)
-def system(reply, message) -> None:
+def system(reply: EventReply, message: EventMessage) -> None:
     """- Retrieves information about the host system."""
 
     # Get general system info

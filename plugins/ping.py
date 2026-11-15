@@ -13,11 +13,17 @@ License:
     GPL v3
 """
 
+from __future__ import annotations
+
 import os
 import re
 import subprocess
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 unix_ping_regex = re.compile(r"(\d+.\d+)/(\d+.\d+)/(\d+.\d+)/(\d+.\d+)")
 win_ping_regex = re.compile(
@@ -28,7 +34,7 @@ IS_WINDOWS = os.name == "nt"
 
 
 @hook.command()
-def ping(text, reply) -> str:
+def ping(text, reply: EventReply) -> str:
     """<host> [count] - pings <host> [count] times"""
 
     args = text.split(" ")

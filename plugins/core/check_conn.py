@@ -9,6 +9,7 @@ from cloudbot.util import colors
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventAdminLog
 
 
 async def do_reconnect(conn: Client, auto=True) -> str:
@@ -98,7 +99,7 @@ def on_connect(conn: Client) -> None:
 
 @hook.command("lagcheck", autohelp=False, permissions=["botcontrol"])
 @hook.periodic(5)
-def lag_check(bot, admin_log) -> None:
+def lag_check(bot, admin_log: EventAdminLog) -> None:
     """- Manually update lag times for all connections"""
     now = time.time()
     for conn in bot.connections.values():

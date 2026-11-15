@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import time
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -11,6 +11,8 @@ import pytest
 from plugins import remind
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from cloudbot.client import Client
 
 second = dt.timedelta(seconds=1)
@@ -23,8 +25,14 @@ def setup_db(mock_db) -> None:
     remind.table.create(mock_db.engine)
 
 
-async def async_call(func, *args):
-    return func(*args)
+P = ParamSpec("P")
+T = TypeVar("T")
+
+
+async def async_call(
+    func: Callable[P, T], *args: P.args, **kwargs: P.kwargs
+) -> T:
+    return func(*args, **kwargs)
 
 
 async def make_reminder(text, nick, chan, mock_db, conn: Client, event):

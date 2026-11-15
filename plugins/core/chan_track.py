@@ -31,7 +31,7 @@ from cloudbot.util.mapping import KeyFoldDict, KeyFoldWeakValueDict
 if TYPE_CHECKING:
     from irclib.parser import TagList
 
-    import cloudbot.bot
+    from cloudbot.bot import CloudBot
     from cloudbot.util.irc import ChannelMode, StatusMode
 
 logger = logging.getLogger("cloudbot")
@@ -336,7 +336,7 @@ def is_cap_available(conn: Client, cap):
 
 
 @hook.on_start()
-def get_chan_data(bot: cloudbot.bot.CloudBot) -> None:
+def get_chan_data(bot: CloudBot) -> None:
     for conn in bot.connections.values():
         if conn.connected and conn.type == "irc":
             assert isinstance(conn, IrcClient)

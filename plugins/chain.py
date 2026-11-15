@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import itertools
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Column, PrimaryKeyConstraint, String, Table
 
@@ -6,6 +9,9 @@ from cloudbot import hook
 from cloudbot.event import CommandEvent
 from cloudbot.util import database
 from cloudbot.util.formatting import chunk_str, pluralize_auto
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventNoticeDoc
 
 commands = Table(
     "chain_commands",
@@ -102,7 +108,7 @@ chainallow_subcmds = {
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def chainallow(text, db, notice_doc, bot):
+def chainallow(text, db, notice_doc: EventNoticeDoc, bot):
     """{add [hook] [{allow|deny}]|del [hook]} - Manage the allowed list of commands for the chain command"""
     args = text.split()
     subcmd = args.pop(0).lower()

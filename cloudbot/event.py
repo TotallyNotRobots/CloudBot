@@ -5,14 +5,14 @@ import enum
 import logging
 from collections.abc import Mapping
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
 from irclib.parser import Message
 
 from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
 
     import sqlalchemy.orm as sa_orm
 
@@ -29,6 +29,10 @@ class EventType(enum.Enum):
     part = 4
     kick = 5
     other = 6
+
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class Event(Mapping[str, Any]):
@@ -229,7 +233,7 @@ class Event(Mapping[str, Any]):
     def logger(self):
         return logger
 
-    def message(self, message, target=None):
+    def message(self, message: str, target: str | None = None) -> None:
         """sends a message to a specific or current channel/user"""
         if target is None:
             if self.chan is None:
@@ -241,7 +245,7 @@ class Event(Mapping[str, Any]):
 
         self.conn.message(target, message)
 
-    def admin_log(self, message, broadcast=False) -> None:
+    def admin_log(self, message: str, broadcast: bool = False) -> None:
         """Log a message in the current connections admin log
 
         :param message: The message to log
@@ -275,7 +279,7 @@ class Event(Mapping[str, Any]):
                 target, f"({self.nick}) {messages[0]}", *messages[1:]
             )
 
-    def action(self, message, target=None):
+    def action(self, message: str, target: str | None = None) -> None:
         """sends an action to the current channel/user
         or a specific channel/user
         """
@@ -289,7 +293,9 @@ class Event(Mapping[str, Any]):
 
         self.conn.action(target, message)
 
-    def ctcp(self, message, ctcp_type, target=None):
+    def ctcp(
+        self, message: str, ctcp_type: str, target: str | None = None
+    ) -> None:
         """sends an ctcp to the current channel/user or a specific channel/user"""
         if target is None:
             if self.chan is None:
@@ -304,7 +310,7 @@ class Event(Mapping[str, Any]):
 
         self.conn.ctcp(target, ctcp_type, message)
 
-    def notice(self, message, target=None):
+    def notice(self, message: str, target: str | None = None) -> None:
         """sends a notice to the current channel/user or a specific channel/user"""
         avoid_notices = self.conn.config.get("avoid_notices", False)
         if target is None:
@@ -321,7 +327,7 @@ class Event(Mapping[str, Any]):
         else:
             self.conn.notice(target, message)
 
-    def has_permission(self, permission, notice=True):
+    def has_permission(self, permission: str, notice: bool = True) -> bool:
         """returns whether or not the current user has a given permission"""
         if not self.mask:
             raise ValueError("has_permission requires mask is not assigned")
@@ -330,7 +336,9 @@ class Event(Mapping[str, Any]):
             self.mask, permission, notice=notice
         )
 
-    async def check_permission(self, permission, notice=True) -> bool:
+    async def check_permission(
+        self, permission: str, notice: bool = True
+    ) -> bool:
         """returns whether or not the current user has a given permission"""
         if self.has_permission(permission, notice=notice):
             return True
@@ -344,14 +352,16 @@ class Event(Mapping[str, Any]):
 
         return False
 
-    async def check_permissions(self, *perms, notice=True) -> bool:
+    async def check_permissions(self, *perms: str, notice: bool = True) -> bool:
         for perm in perms:
             if await self.check_permission(perm, notice=notice):
                 return True
 
         return False
 
-    async def async_call(self, func, *args, **kwargs):
+    async def async_call(
+        self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs
+    ) -> T:
         if self.db_executor is not None:
             executor = self.db_executor
         else:
@@ -361,7 +371,7 @@ class Event(Mapping[str, Any]):
         result = await self.loop.run_in_executor(executor, part)
         return result
 
-    def is_nick_valid(self, nick):
+    def is_nick_valid(self, nick: str) -> bool:
         """
         Returns whether a nick is valid for a given connection
         :param nick: The nick to check
@@ -424,7 +434,7 @@ class CommandEvent(Event):
         self.triggered_command = triggered_command
         self.triggered_prefix = cmd_prefix
 
-    def notice_doc(self, target=None):
+    def notice_doc(self, target: str | None = None) -> None:
         """sends a notice containing this command's docstring to
         the current channel/user or a specific channel/user
         """

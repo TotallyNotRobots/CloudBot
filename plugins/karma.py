@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import operator
 import re
 from collections import defaultdict
@@ -19,6 +21,8 @@ from cloudbot.util import database
 
 if TYPE_CHECKING:
     from sqlalchemy.sql.base import Executable
+
+    from cloudbot.event_functions import EventNotice
 
 karmaplus_re = re.compile(r"^.*\+\+$")
 karmaminus_re = re.compile("^.*--$")
@@ -78,7 +82,7 @@ def addpoint(text, nick, chan, db) -> None:
 
 
 @hook.regex(karmaplus_re)
-def re_addpt(match, nick, chan, db, notice) -> None:
+def re_addpt(match, nick, chan, db, notice: EventNotice) -> None:
     """no useful help txt"""
     if thing := match.group().split("++")[0]:
         addpoint(thing, nick, chan, db)
@@ -140,7 +144,7 @@ def minuspts(nick, chan, db):
 
 
 @hook.regex(karmaminus_re)
-def re_rmpt(match, nick, chan, db, notice) -> None:
+def re_rmpt(match, nick, chan, db, notice: EventNotice) -> None:
     """no useful help txt"""
     if thing := match.group().split("--")[0]:
         rmpoint(thing, nick, chan, db)

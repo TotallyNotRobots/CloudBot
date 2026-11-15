@@ -11,6 +11,12 @@ from cloudbot.util import textgen
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import (
+        EventAction,
+        EventIsNickValid,
+        EventMessage,
+        EventReply,
+    )
 
 
 @unique
@@ -181,7 +187,15 @@ def basic_format(nick, text, data, **kwargs):
 
 
 def basic_attack(attack):
-    def func(text, conn: Client, nick, action, message, reply, is_nick_valid):
+    def func(
+        text,
+        conn: Client,
+        nick,
+        action: EventAction,
+        message: EventMessage,
+        reply: EventReply,
+        is_nick_valid: EventIsNickValid,
+    ):
         responses = {
             RespType.ACTION: action,
             RespType.REPLY: reply,

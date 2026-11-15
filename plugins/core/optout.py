@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from collections.abc import MutableMapping
 
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventAsyncCall
 
 optout_table = Table(
     "optout",
@@ -296,7 +297,7 @@ async def check_global_perms(event):
 
 
 @hook.command("listoptout", autohelp=False)
-async def list_optout(conn: Client, event, async_call):
+async def list_optout(conn: Client, event, async_call: EventAsyncCall):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to
     view all data for this network
     """
@@ -312,7 +313,7 @@ async def list_optout(conn: Client, event, async_call):
 
 
 @hook.command("clearoptout", autohelp=False)
-async def clear(conn: Client, event, db, async_call):
+async def clear(conn: Client, event, db, async_call: EventAsyncCall):
     """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = await check_global_perms(event)
 

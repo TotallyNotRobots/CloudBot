@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import http
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 types = ["trivia", "math", "date", "year"]
 
 
 @hook.command(autohelp=False)
-def fact(reply):
+def fact(reply: EventReply):
     """- Gets a random fact about numbers or dates."""
     fact_type = random.choice(types)
     try:

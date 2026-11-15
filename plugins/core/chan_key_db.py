@@ -21,7 +21,7 @@ from plugins.core import server_info
 
 if TYPE_CHECKING:
     import sqlalchemy.orm as sa_orm
-    from irclib.parser import Message
+    from irclib.parser import Message, ParamList
     from sqlalchemy import CursorResult
     from sqlalchemy.orm import Session
 
@@ -53,7 +53,7 @@ def load_keys(conn: IrcClient, db) -> None:
 
 @hook.irc_raw("MODE")
 def handle_modes(
-    irc_paramlist: list[str], conn: IrcClient, db, chan: str
+    irc_paramlist: ParamList, conn: IrcClient, db, chan: str
 ) -> None:
     """
     Handle mode changes

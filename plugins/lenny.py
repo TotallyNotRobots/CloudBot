@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import json
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventMessage
 
 lenny_data: dict[str, list[str]] = {}
 
@@ -15,12 +21,12 @@ def load_faces(bot) -> None:
 
 
 @hook.command(autohelp=False)
-def lenny(message) -> None:
+def lenny(message: EventMessage) -> None:
     """- why the shit not lennyface"""
     message(random.choice(lenny_data["lenny"]))
 
 
 @hook.command(autohelp=False)
-def flenny(message) -> None:
+def flenny(message: EventMessage) -> None:
     """- flenny is watching."""
     message(random.choice(lenny_data["flenny"]))

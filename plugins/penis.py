@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventMessage
 
 balls = ["(_)_)", "8", "B", "(___)__)", "(_)(_)", "(@)@)", "3"]
 shaft = [
@@ -30,7 +36,7 @@ bodypart = [
 
 
 @hook.command("penis", "bepis", autohelp=False)
-def penis(text, message) -> None:
+def penis(text, message: EventMessage) -> None:
     """[nick] - much dongs, very ween, add a user nick as an argument for slightly different 'output'"""
     if not text:
         message(

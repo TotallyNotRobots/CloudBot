@@ -1,11 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import web
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 
 @hook.command()
-def shorten(text, reply):
+def shorten(text, reply: EventReply):
     """<url> [custom] - shortens a url with [custom] as an optional custom shortlink"""
     args = text.split()
     url = args[0]
@@ -19,7 +26,7 @@ def shorten(text, reply):
 
 
 @hook.command()
-def expand(text, reply):
+def expand(text, reply: EventReply):
     """<url> - unshortens <url>"""
     args = text.split()
     url = args[0]
@@ -32,7 +39,7 @@ def expand(text, reply):
 
 
 @hook.command()
-def isgd(text, reply):
+def isgd(text, reply: EventReply):
     """<url> [custom] - shortens a url using is.gd with [custom] as an optional custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()
@@ -50,7 +57,7 @@ def isgd(text, reply):
 
 
 @hook.command()
-def googl(text, reply):
+def googl(text, reply: EventReply):
     """<url> [custom] - shorten <url> using goo.gl with [custom] as an option custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()
@@ -68,7 +75,7 @@ def googl(text, reply):
 
 
 @hook.command()
-def gitio(text, reply):
+def gitio(text, reply: EventReply):
     """<url> [custom] - shortens a github URL <url> using git.io with [custom] as an optional custom shortlink,
     or unshortens <url> if already short"""
     args = text.split()

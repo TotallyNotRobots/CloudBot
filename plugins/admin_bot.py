@@ -11,6 +11,13 @@ if TYPE_CHECKING:
     from cloudbot.client import Client
     from cloudbot.clients.irc import IrcClient
     from cloudbot.event import CommandEvent
+    from cloudbot.event_functions import (
+        EventAdminLog,
+        EventIsNickValid,
+        EventMessage,
+        EventNotice,
+        EventReply,
+    )
 
 
 @hook.command(
@@ -26,7 +33,7 @@ def get_permission_groups(conn: Client) -> str:
 
 
 @hook.command("gperms", permissions=["permissions_users"])
-def get_group_permissions(text, conn: Client, notice):
+def get_group_permissions(text, conn: Client, notice: EventNotice):
     """<group> - lists permissions given to <group>"""
     group = text.strip()
     permission_manager = conn.permissions
@@ -41,7 +48,7 @@ def get_group_permissions(text, conn: Client, notice):
 
 
 @hook.command("gusers", permissions=["permissions_users"])
-def get_group_users(text, conn: Client, notice):
+def get_group_users(text, conn: Client, notice: EventNotice):
     """<group> - lists users in <group>"""
     group = text.strip()
     permission_manager = conn.permissions
@@ -148,7 +155,12 @@ def remove_permission_user(text: str, event, conn: Client) -> None:
 
 @hook.command("adduser", permissions=["permissions_users"])
 def add_permissions_user(
-    text: str, nick, conn: Client, notice, reply, admin_log
+    text: str,
+    nick,
+    conn: Client,
+    notice: EventNotice,
+    reply: EventReply,
+    admin_log: EventAdminLog,
 ) -> None:
     """<user> <group> - adds <user> to <group>"""
     split = text.split()
@@ -212,7 +224,9 @@ async def rehash_config(bot: CloudBot) -> str:
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def join(text, conn: Client, nick, notice, admin_log) -> None:
+def join(
+    text, conn: Client, nick, notice: EventNotice, admin_log: EventAdminLog
+) -> None:
     """<channel> [key] - joins <channel> with the optional [key]"""
     parts = text.split(None, 1)
     target = parts.pop(0)
@@ -240,7 +254,14 @@ def parse_targets(text, chan):
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"], autohelp=False)
-def part(text, conn: Client, nick, chan, notice, admin_log) -> None:
+def part(
+    text,
+    conn: Client,
+    nick,
+    chan,
+    notice: EventNotice,
+    admin_log: EventAdminLog,
+) -> None:
     """[#channel] - parts [#channel], or the caller's channel if no channel is specified"""
     for target in parse_targets(text, chan):
         admin_log(f"{nick} used PART to make me leave {target}.")
@@ -249,7 +270,7 @@ def part(text, conn: Client, nick, chan, notice, admin_log) -> None:
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def cycle(text, conn: Client, chan, notice) -> None:
+def cycle(text, conn: Client, chan, notice: EventNotice) -> None:
     """[#channel] - cycles [#channel], or the caller's channel if no channel is specified"""
     for target in parse_targets(text, chan):
         notice(f"Attempting to cycle {target}...")
@@ -258,7 +279,9 @@ def cycle(text, conn: Client, chan, notice) -> None:
 
 
 @hook.command("nick", permissions=["botcontrol"], clients=["irc"])
-def change_nick(text, conn: IrcClient, notice, is_nick_valid) -> None:
+def change_nick(
+    text, conn: IrcClient, notice: EventNotice, is_nick_valid: EventIsNickValid
+) -> None:
     """<nick> - changes my nickname to <nick>"""
     if not is_nick_valid(text):
         notice(f"Invalid username '{text}'")
@@ -270,7 +293,7 @@ def change_nick(text, conn: IrcClient, notice, is_nick_valid) -> None:
 
 
 @hook.command(permissions=["botcontrol"], clients=["irc"])
-def raw(text, conn: IrcClient, notice) -> None:
+def raw(text, conn: IrcClient, notice: EventNotice) -> None:
     """<command> - sends <command> as a raw IRC command"""
     notice("Raw command sent.")
     conn.send(text)
@@ -285,7 +308,7 @@ def get_chan(chan, text):
 
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
-def say(text, conn: Client, chan, nick, admin_log) -> None:
+def say(text, conn: Client, chan, nick, admin_log: EventAdminLog) -> None:
     """[#channel] <message> - says <message> to [#channel], or to the caller's channel if no channel is specified"""
     channel, text = get_chan(chan, text)
     admin_log(f'{nick} used SAY to make me SAY "{text}" in {channel}.')
@@ -293,7 +316,7 @@ def say(text, conn: Client, chan, nick, admin_log) -> None:
 
 
 @hook.command("message", "sayto", permissions=["botcontrol", "snoonetstaff"])
-def send_message(text, conn: Client, nick, admin_log) -> None:
+def send_message(text, conn: Client, nick, admin_log: EventAdminLog) -> None:
     """<name> <message> - says <message> to <name>"""
     split = text.split(None, 1)
     channel = split[0]
@@ -302,7 +325,9 @@ def send_message(text, conn: Client, nick, admin_log) -> None:
     conn.message(channel, text)
 
 
-@hook.command("me", "act", permissions=["botcontrol", "snoonetstaff"])
+@hook.command(
+    "me", "act", clients=["irc"], permissions=["botcontrol", "snoonetstaff"]
+)
 def me(
     text: str, conn: IrcClient, chan: str, nick: str, event: CommandEvent
 ) -> None:
@@ -315,7 +340,9 @@ def me(
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def listchans(conn: Client, chan, message, notice) -> None:
+def listchans(
+    conn: Client, chan, message: EventMessage, notice: EventNotice
+) -> None:
     """- Lists the current channels the bot is in"""
     chans = ", ".join(sorted(conn.channels, key=lambda x: x.strip("#").lower()))
     lines = formatting.chunk_str(f"I am currently in: {chans}")

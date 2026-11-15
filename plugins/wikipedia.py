@@ -1,12 +1,19 @@
 """Searches wikipedia and returns first sentence of article
 Scaevolus 2009"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 from requests import RequestException
 from yarl import URL
 
 from cloudbot import hook
 from cloudbot.util import formatting
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 api_prefix = "http://en.wikipedia.org/w/api.php"
 query_url = f"{api_prefix}?action=query&format=json"
@@ -24,7 +31,7 @@ def get_info(title):
 
 
 @hook.command("wiki", "wikipedia", "w")
-def wiki(text, reply) -> str:
+def wiki(text, reply: EventReply) -> str:
     """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
     search_params = {"srsearch": text.strip()}

@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING
 
 import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 base_url = "http://api.urbandictionary.com/v0"
 define_url = f"{base_url}/define"
@@ -11,7 +17,7 @@ random_url = f"{base_url}/random"
 
 
 @hook.command("urban", "u", "ud", autohelp=False)
-def urban(text, reply):
+def urban(text, reply: EventReply):
     """<phrase> [id] - Looks up <phrase> on urbandictionary.com."""
 
     headers = {"Referer": "http://m.urbandictionary.com"}

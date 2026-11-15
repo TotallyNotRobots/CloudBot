@@ -132,7 +132,6 @@ ignore = [
     "FURB167", # re.I alias
     "FURB177", # Path.cwd()
     "FURB188", # str.removesuffix
-    "I001", # unsorted import block
     "INP001", # namespace packages
     "N802", # bad function name
     "N806", # variable case
@@ -236,5 +235,6 @@ prepend_sys_path = ["."]
 analyzeUnannotatedFunctions = true
 reportUnusedCallResult = "none"
 reportImplicitStringConcatenation = "none"
+reportExplicitAny = "none"
 reportImportCycles = "none"
 pythonVersion = "3.11"

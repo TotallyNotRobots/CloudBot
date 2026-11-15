@@ -22,7 +22,7 @@ repos:
   - id: check-json
     exclude: '.devcontainer/.*'
   - id: pretty-format-json
-    exclude: '.devcontainer/.*'
+    exclude: '(.devcontainer/.*|\.basedpyright/baseline\.json$)'
     args:
     - --indent
     - '4'

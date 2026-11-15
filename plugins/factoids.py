@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import re
 import string
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, and_
 
@@ -8,6 +11,9 @@ from cloudbot import hook
 from cloudbot.util import colors, database, web
 from cloudbot.util.formatting import gen_markdown_table, get_text_list
 from cloudbot.util.web import NoPasteException
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventAction, EventMessage, EventNotice
 
 # below is the default factoid in every channel you can modify it however you like
 default_dict = {"commands": "https://snoonet.org/gonzobot"}
@@ -72,7 +78,7 @@ def del_factoid(db, chan, word=None) -> None:
 
 
 @hook.command("r", "remember", permissions=["op", "chanop"])
-def remember(text, nick, db, chan, notice, event) -> None:
+def remember(text, nick, db, chan, notice: EventNotice, event) -> None:
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the
     message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command
     is called."""
@@ -115,7 +121,7 @@ def paste_facts(facts, raise_on_no_paste=False):
     return web.paste(tbl, "md", "hastebin", raise_on_no_paste=raise_on_no_paste)
 
 
-def remove_fact(chan, names, db, notice) -> None:
+def remove_fact(chan, names, db, notice: EventNotice) -> None:
     found = {}
     missing = []
     for name in names:
@@ -141,7 +147,7 @@ def remove_fact(chan, names, db, notice) -> None:
 
 
 @hook.command("f", "forget", permissions=["op", "chanop"])
-def forget(text, chan, db, notice) -> None:
+def forget(text, chan, db, notice: EventNotice) -> None:
     """<word>... - Remove factoids with the specified names"""
     remove_fact(chan, text.split(), db, notice)
 
@@ -156,7 +162,7 @@ def forget_all(chan, db) -> str:
 
 
 @hook.command()
-def info(text, chan, notice) -> None:
+def info(text, chan, notice: EventNotice) -> None:
     """<factoid> - shows the source of a factoid"""
 
     text = text.strip().lower()
@@ -171,7 +177,9 @@ factoid_re = re.compile(rf"^{re.escape(FACTOID_CHAR)} ?(.+)", re.I)
 
 
 @hook.regex(factoid_re)
-def factoid(content, match, chan, message, action) -> None:
+def factoid(
+    content, match, chan, message: EventMessage, action: EventAction
+) -> None:
     """<word> - shows what data is associated with <word>"""
     arg1 = ""
     if len(content.split()) >= 2:
@@ -196,7 +204,7 @@ def factoid(content, match, chan, message, action) -> None:
 
 
 @hook.command("listfacts", autohelp=False)
-def listfactoids(notice, chan) -> None:
+def listfactoids(notice: EventNotice, chan) -> None:
     """- lists all available factoids"""
     reply_text: list[str] = []
     reply_text_length = 0

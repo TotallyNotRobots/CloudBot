@@ -8,7 +8,6 @@ from cloudbot.util.sequence import chunk_iter
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
-
     from typing import Self
 
 

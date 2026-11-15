@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 
 @hook.command()
-def suggest(text, reply):
+def suggest(text, reply: EventReply):
     """<phrase> - Gets suggested phrases for a google search"""
     params = {"output": "json", "client": "hp", "q": text}
 

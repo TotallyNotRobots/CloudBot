@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
     from cloudbot.client import Client
     from cloudbot.event import Event
+    from cloudbot.event_functions import EventMessage, EventNotice
     from cloudbot.plugin_hooks import Hook
 
 table = Table(
@@ -160,7 +161,15 @@ def disableregex(db, event):
 
 
 @hook.command(autohelp=False, permissions=["botcontrol"])
-def resetregex(text, db, conn: Client, chan, nick, message, notice) -> None:
+def resetregex(
+    text,
+    db,
+    conn: Client,
+    chan,
+    nick,
+    message: EventMessage,
+    notice: EventNotice,
+) -> None:
     """[chan] - Reset regex hook status in [chan] (default: current channel)"""
     channel = parse_args(text, chan)
     message(

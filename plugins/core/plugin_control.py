@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 from operator import itemgetter
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import web
 from cloudbot.util.formatting import gen_markdown_table
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 
 @hook.command(permissions=["botcontrol"], autohelp=False)
@@ -23,7 +29,7 @@ def pluginlist(bot):
 
 
 @hook.command(permissions=["botcontrol"])
-async def pluginload(bot, text, reply) -> str:
+async def pluginload(bot, text, reply: EventReply) -> str:
     """<plugin path> - (Re)load <plugin> manually"""
     manager = bot.plugin_manager
     path = str(Path(text.strip()).resolve())

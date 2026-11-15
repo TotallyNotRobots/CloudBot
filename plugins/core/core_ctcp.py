@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import datetime as dt
+from typing import TYPE_CHECKING
 
 import cloudbot
 from cloudbot import hook
 from cloudbot.event import EventType
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventNotice
+
 
 # CTCP responses
 @hook.event([EventType.other])
-async def ctcp_version(notice, irc_ctcp_text) -> None:
+async def ctcp_version(notice: EventNotice, irc_ctcp_text) -> None:
     if irc_ctcp_text:
         command, _, params = irc_ctcp_text.partition(" ")
         if command == "VERSION":

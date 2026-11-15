@@ -6,6 +6,7 @@ from cloudbot import hook
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventMessage
 
 
 def get_latest_line(conn: Client, chan, nick):
@@ -17,7 +18,7 @@ def get_latest_line(conn: Client, chan, nick):
 
 
 @hook.command()
-def mock(text, chan, conn: Client, message):
+def mock(text, chan, conn: Client, message: EventMessage):
     """<nick> - turn <user>'s last message in to aLtErNaTiNg cApS"""
     nick = text.strip()
     line = get_latest_line(conn, chan, nick)

@@ -8,6 +8,7 @@ from cloudbot.util import colors
 
 if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
+    from cloudbot.event_functions import EventAction
 
 responses: list[str] = []
 
@@ -23,7 +24,7 @@ def load_responses(bot: CloudBot) -> None:
 
 
 @hook.command("8ball", "8", "eightball")
-async def eightball(action) -> None:
+async def eightball(action: EventAction) -> None:
     """<question> - asks the all knowing magic electronic eight ball <question>"""
     magic = random.choice(responses)
     message = colors.parse(f"shakes the magic 8 ball... {magic}")

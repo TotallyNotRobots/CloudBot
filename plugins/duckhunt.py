@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 
     from cloudbot.client import Client
     from cloudbot.clients.irc import IrcClient
+    from cloudbot.event_functions import EventMessage, EventNoticeDoc
 
 duck_tail = "\u30fb\u309c\u309c\u30fb\u3002\u3002\u30fb\u309c\u309c"
 duck = [
@@ -247,7 +248,7 @@ def increment_msg_counter(event, conn: Client) -> None:
 @hook.command(
     "starthunt", autohelp=False, permissions=["chanop", "op", "botcontrol"]
 )
-def start_hunt(db, chan, message, conn: Client):
+def start_hunt(db, chan, message: EventMessage, conn: Client):
     """- This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     if is_opt_out(conn.name, chan):
         return None
@@ -298,7 +299,7 @@ def stop_hunt(db, chan, conn: Client):
 
 
 @hook.command("duckkick", permissions=["chanop", "op", "botcontrol"])
-def no_duck_kick(db, text, chan, conn: Client, notice_doc):
+def no_duck_kick(db, text, chan, conn: Client, notice_doc: EventNoticeDoc):
     """<enable|disable> - If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that
     people are kicked for shooting or befriending a non-existent goose. Default is off.
     """
@@ -734,7 +735,7 @@ def hunt_opt_out(text, chan, db, conn: Client):
 
 
 @hook.command("duckmerge", permissions=["botcontrol", "duckmerge"])
-def duck_merge(text, conn: Client, db, message):
+def duck_merge(text, conn: Client, db, message: EventMessage):
     """<user1> <user2> - Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will
     have their duck scores removed the second will have the first score added. Warning this cannot be undone.
     """
@@ -821,7 +822,7 @@ def duck_merge(text, conn: Client, db, message):
 
 
 @hook.command("ducks", autohelp=False)
-def ducks_user(text, nick, chan, conn: Client, db, message):
+def ducks_user(text, nick, chan, conn: Client, db, message: EventMessage):
     """<nick> - Prints a users duck stats. If no nick is input it will check the calling username."""
     name = nick.lower()
     if text:
@@ -886,7 +887,7 @@ def ducks_user(text, nick, chan, conn: Client, db, message):
 
 
 @hook.command("duckstats", autohelp=False)
-def duck_stats(chan, conn: Client, db, message):
+def duck_stats(chan, conn: Client, db, message: EventMessage):
     """- Prints duck statistics for the entire channel and totals for the network."""
     scores = db.execute(
         select(

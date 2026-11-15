@@ -8,6 +8,11 @@ from cloudbot.util import formatting, web
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import (
+        EventHasPermission,
+        EventMessage,
+        EventNotice,
+    )
 
 
 def get_potential_commands(bot, cmd_name):
@@ -22,7 +27,13 @@ def get_potential_commands(bot, cmd_name):
 
 @hook.command("help", autohelp=False)
 def help_command(
-    text, chan, bot, notice, message, has_permission, triggered_prefix
+    text,
+    chan,
+    bot,
+    notice: EventNotice,
+    message: EventMessage,
+    has_permission: EventHasPermission,
+    triggered_prefix,
 ) -> None:
     """[command] - gives help for [command], or lists all available commands if no command is specified"""
     if text:
@@ -91,7 +102,7 @@ def help_command(
 
 
 @hook.command()
-async def cmdinfo(text, bot, notice) -> None:
+async def cmdinfo(text, bot, notice: EventNotice) -> None:
     """<command> - Gets various information about a command"""
     name = text.split()[0]
     cmds = list(get_potential_commands(bot, name))

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 from urllib import parse
 
 import requests
@@ -8,12 +11,15 @@ from requests import HTTPError
 from cloudbot import hook
 from cloudbot.util import formatting
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 api_url = "http://encyclopediadramatica.se/api.php"
 ed_url = "http://encyclopediadramatica.se/"
 
 
 @hook.command()
-def drama(text, reply) -> str:
+def drama(text, reply: EventReply) -> str:
     """<phrase> - gets the first paragraph of the Encyclopedia Dramatica article on <phrase>"""
 
     search_response = requests.get(

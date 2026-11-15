@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventMessage
 
 topicchange_data: list[str] = []
 
@@ -15,6 +21,6 @@ def load_topicchange(bot) -> None:
 
 
 @hook.command("changetopic", "discuss", "question", autohelp=False)
-def topicchange(message) -> None:
+def topicchange(message: EventMessage) -> None:
     """- generates a random question to help start a conversation or change a topic"""
     message(random.choice(topicchange_data))

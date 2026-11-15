@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import json
 from collections import defaultdict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cloudbot import hook
 from cloudbot.util import textgen
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventAction, EventIsNickValid
 
 
 class BasicFood:
@@ -100,7 +105,7 @@ def basic_format(nick, text, data, **kwargs):
 
 
 def basic_food(food):
-    def func(text, nick, action, is_nick_valid):
+    def func(text, nick, action: EventAction, is_nick_valid: EventIsNickValid):
         if not is_nick_valid(text):
             return f"I can't give {food.unit} to that user."
 

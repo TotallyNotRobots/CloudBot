@@ -5,13 +5,19 @@ Author:
     - linuxdaemon <https://github.com/linuxdaemon>
 """
 
+from __future__ import annotations
+
 from collections import defaultdict
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.hook import Priority
 from cloudbot.util import web
 from cloudbot.util.formatting import gen_markdown_table
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventNoticeDoc
 
 
 def default_hook_counter():
@@ -102,7 +108,7 @@ stats_funcs: dict[str, tuple[Handler, int]] = {
 
 
 @hook.command(permissions=["snoonetstaff", "botcontrol"])
-def hookstats(text, bot, notice_doc):
+def hookstats(text, bot, notice_doc: EventNoticeDoc):
     """{global|network <name>|channel <network> <channel>|hook <hook>} - Get hook usage statistics"""
     args = text.split()
     stats_type = args.pop(0).lower()
