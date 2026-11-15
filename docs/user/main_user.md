@@ -10,7 +10,7 @@ In this guide, we will cover the setup and configuration procedures in the follo
 
 ## 1 - Getting CloudBot
 
-Setting up CloudBot on a new server instance is simple. To begin, you need a compatible server that supports **Python 3.10**. Earlier versions of Python are not compatible.
+Setting up CloudBot on a new server instance is simple. To begin, you need a compatible server that supports **Python 3.11**. Earlier versions of Python are not compatible.
 
 We recommend using the stable releases of CloudBot that can be found [on the releases page](https://github.com/TotallyNotRobots/CloudBot/releases), or from the `main` branch on GitHub.
 
@@ -39,25 +39,25 @@ If you only have command-line access, run the following in your terminal:
   cd CloudBot
   ```
 
-## 2 - Getting Python 3.10
-Setting up Python 3.10 on most OSs usually goes as follows.
+## 2 - Getting Python 3.11
+Setting up Python 3.11 on most OSs usually goes as follows.
 
   **On Linux (Debian Based):**
   Run the following in your terminal:
   ```
-  [sudo] apt-get install python3 python3.10-dev git libxml2-dev libxslt-dev zlib1g-dev
+  [sudo] apt-get install python3 python3.11-dev git libxml2-dev libxslt-dev zlib1g-dev
   ```
 
   **On OS X:**
   Mac OS X already comes with Python 2.7 pre-installed, this is not sufficient for CloudBot. The latest binaries can be found at https://www.python.org/downloads/
 
   **On Windows:**
-  You can download releases of Python 3.10 for Windows at https://www.python.org/downloads/
+  You can download releases of Python 3.11 for Windows at https://www.python.org/downloads/
 
   **todo**: section on adding python to PATH on windows so it is usable from the console!!!
 
   **On another OS (Solaris/BSD/ActivePython/etc):**
-  You can try compiling Python 3.10 from source, note however that you may run into issues with CloudBot or its dependencies (many of the Other OSs only support Python 2.x).
+  You can try compiling Python 3.11 from source, note however that you may run into issues with CloudBot or its dependencies (many of the Other OSs only support Python 2.x).
 
   You can find source at https://www.python.org/downloads/source/
 
@@ -68,12 +68,12 @@ PIP is suggested to make installation of CloudBot's dependencies easier, and is 
   Run the following in your terminal:
   ```
   wget https://bootstrap.pypa.io/get-pip.py
-  [sudo] python3.10 get-pip.py
+  [sudo] python3.11 get-pip.py
   ```
   **On OS X:**
   Run the following in your terminal:
   ```
-  curl https://bootstrap.pypa.io/get-pip.py | sudo python3.10
+  curl https://bootstrap.pypa.io/get-pip.py | sudo python3.11
   ```
   **On Windows:**
   ```

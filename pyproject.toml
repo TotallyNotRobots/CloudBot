@@ -1,6 +1,6 @@
 [project]
 name = "cloudbot"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 version = "1.5.0"
 
 [tool.autoflake]
@@ -59,7 +59,7 @@ relative_files = true
 
 [tool.nitpick]
 style = [
-    "gh://TotallyNotRobots/nitpick/app-style-3.10.toml",
+    "gh://TotallyNotRobots/nitpick/app-style-3.11.toml",
 ]
 
 [tool.flynt]
@@ -237,4 +237,4 @@ analyzeUnannotatedFunctions = true
 reportUnusedCallResult = "none"
 reportImplicitStringConcatenation = "none"
 reportImportCycles = "none"
-pythonVersion = "3.10"
+pythonVersion = "3.11"

@@ -51,7 +51,7 @@ class MockClient(Client):
         self._connected = True
         return await self._mock.try_connect()
 
-    async def connect(self, timeout=None):
+    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         self._connected = True
         return await self._mock.connect(timeout=timeout)
 

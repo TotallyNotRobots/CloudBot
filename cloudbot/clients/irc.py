@@ -223,7 +223,7 @@ class IrcClient(Client):
         while self.active and not self.connected:
             try:
                 await self.connect(self._timeout)
-            except (TimeoutError, asyncio.TimeoutError):
+            except TimeoutError:
                 logger.error(
                     "[%s] Timeout occurred while connecting to %s",
                     self.name,
@@ -247,10 +247,10 @@ class IrcClient(Client):
             canceller = asyncio.shield(self.cancelled_future)
             try:
                 await asyncio.wait_for(canceller, timeout=sleep_time)
-            except (asyncio.CancelledError, asyncio.TimeoutError):
+            except (asyncio.CancelledError, TimeoutError):
                 pass
 
-    async def connect(self, timeout=None):
+    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -265,7 +265,7 @@ class IrcClient(Client):
         finally:
             self._connecting = False
 
-    async def _connect(self, timeout=None) -> None:
+    async def _connect(self, timeout=None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         # connect to the clients server
         if self.connected:
             logger.info("[%s] Reconnecting", self.name)
