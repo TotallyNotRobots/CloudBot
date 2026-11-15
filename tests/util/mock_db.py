@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from types import TracebackType
 
     from sqlalchemy import Table
-    from typing_extensions import Self
+    from typing import Self
 
 
 class MockDB(AbstractContextManager):

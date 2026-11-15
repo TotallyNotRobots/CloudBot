@@ -481,7 +481,7 @@ class TestConnect:
         client, bot = await self.make_client()
         runs = 0
 
-        async def connect(timeout):
+        async def connect(timeout):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
             nonlocal runs
             if runs == 5:
                 return
@@ -535,7 +535,7 @@ class TestConnect:
         client, bot = await self.make_client()
         runs = 0
 
-        async def connect(timeout):
+        async def connect(timeout):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
             nonlocal runs
             if runs == 5:
                 return
@@ -602,7 +602,7 @@ class TestConnect:
     async def test_one_connect(self, caplog_bot, mock_db) -> None:
         client, bot = await self.make_client()
 
-        async def _connect(timeout=5) -> None:
+        async def _connect(timeout=5) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
             await asyncio.sleep(timeout)
 
         client._connect = _connect  # type: ignore[method-assign]

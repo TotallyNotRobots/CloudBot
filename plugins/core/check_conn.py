@@ -26,7 +26,7 @@ async def do_reconnect(conn: Client, auto=True) -> str:
 
     try:
         await coro
-    except asyncio.TimeoutError:
+    except TimeoutError:
         if auto:
             raise
 

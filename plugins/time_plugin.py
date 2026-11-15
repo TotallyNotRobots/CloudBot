@@ -71,7 +71,7 @@ def time_command(text: str, reply, bot: CloudBot) -> str:
                 )
                 raise
 
-            curtime = dt.datetime.now(dt.timezone.utc)
+            curtime = dt.datetime.now(dt.UTC)
             tztime = curtime + offset
             formatted_time = dt.datetime.strftime(
                 tztime, "%I:%M %p, %A, %B %d, %Y"

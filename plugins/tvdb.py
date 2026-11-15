@@ -15,7 +15,7 @@ from cloudbot.util import func_utils
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from typing_extensions import Self
+    from typing import Self
 
     from cloudbot.bot import CloudBot
     from cloudbot.event import Event

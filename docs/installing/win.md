@@ -2,7 +2,7 @@
 
 We recommend that use you use a *unix system to run CloudBot in production, or a devcontainer when developing CloudBot. However, it is possible to install natively on Windows.
 
-First, make sure you have Python 3.10 or higher installed. It can be downloaded at [python.org](https://www.python.org/downloads/).
+First, make sure you have Python 3.11 or higher installed. It can be downloaded at [python.org](https://www.python.org/downloads/).
 
 Next, you need to install `pip`.
 

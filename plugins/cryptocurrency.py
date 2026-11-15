@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from contextlib import AbstractContextManager
 
     from requests import Response
-    from typing_extensions import Self
+    from typing import Self
 
     from cloudbot.bot import AbstractBot
     from cloudbot.event import CommandEvent

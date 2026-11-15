@@ -109,7 +109,7 @@ class Client:
 
             await asyncio.sleep(random.randrange(timeout))
 
-    async def connect(self, timeout=None):
+    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         """
         Connects to the server, or reconnects if already connected.
         """

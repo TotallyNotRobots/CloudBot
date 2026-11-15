@@ -15,7 +15,7 @@ You have a few options for getting the bot, you can:
 
 ## Installing CloudBot
 
-Firstly, CloudBot will only run on **Python 3.10 or higher**
+Firstly, CloudBot will only run on **Python 3.11 or higher**
 
 To install CloudBot on *nix (linux, etc), see [here](docs/installing/nix.md)
 

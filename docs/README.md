@@ -12,7 +12,7 @@ For each set of docs, a PDF and HTML version is also available.
 
 ## Refresh
 
-Refresh (this repo) is the newest CloudBot, which cleans up the internals of the bot and brings support for Python 3.10+
+Refresh (this repo) is the newest CloudBot, which cleans up the internals of the bot and brings support for Python 3.11+
 
 ## Developers
 * [linuxdaemon](https://github.com/linuxdaemon)
