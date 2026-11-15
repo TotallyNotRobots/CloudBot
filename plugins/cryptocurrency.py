@@ -29,9 +29,9 @@ from cloudbot.util.func_utils import call_with_args
 if TYPE_CHECKING:
     from collections.abc import Callable
     from contextlib import AbstractContextManager
+    from typing import Self
 
     from requests import Response
-    from typing import Self
 
     from cloudbot.bot import AbstractBot
     from cloudbot.event import CommandEvent

@@ -8,6 +8,7 @@ from cloudbot import hook
 
 if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
+    from cloudbot.event_functions import EventMessage
 
 cheer_re = re.compile(r"\\o/", re.IGNORECASE)
 
@@ -23,6 +24,6 @@ def load_cheers(bot: CloudBot) -> None:
 
 
 @hook.regex(cheer_re)
-def cheer(chan, message) -> None:
+def cheer(chan, message: EventMessage) -> None:
     shit = random.choice(cheers)
     message(shit, chan)

@@ -11,6 +11,7 @@ from cloudbot import hook
 if TYPE_CHECKING:
     from cloudbot.client import Client
     from cloudbot.clients.irc import IrcClient
+    from cloudbot.event_functions import EventMessage
 
 socket.setdefaulttimeout(10)
 logger = logging.getLogger("cloudbot")
@@ -33,7 +34,7 @@ def on_join(chan, conn: IrcClient, nick) -> None:
 
 
 @hook.irc_raw("324")
-def check_mode(irc_paramlist, conn: Client, message) -> None:
+def check_mode(irc_paramlist, conn: Client, message: EventMessage) -> None:
     # message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
     require_reg = conn.config.get("require_registered_channels", False)
@@ -43,7 +44,7 @@ def check_mode(irc_paramlist, conn: Client, message) -> None:
 
 
 @hook.irc_raw("MODE")
-def on_mode_change(conn: Client, irc_paramlist, message) -> None:
+def on_mode_change(conn: Client, irc_paramlist, message: EventMessage) -> None:
     require_reg = conn.config.get("require_registered_channels", False)
     chan = irc_paramlist[0]
     modes = irc_paramlist[1]

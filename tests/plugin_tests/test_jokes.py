@@ -108,7 +108,7 @@ def test_boobies(text, out) -> None:
 
 
 def test_awesome() -> None:
-    res = jokes.awesome("foo", lambda text: True)
+    res = jokes.awesome("foo", lambda nick: True)
     assert res == (
         "foo: I am blown away by your recent awesome action(s). Please read "
         "\x02http://foo.is-awesome.cool/\x02"
@@ -116,7 +116,7 @@ def test_awesome() -> None:
 
 
 def test_awesome_bad_nick() -> None:
-    res = jokes.awesome("foo", lambda text: False)
+    res = jokes.awesome("foo", lambda nick: False)
     assert res == "Sorry I can't tell foo how awesome they are."
 
 

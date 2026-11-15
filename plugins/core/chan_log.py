@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import traceback
 from collections.abc import Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from requests.exceptions import RequestException
 
 from cloudbot import hook
 from cloudbot.util import web
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventAdminLog
 
 
 def get_attrs(obj: object) -> list[str]:
@@ -173,7 +178,9 @@ def format_attrs(obj: object, ignore_dunder: bool = False) -> Iterable[str]:
 
 
 @hook.post_hook()
-def on_hook_end(error, launched_hook, launched_event, admin_log) -> None:
+def on_hook_end(
+    error, launched_hook, launched_event, admin_log: EventAdminLog
+) -> None:
     if error is None:
         return
 

@@ -10,10 +10,16 @@ License:
     GPL v3
 """
 
+from __future__ import annotations
+
 import random
 import re
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventAction, EventNotice
 
 whitespace_re = re.compile(r"\s+")
 valid_diceroll = re.compile(
@@ -130,7 +136,7 @@ def choose(text, event):
 
 
 @hook.command(autohelp=False)
-def coin(text, notice, action):
+def coin(text, notice: EventNotice, action: EventAction):
     """[amount] - flips [amount] coins"""
 
     if text:

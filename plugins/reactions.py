@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import json
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventMessage
 
 deal_with_it_phrases = [
     "Stop complaining, \x02{}\x02, and",
@@ -22,7 +28,7 @@ def load_macros(bot) -> None:
 
 
 @hook.command("dwi", "dealwithit")
-def deal_with_it(text, message) -> None:
+def deal_with_it(text, message: EventMessage) -> None:
     """<nick> - Tell <nick> in the channel to deal with it. Code located in reactions.py"""
     person_needs_to_deal = text.strip()
     phrase = random.choice(deal_with_it_phrases)
@@ -33,7 +39,7 @@ def deal_with_it(text, message) -> None:
 
 
 @hook.command("fp", "facepalm")
-def face_palm(text, message) -> None:
+def face_palm(text, message: EventMessage) -> None:
     """<nick> - Expresses your frustration with <Nick>. Code located in reactions.py"""
     face_palmer = text.strip()
     message(
@@ -42,14 +48,14 @@ def face_palm(text, message) -> None:
 
 
 @hook.command("hd", "headdesk")
-def head_desk(text, message) -> None:
+def head_desk(text, message: EventMessage) -> None:
     """<nick> - Hit your head against the desk becausae of <nick>. Code located in reactions.py"""
     idiot = text.strip()
     message(f"{idiot} {random.choice(reaction_macros['head_desk_macros'])}")
 
 
 @hook.command("fetish", "tmf")
-def my_fetish(text, message) -> None:
+def my_fetish(text, message: EventMessage) -> None:
     """<nick> - Did some one just mention what your fetish was? Let <nick> know! Code located in reactions.py"""
     person_to_share_fetish_with = text.strip()
     message(

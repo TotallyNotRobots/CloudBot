@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import requests
 
 from cloudbot import hook
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 
 @hook.command(autohelp=False)
-def kernel(reply) -> None:
+def kernel(reply: EventReply) -> None:
     """- gets a list of linux kernel versions"""
     r = requests.get("https://www.kernel.org/finger_banner")
     r.raise_for_status()

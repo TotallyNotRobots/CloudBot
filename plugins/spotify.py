@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta
 from threading import RLock
+from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
@@ -8,6 +11,9 @@ from requests.auth import HTTPBasicAuth
 from yarl import URL
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 spotify_re = re.compile(
     r"(spotify:(track|album|artist|user):([a-zA-Z0-9]+))", re.I
@@ -82,7 +88,7 @@ class SpotifyAPI:
 api = SpotifyAPI()
 
 
-def _search(text, _type, reply):
+def _search(text, _type, reply: EventReply):
     params = {"q": text.strip(), "offset": 0, "limit": 1, "type": _type}
 
     try:
@@ -153,7 +159,7 @@ def _format_response(
     return out
 
 
-def _format_search(text, _type, reply):
+def _format_search(text, _type, reply: EventReply):
     data = _search(text, _type, reply)
     if data is None:
         return NO_RESULTS.format(type=_type)
@@ -170,19 +176,19 @@ def set_keys(bot) -> None:
 
 
 @hook.command("spotify", "sptrack")
-def spotify(text, reply):
+def spotify(text, reply: EventReply):
     """<song> - Search Spotify for <song>"""
     return _format_search(text, "track", reply)
 
 
 @hook.command("spalbum")
-def spalbum(text, reply):
+def spalbum(text, reply: EventReply):
     """<album> - Search Spotify for <album>"""
     return _format_search(text, "album", reply)
 
 
 @hook.command("spartist", "artist")
-def spartist(text, reply):
+def spartist(text, reply: EventReply):
     """<artist> - Search Spotify for <artist>"""
     return _format_search(text, "artist", reply)
 

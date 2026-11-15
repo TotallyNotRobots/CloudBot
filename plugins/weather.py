@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from fractions import Fraction
 from typing import TYPE_CHECKING
@@ -13,6 +15,8 @@ from cloudbot.util import colors, database
 
 if TYPE_CHECKING:
     from pyowm.weatherapi30.weather import Weather
+
+    from cloudbot.event_functions import EventReply
 
 
 class ApiNotConfigured(Exception):
@@ -236,7 +240,7 @@ def check_and_parse(event, db):
 
 
 @hook.command("weather", "we", autohelp=False)
-def weather(reply, db, triggered_prefix, event):
+def weather(reply: EventReply, db, triggered_prefix, event):
     """<location> - Gets weather data for <location>."""
     res, err = check_and_parse(event, db)
     if not res:
@@ -298,7 +302,7 @@ def weather(reply, db, triggered_prefix, event):
 
 
 @hook.command("forecast", "fc", autohelp=False)
-def forecast(reply, db, event):
+def forecast(reply: EventReply, db, event):
     """<location> - Gets forecast data for <location>."""
     res, err = check_and_parse(event, db)
     if not res:

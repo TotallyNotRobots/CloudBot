@@ -10,10 +10,16 @@ License:
     GPL v3
 """
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import formatting, textgen
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventNotice
 
 
 def get_generator(_json):
@@ -26,7 +32,7 @@ def get_generator(_json):
 
 
 @hook.command(autohelp=False)
-def namegen(text, bot, notice):
+def namegen(text, bot, notice: EventNotice):
     """[generator|list] - generates some names using the chosen generator, or lists all generators
     if 'list' is specified
     """

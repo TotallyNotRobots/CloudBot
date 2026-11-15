@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventIsNickValid, EventMessage
 
 joke_lines = {}
 
@@ -45,7 +46,7 @@ def load_jokes(bot) -> None:
 
 
 @hook.command()
-def yomomma(text, nick, conn: Client, is_nick_valid) -> str:
+def yomomma(text, nick, conn: Client, is_nick_valid: EventIsNickValid) -> str:
     """<nick> - Tells a yo momma joke to <nick>."""
     target = text.strip()
     if not is_nick_valid(target) or target.lower() == conn.nick.lower():
@@ -55,19 +56,19 @@ def yomomma(text, nick, conn: Client, is_nick_valid) -> str:
 
 
 @hook.command(autohelp=False)
-def doit(message) -> None:
+def doit(message: EventMessage) -> None:
     """- Prints a do it line, example: mathematicians do with a pencil."""
     message(random.choice(joke_lines["do_it"]))
 
 
 @hook.command(autohelp=False)
-def pun(message) -> None:
+def pun(message: EventMessage) -> None:
     """- Come on everyone loves puns right?"""
     message(random.choice(joke_lines["puns"]))
 
 
 @hook.command(autohelp=False)
-def confucious(message) -> None:
+def confucious(message: EventMessage) -> None:
     """- Confucious say man standing on toilet is high on pot.
     (Note that the spelling is deliberate: https://www.urbandictionary.com/define.php?term=Confucious)
     """
@@ -76,19 +77,19 @@ def confucious(message) -> None:
 
 
 @hook.command(autohelp=False)
-def dadjoke(message) -> None:
+def dadjoke(message: EventMessage) -> None:
     """- Love em or hate em, bring on the dad jokes."""
     message(random.choice(joke_lines["one_liners"]))
 
 
 @hook.command(autohelp=False)
-def wisdom(message) -> None:
+def wisdom(message: EventMessage) -> None:
     """- Words of wisdom from various bathroom stalls."""
     message(random.choice(joke_lines["wisdom"]))
 
 
 @hook.command(autohelp=False)
-def bookpun(message) -> None:
+def bookpun(message: EventMessage) -> None:
     """- Suggests a pun of a book title/author."""
     # suggestions = ["Why not try", "You should read", "You gotta check out"]
     message(random.choice(joke_lines["book_puns"]))
@@ -113,7 +114,7 @@ def zombs():
 
 
 @hook.command("awesome", "iscool", "cool")
-def awesome(text, is_nick_valid) -> str:
+def awesome(text, is_nick_valid: EventIsNickValid) -> str:
     """<nick> - Returns a link to show <nick> how awesome they are.
     See https://github.com/sebastianbarfurth/is-awesome.cool
     """
@@ -125,7 +126,7 @@ def awesome(text, is_nick_valid) -> str:
 
 
 @hook.command(autohelp=False)
-def triforce(message) -> None:
+def triforce(message: EventMessage) -> None:
     """- Returns a triforce!"""
     top = ["\u00a0\u25b2", "\u00a0\u00a0\u25b2", "\u25b2", "\u00a0\u25b2"]
     bottom = ["\u25b2\u00a0\u25b2", "\u25b2 \u25b2", "\u25b2\u25b2"]
@@ -145,7 +146,7 @@ def kero(text):
 
 
 @hook.command(autohelp=False)
-def lawyerjoke(message) -> None:
+def lawyerjoke(message: EventMessage) -> None:
     """- Returns a lawyer joke, so lawyers know how much we hate them."""
     message(random.choice(joke_lines["lawyerjoke"]))
 

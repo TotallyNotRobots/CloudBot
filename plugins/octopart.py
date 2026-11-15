@@ -13,15 +13,22 @@ License:
     GPL v3
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 API_URL = "http://octopart.com/api/v3/parts/search"
 
 
 @hook.command("octopart", "octo")
-def octopart(text, reply, bot):
+def octopart(text, reply: EventReply, bot):
     """<keyword> - Search for any part on the Octopart database."""
     api_key = bot.config.get_api_key("octopart")
     if not api_key:

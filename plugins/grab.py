@@ -15,6 +15,7 @@ from cloudbot.util.pager import CommandPager, paginated_list
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventMessage
 
 search_pages: dict[str, dict[str, CommandPager]] = defaultdict(dict)
 
@@ -136,7 +137,7 @@ def format_grab(name, quote):
 
 
 @hook.command("lastgrab", "lgrab")
-def lastgrab(text, chan, message):
+def lastgrab(text, chan, message: EventMessage):
     """<nick> - prints the last grabbed quote from <nick>."""
     try:
         with cache_lock:
@@ -151,7 +152,7 @@ def lastgrab(text, chan, message):
 
 
 @hook.command("grabrandom", "grabr", autohelp=False)
-def grabrandom(text, chan, message):
+def grabrandom(text, chan, message: EventMessage):
     """[nick] - grabs a random quote from the grab database"""
     with cache_lock:
         try:

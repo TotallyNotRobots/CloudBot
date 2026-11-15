@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
     from requests import Response
 
+    from cloudbot.event_functions import EventReply
+
 youtube_re = re.compile(
     r"(?:youtube.*?(?:v=|/v/)|youtu\.be/|yooouuutuuube.*?id=)([-_a-zA-Z0-9]+)",
     re.I,
@@ -200,7 +202,7 @@ def youtube_url(match: Match[str]) -> str | None:
 
 
 @hook.command("youtube", "you", "yt", "y")
-def youtube(text: str, reply) -> str:
+def youtube(text: str, reply: EventReply) -> str:
     """<query> - Returns the first YouTube search result for <query>.
 
     :param text: User input
@@ -216,7 +218,7 @@ def youtube(text: str, reply) -> str:
 
 
 @hook.command("youtime", "ytime")
-def youtime(text: str, reply) -> str:
+def youtime(text: str, reply: EventReply) -> str:
     """<query> - Gets the total run time of the first YouTube search result for <query>."""
     parts = ["statistics", "contentDetails", "snippet"]
     try:

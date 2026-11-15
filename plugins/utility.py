@@ -13,6 +13,8 @@ Special Thanks:
 License: GPL v3
 """
 
+from __future__ import annotations
+
 import base64
 import binascii
 import codecs
@@ -22,9 +24,13 @@ import json
 import random
 import re
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import colors, formatting, web
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventNotice
 
 COLORS = collections.OrderedDict(
     [
@@ -148,7 +154,7 @@ def base64_encode(text):
 
 
 @hook.command("debase64", "unbase64")
-def base64_decode(text, notice):
+def base64_decode(text, notice: EventNotice):
     """<string> - Decode <string> with base64."""
     try:
         decoded = base64.b64decode(text.encode()).decode(errors="ignore")

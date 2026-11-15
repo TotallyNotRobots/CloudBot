@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
 from cloudbot.util.http import parse_soup
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 # CONSTANTS
 steam_re = re.compile(r".*://store.steampowered.com/app/([0-9]+)?.*", re.I)
@@ -85,7 +91,7 @@ def format_game(app_id, show_url=True):
 
 
 @hook.command()
-def steam(text, reply):
+def steam(text, reply: EventReply):
     """<query> - Search for specified game/trailer/DLC"""
     params = {"term": text.strip().lower()}
 

@@ -7,6 +7,7 @@ from cloudbot import hook
 
 if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
+    from cloudbot.event_functions import EventMessage
 
 fmklist: list[str] = []
 
@@ -21,7 +22,7 @@ def load_fmk(bot: CloudBot) -> None:
 
 
 @hook.command("fmk", autohelp=False)
-def fmk(text, message) -> None:
+def fmk(text, message: EventMessage) -> None:
     """[nick] - Fuck, Marry, Kill"""
     message(
         " {} FMK - {}, {}, {}".format(

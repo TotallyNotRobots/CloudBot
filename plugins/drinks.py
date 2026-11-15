@@ -9,6 +9,7 @@ from cloudbot.util import formatting, web
 
 if TYPE_CHECKING:
     from cloudbot.bot import CloudBot
+    from cloudbot.event_functions import EventAction
 
 drink_data: list[dict[str, Any]] = []
 
@@ -22,7 +23,7 @@ def load_drinks(bot: CloudBot) -> None:
 
 
 @hook.command("drink")
-def drink_cmd(text, chan, action) -> None:
+def drink_cmd(text, chan, action: EventAction) -> None:
     """<nick> - makes the user a random cocktail."""
     index = random.randint(0, len(drink_data) - 1)
     drink = drink_data[index]["title"]

@@ -1,8 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 
 from cloudbot import hook
 from cloudbot.util import formatting
 from cloudbot.util.http import parse_xml
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 API_URL = "http://steamcommunity.com/id/{}/"
 ID_BASE = 76561197960265728
@@ -88,7 +95,7 @@ def set_headers(bot) -> None:
 
 
 @hook.command("steamid", "sid", "steamuser", "su")
-def steamid(text, reply) -> str:
+def steamid(text, reply: EventReply) -> str:
     """<username> - gets the steam ID of <username>. Uses steamcommunity.com/id/<nickname>."""
 
     try:

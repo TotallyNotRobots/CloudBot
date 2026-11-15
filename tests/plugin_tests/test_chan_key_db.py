@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import call
 
 import pytest
-from irclib.parser import Message
+from irclib.parser import Message, ParamList
 
 from plugins.core import chan_key_db, server_info
 from tests.util.mock_irc_client import MockIrcClient
+
+if TYPE_CHECKING:
+    from tests.util.mock_db import MockDB
 
 
 def make_conn(mock_bot_factory, loop=None):
@@ -35,7 +41,7 @@ async def test_load_keys(mock_bot_factory, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_handle_modes(mock_bot_factory, mock_db) -> None:
+async def test_handle_modes(mock_bot_factory, mock_db: MockDB) -> None:
     conn = make_conn(mock_bot_factory)
     db = mock_db.session()
     chan_key_db.table.create(mock_db.engine)
@@ -46,7 +52,9 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
         "IXZbegw,k,FHJLWdfjlx,ABCDKMNOPQRSTcimnprstuz", serv_info
     )
     assert (
-        chan_key_db.handle_modes(["#foo", "+o", "foo"], conn, db, "#foo")
+        chan_key_db.handle_modes(
+            ParamList("#foo", "+o", "foo"), conn, db, "#foo"
+        )
         is None
     )
     assert conn.get_channel_key("#foo") is None
@@ -54,7 +62,7 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
 
     assert (
         chan_key_db.handle_modes(
-            ["#foo", "+ok", "foo", "beep"], conn, db, "#foo"
+            ParamList("#foo", "+ok", "foo", "beep"), conn, db, "#foo"
         )
         is None
     )
@@ -63,7 +71,7 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
 
     assert (
         chan_key_db.handle_modes(
-            ["#foo", "+ok", "foo", "boop"], conn, db, "#foo"
+            ParamList("#foo", "+ok", "foo", "boop"), conn, db, "#foo"
         )
         is None
     )
@@ -72,7 +80,7 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
 
     assert (
         chan_key_db.handle_modes(
-            ["#foo", "-ok", "foo", "beep"], conn, db, "#foo"
+            ParamList("#foo", "-ok", "foo", "beep"), conn, db, "#foo"
         )
         is None
     )
@@ -80,7 +88,9 @@ async def test_handle_modes(mock_bot_factory, mock_db) -> None:
     assert mock_db.get_data(chan_key_db.table) == []
 
     assert (
-        chan_key_db.handle_modes([conn.nick, "-ok"], conn, db, "server.host")
+        chan_key_db.handle_modes(
+            ParamList(conn.nick, "-ok"), conn, db, "server.host"
+        )
         is None
     )
     assert conn.get_channel_key("#foo") is None

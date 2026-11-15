@@ -8,7 +8,6 @@ import attrs
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-
     from typing import Self
 
 logger = logging.getLogger(__name__)

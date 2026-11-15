@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import locale
 import math
+from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
@@ -7,11 +10,14 @@ from requests import HTTPError
 from cloudbot import hook
 from cloudbot.util.http import parse_soup
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 scrape_url = "http://www.myfitnesspal.com/food/diary/{}"
 
 
 @hook.command("mfp", "myfitnesspal")
-def mfp(text, reply):
+def mfp(text, reply: EventReply):
     """<user> - returns macros from the MyFitnessPal food diary of <user>"""
     request = requests.get(scrape_url.format(text))
 

@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventNotice
 
 
 class TellMessage(database.Base):
@@ -263,7 +264,7 @@ def tell_check(conn: str, nick) -> bool:
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
-def tellinput(conn: Client, db, nick, notice, content) -> None:
+def tellinput(conn: Client, db, nick, notice: EventNotice, content) -> None:
     if "showtells" in content.lower():
         return
 
@@ -289,7 +290,7 @@ def tellinput(conn: Client, db, nick, notice, content) -> None:
 
 
 @hook.command(autohelp=False)
-def showtells(nick, notice, db, conn: Client) -> None:
+def showtells(nick, notice: EventNotice, db, conn: Client) -> None:
     """- View all pending tell messages (sent in a notice)."""
 
     tells = get_unread(db, conn.name, nick)
@@ -399,7 +400,7 @@ def list_tell_disabled(conn: Client, db):
 
 
 @hook.command("tellignore")
-def tell_ignore(db, conn: Client, nick, text, notice) -> None:
+def tell_ignore(db, conn: Client, nick, text, notice: EventNotice) -> None:
     """<mask> - Disallow users matching <mask> from sending you tells"""
     mask = text.split()[0].lower()
     if ignore_exists(conn, nick, mask):
@@ -411,7 +412,7 @@ def tell_ignore(db, conn: Client, nick, text, notice) -> None:
 
 
 @hook.command("tellunignore")
-def tell_unignore(db, conn: Client, nick, text, notice) -> None:
+def tell_unignore(db, conn: Client, nick, text, notice: EventNotice) -> None:
     """<mask> - Remove a tell ignore"""
     mask = text.split()[0].lower()
     if not ignore_exists(conn, nick, mask):

@@ -1,15 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 from requests import HTTPError
 
 from cloudbot import hook
 from cloudbot.util import formatting, web
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 base_url = "https://www.googleapis.com/books/v1/"
 book_search_api = f"{base_url}volumes?"
 
 
 @hook.command("books", "gbooks")
-def books(text, reply, bot) -> str:
+def books(text, reply: EventReply, bot) -> str:
     """<query> - Searches Google Books for <query>."""
     dev_key = bot.config.get_api_key("google_dev_key")
     if not dev_key:

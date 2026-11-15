@@ -1,13 +1,20 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import requests
 from requests import HTTPError
 
 from cloudbot import hook
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 api_url = "http://api.brewerydb.com/v2/search?format=json"
 
 
 @hook.command("brew")
-def brew(text, reply, bot):
+def brew(text, reply: EventReply, bot):
     """<query> - returns the first brewerydb search result for <query>"""
     api_key = bot.config.get_api_key("brewerydb")
     if not api_key:

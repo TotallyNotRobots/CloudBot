@@ -13,6 +13,7 @@ from cloudbot.util import database
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventMessage, EventReply
 
 table = Table(
     "herald",
@@ -68,7 +69,7 @@ def load_cache(db) -> None:
 
 
 @hook.command()
-def herald(text, nick, chan, db, reply):
+def herald(text, nick, chan, db, reply: EventReply):
     """{<message>|show|delete|remove} - adds a greeting for your nick that will be announced every time you join the
     channel. Using .herald show will show your current herald and .herald delete will remove your greeting.
     """
@@ -121,7 +122,7 @@ def herald(text, nick, chan, db, reply):
 @hook.command(
     permissions=["botcontrol", "snoonetstaff", "deleteherald", "chanop"]
 )
-def deleteherald(text, chan, db, reply) -> None:
+def deleteherald(text, chan, db, reply: EventReply) -> None:
     """<nickname> - Delete [nickname]'s herald."""
 
     nick = text.strip()
@@ -148,7 +149,7 @@ def should_send(conn: str, chan, nick, join_time) -> bool:
 
 
 @hook.irc_raw("JOIN", singlethread=True)
-def welcome(nick, message, bot, chan, conn: Client) -> None:
+def welcome(nick, message: EventMessage, bot, chan, conn: Client) -> None:
     decoy = re.compile(
         "[\xd2o\u25cbO0\xf6\xf8\xf3\u022f\xf4\u0151\u014f\u1d0f\u014d\u03bf][<>\uff1c]"
     )

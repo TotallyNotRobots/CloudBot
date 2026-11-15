@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import re
 import urllib.parse
+from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
@@ -8,12 +11,15 @@ from cloudbot import hook
 from cloudbot.util import formatting, web
 from cloudbot.util.http import parse_xml
 
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
+
 api_url = "http://api.wolframalpha.com/v2/query"
 query_url = "http://www.wolframalpha.com/input/?i={}"
 
 
 @hook.command("wolframalpha", "wa", "calc", "ca", "math", "convert")
-def wolframalpha(text, bot, reply) -> str:
+def wolframalpha(text, bot, reply: EventReply) -> str:
     """<query> - Computes <query> using Wolfram Alpha."""
     api_key = bot.config.get_api_key("wolframalpha")
     if not api_key:

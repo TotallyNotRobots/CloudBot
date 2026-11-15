@@ -8,6 +8,7 @@ from cloudbot.util.formatting import ireplace
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.event_functions import EventMessage
 
 correction_re = re.compile(
     r"^[sS]/(?:(.*?)(?<!\\)/(.*?)(?:(?<!\\)/([igx]{,4}))?)\s*$"
@@ -16,7 +17,7 @@ unescape_re = re.compile(r"\\(.)")
 
 
 @hook.regex(correction_re)
-def correction(match, conn: Client, nick, chan, message):
+def correction(match, conn: Client, nick, chan, message: EventMessage):
     groups = [unescape_re.sub(r"\1", group or "") for group in match.groups()]
     find = groups[0]
     replace = groups[1]

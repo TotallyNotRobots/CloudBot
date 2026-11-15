@@ -10,9 +10,9 @@ from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
     from types import TracebackType
+    from typing import Self
 
     from sqlalchemy import Table
-    from typing import Self
 
 
 class MockDB(AbstractContextManager):

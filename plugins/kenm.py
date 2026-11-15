@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventMessage
 
 kenm_data: list[str] = []
 
@@ -15,6 +21,6 @@ def load_kenm(bot) -> None:
 
 
 @hook.command("kenm", autohelp=False)
-def kenm(message) -> None:
+def kenm(message: EventMessage) -> None:
     """- Wisdom from Ken M."""
     message(random.choice(kenm_data))

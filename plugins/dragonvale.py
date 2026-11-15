@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
@@ -6,6 +9,9 @@ from requests import HTTPError
 from cloudbot import hook
 from cloudbot.util.http import parse_soup
 from cloudbot.util.timeparse import time_parse
+
+if TYPE_CHECKING:
+    from cloudbot.event_functions import EventReply
 
 search_url = "http://dragonvale.wikia.com/api/v1/Search/list"
 
@@ -18,7 +24,7 @@ def striphtml(data):
 
 
 @hook.command("dragon", "ds")
-def dragonsearch(text, reply):
+def dragonsearch(text, reply: EventReply):
     """<query> - Searches the dragonvale wiki for the specified text."""
     params = {"query": text.strip(), "limit": 1}
 

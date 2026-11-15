@@ -2,18 +2,30 @@
 Validates all hook registrations in all plugins
 """
 
+from __future__ import annotations
+
 import importlib
 import inspect
 import re
+import typing
+from enum import Enum, auto
 from functools import wraps
 from numbers import Number
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from re import Match
+from types import GenericAlias, NoneType, UnionType
+from typing import Any, assert_never, cast, get_type_hints
 from unittest.mock import patch
 
 import pytest
+import typing_extensions
+from irclib.parser import Message, ParamList, TagList
+from sqlalchemy.orm import Session
 
 import cloudbot.bot
+from cloudbot.bot import AbstractBot, CloudBot
+from cloudbot.client import Client
+from cloudbot.clients.irc import IrcClient
 from cloudbot.event import (
     CapEvent,
     CommandEvent,
@@ -22,6 +34,20 @@ from cloudbot.event import (
     IrcOutEvent,
     PostHookEvent,
     RegexEvent,
+)
+from cloudbot.event_functions import (
+    EventAction,
+    EventAdminLog,
+    EventAsyncCall,
+    EventCheckPermission,
+    EventCheckPermissions,
+    EventCtcp,
+    EventHasPermission,
+    EventIsNickValid,
+    EventMessage,
+    EventNotice,
+    EventNoticeDoc,
+    EventReply,
 )
 from cloudbot.hook import (
     Action,
@@ -46,8 +72,9 @@ from cloudbot.plugin_hooks import Hook, hook_name_to_plugin
 from cloudbot.util import HOOK_ATTR
 from tests.util.mock_bot import MockBot
 
-if TYPE_CHECKING:
-    from cloudbot.bot import CloudBot
+if typing.TYPE_CHECKING:
+    from typing_extensions import TypeForm
+
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
 PLUGINS: list[Plugin] = []
@@ -216,6 +243,209 @@ def test_hook_args(hook, mock_bot) -> None:
     for arg in hook.required_args:
         has = hasattr(event, arg)
         assert has, f"Undefined parameter '{arg}' for hook function"
+
+
+EXPECTED_ANNOTATIONS: dict[str, TypeForm[Any]] = {
+    "async_call": EventAsyncCall,
+    "text": str,
+    "is_nick_valid": EventIsNickValid,
+    "notice": EventNotice,
+    "admin_log": EventAdminLog,
+    "check_permission": EventCheckPermission,
+    "check_permissions": EventCheckPermissions,
+    "has_permission": EventHasPermission,
+    "ctcp": EventCtcp,
+    "notice_doc": EventNoticeDoc,
+    "nick": str,
+    "chan": str,
+    "bot": CloudBot,
+    "match": Match[str],
+    "parsed_line": Message,
+    "db": Session,
+    "irc_paramlist": ParamList,
+    "irc_tags": TagList,
+    "action": EventAction,
+    "message": EventMessage,
+    "reply": EventReply,
+}
+
+
+class AnnotationType(Enum):
+    PARAM = auto()
+    RETURN = auto()
+
+
+def _check_type_match(
+    type_: TypeForm[Any] | UnionType | None,
+    spec_: TypeForm[Any] | UnionType | None,
+) -> bool:
+    if type_ is None:
+        type_ = NoneType
+    if spec_ is None:
+        spec_ = NoneType
+    if type_ == spec_:
+        return True
+    type_origin = type_
+    type_args = None
+    if isinstance(type_, GenericAlias):
+        type_origin = typing_extensions.get_origin(type_)
+        type_args = typing_extensions.get_args(type_)
+
+    spec_origin = spec_
+    spec_args: tuple[Any, ...] | None = None
+    if isinstance(spec_, GenericAlias):
+        spec_origin = typing_extensions.get_origin(spec_)
+        spec_args = typing.get_args(spec_)
+
+    if (
+        isinstance(type_origin, type)
+        and isinstance(spec_origin, type | UnionType)
+        and issubclass(type_origin, spec_origin)
+        and type_args == spec_args
+    ):
+        return True
+
+    return False
+
+
+def _is_union_subset(sub: UnionType, union: UnionType) -> bool:
+    return all(
+        any(_check_type_match(s, u) for u in typing.get_args(union))
+        for s in typing.get_args(sub)
+    )
+
+
+def _match_annotation(
+    actual: TypeForm[Any] | UnionType,
+    expected: TypeForm[Any] | UnionType,
+    annotation_type: AnnotationType,
+) -> bool:
+    if annotation_type is AnnotationType.PARAM:
+        if isinstance(actual, UnionType):
+            if any(
+                _match_annotation(item, expected, annotation_type)
+                for item in typing.get_args(actual)
+            ):
+                return True
+
+        if _check_type_match(expected, actual):
+            return True
+    elif annotation_type is AnnotationType.RETURN:
+        if isinstance(expected, UnionType):
+            if isinstance(actual, UnionType) and _is_union_subset(
+                actual, expected
+            ):
+                return True
+            if any(
+                _match_annotation(actual, item, annotation_type)
+                for item in typing.get_args(expected)
+            ):
+                return True
+
+        if _check_type_match(actual, expected):
+            return True
+    else:
+        assert_never(annotation_type)
+
+    return False
+
+
+def _get_return_type(hook: Hook) -> TypeForm[Any] | UnionType | None:
+    if hook.type in ("command", "regex"):
+        return str | list[str] | tuple[str] | None
+
+    if hook.type == "irc_out":
+        return str | Message | None
+
+    if hook.type in ("on_cap_available", "perm_check"):
+        return bool | None
+
+    return None
+
+
+def _get_event_type(hook: Hook):
+    if hook.type == "command":
+        return CommandEvent
+
+    if hook.type in ("on_cap_available", "on_cap_ack"):
+        return CapEvent
+
+    return Event
+
+
+def _get_client_type(hook: Hook):
+    if hook.type in ("irc_raw", "irc_out", "on_cap_available", "on_cap_ack"):
+        return IrcClient
+
+    if hook.clients and "irc" in hook.clients:
+        return IrcClient
+
+    return Client
+
+
+def build_resolution_map(*targets: type) -> dict[str, type]:
+    return {t.__name__: t for t in targets}
+
+
+_forward_refs = build_resolution_map(
+    AbstractBot,
+    Client,
+    CloudBot,
+    CommandEvent,
+    Event,
+    EventAction,
+    EventAdminLog,
+    EventAsyncCall,
+    EventCtcp,
+    EventHasPermission,
+    EventIsNickValid,
+    EventMessage,
+    EventNotice,
+    EventNoticeDoc,
+    EventReply,
+    IrcClient,
+    Match,
+    Message,
+    ParamList,
+    Session,
+    TagList,
+)
+
+
+def test_hook_annotations(hook: Hook) -> None:
+    if hook.type == "sieve":
+        return
+
+    event_type = _get_event_type(hook)
+    client_type = _get_client_type(hook)
+    return_type = _get_return_type(hook)
+    annotations = get_type_hints(hook.function, _forward_refs, _forward_refs)
+    expected: dict[str, TypeForm[Any] | UnionType | None] = {
+        "return": return_type,
+        "conn": client_type,
+        "event": event_type,
+    } | EXPECTED_ANNOTATIONS
+
+    # sig = inspect.signature(hook.function)
+    # for param in sig.parameters:
+    #     if param in expected:
+    #         assert param in annotations, (
+    #             f"Missing annotation for {param}, should match {expected[param]}"
+    #         )
+    # assert "return" in annotations, "Missing return type annotation"
+    for k, v in annotations.items():
+        # if k == 'return':
+        # continue
+        # if k not in expected:
+        #     continue
+        assert k in expected, f"Unexpected parameter {k}"
+        assert _match_annotation(
+            v,
+            expected[k],
+            AnnotationType.RETURN if k == "return" else AnnotationType.PARAM,
+        ), (
+            f"Unexpected annotation {v} ({type(v)}) for {k}, expected {expected[k]} {type(expected[k])}"
+        )
 
 
 def test_coroutine_hooks(hook) -> None:

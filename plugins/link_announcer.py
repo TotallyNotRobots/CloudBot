@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
     from bs4 import BeautifulSoup
 
+    from cloudbot.event_functions import EventMessage
+
 MAX_TITLE = 100
 
 ENCODED_CHAR = r"%[A-F0-9]{2}"
@@ -126,7 +128,7 @@ def parse_content(content, encoding=None):
 @hook.regex(
     url_re, priority=Priority.LOW, action=Action.HALTTYPE, only_no_match=True
 )
-def print_url_title(message, match, logger) -> None:
+def print_url_title(message: EventMessage, match, logger) -> None:
     try:
         with requests.get(
             match.group(), headers=HEADERS, stream=True, timeout=3
