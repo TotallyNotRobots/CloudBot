@@ -19,5 +19,5 @@ requests==2.34.2
 sqlalchemy==2.0.57
 typing_extensions==4.16.0
 urllib3==2.8.0
-watchdog==6.0.0
+watchdog==7.1.0
 yarl==1.25.1
