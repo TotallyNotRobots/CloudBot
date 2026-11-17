@@ -1,5 +1,5 @@
 alembic==1.20.1
-attrs==25.4.0
+attrs==26.1.0
 beautifulsoup4==4.15.0
 cleverwrap==0.3.0.2
 feedparser==6.0.14
