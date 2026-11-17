@@ -12,6 +12,7 @@ from cloudbot import hook
 from cloudbot.util import database
 
 if TYPE_CHECKING:
+    from cloudbot.bot import CloudBot
     from cloudbot.client import Client
     from cloudbot.event_functions import EventMessage, EventReply
 
@@ -149,7 +150,9 @@ def should_send(conn: str, chan, nick, join_time) -> bool:
 
 
 @hook.irc_raw("JOIN", singlethread=True)
-def welcome(nick, message: EventMessage, bot, chan, conn: Client) -> None:
+def welcome(
+    nick: str, message: EventMessage, bot: CloudBot, chan: str, conn: Client
+) -> None:
     decoy = re.compile(
         "[\xd2o\u25cbO0\xf6\xf8\xf3\u022f\xf4\u0151\u014f\u1d0f\u014d\u03bf][<>\uff1c]"
     )

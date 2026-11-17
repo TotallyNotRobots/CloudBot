@@ -5,7 +5,7 @@ import pytest
 from cloudbot.errors import ShouldBeUnreachable
 
 
-def test_should_be_unreachable():
+def test_should_be_unreachable() -> None:
     with pytest.raises(
         ShouldBeUnreachable,
         match=re.escape(

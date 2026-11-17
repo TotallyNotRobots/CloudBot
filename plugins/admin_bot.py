@@ -225,7 +225,11 @@ async def rehash_config(bot: CloudBot) -> str:
 
 @hook.command(permissions=["botcontrol", "snoonetstaff"])
 def join(
-    text, conn: Client, nick, notice: EventNotice, admin_log: EventAdminLog
+    text: str,
+    conn: Client,
+    nick: str,
+    notice: EventNotice,
+    admin_log: EventAdminLog,
 ) -> None:
     """<channel> [key] - joins <channel> with the optional [key]"""
     parts = text.split(None, 1)

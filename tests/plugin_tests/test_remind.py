@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import time
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 from unittest.mock import MagicMock, call
 
@@ -11,9 +12,11 @@ import pytest
 from plugins import remind
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from cloudbot.client import Client
+    from cloudbot.event import Event
+    from tests.util.mock_db import MockDB
 
 second = dt.timedelta(seconds=1)
 minute = 60 * second
@@ -35,7 +38,9 @@ async def async_call(
     return func(*args, **kwargs)
 
 
-async def make_reminder(text, nick, chan, mock_db, conn: Client, event):
+async def make_reminder(
+    text: str, nick: str, chan: str, mock_db: MockDB, conn: Client, event: Event
+) -> str | None:
     return await remind.remind(
         text, nick, chan, mock_db.session(), conn, event, async_call
     )
@@ -181,10 +186,10 @@ async def test_add_reminder_fail_count(mock_db, freeze_time, setup_db) -> None:
 
 
 class TestCheckReminders:
-    delay = second * 0
+    delay: timedelta = second * 0
 
     @contextmanager
-    def set_delay(self, n):
+    def set_delay(self, n: timedelta) -> Generator[None]:
         old = self.delay
         self.delay = n
         try:
@@ -193,15 +198,15 @@ class TestCheckReminders:
             self.delay = old
 
     @property
-    def now(self):
+    def now(self) -> datetime:
         return dt.datetime.now()
 
     @property
-    def set_time(self):
+    def set_time(self) -> datetime:
         return self.now - hour
 
     @property
-    def remind_time(self):
+    def remind_time(self) -> datetime:
         return (self.now - (5 * minute)) - self.delay
 
     async def check_reminders(self, mock_db, bot) -> None:

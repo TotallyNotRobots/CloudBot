@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -8,14 +10,14 @@ from responses.matchers import query_param_matcher
 
 from cloudbot.event import CommandEvent
 from plugins import tvdb
-from tests.util import wrap_hook_response
+from tests.util import HookResult, wrap_hook_response
 
 if TYPE_CHECKING:
-    from tests.util import HookResult
+    from collections.abc import Callable, Generator
 
 
 @pytest.fixture()
-def reset_api():
+def reset_api() -> Generator[None]:
     try:
         yield
     finally:
@@ -171,10 +173,12 @@ def test_paging_reverse(mock_requests, reset_api, enable_api) -> None:
 @pytest.mark.usefixtures("mock_requests", "reset_api", "freeze_time")
 class _Base(ABC):
     @abstractmethod
-    def get_func(self):
+    def get_func(self) -> Callable[..., str]:
         raise NotImplementedError
 
-    def call(self, text: str, results=None):
+    def call(
+        self, text: str, results: list[HookResult] | None = None
+    ) -> list[HookResult]:
         event = CommandEvent(
             cmd_prefix=".",
             hook=MagicMock(),
@@ -218,15 +222,15 @@ class _Base(ABC):
         ]
 
     @abstractmethod
-    def get_no_ep_msg(self):
+    def get_no_ep_msg(self) -> list[tuple[str, str]]:
         raise NotImplementedError
 
     @abstractmethod
-    def shows_old_eps(self):
+    def shows_old_eps(self) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def shows_new_eps(self):
+    def shows_new_eps(self) -> bool:
         raise NotImplementedError
 
     def test_no_episodes(self, mock_requests, enable_api) -> None:
@@ -575,10 +579,10 @@ class TestNext(_Base):
     def shows_new_eps(self) -> bool:
         return True
 
-    def get_no_ep_msg(self):
+    def get_no_ep_msg(self) -> list[tuple[str, str]]:
         return [("return", "There are no new episodes scheduled for Foo: Bar.")]
 
-    def get_func(self):
+    def get_func(self) -> Callable[..., str]:
         return tvdb.tv_next
 
 
@@ -589,10 +593,10 @@ class TestPrev(_Base):
     def shows_new_eps(self) -> bool:
         return False
 
-    def get_no_ep_msg(self):
+    def get_no_ep_msg(self) -> list[tuple[str, str]]:
         return [
             ("return", "There are no previously aired episodes for Foo: Bar.")
         ]
 
-    def get_func(self):
+    def get_func(self) -> Callable[..., str]:
         return tvdb.tv_last

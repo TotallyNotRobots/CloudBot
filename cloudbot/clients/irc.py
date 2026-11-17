@@ -219,7 +219,7 @@ class IrcClient(Client):
 
         await self.try_connect()
 
-    async def try_connect(self):
+    async def try_connect(self) -> None:
         while self.active and not self.connected:
             try:
                 await self.connect(self._timeout)
@@ -250,7 +250,7 @@ class IrcClient(Client):
             except (asyncio.CancelledError, TimeoutError):
                 pass
 
-    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    async def connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -323,7 +323,7 @@ class IrcClient(Client):
 
     def admin_log(self, text, console=True) -> None:
         if log_chan := self.config.get("log_channel"):
-            self.message(log_chan, text)
+            self.message(log_chan, text)  # pyright: ignore[reportAny] # TODO: type configs
 
         if console:
             logger.info("[%s|admin] %s", self.name, text)
@@ -374,7 +374,7 @@ class IrcClient(Client):
         param_list = list(map(str, params))
         self.send(str(Message(None, None, command, param_list)))
 
-    def send(self, line, log=True):
+    def send(self, line: str, log: bool = True) -> None:
         """
         Sends a raw IRC line
         """

@@ -1,12 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from cloudbot.config import Config
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 
 @pytest.fixture()
-def mock_sleep():
+def mock_sleep() -> Generator[None]:
     with patch("time.sleep"):
         yield
 

@@ -9,14 +9,18 @@ from sqlalchemy.orm import close_all_sessions, scoped_session, sessionmaker
 from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from types import TracebackType
     from typing import Self
 
     from sqlalchemy import Table
+    from sqlalchemy.engine.row import Row
 
 
 class MockDB(AbstractContextManager):
-    def __init__(self, path="sqlite:///:memory:", force_session=False) -> None:
+    def __init__(
+        self, path: str = "sqlite:///:memory:", force_session: bool = False
+    ) -> None:
         self.engine = create_engine(path, future=True)
         if force_session:
             self.session = scoped_session(
@@ -41,7 +45,7 @@ class MockDB(AbstractContextManager):
         close_all_sessions()
         self.engine.dispose()
 
-    def get_data(self, table):
+    def get_data(self, table: Table) -> Sequence[Row[Any]]:
         return self.session().execute(table.select()).fetchall()
 
     def add_row(self, table: Table, /, **data: Any) -> None:

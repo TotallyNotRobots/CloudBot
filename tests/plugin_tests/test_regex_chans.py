@@ -15,11 +15,13 @@ from tests.util import wrap_hook_response
 from tests.util.mock_conn import MockClient
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+
     from tests.util.mock_db import MockDB
 
 
 @pytest.fixture()
-def clear_cache():
+def clear_cache() -> Generator[None]:
     regex_chans.status_cache.clear()
     yield
     regex_chans.status_cache.clear()
@@ -526,19 +528,19 @@ class TestRegexSieve:
 
 
 class SetStatusBase:
-    def get_command_hook(self):
+    def get_command_hook(self) -> Callable[..., None]:
         raise NotImplementedError
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         raise NotImplementedError
 
     def get_cmd_arg(self) -> str:
         raise NotImplementedError
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         raise NotImplementedError
 
-    def get_initial_db_data(self):
+    def get_initial_db_data(self) -> list[dict[str, str]]:
         return []
 
     @pytest.mark.asyncio
@@ -588,10 +590,10 @@ class SetStatusBase:
 
 
 class TestEnable(SetStatusBase):
-    def get_command_hook(self):
+    def get_command_hook(self) -> Callable[..., None]:
         return regex_chans.enableregex
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         return [
             (
                 "message",
@@ -612,15 +614,15 @@ class TestEnable(SetStatusBase):
     def get_cmd_arg(self) -> str:
         return ""
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         return [("net", "#chan", "ENABLED")]
 
 
 class TestDisable(SetStatusBase):
-    def get_command_hook(self):
+    def get_command_hook(self) -> Callable[..., None]:
         return regex_chans.disableregex
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         return [
             (
                 "message",
@@ -641,7 +643,7 @@ class TestDisable(SetStatusBase):
     def get_cmd_arg(self) -> str:
         return ""
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         return [("net", "#chan", "DISABLED")]
 
 
@@ -649,7 +651,7 @@ class TestEnableWithArg(TestEnable):
     def get_cmd_arg(self) -> str:
         return "#chan2"
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         return [
             (
                 "message",
@@ -667,7 +669,7 @@ class TestEnableWithArg(TestEnable):
             ),
         ]
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         return [("net", "#chan2", "ENABLED")]
 
 
@@ -675,10 +677,10 @@ class TestDisableWithArg(TestDisable):
     def get_cmd_arg(self) -> str:
         return "#chan2"
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         return [("net", "#chan2", "DISABLED")]
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         return [
             (
                 "message",
@@ -701,10 +703,10 @@ class TestResetRegex(SetStatusBase):
     def get_cmd_arg(self) -> str:
         return ""
 
-    def get_command_hook(self):
+    def get_command_hook(self) -> Callable[..., None]:
         return regex_chans.resetregex
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> list[tuple[str, tuple[str, str]]]:
         return [
             (
                 "message",
@@ -722,10 +724,10 @@ class TestResetRegex(SetStatusBase):
             ),
         ]
 
-    def get_expected_db_data(self):
+    def get_expected_db_data(self) -> list[tuple[str, str, str]]:
         return []
 
-    def get_initial_db_data(self):
+    def get_initial_db_data(self) -> list[dict[str, str]]:
         return [{"connection": "net", "channel": "#chan", "status": "DISABLED"}]
 
 

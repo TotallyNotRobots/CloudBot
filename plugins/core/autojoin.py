@@ -43,10 +43,10 @@ async def do_joins(conn: Client) -> None:
     while not conn.ready:
         await asyncio.sleep(1)
 
-    join_throttle = conn.config.get("join_throttle", 0.4)
+    join_throttle = conn.config.get("join_throttle", 0.4)  # pyright: ignore[reportAny] # TODO: type configs
     for chan in copy(chan_cache[conn.name]):
         conn.join(chan)
-        await asyncio.sleep(join_throttle)
+        await asyncio.sleep(join_throttle)  # pyright: ignore[reportAny] # TODO: type configs
 
 
 @hook.irc_raw("JOIN", singlethread=True)

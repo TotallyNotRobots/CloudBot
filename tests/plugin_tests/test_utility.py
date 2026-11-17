@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -6,6 +9,9 @@ import pytest_asyncio
 
 from cloudbot.util.http import compare_urls
 from plugins import utility
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 # Defined here because we use the same test cases for unescape
 # Except in reverse
@@ -275,7 +281,7 @@ def test_hash_command(text, out) -> None:
 
 
 @pytest_asyncio.fixture()
-async def leet_data(mock_bot_factory):
+async def leet_data(mock_bot_factory) -> AsyncGenerator[None]:
     mock_bot = mock_bot_factory(base_dir=Path().resolve())
     utility.load_text(mock_bot)
     yield

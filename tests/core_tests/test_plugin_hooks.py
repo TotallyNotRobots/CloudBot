@@ -14,7 +14,7 @@ from numbers import Number
 from pathlib import Path
 from re import Match
 from types import GenericAlias, NoneType, UnionType
-from typing import Any, assert_never, cast, get_type_hints
+from typing import Any, ParamSpec, TypeVar, assert_never, cast, get_type_hints
 from unittest.mock import patch
 
 import pytest
@@ -68,21 +68,44 @@ from cloudbot.hook import (
     sieve,
 )
 from cloudbot.plugin import Plugin
-from cloudbot.plugin_hooks import Hook, hook_name_to_plugin
+from cloudbot.plugin_hooks import (
+    CommandHook,
+    ConfigHook,
+    EventHook,
+    Hook,
+    IrcOutHook,
+    OnCapAckHook,
+    OnCapAvaliableHook,
+    OnConnectHook,
+    OnStartHook,
+    OnStopHook,
+    PeriodicHook,
+    PermHook,
+    PostHookHook,
+    RawHook,
+    RegexHook,
+    SieveHook,
+    hook_name_to_plugin,
+)
 from cloudbot.util import HOOK_ATTR
 from tests.util.mock_bot import MockBot
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+
     from typing_extensions import TypeForm
 
 
 DOC_RE = re.compile(r"^(?:[<{\[][^-]+?[>}\]][^-]+?)*?-\s.+$")
 PLUGINS: list[Plugin] = []
 
+P = ParamSpec("P")
+T = TypeVar("T")
 
-def patch_hook(wrapped):
+
+def patch_hook(wrapped: Callable[P, T]) -> Callable[P, T]:
     @wraps(wrapped)
-    def _func(*args, **kwargs):
+    def _func(*args: P.args, **kwargs: P.kwargs) -> T:
         _original_init = Hook.__init__
 
         def patch_hook_init(self, _type, plugin, func_hook) -> None:
@@ -95,14 +118,14 @@ def patch_hook(wrapped):
     return _func
 
 
-def gather_plugins():
+def gather_plugins() -> Generator[Path]:
     plugin_dir = Path("plugins")
     path_list = plugin_dir.rglob("[!_]*.py")
     return path_list
 
 
 @patch_hook
-def load_plugin(plugin_path):
+def load_plugin(plugin_path) -> Plugin:
     path = Path(plugin_path)
     file_path = path.resolve()
     file_name = file_path.name
@@ -117,7 +140,7 @@ def load_plugin(plugin_path):
     return Plugin(str(file_path), file_name, title, plugin_module)
 
 
-def get_plugins():
+def get_plugins() -> list[Plugin]:
     if not PLUGINS:
         bot = MockBot(base_dir=Path().resolve())
         cloudbot.bot.bot_instance.set(cast("CloudBot", bot))
@@ -267,6 +290,7 @@ EXPECTED_ANNOTATIONS: dict[str, TypeForm[Any]] = {
     "action": EventAction,
     "message": EventMessage,
     "reply": EventReply,
+    "triggered_prefix": str,
 }
 
 
@@ -460,14 +484,32 @@ class MockModule:
     pass
 
 
-def make_plugin():
+def make_plugin() -> Plugin:
     plugin_dir = Path("plugins").resolve()
     file_path = plugin_dir / "test.py"
     file_name = file_path.name
     return Plugin(str(file_path), file_name, "test", MockModule())
 
 
-def get_and_wrap_hook(func, hook_type):
+def get_and_wrap_hook(
+    func: Callable[..., Any], hook_type: str
+) -> (
+    CommandHook
+    | ConfigHook
+    | EventHook
+    | IrcOutHook
+    | OnCapAckHook
+    | OnCapAvaliableHook
+    | OnConnectHook
+    | OnStartHook
+    | OnStopHook
+    | PeriodicHook
+    | PermHook
+    | PostHookHook
+    | RawHook
+    | RegexHook
+    | SieveHook
+):
     func_hook = getattr(func, HOOK_ATTR)[hook_type]
     plugin = make_plugin()
 
@@ -538,7 +580,7 @@ def test_raw_hook_str() -> None:
 
 def test_sieve_hook_str() -> None:
     @sieve()
-    def hook_func(a, b, c) -> None:
+    def hook_func(a: Any, b: Any, c: Any) -> None:  # pyright: ignore[reportAny, reportUnusedParameter] # Mock function, params are necessary to match usage
         pass  # pragma: no cover
 
     _hook = get_and_wrap_hook(hook_func, "sieve")

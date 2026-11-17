@@ -477,7 +477,17 @@ class MappingSerializer:
     def __init__(self) -> None:
         self._seen_objects: list[int] = []
 
-    def _serialize(self, obj):
+    def _serialize(
+        self,
+        obj: Any,  # pyright: ignore[reportAny] # Intentionally accept all objects
+    ) -> (
+        str
+        | Number
+        | bool
+        | dict[str | Number | bool | dict[Any, Any] | list[Any] | None, Any]
+        | list[Any]
+        | None
+    ):
         if isinstance(obj, (str, Number, bool)) or obj is None:
             return obj
 
@@ -505,7 +515,7 @@ class MappingSerializer:
 
             return [self._serialize(item) for item in obj]
 
-        return repr(obj)
+        return repr(obj)  # pyright: ignore[reportAny] # All objects have some sort of repr
 
     def serialize(self, mapping, **kwargs):
         """

@@ -5,7 +5,7 @@ import random
 from collections import defaultdict
 from threading import Lock
 from time import sleep, time
-from typing import TYPE_CHECKING, NamedTuple, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TypeVar
 
 from sqlalchemy import (
     Boolean,
@@ -106,8 +106,8 @@ class ChannelState:
 
     def should_deploy(self, conn: Client):
         """Should we deploy a duck?"""
-        msg_delay = get_config(conn, "minimum_messages", 10)
-        mask_req = get_config(conn, "minimum_users", 5)
+        msg_delay = get_config(conn, "minimum_messages", 10)  # pyright: ignore[reportAny] # TODO: type config
+        mask_req = get_config(conn, "minimum_users", 5)  # pyright: ignore[reportAny] # TODO: type config
         return (
             self.game_on
             and self.duck_status == 0
@@ -133,16 +133,16 @@ game_status: ConnMap[ChannelState] = defaultdict(
 opt_out: dict[str, list[str]] = defaultdict(list)
 
 
-def _get_conf_value(conf, field):
+def _get_conf_value(conf, field) -> Any:  # pyright: ignore[reportAny] # TODO: type config
     return conf["plugins"]["duckhunt"][field]
 
 
-def get_config(conn: Client, field, default):
+def get_config(conn: Client, field, default) -> Any:  # pyright: ignore[reportAny] # TODO: type config
     try:
-        return _get_conf_value(conn.config, field)
+        return _get_conf_value(conn.config, field)  # pyright: ignore[reportAny] # TODO: type config
     except LookupError:
         try:
-            return _get_conf_value(conn.bot.config, field)
+            return _get_conf_value(conn.bot.config, field)  # pyright: ignore[reportAny] # TODO: type config
         except LookupError:
             return default
 

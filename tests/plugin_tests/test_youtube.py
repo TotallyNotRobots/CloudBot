@@ -56,7 +56,7 @@ class TestGetVideoDescription:
     base_url = "https://www.googleapis.com/youtube/v3/"
     api_url = f"{base_url}videos"
 
-    def get_params(self, _id, key):
+    def get_params(self, _id: str, key: str) -> dict[str, str]:
         return {
             "maxResults": "1",
             "id": _id,

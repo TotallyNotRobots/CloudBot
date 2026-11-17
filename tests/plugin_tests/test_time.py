@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import time
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest_asyncio
@@ -9,9 +12,16 @@ from cloudbot.event import CommandEvent
 from plugins import time_plugin
 from tests.util import wrap_hook_response
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator, Callable
+
+    from tests.util.mock_bot import MockBot
+
 
 @pytest_asyncio.fixture()
-async def setup_api(mock_bot_factory):
+async def setup_api(
+    mock_bot_factory: Callable[..., MockBot],
+) -> AsyncGenerator[MockBot]:
     yield mock_bot_factory(
         config={
             "api_keys": {"google_dev_key": "APIKEY"},

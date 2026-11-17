@@ -1,14 +1,22 @@
+from __future__ import annotations
+
 import math
 import string
 from datetime import datetime
 from json import JSONDecodeError
+from typing import TYPE_CHECKING
 
 import requests
 from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
 
 from cloudbot import hook
-from cloudbot.bot import bot_instance
+from cloudbot.bot import CloudBot, bot_instance
 from cloudbot.util import database, timeformat, web
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from cloudbot.event import CommandEvent
 
 api_url = "http://ws.audioscrobbler.com/2.0/?format=json"
 
@@ -115,7 +123,7 @@ def api_request(method, **params):
     return data, None
 
 
-def get_tags(method, artist, **params):
+def get_tags(method, artist, **params) -> str:
     tag_list = []
     tags, _ = api_request(
         f"{method}.getTopTags", artist=artist, autocorrect=1, **params
@@ -233,7 +241,9 @@ def _topartists(text, nick, period=None, limit=10):
 
 
 @hook.command("lastfm", "last", "np", "l", autohelp=False)
-def lastfm(event, db, text, nick, bot):
+def lastfm(
+    event: CommandEvent, db: Session, text: str, nick: str, bot: CloudBot
+) -> str | None:
     """[user] [dontsave] - displays the now playing (or last played) track of LastFM user [user]"""
     api_key = bot.config.get_api_key("lastfm")
     if not api_key:

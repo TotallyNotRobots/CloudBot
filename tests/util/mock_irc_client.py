@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock
+
+from typing_extensions import override
 
 from cloudbot.clients.irc import IrcClient
 
@@ -13,10 +15,15 @@ if TYPE_CHECKING:
 
 class MockIrcClient(IrcClient):
     def __init__(
-        self, *, bot: AbstractBot, nick=None, name=None, config=None
+        self,
+        *,
+        bot: AbstractBot,
+        nick: str | None = None,
+        name: str | None = None,
+        config: dict[str, Any] | None = None,
     ) -> None:
         config = config or {}
-        config.setdefault("connection", {}).setdefault("server", "foo.invalid")
+        config.setdefault("connection", {}).setdefault("server", "foo.invalid")  # pyright: ignore[reportAny] # TODO: type config
         super().__init__(
             bot=bot,
             _type="irc",
@@ -25,6 +32,7 @@ class MockIrcClient(IrcClient):
             config=config,
         )
         self._mock = MagicMock(spec=IrcClient)
+        self._client: IrcClient = cast("IrcClient", self._mock)
         self.ready = True
         self.active = True
 
@@ -32,20 +40,21 @@ class MockIrcClient(IrcClient):
     def connected(self) -> bool:
         return True
 
-    def reload(self):
-        return self._mock.reload()
+    def reload(self) -> None:
+        self._client.reload()
 
-    async def try_connect(self):
-        return self._mock.try_connect()
+    async def try_connect(self) -> None:
+        await self._client.try_connect()
 
-    def is_nick_valid(self, nick) -> bool:
+    def is_nick_valid(self, nick: str | None) -> bool:
         return True
 
-    def connect(self, timeout=None):
-        return self._mock.connect()
+    @override
+    async def connect(self, timeout: float | None = None) -> None:
+        await self._client.connect(timeout=timeout)
 
-    def send(self, line, log=True):
-        return self._mock.send(line)
+    def send(self, line: str, log: bool = True) -> None:
+        self._client.send(line, log)
 
     def mock_calls(self) -> _CallList:
         return self._mock.mock_calls

@@ -4,8 +4,9 @@ import asyncio
 import itertools
 import logging
 import re
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,19 +16,21 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from cloudbot import hook, plugin
 from cloudbot.event import CommandEvent, EventType
-from cloudbot.plugin import Plugin
+from cloudbot.plugin import Plugin, PluginManager
 from cloudbot.util import database
 from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
     from asyncio import Task
-    from collections.abc import Callable
+    from collections.abc import AsyncGenerator, Callable, Generator
 
     from tests.util.mock_bot import MockBot
 
 
 @pytest_asyncio.fixture()
-async def mock_bot(mock_bot_factory, tmp_path):
+async def mock_bot(
+    mock_bot_factory: Callable[..., MockBot], tmp_path: Path
+) -> AsyncGenerator[MockBot]:
     tmp_base = tmp_path / "tmp"
     tmp_base.mkdir(exist_ok=True)
 
@@ -35,11 +38,11 @@ async def mock_bot(mock_bot_factory, tmp_path):
 
 
 @pytest.fixture()
-def mock_manager(mock_bot):
+def mock_manager(mock_bot: MockBot) -> Generator[PluginManager]:
     yield mock_bot.plugin_manager
 
 
-def test_get_plugin(mock_manager) -> None:
+def test_get_plugin(mock_manager: PluginManager) -> None:
     assert mock_manager.get_plugin("plugins/test.py") is None
     assert mock_manager.find_plugin("test") is None
 
@@ -48,22 +51,22 @@ def test_get_plugin(mock_manager) -> None:
 
     obj = Plugin(str(file_path), file_name, "test", MockModule())
 
-    mock_manager._add_plugin(obj)
+    mock_manager._add_plugin(obj)  # pyright: ignore[reportPrivateUsage] # Testing requires access to internals
 
     assert (
-        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is obj
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is obj  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     )
     assert mock_manager.find_plugin("test") is obj
 
-    mock_manager._rem_plugin(obj)
+    mock_manager._rem_plugin(obj)  # pyright: ignore[reportPrivateUsage] # Testing requires access to internals
 
     assert (
-        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is None
+        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py") is None  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     )
     assert mock_manager.find_plugin("test") is None
 
 
-def test_find_tables(mock_manager) -> None:
+def test_find_tables(mock_manager: PluginManager) -> None:
     file_path = mock_manager.bot.plugin_dir / "test.py"
     file_name = file_path.name
 
@@ -80,7 +83,7 @@ def test_find_tables(mock_manager) -> None:
     assert table_names == ["foo"]
 
 
-def test_can_load(mock_manager) -> None:
+def test_can_load(mock_manager: PluginManager) -> None:
     mock_manager.bot.config.clear()
 
     assert mock_manager.can_load("plugins.foo")
@@ -129,16 +132,20 @@ def test_can_load(mock_manager) -> None:
 
 
 def test_plugin_load(
-    mock_manager, patch_import_module, patch_import_reload
+    mock_manager: PluginManager,
+    patch_import_module: MagicMock,
+    patch_import_reload: MagicMock,
 ) -> None:
     patch_import_module.return_value = mod = MockModule()
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     )
     patch_import_module.assert_called_once_with("plugins.test")
     patch_import_reload.assert_not_called()
+    plugin = mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
+    assert plugin is not None
     assert (
-        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py").code
+        plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
         is mod
     )
 
@@ -147,14 +154,16 @@ def test_plugin_load(
     patch_import_reload.return_value = newmod = MockModule()
 
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     )
 
     patch_import_module.assert_called_once_with("plugins.test")
     patch_import_reload.assert_called_once_with(mod)
 
+    plugin = mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType] # TODO: type plugin manager
     assert (
-        mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py").code
+        plugin is not None
+        and plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
         is newmod
     )
 
@@ -170,33 +179,44 @@ async def test_get_plugin_tables_reentrant(
     mock_manager.get_plugin_tables(mock_bot.plugin_dir, reload=True)
 
 
-class WeirdObject:
+T = TypeVar("T")
+
+
+class WeirdObject(Generic[T]):
     """
     This represents an object that returns a value for any attribute you ask for
     """
 
-    def __init__(self, func) -> None:
-        self.func = func
+    def __init__(self, func: Callable[[WeirdObject[T], str], T]) -> None:
+        self.func: Callable[[WeirdObject[T], str], T] = func
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> T:
         return self.func(self, item)
 
 
-def _test_weird_obj(patch_import_module, mock_manager, weird_obj) -> None:
+def _test_weird_obj(
+    patch_import_module: MagicMock,
+    mock_manager: PluginManager,
+    weird_obj: WeirdObject[T],
+) -> None:
     patch_import_module.return_value = MockModule(some_import=weird_obj)
 
     mock_manager.bot.loop.run_until_complete(
-        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")
+        mock_manager.load_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     )
 
 
-def test_plugin_with_objs_none_attr(mock_manager, patch_import_module) -> None:
+def test_plugin_with_objs_none_attr(
+    mock_manager: PluginManager, patch_import_module: MagicMock
+) -> None:
     _test_weird_obj(
         patch_import_module, mock_manager, WeirdObject(lambda *args: None)
     )
 
 
-def test_plugin_with_objs_mock_attr(mock_manager, patch_import_module) -> None:
+def test_plugin_with_objs_mock_attr(
+    mock_manager: PluginManager, patch_import_module: MagicMock
+) -> None:
     _test_weird_obj(
         patch_import_module,
         mock_manager,
@@ -204,9 +224,13 @@ def test_plugin_with_objs_mock_attr(mock_manager, patch_import_module) -> None:
     )
 
 
-def test_plugin_with_objs_dict_attr(mock_manager, patch_import_module) -> None:
+def test_plugin_with_objs_dict_attr(
+    mock_manager: PluginManager, patch_import_module: MagicMock
+) -> None:
     _test_weird_obj(
-        patch_import_module, mock_manager, WeirdObject(lambda *args: {})
+        patch_import_module,
+        mock_manager,
+        WeirdObject[dict[Any, Any]](lambda *args: {}),  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType] # Untyped lambda, just testing so its fine
     )
 
 

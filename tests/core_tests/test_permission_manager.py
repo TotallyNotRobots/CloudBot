@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, cast
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -14,12 +16,14 @@ from tests.util.mock_conn import MockClient
 if TYPE_CHECKING:
     import sqlalchemy as sa
 
+    from cloudbot.util.database import Base
 
-def model_to_dict(obj):
+
+def model_to_dict(obj: Base) -> dict[str, Any]:
     cls = type(obj)
     out = {}
     for column in cls.__table__.c:
-        out[column.name] = getattr(obj, column.name)
+        out[column.name] = getattr(obj, column.name)  # pyright: ignore[reportAny] # Columns can be anything
 
     return out
 
@@ -294,11 +298,11 @@ async def test_db_config_merge(mock_db, mock_bot_factory) -> None:
         (conn.name, "foo", "baz", True),
     ]
 
-    perm_config = conn.config["permissions"]
-    perm_config["foo"]["perms"].pop()
-    perm_config["foo"]["perms"].append("test")
-    perm_config["foo"]["users"].pop()
-    perm_config.pop("admins")
+    perm_config = conn.config["permissions"]  # pyright: ignore[reportAny] # TODO: type config
+    perm_config["foo"]["perms"].pop()  # pyright: ignore[reportAny] # TODO: type config
+    perm_config["foo"]["perms"].append("test")  # pyright: ignore[reportAny] # TODO: type config
+    perm_config["foo"]["users"].pop()  # pyright: ignore[reportAny] # TODO: type config
+    perm_config.pop("admins")  # pyright: ignore[reportAny] # TODO: type config
 
     manager.reload()
 

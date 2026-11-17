@@ -102,7 +102,7 @@ def test_getartisttags(mock_requests, mock_api_keys) -> None:
 class TestGetArtistTags:
     url = "http://ws.audioscrobbler.com/2.0/"
 
-    def get_params(self):
+    def get_params(self) -> dict[str, str]:
         return {
             "format": "json",
             "artist": "foobar",
@@ -111,7 +111,7 @@ class TestGetArtistTags:
             "api_key": "APIKEY",
         }
 
-    def get_tags(self):
+    def get_tags(self) -> str:
         return lastfm.getartisttags("foobar")
 
     def test_missing_tags(self, mock_requests, mock_api_keys) -> None:

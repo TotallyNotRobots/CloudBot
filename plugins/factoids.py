@@ -13,6 +13,9 @@ from cloudbot.util.formatting import gen_markdown_table, get_text_list
 from cloudbot.util.web import NoPasteException
 
 if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from cloudbot.event import CommandEvent
     from cloudbot.event_functions import EventAction, EventMessage, EventNotice
 
 # below is the default factoid in every channel you can modify it however you like
@@ -78,7 +81,14 @@ def del_factoid(db, chan, word=None) -> None:
 
 
 @hook.command("r", "remember", permissions=["op", "chanop"])
-def remember(text, nick, db, chan, notice: EventNotice, event) -> None:
+def remember(
+    text: str,
+    nick: str,
+    db: Session,
+    chan: str,
+    notice: EventNotice,
+    event: CommandEvent,
+) -> None:
     """<word> [+]<data> - remembers <data> with <word> - add + to <data> to append. If the input starts with <act> the
     message will be sent as an action. If <user> in in the message it will be replaced by input arguments when command
     is called."""

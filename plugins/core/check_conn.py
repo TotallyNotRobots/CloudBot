@@ -60,7 +60,7 @@ async def check_conns(bot) -> None:
 def format_conn(conn: Client):
     lag = conn.memory["lag"]
     try:
-        warning = conn.config["ping_settings"]["warn"]
+        warning = conn.config["ping_settings"]["warn"]  # pyright: ignore[reportAny] # TODO: type configs
     except LookupError:
         warning = 120
 
