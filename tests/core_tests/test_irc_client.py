@@ -16,10 +16,12 @@ if TYPE_CHECKING:
     from asyncio import Future
 
     from cloudbot.client import Client
+    from cloudbot.clients.irc import _IrcProtocol  # pyright: ignore[reportPrivateUsage] # This is testing, importing the proto is fine
     from cloudbot.event import Event
+    from tests.util.mock_db import MockDB
 
 
-def make_mock_conn(*, name="testconn"):
+def make_mock_conn(*, name: str = "testconn") -> MagicMock:
     loop = asyncio.get_running_loop()
     conn = MagicMock()
     conn.name = name
@@ -30,7 +32,7 @@ def make_mock_conn(*, name="testconn"):
     return conn
 
 
-def test_send_not_connected(mock_db) -> None:
+def test_send_not_connected(mock_db: MockDB) -> None:
     bot = MagicMock()
     client = irc.IrcClient(
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
@@ -59,7 +61,7 @@ async def test_send_closed(mock_db) -> None:
 
 class TestLineParsing:
     @staticmethod
-    async def wait_tasks(conn: Client, cancel=False):
+    async def wait_tasks(conn: Client, cancel: bool = False) -> None:
         current = asyncio.current_task()
         tasks = {t for t in asyncio.all_tasks() if t is not current}
 
@@ -77,12 +79,14 @@ class TestLineParsing:
     def _filter_event(event: Event) -> dict[str, Any]:
         return {k: v for k, v in dict(event).items() if not callable(v)}
 
-    def make_proto(self):
+    def make_proto(
+        self,
+    ) -> tuple[MagicMock, list[dict[str, Any]], _IrcProtocol]:
         conn = make_mock_conn()
         conn.nick = "me"
-        out = []
+        out: list[dict[str, Any]] = []
 
-        async def func(e) -> None:
+        async def func(e: Event) -> None:
             out.append(self._filter_event(e))
 
         conn.bot.process = func

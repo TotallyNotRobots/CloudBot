@@ -1,15 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
 from irclib.parser import ParamList
 
+from cloudbot.client import ChannelConfig
 from plugins.core import core_misc
 from tests.util.mock_conn import MockClient
 from tests.util.mock_irc_client import MockIrcClient
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from tests.util.mock_bot import MockBot
+    from tests.util.mock_db import MockDB
+
 
 @pytest.mark.asyncio
-async def test_do_joins(mock_bot_factory, mock_db) -> None:
+async def test_do_joins(
+    mock_bot_factory: Callable[..., MockBot], mock_db: MockDB
+) -> None:
     client = MockClient(
         bot=mock_bot_factory(db=mock_db),
         name="foo",
@@ -18,8 +30,8 @@ async def test_do_joins(mock_bot_factory, mock_db) -> None:
             "#foo",
             "#bar key",
             ["#baz", "key1"],
-            {"name": "#chan"},
-            {"name": "#chan1", "key": "key2"},
+            ChannelConfig({"name": "#chan"}),
+            ChannelConfig({"name": "#chan1", "key": "key2"}),
         ],
     )
 
@@ -48,7 +60,7 @@ async def test_invite_join(mock_bot_factory, mock_db) -> None:
     )
     core_misc.invite(ParamList("foo", "#bar"), conn)
 
-    assert conn.mock_calls() == [call.send("JOIN #bar")]
+    assert conn.mock_calls() == [call.send("JOIN #bar", True)]
 
 
 @pytest.mark.asyncio
@@ -70,12 +82,15 @@ async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
     "config,calls",
     [
         ({}, []),
-        ({"log_channel": "#foo"}, [call.send("JOIN #foo")]),
-        ({"log_channel": "#foo bar"}, [call.send("JOIN #foo bar")]),
-        ({"log_channel": "#foo bar baz"}, [call.send("JOIN #foo :bar baz")]),
+        ({"log_channel": "#foo"}, [call.send("JOIN #foo", True)]),
+        ({"log_channel": "#foo bar"}, [call.send("JOIN #foo bar", True)]),
+        (
+            {"log_channel": "#foo bar baz"},
+            [call.send("JOIN #foo :bar baz", True)],
+        ),
         (
             {"nickserv": {"nickserv_password": "foobar"}},
-            [call.send("PRIVMSG nickserv :IDENTIFY foobar")],
+            [call.send("PRIVMSG nickserv :IDENTIFY foobar", True)],
         ),
         (
             {
@@ -84,7 +99,7 @@ async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
                     "nickserv_user": "foo",
                 }
             },
-            [call.send("PRIVMSG nickserv :IDENTIFY foo foobar")],
+            [call.send("PRIVMSG nickserv :IDENTIFY foo foobar", True)],  # pyright: ignore[reportAny] # TODO: find a better way to match calls
         ),
         (
             {
@@ -96,7 +111,7 @@ async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
             },
             [],
         ),
-        ({"mode": "+I"}, [call.send("MODE foobot +I")]),
+        ({"mode": "+I"}, [call.send("MODE foobot +I", True)]),
     ],
 )
 async def test_on_connect(config, calls, mock_db) -> None:

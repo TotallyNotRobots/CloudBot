@@ -149,7 +149,7 @@ def reddit_post_url(match):
 
 
 @hook.command(autohelp=False, singlethread=True)
-def reddit(text, reply: EventReply):
+def reddit(text: str, reply: EventReply) -> str:
     """[subreddit] [n] - gets a random post from <subreddit>, or gets the [n]th post in the subreddit"""
     id_num = None
 
@@ -237,7 +237,7 @@ def get_user_data(page, user, reply: EventReply):
 
 
 @hook.command("karma", "ruser", singlethread=True)
-def karma(text, reply: EventReply):
+def karma(text: str, reply: EventReply) -> str:
     """<reddituser> - will return the information about the specified reddit username"""
     user = get_user(text)
     data = get_user_data("about.json", user, reply)
@@ -274,7 +274,7 @@ def karma(text, reply: EventReply):
 
 
 @hook.command("cakeday", singlethread=True)
-def cake_day(text, reply: EventReply):
+def cake_day(text: str, reply: EventReply) -> str:
     """<reddituser> - will return the cakeday for the given reddit username."""
     user = get_user(text)
     data = get_user_data("about.json", user, reply)

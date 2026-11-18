@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import time
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from cloudbot.util import tokenbucket
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
 
 
 def test_bucket_consume() -> None:
@@ -33,18 +39,18 @@ def test_bucket_advanced() -> None:
 
 
 class MockTime:
-    def __init__(self, t_get=time.time) -> None:
-        self.offset = 0
-        self.t = None
-        self.tg = t_get
+    def __init__(self, t_get: Callable[[], float] = time.time) -> None:
+        self.offset: float = 0
+        self.t: float | None = None
+        self.tg: Callable[[], float] = t_get
 
-    def _get(self):
+    def _get(self) -> float:
         if self.t is not None:
             return self.t
 
         return self.tg()
 
-    def get(self):
+    def get(self) -> float:
         return self._get() + self.offset
 
     def freeze(self) -> None:
@@ -53,19 +59,19 @@ class MockTime:
     def unfreeze(self) -> None:
         self.t = None
 
-    def sleep(self, n) -> None:
+    def sleep(self, n: float) -> None:
         self.offset += n
 
 
 @pytest.fixture()
-def mock_time():
+def mock_time() -> Generator[MockTime]:
     mocked = MockTime()
     with patch.object(tokenbucket, "time", mocked.get):
         yield mocked
 
 
 @pytest.fixture()
-def freeze_time(mock_time):
+def freeze_time(mock_time: MockTime) -> Generator[MockTime]:
     mock_time.freeze()
     try:
         yield mock_time

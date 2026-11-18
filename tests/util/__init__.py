@@ -1,45 +1,70 @@
+from __future__ import annotations
+
 import inspect
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 from cloudbot.util.func_utils import call_with_args
+
+if TYPE_CHECKING:
+    from cloudbot.event import Event
 
 __all__ = ("HookResult", "wrap_hook_response", "get_data_file")
 
 
 class HookResult:
-    def __init__(self, return_type, value, data=None) -> None:
-        self.return_type = return_type
-        self.value = value
-        self.data = data
+    def __init__(
+        self,
+        return_type: str,
+        value: tuple[Any, ...] | Any,
+        data: dict[str, Any] | None = None,
+    ) -> None:
+        self.return_type: str = return_type
+        self.value: tuple[Any] = value
+        self.data: dict[str, Any] | None = data
 
-    def as_tuple(self):
+    def as_tuple(
+        self,
+    ) -> tuple[str, tuple[Any]] | tuple[str, tuple[Any], dict[str, Any]]:
         if not self.data:
             return self.return_type, self.value
 
         return (self.return_type, self.value, self.data)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, HookResult):
             return self.as_tuple() == other.as_tuple()
 
         if isinstance(other, (list, tuple)):
-            return self == HookResult(*other)
+            return self == HookResult(
+                other[0],  # pyright: ignore[reportUnknownArgumentType] # If comparing against a list or tuple, these types should match
+                other[1],  # pyright: ignore[reportUnknownArgumentType] # If comparing against a list or tuple, these types should match
+                other[2] if len(other) > 2 else None,  # pyright: ignore[reportUnknownArgumentType] # If comparing against a list or tuple, these types should match
+            )
 
         if isinstance(other, Mapping):
-            return self == HookResult(**other)
+            return self == HookResult(
+                other["return_type"],  # pyright: ignore[reportArgumentType] # If comparing against a mapping, these types should match
+                other["value"],
+                other.get("data"),  # pyright: ignore[reportArgumentType, reportUnknownMemberType] # If comparing against a mapping, these types should match
+            )
 
         return False
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
     def __repr__(self) -> str:
         return str(self.as_tuple())
 
 
-def wrap_hook_response(func, event, results=None):
+def wrap_hook_response(
+    func: Callable[..., Any],
+    event: Event,
+    results: list[HookResult] | None = None,
+) -> list[HookResult]:
     """
     Wrap the response from a hook, allowing easy assertion against calls to
     event.notice(), event.reply(), etc instead of just returning a string
@@ -47,16 +72,20 @@ def wrap_hook_response(func, event, results=None):
     if results is None:
         results = []
 
-    def add_result(name, value, data=None) -> None:
+    def add_result(
+        name: str,
+        value: tuple[Any, ...] | Any,
+        data: dict[str, Any] | None = None,
+    ) -> None:
         results.append(HookResult(name, value, data))
 
-    def notice(*args, **kwargs) -> None:  # pragma: no cover
+    def notice(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("notice", args, kwargs)
 
-    def message(*args, **kwargs) -> None:  # pragma: no cover
+    def message(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("message", args, kwargs)
 
-    def action(*args, **kwargs) -> None:  # pragma: no cover
+    def action(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("action", args, kwargs)
 
     patch_notice = patch.object(event.conn, "notice", notice)
@@ -64,14 +93,18 @@ def wrap_hook_response(func, event, results=None):
     patch_action = patch.object(event.conn, "action", action)
 
     with patch_action, patch_message, patch_notice:
-        res = call_with_args(func, event)
+        res = call_with_args(func, event)  # pyright: ignore[reportAny] # Hook functions can return anything
         if res is not None:
-            add_result("return", res)
+            add_result("return", res)  # pyright: ignore[reportAny] # Hook functions can return anything
 
     return results
 
 
-async def wrap_hook_response_async(func, event, results=None):
+async def wrap_hook_response_async(
+    func: Callable[..., Any],
+    event: Event,
+    results: list[HookResult] | None = None,
+) -> list[HookResult]:
     """
     Wrap the response from a hook, allowing easy assertion against calls to
     event.notice(), event.reply(), etc instead of just returning a string
@@ -82,16 +115,18 @@ async def wrap_hook_response_async(func, event, results=None):
     async def async_call(func, *args, **kwargs):
         return func(*args, **kwargs)
 
-    def add_result(name, value, data=None) -> None:
+    def add_result(
+        name: str, value: tuple[Any], data: dict[str, Any] | None = None
+    ) -> None:
         results.append(HookResult(name, value, data))
 
-    def notice(*args, **kwargs) -> None:  # pragma: no cover
+    def notice(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("notice", args, kwargs)
 
-    def message(*args, **kwargs) -> None:  # pragma: no cover
+    def message(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("message", args, kwargs)
 
-    def action(*args, **kwargs) -> None:  # pragma: no cover
+    def action(*args: Any, **kwargs: Any) -> None:  # pragma: no cover  # pyright: ignore[reportAny] # Record all potential arguments
         add_result("action", args, kwargs)
 
     patch_notice = patch.object(event.conn, "notice", notice)
@@ -100,12 +135,12 @@ async def wrap_hook_response_async(func, event, results=None):
     patch_async_call = patch.object(event, "async_call", async_call)
 
     with patch_action, patch_message, patch_notice, patch_async_call:
-        res = call_with_args(func, event)
-        if inspect.isawaitable(res):
+        res = call_with_args(func, event)  # pyright: ignore[reportAny] Hook functions can return anything
+        if inspect.isawaitable(res):  # pyright: ignore[reportAny] # Hook functions can return anything
             res = await res
 
         if res is not None:
-            add_result("return", res)
+            add_result("return", res)  # pyright: ignore[reportAny] # Hook functions can return anything
 
     return results
 

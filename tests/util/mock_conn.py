@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock
 
-from cloudbot.client import Client
+from typing_extensions import override
+
+from cloudbot.client import Client, ConfigChannelList
 
 if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
     from unittest.mock import _CallList
 
     from cloudbot.bot import AbstractBot
@@ -17,11 +20,11 @@ class MockClient(Client):
         self,
         *,
         bot: AbstractBot,
-        nick=None,
-        name=None,
-        config=None,
-        channels=None,
-        connected=True,
+        nick: str | None = None,
+        name: str | None = None,
+        config: dict[str, Any] | None = None,
+        channels: ConfigChannelList | None = None,
+        connected: bool = True,
     ) -> None:
         super().__init__(
             bot=bot,
@@ -32,36 +35,44 @@ class MockClient(Client):
             channels=channels,
         )
         self._mock = MagicMock(spec=Client)
+        self._client: Client = cast("Client", self._mock)
         self.active = True
-        self.ready = connected
-        self._connected = connected
+        self.ready: bool = connected
+        self._connected: bool = connected
 
     @property
+    @override
     def connected(self) -> bool:
         return self._connected
 
     @connected.setter
-    def connected(self, value) -> None:
+    def connected(self, value: bool) -> None:
         self._connected = value
 
-    def reload(self):
-        return self._mock.reload()
+    @override
+    def reload(self) -> None:
+        self._client.reload()
 
-    async def try_connect(self):
+    @override
+    async def try_connect(self) -> None:
         self._connected = True
-        return await self._mock.try_connect()
+        await self._client.try_connect()
 
-    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    @override
+    async def connect(self, timeout: float | None = None) -> None:
         self._connected = True
-        return await self._mock.connect(timeout=timeout)
+        await self._client.connect(timeout=timeout)
 
-    def join(self, channel, key=None):
-        return self._mock.join(channel, key)
+    @override
+    def join(self, channel: str, key: str | None = None) -> None:
+        self._client.join(channel, key)
 
-    def notice(self, target, text):
-        return self._mock.notice(target, text)
+    @override
+    def notice(self, target: str, text: str) -> None:
+        self._client.notice(target, text)
 
-    def is_nick_valid(self, nick) -> bool:
+    @override
+    def is_nick_valid(self, nick: str) -> bool:
         return True
 
     def mock_calls(self) -> _CallList:
@@ -69,7 +80,13 @@ class MockClient(Client):
 
 
 class MockConn:
-    def __init__(self, *, nick=None, name=None, loop=None) -> None:
+    def __init__(
+        self,
+        *,
+        nick: str | None = None,
+        name: str | None = None,
+        loop: AbstractEventLoop | None = None,
+    ) -> None:
         self.nick = nick or "TestBot"
         self.name = name or "testconn"
         self.permissions: PermissionManager | None = None
@@ -82,5 +99,5 @@ class MockConn:
         self.loop = loop
         self.ready = True
 
-    def is_nick_valid(self, nick) -> bool:
+    def is_nick_valid(self, nick: str) -> bool:
         return True

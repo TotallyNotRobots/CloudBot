@@ -1,20 +1,26 @@
+from __future__ import annotations
+
 import datetime as dt
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from plugins import xkcd
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 DATA_PATH = Path().resolve() / "tests" / "data" / "xkcd"
 
 
-def get_files():
+def get_files() -> Generator[int]:
     for file in DATA_PATH.rglob("*.json"):
         yield int(file.stem)
 
 
-def load_data(xkcd_id):
+def load_data(xkcd_id: int) -> Any:
     file = DATA_PATH / f"{xkcd_id}.json"
 
     with file.open(encoding="utf-8") as f:

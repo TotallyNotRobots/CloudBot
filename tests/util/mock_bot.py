@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from watchdog.observers import Observer
 
@@ -10,6 +10,7 @@ from cloudbot.plugin import PluginManager
 from tests.util.mock_config import MockConfig
 
 if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
     from collections.abc import Awaitable
     from pathlib import Path
 
@@ -23,8 +24,8 @@ class MockBot(AbstractBot):
     def __init__(
         self,
         *,
-        config=None,
-        loop=None,
+        config: dict[str, Any] | None = None,
+        loop: AbstractEventLoop | None = None,
         db: MockDB | None = None,
         base_dir: Path,
     ) -> None:

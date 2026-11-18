@@ -1,13 +1,14 @@
 # pragma: no cover
 import json
 from pathlib import Path
+from typing import Any
 
 import requests
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-def get_data(num):
+def get_data(num: int) -> Any | None:
     file = SCRIPT_DIR / f"{num}.json"
     if file.exists():
         with file.open(encoding="utf-8") as f:
@@ -23,7 +24,7 @@ def get_data(num):
         return r.json()
 
 
-def save(i) -> bool:
+def save(i: int) -> bool:
     data = get_data(i)
     if data is None:
         return False

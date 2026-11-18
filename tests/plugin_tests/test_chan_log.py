@@ -3,7 +3,7 @@ from itertools import chain
 from plugins.core import chan_log
 
 
-def test_format_exception_chain():
+def test_format_exception_chain() -> None:
     def _get_data(exc):
         yield repr(exc)
         if hasattr(exc, "add_note"):  # pragma: no cover

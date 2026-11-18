@@ -1,12 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call, patch
 
 import pytest
 
 from plugins import ping
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 
 @pytest.fixture()
-def patch_subproc():
+def patch_subproc() -> Generator[MagicMock]:
     with patch("subprocess.check_output") as mocked:
         yield mocked
 

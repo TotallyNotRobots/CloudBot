@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from tests.util.mock_db import MockDB
 
 
-def make_conn(mock_bot_factory, loop=None):
+def make_conn(mock_bot_factory, loop=None) -> MockIrcClient:
     bot = mock_bot_factory(loop=loop)
     conn = MockIrcClient(
         bot=bot,
@@ -129,6 +129,6 @@ async def test_key_use(mock_bot_factory, mock_db) -> None:
     conn.join("#foo")
     conn.join("#bar")
     assert conn.mock_calls() == [
-        call.send("JOIN #foo foobar"),
-        call.send("JOIN #bar"),
+        call.send("JOIN #foo foobar", True),
+        call.send("JOIN #bar", True),
     ]

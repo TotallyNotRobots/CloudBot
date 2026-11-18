@@ -16,17 +16,17 @@ logger = logging.getLogger("cloudbot")
 @hook.on_cap_available("sasl")
 def sasl_available(conn: Client):
     sasl_conf = conn.config.get("sasl")
-    return bool(sasl_conf and sasl_conf.get("enabled", True))
+    return bool(sasl_conf and sasl_conf.get("enabled", True))  # pyright: ignore[reportAny] # TODO: type config
 
 
 @hook.on_cap_ack("sasl")
 async def sasl_ack(conn: IrcClient) -> None:
     sasl_auth = conn.config.get("sasl")
-    if sasl_auth and sasl_auth.get("enabled", True):
-        sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()
+    if sasl_auth and sasl_auth.get("enabled", True):  # pyright: ignore[reportAny] # TODO: type config
+        sasl_mech = sasl_auth.get("mechanism", "PLAIN").upper()  # pyright: ignore[reportAny] # TODO: type config
         auth_fut = conn.loop.create_future()
         conn.memory["sasl_auth_future"] = auth_fut
-        conn.cmd("AUTHENTICATE", sasl_mech)
+        conn.cmd("AUTHENTICATE", sasl_mech)  # pyright: ignore[reportAny] # TODO: type config
         cmd, arg = await auth_fut
         if cmd == "908":
             logger.warning("[%s|sasl] SASL mechanism not supported", conn.name)

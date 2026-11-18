@@ -12,6 +12,8 @@ from cloudbot.util import database, timeformat, web
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
+    from cloudbot.event import CommandEvent
+
 api_url = "https://libre.fm/2.0/?format=json"
 
 # Some of the libre.fm API calls do not have equivalent last.fm calls.
@@ -59,7 +61,9 @@ def get_account(nick):
 
 
 @hook.command("librefm", "librelast", "librenp", autohelp=False)
-def librefm(text, nick, db, event):
+def librefm(
+    text: str, nick: str, db: Session, event: CommandEvent
+) -> str | None:
     """[user] [dontsave] - displays the now playing (or last played) track of libre.fm user [user]"""
 
     # check if the user asked us not to save his details
@@ -142,7 +146,7 @@ def librefm(text, nick, db, event):
         res = db.execute(
             table.update().values(acc=user).where(table.c.nick == nick.lower())
         )
-        if res.rowcount <= 0:
+        if res.rowcount <= 0:  # pyright: ignore[reportAttributeAccessIssue] # TODO: replace with more reliable upsert
             db.execute(table.insert().values(nick=nick.lower(), acc=user))
 
         db.commit()
@@ -150,7 +154,7 @@ def librefm(text, nick, db, event):
     return out
 
 
-def getartisttags(artist):
+def getartisttags(artist) -> str:
     tags, err = api_request("artist.getTopTags", artist=artist)
     if err:
         return f"error returning tags ({err})"

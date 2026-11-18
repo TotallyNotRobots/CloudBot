@@ -15,7 +15,9 @@ from cloudbot.util import colors, database
 
 if TYPE_CHECKING:
     from pyowm.weatherapi30.weather import Weather
+    from sqlalchemy.orm import Session
 
+    from cloudbot.event import CommandEvent
     from cloudbot.event_functions import EventReply
 
 
@@ -196,7 +198,7 @@ def get_location(nick):
     return location[0]
 
 
-def check_and_parse(event, db):
+def check_and_parse(event: CommandEvent, db: Session):
     """
     Check for the API keys and parse the location from user input
     """
@@ -213,7 +215,11 @@ def check_and_parse(event, db):
     # Change this in the config to a ccTLD code (eg. uk, nz)
     # to make results more targeted towards that specific country.
     # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
-    bias = event.bot.config.get("location_bias_cc")
+    bot = event.bot  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType] # TODO: type events
+    if bot is None:
+        raise ValueError("Missing bot on event")
+
+    bias = bot.config.get("location_bias_cc")  # pyright: ignore[reportUnknownMemberType] # TODO: type events
     # use find_location to get location data from the user input
     try:
         location_data = find_location(location, bias=bias)
@@ -240,7 +246,9 @@ def check_and_parse(event, db):
 
 
 @hook.command("weather", "we", autohelp=False)
-def weather(reply: EventReply, db, triggered_prefix, event):
+def weather(
+    reply: EventReply, db: Session, triggered_prefix: str, event: CommandEvent
+) -> str | None:
     """<location> - Gets weather data for <location>."""
     res, err = check_and_parse(event, db)
     if not res:
@@ -302,7 +310,7 @@ def weather(reply: EventReply, db, triggered_prefix, event):
 
 
 @hook.command("forecast", "fc", autohelp=False)
-def forecast(reply: EventReply, db, event):
+def forecast(reply: EventReply, db: Session, event: CommandEvent) -> str | None:
     """<location> - Gets forecast data for <location>."""
     res, err = check_and_parse(event, db)
     if not res:

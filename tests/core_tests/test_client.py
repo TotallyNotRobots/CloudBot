@@ -11,7 +11,7 @@ class FailingMockClient(MockClient):
         super().__init__(*args, **kwargs)
         self.fail_count = fail_count
 
-    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    async def connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         if self.fail_count is not None and self.fail_count > 0:
             self.fail_count -= 1
             raise ValueError("This is a test")

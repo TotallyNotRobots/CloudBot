@@ -20,7 +20,7 @@ logger = logging.getLogger("cloudbot")
 # Auto-join on Invite (Configurable, defaults to True)
 @hook.irc_raw("INVITE")
 def invite(irc_paramlist, conn: Client) -> None:
-    invite_join = conn.config.get("invite_join", True)
+    invite_join = conn.config.get("invite_join", True)  # pyright: ignore[reportAny] # TODO: type configs
     chan = irc_paramlist[-1]
 
     if invite_join:
@@ -37,7 +37,7 @@ def on_join(chan, conn: IrcClient, nick) -> None:
 def check_mode(irc_paramlist, conn: Client, message: EventMessage) -> None:
     # message(", ".join(irc_paramlist), "bloodygonzo")
     mode = irc_paramlist[2]
-    require_reg = conn.config.get("require_registered_channels", False)
+    require_reg = conn.config.get("require_registered_channels", False)  # pyright: ignore[reportAny] # TODO: type configs
     if "r" not in mode and require_reg:
         message("I do not stay in unregistered channels", irc_paramlist[1])
         conn.part(irc_paramlist[1])
@@ -45,7 +45,7 @@ def check_mode(irc_paramlist, conn: Client, message: EventMessage) -> None:
 
 @hook.irc_raw("MODE")
 def on_mode_change(conn: Client, irc_paramlist, message: EventMessage) -> None:
-    require_reg = conn.config.get("require_registered_channels", False)
+    require_reg = conn.config.get("require_registered_channels", False)  # pyright: ignore[reportAny] # TODO: type configs
     chan = irc_paramlist[0]
     modes = irc_paramlist[1]
     new_modes = {}
@@ -70,12 +70,12 @@ async def onjoin(conn: IrcClient, bot) -> None:
         "[%s|misc] Bot is sending join commands for network.", conn.name
     )
     nickserv = conn.config.get("nickserv")
-    if nickserv and nickserv.get("enabled", True):
+    if nickserv and nickserv.get("enabled", True):  # pyright: ignore[reportAny] # TODO: type configs
         logger.info("[%s|misc] Bot is authenticating with NickServ.", conn.name)
-        nickserv_password = nickserv.get("nickserv_password", "")
-        nickserv_name = nickserv.get("nickserv_name", "nickserv")
-        nickserv_account_name = nickserv.get("nickserv_user", "")
-        nickserv_command = nickserv.get("nickserv_command", "IDENTIFY")
+        nickserv_password = nickserv.get("nickserv_password", "")  # pyright: ignore[reportAny] # TODO: type configs
+        nickserv_name = nickserv.get("nickserv_name", "nickserv")  # pyright: ignore[reportAny] # TODO: type configs
+        nickserv_account_name = nickserv.get("nickserv_user", "")  # pyright: ignore[reportAny] # TODO: type configs
+        nickserv_command = nickserv.get("nickserv_command", "IDENTIFY")  # pyright: ignore[reportAny] # TODO: type configs
         if nickserv_password:
             if (
                 "censored_strings" in bot.config
@@ -84,20 +84,21 @@ async def onjoin(conn: IrcClient, bot) -> None:
                 bot.config["censored_strings"].remove(nickserv_password)
             if nickserv_account_name:
                 conn.message(
-                    nickserv_name,
+                    nickserv_name,  # pyright: ignore[reportAny] # TODO: type configs
                     f"{nickserv_command} {nickserv_account_name} {nickserv_password}",
                 )
             else:
                 conn.message(
-                    nickserv_name, f"{nickserv_command} {nickserv_password}"
+                    nickserv_name,  # pyright: ignore[reportAny] # TODO: type configs
+                    f"{nickserv_command} {nickserv_password}",
                 )
             if "censored_strings" in bot.config:
                 bot.config["censored_strings"].append(nickserv_password)
             await asyncio.sleep(1)
 
     # Should we oper up?
-    oper_pw = conn.config.get("oper_pw", False)
-    oper_user = conn.config.get("oper_user", False)
+    oper_pw = conn.config.get("oper_pw", False)  # pyright: ignore[reportAny] # TODO: type configs
+    oper_user = conn.config.get("oper_user", False)  # pyright: ignore[reportAny] # TODO: type configs
     if oper_pw and oper_user:
         out = f"OPER {oper_user} {oper_pw}"
         conn.send(out)
@@ -108,18 +109,20 @@ async def onjoin(conn: IrcClient, bot) -> None:
     mode = conn.config.get("mode")
     if mode:
         logger.info(
-            "[%s|misc] Bot is setting mode on itself: %s", conn.name, mode
+            "[%s|misc] Bot is setting mode on itself: %s",
+            conn.name,
+            mode,  # pyright: ignore[reportAny] # TODO: type configs
         )
-        conn.cmd("MODE", conn.nick, mode)
+        conn.cmd("MODE", conn.nick, mode)  # pyright: ignore[reportAny] # TODO: type configs
 
     log_chan = conn.config.get("log_channel")
     if log_chan:
         if " " in log_chan:
-            log_chan, key = log_chan.split(None, 1)
+            log_chan, key = log_chan.split(None, 1)  # pyright: ignore[reportAny] # TODO: type configs
         else:
             key = None
 
-        conn.join(log_chan, key)
+        conn.join(log_chan, key)  # pyright: ignore[reportAny] # TODO: type configs
 
     conn.ready = True
     logger.info(
@@ -141,7 +144,7 @@ async def do_joins(conn: IrcClient) -> None:
     chans = copy(conn.config_channels)
 
     # Join config-defined channels
-    join_throttle = conn.config.get("join_throttle", 0.4)
+    join_throttle = conn.config.get("join_throttle", 0.4)  # pyright: ignore[reportAny] # TODO: type configs
     logger.info("[%s|misc] Bot is joining channels for network.", conn.name)
     for channel in chans:
         if isinstance(channel, dict):
@@ -160,7 +163,7 @@ async def do_joins(conn: IrcClient) -> None:
             key = None
 
         conn.join(chan, key)
-        await asyncio.sleep(join_throttle)
+        await asyncio.sleep(join_throttle)  # pyright: ignore[reportAny] # TODO: type configs
 
 
 @hook.irc_raw("433")
@@ -171,8 +174,8 @@ def on_nick_in_use(conn: IrcClient, irc_paramlist) -> None:
 
 @hook.irc_raw("432", singlethread=True)
 async def on_invalid_nick(conn: IrcClient) -> None:
-    nick = conn.config["nick"]
+    nick = conn.config["nick"]  # pyright: ignore[reportAny] # TODO: type configs
     conn.nick = nick
-    conn.cmd("NICK", conn.nick)
+    conn.cmd("NICK", conn.nick)  # pyright: ignore[reportAny] # TODO: type configs
     # Just in case, we make sure to wait at least 30 seconds between sending this
     await asyncio.sleep(30)

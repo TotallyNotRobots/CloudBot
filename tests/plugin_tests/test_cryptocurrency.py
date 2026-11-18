@@ -16,7 +16,7 @@ class MatchAPIKey(Response):
         super().__init__(method, url, **kwargs)
         self.api_key = api_key
 
-    def matches(self, request):
+    def matches(self, request) -> tuple[bool, str]:
         if self.api_key:
             assert request.headers["X-CMC_PRO_API_KEY"] == self.api_key
 

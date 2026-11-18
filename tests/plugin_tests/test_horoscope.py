@@ -11,6 +11,7 @@ from plugins import horoscope
 
 if TYPE_CHECKING:
     from responses import RequestsMock
+    from sqlalchemy.orm import Session
 
     from tests.util.mock_db import MockDB
 
@@ -25,7 +26,7 @@ URL = (
 )
 
 
-def setup_db(mock_db):
+def setup_db(mock_db: MockDB) -> Session:
     horoscope.table.create(mock_db.engine, checkfirst=True)
     sess = mock_db.session()
     sess.execute(horoscope.table.delete())

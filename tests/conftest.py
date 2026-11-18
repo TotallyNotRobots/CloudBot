@@ -11,6 +11,11 @@ from unittest.mock import MagicMock, patch
 import freezegun
 import pytest
 import pytest_asyncio
+from freezegun.api import (
+    FrozenDateTimeFactory,
+    StepTickTimeFactory,
+    TickingDateTimeFactory,
+)
 from responses import RequestsMock
 from sqlalchemy import orm as sa_orm
 from sqlalchemy.orm import close_all_sessions
@@ -23,11 +28,12 @@ from tests.util.mock_bot import MockBot
 from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import AsyncGenerator, Callable, Generator
+    from pathlib import Path
 
 
 @pytest.fixture()
-def temp_metadata():
+def temp_metadata() -> Generator[None]:
     new_base = sa_orm.declarative_base()
     with (
         patch("cloudbot.util.database.Base", new=new_base),
@@ -56,13 +62,13 @@ def caplog_bot(
 
 
 @pytest.fixture()
-def patch_import_module():
+def patch_import_module() -> Generator[MagicMock]:
     with patch.object(importlib, "import_module") as mocked:
         yield mocked
 
 
 @pytest.fixture()
-def patch_import_reload():
+def patch_import_reload() -> Generator[MagicMock]:
     with patch.object(importlib, "reload") as mocked:
         yield mocked
 
@@ -81,7 +87,11 @@ def mock_db(tmp_path) -> Generator[MockDB]:
 
 
 @pytest.fixture()
-def mock_bot_factory(tmp_path, unset_bot, mock_db):
+def mock_bot_factory(
+    tmp_path: Path,
+    unset_bot: None,  # pyright: ignore[reportUnusedParameter] # necessary fixture, value unused
+    mock_db: MockDB,
+) -> Generator[Callable[..., MockBot]]:
     instances: list[MockBot] = []
 
     def _factory(**kwargs):
@@ -105,26 +115,31 @@ def mock_bot_factory(tmp_path, unset_bot, mock_db):
 
 
 @pytest_asyncio.fixture()
-async def mock_bot(mock_bot_factory):
+async def mock_bot(
+    mock_bot_factory: Callable[..., MockBot],
+) -> AsyncGenerator[MockBot]:
     yield mock_bot_factory()
 
 
 @pytest.fixture()
-def mock_requests():
+def mock_requests() -> Generator[RequestsMock]:
     with RequestsMock() as reqs:
         yield reqs
 
 
 @pytest.fixture()
-def freeze_time():
+def freeze_time() -> Generator[FrozenDateTimeFactory]:
     # Make sure some randomness in the time doesn't break a test
     ts = dt.datetime(2019, 8, 22, 18, 14, 36)
     with freezegun.freeze_time(ts, tz_offset=-5) as ft:
+        if isinstance(ft, (StepTickTimeFactory, TickingDateTimeFactory)):
+            raise TypeError(f"freeze_time returned the wrong type: {type(ft)}")
+
         yield ft
 
 
 @pytest.fixture()
-def mock_api_keys():
+def mock_api_keys() -> Generator[MagicMock]:
     mock_bot = MagicMock()
     try:
         bot_instance.set(mock_bot)
@@ -135,7 +150,7 @@ def mock_api_keys():
 
 
 @pytest.fixture()
-def unset_bot():
+def unset_bot() -> Generator[None]:
     try:
         yield
     finally:
@@ -143,6 +158,6 @@ def unset_bot():
 
 
 @pytest.fixture()
-def mock_feedparse():
+def mock_feedparse() -> Generator[MagicMock]:
     with patch("feedparser.parse") as mock:
         yield mock

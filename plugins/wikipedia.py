@@ -31,7 +31,7 @@ def get_info(title):
 
 
 @hook.command("wiki", "wikipedia", "w")
-def wiki(text, reply: EventReply) -> str:
+def wiki(text: str, reply: EventReply) -> str:
     """<phrase> - Gets first sentence of Wikipedia article on <phrase>."""
 
     search_params = {"srsearch": text.strip()}

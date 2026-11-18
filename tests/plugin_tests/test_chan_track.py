@@ -13,9 +13,10 @@ from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
     from cloudbot.client import Client
+    from cloudbot.util.irc import StatusMode
 
 
-def get_statuses(conn: Client, chars: str):
+def get_statuses(conn: Client, chars: str) -> list[StatusMode]:
     return [conn.memory["server_info"]["statuses"][c] for c in chars]
 
 

@@ -9,11 +9,13 @@ from cloudbot.clients.irc import IrcClient
 from plugins import badwords
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from tests.util.mock_db import MockDB
 
 
 @pytest.fixture()
-def clear_bad_words():
+def clear_bad_words() -> Generator[None]:
     badwords.badcache.clear()
     yield
     badwords.badcache.clear()

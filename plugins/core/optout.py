@@ -29,7 +29,10 @@ from cloudbot.util.text import parse_bool
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
 
+    from sqlalchemy.orm import Session
+
     from cloudbot.client import Client
+    from cloudbot.event import CommandEvent, Event
     from cloudbot.event_functions import EventAsyncCall
 
 optout_table = Table(
@@ -122,7 +125,9 @@ def format_optout_list(opts):
     return gen_markdown_table(headers, table)
 
 
-def set_optout(db, conn: str, chan, pattern, allowed) -> None:
+def set_optout(
+    db: Session, conn: str, chan: str, pattern: str, allowed: bool
+) -> None:
     conn_cf = conn.casefold()
     chan_cf = chan.casefold()
     pattern_cf = pattern.casefold()
@@ -132,7 +137,7 @@ def set_optout(db, conn: str, chan, pattern, allowed) -> None:
         optout_table.c.hook == pattern_cf,
     )
     res = db.execute(optout_table.update().values(allow=allowed).where(clause))
-    if not res.rowcount:
+    if not res.rowcount:  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue] # TODO: switch to more reliable upsert
         db.execute(
             optout_table.insert().values(
                 network=conn_cf, chan=chan_cf, hook=pattern_cf, allow=allowed
@@ -143,7 +148,7 @@ def set_optout(db, conn: str, chan, pattern, allowed) -> None:
     load_cache(db)
 
 
-def del_optout(db, conn: str, chan, pattern):
+def del_optout(db: Session, conn: str, chan: str, pattern: str) -> bool:
     conn_cf = conn.casefold()
     chan_cf = chan.casefold()
     pattern_cf = pattern.casefold()
@@ -157,7 +162,7 @@ def del_optout(db, conn: str, chan, pattern):
     db.commit()
     load_cache(db)
 
-    return res.rowcount > 0
+    return res.rowcount > 0  # pyright: ignore[reportUnknownVariableType, reportAttributeAccessIssue] # TODO: switch to more reliable upsert
 
 
 def clear_optout(db, conn: str, chan=None):
@@ -211,7 +216,9 @@ def optout_sieve(bot, event, _hook):
 
 
 @hook.command()
-async def optout(text, event, chan, db, conn: Client):
+async def optout(
+    text: str, event: Event, chan: str, db: Session, conn: Client
+) -> str | None:
     """[chan] <pattern> [allow] - Set the global allow option for hooks matching <pattern> in [chan], or the current
     channel if not specified
     """
@@ -245,7 +252,9 @@ async def optout(text, event, chan, db, conn: Client):
 
 
 @hook.command()
-async def deloptout(text, event, chan, db, conn: Client):
+async def deloptout(
+    text: str, event: Event, chan: str, db: Session, conn: Client
+) -> str | None:
     """[chan] <pattern> - Delete global optout hooks matching <pattern> in [chan], or the current channel if not
     specified"""
     args = text.split()
@@ -272,7 +281,7 @@ async def deloptout(text, event, chan, db, conn: Client):
     return f"No matching optouts in channel '{chan}'."
 
 
-async def check_global_perms(event):
+async def check_global_perms(event: CommandEvent):
     chan = event.chan
     text = event.text
     if text:
@@ -286,7 +295,7 @@ async def check_global_perms(event):
     if not allowed:
         event.notice("Sorry, you are not allowed to use this command.")
 
-    if chan.lower() == "global":
+    if chan.lower() == "global":  # pyright: ignore[reportOptionalMemberAccess] # TODO: type events
         if not can_global:
             event.notice("You do not have permission to access global opt outs")
             allowed = False
@@ -297,7 +306,9 @@ async def check_global_perms(event):
 
 
 @hook.command("listoptout", autohelp=False)
-async def list_optout(conn: Client, event, async_call: EventAsyncCall):
+async def list_optout(
+    conn: Client, event: CommandEvent, async_call: EventAsyncCall
+):
     """[channel] - View the opt out data for <channel> or the current channel if not specified. Specify "global" to
     view all data for this network
     """
@@ -313,7 +324,9 @@ async def list_optout(conn: Client, event, async_call: EventAsyncCall):
 
 
 @hook.command("clearoptout", autohelp=False)
-async def clear(conn: Client, event, db, async_call: EventAsyncCall):
+async def clear(
+    conn: Client, event: CommandEvent, db: Session, async_call: EventAsyncCall
+) -> str | None:
     """[channel] - Clears the optout list for a channel. Specify "global" to clear all data for this network"""
     chan, allowed = await check_global_perms(event)
 

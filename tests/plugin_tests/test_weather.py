@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import json
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,6 +13,14 @@ from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
 from tests.util import HookResult, get_data_file, wrap_hook_response
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockBot
+    from tests.util.mock_db import MockDB
 
 
 @pytest.mark.parametrize(
@@ -53,7 +64,7 @@ def test_mph_to_kph(mph, kph) -> None:
     assert weather.mph_to_kph(mph) == kph
 
 
-def get_test_data():
+def get_test_data() -> dict[str, Any]:
     return {
         "json": json.loads(
             get_data_file("owm.json").read_text(encoding="utf-8")
@@ -61,7 +72,12 @@ def get_test_data():
     }
 
 
-def setup_api(mock_requests, mock_db, loop, mock_bot_factory):
+def setup_api(
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+    loop: asyncio.AbstractEventLoop,
+    mock_bot_factory: Callable[..., MockBot],
+) -> MockBot:
     bot = mock_bot_factory(
         loop=loop,
         config={

@@ -53,14 +53,14 @@ def test_getartisttags(mock_requests) -> None:
 class TestGetArtistTags:
     url = "https://libre.fm/2.0/"
 
-    def get_params(self):
+    def get_params(self) -> dict[str, str]:
         return {
             "format": "json",
             "artist": "foobar",
             "method": "artist.getTopTags",
         }
 
-    def get_tags(self):
+    def get_tags(self) -> str:
         return librefm.getartisttags("foobar")
 
     def test_missing_tags(self, mock_requests) -> None:

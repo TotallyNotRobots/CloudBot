@@ -13,6 +13,8 @@ from cloudbot.util import database
 from cloudbot.util.pager import CommandPager, paginated_list
 
 if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
     from cloudbot.event_functions import EventNotice
 
 category_re = r"[A-Za-z0-9]+"
@@ -58,7 +60,7 @@ def format_profile(nick, category, text):
 
 # modified from grab.py
 @hook.command("moreprofile", autohelp=False)
-def moreprofile(text, chan, nick, notice: EventNotice) -> None:
+def moreprofile(text: str, chan: str, nick: str, notice: EventNotice) -> None:
     """[page] - If a category search has lots of results the results are paginated. If the most recent search is
     paginated the pages are stored for retrieval. If no argument is given the next page will be returned else a page
     number can be specified."""
@@ -74,7 +76,7 @@ def moreprofile(text, chan, nick, notice: EventNotice) -> None:
 
 
 @hook.command()
-def profile(text, chan, notice: EventNotice, nick):
+def profile(text: str, chan: str, notice: EventNotice, nick: str) -> str | None:
     """<nick> [category] - Returns a user's saved profile data from \"<category>\", or lists all available profile
     categories for the user if no category specified"""
     chan_cf = chan.casefold()
@@ -128,7 +130,9 @@ def profile(text, chan, notice: EventNotice, nick):
 
 
 @hook.command()
-def profileadd(text, chan, nick, notice: EventNotice, db):
+def profileadd(
+    text: str, chan: str, nick: str, notice: EventNotice, db: Session
+) -> str | None:
     """<category> <content> - Adds data to your profile in the current channel under \"<category>\"."""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
@@ -172,12 +176,14 @@ def profileadd(text, chan, nick, notice: EventNotice, db):
 
 
 @hook.command()
-def profiledel(nick, chan, text, notice: EventNotice, db):
+def profiledel(
+    nick: str, chan: str, text: str, notice: EventNotice, db: Session
+) -> str | None:
     """<category> - Deletes \"<category>\" from a user's profile"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"
 
-    category = text.split()[0]
+    category = text.split(maxsplit=1)[0]
 
     chan_profiles = profile_cache.get(chan.casefold(), {})
     user_profile = chan_profiles.get(nick.casefold(), {})
@@ -200,7 +206,9 @@ def profiledel(nick, chan, text, notice: EventNotice, db):
 
 
 @hook.command(autohelp=False)
-def profileclear(nick, chan, text, notice: EventNotice, db):
+def profileclear(
+    nick: str, chan: str, text: str, notice: EventNotice, db: Session
+) -> str | None:
     """[key] - Clears all of your profile data in the current channel"""
     if nick.casefold() == chan.casefold():
         return "Profile data can not be set outside of channels"

@@ -1,15 +1,17 @@
 from copy import deepcopy
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import pytest
 
+from cloudbot.util import http
 from plugins import vimeo
 
 
 @pytest.fixture()
-def patch_get_json():
-    with patch("cloudbot.util.http.get_json") as patched:
-        yield patched
+def patch_get_json(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    mock = MagicMock(spec=http.get_json)  # pyright: ignore[reportUnknownMemberType] # TODO: type http util
+    monkeypatch.setattr(http, "get_json", mock)
+    return mock
 
 
 DATA = [
@@ -33,7 +35,7 @@ DATA = [
 ]
 
 
-def test_no_data(patch_get_json) -> None:
+def test_no_data(patch_get_json: MagicMock) -> None:
     patch_get_json.return_value = []
 
     result = vimeo.vimeo_url(vimeo.url_re.search("https://vimeo.com/1125483"))

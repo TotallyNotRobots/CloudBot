@@ -24,7 +24,7 @@ def strip_newlines(line, conn: Client):
     :param conn: cloudbot.clients.irc.IrcClient
     :return: str
     """
-    do_strip = conn.config.get("strip_newlines", True)
+    do_strip = conn.config.get("strip_newlines", True)  # pyright: ignore[reportAny] # TODO: type configs
     if do_strip:
         return line.translate(NEW_LINE_TRANS_TBL)
 
@@ -33,7 +33,7 @@ def strip_newlines(line, conn: Client):
 
 @hook.irc_out(priority=Priority.HIGH)
 def truncate_line(line, conn: Client) -> str:
-    line_len = conn.config.get("max_line_length", 510)
+    line_len = conn.config.get("max_line_length", 510)  # pyright: ignore[reportAny] # TODO: type configs
     return f"{line[:line_len]}\r\n"
 
 
@@ -42,14 +42,14 @@ def encode_line(line, conn: Client):
     if not isinstance(line, str):
         return line
 
-    encoding = conn.config.get("encoding", "utf-8")
-    errors = conn.config.get("encoding_errors", "replace")
-    return line.encode(encoding, errors)
+    encoding = conn.config.get("encoding", "utf-8")  # pyright: ignore[reportAny] # TODO: type configs
+    errors = conn.config.get("encoding_errors", "replace")  # pyright: ignore[reportAny] # TODO: type configs
+    return line.encode(encoding, errors)  # pyright: ignore[reportAny] # TODO: type configs
 
 
 @hook.irc_out(priority=Priority.HIGH)
 def strip_command_chars(parsed_line, conn: Client, line):
-    chars = conn.config.get("strip_cmd_chars", "!.@;$")
+    chars = conn.config.get("strip_cmd_chars", "!.@;$")  # pyright: ignore[reportAny] # TODO: type configs
     if (
         chars
         and parsed_line

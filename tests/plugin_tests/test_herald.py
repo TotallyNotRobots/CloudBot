@@ -11,11 +11,13 @@ from plugins import herald
 from tests.util import wrap_hook_response
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from tests.util.mock_db import MockDB
 
 
 @pytest.fixture()
-def clear_cache():
+def clear_cache() -> Generator[None]:
     try:
         yield
     finally:

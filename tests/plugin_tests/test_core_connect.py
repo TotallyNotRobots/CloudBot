@@ -76,10 +76,10 @@ async def test_core_connects(mock_bot_factory, mock_db) -> None:
     core_connect.conn_user(client, bot)
 
     assert client.mock_calls() == [
-        call.connect(),
-        call.send("PASS foobar123"),
-        call.send("NICK FooBot"),
+        call.connect(timeout=None),
+        call.send("PASS foobar123", True),
+        call.send("NICK FooBot", True),
         call.send(
-            "USER cloudbot 3 * :CloudBot - https://github.com/foobar/baz"
+            "USER cloudbot 3 * :CloudBot - https://github.com/foobar/baz", True
         ),
     ]

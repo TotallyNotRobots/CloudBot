@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from contextlib import contextmanager
 from itertools import product
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -20,7 +22,7 @@ from tests.util.mock_conn import MockClient
 from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from tests.util.mock_bot import MockBot
 
@@ -462,11 +464,15 @@ def test_get_cmd_regex(mock_bot) -> None:
     assert regex.pattern == expected
 
 
-def patch_config(config):
-    return patch("cloudbot.config.Config.load_config", new=config_mock(config))
+@contextmanager
+def patch_config(config: dict[str, Any]) -> Generator[Callable[..., None]]:
+    with patch(
+        "cloudbot.config.Config.load_config", new=config_mock(config)
+    ) as mocked:
+        yield mocked
 
 
-def config_mock(config):
+def config_mock(config) -> Callable[..., None]:
     def _load_config(self) -> None:
         self.update(config)
 

@@ -126,30 +126,31 @@ class PermissionManager:
     def reload(self) -> None:
         with Session() as session:
             updated = list[Group | GroupMember | GroupPermission]()
-            for group_id, data in self.config.get("permissions", {}).items():
-                group = self.get_group(group_id)
+            for group_id, data in self.config.get("permissions", {}).items():  # pyright: ignore[reportAny] # TODO: type configs
+                group = self.get_group(group_id)  # pyright: ignore[reportAny] # TODO: type configs
                 if not group:
                     group = Group(
-                        connection=self.name.lower(), name=group_id.lower()
+                        connection=self.name.lower(),
+                        name=group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
                     )
                     session.add(group)
 
                 group.config = True
                 updated.append(group)
 
-                for user in data["users"]:
+                for user in data["users"]:  # pyright: ignore[reportAny] # TODO: type configs
                     member = session.get(
                         GroupMember,
                         {
-                            "group_id": group_id.lower(),
-                            "mask": user.lower(),
+                            "group_id": group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            "mask": user.lower(),  # pyright: ignore[reportAny] # TODO: type configs
                             "connection": self.name.lower(),
                         },
                     )
                     if not member:
                         member = GroupMember(
-                            group_id=group_id.lower(),
-                            mask=user.lower(),
+                            group_id=group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            mask=user.lower(),  # pyright: ignore[reportAny] # TODO: type configs
                             connection=self.name.lower(),
                         )
                         session.add(member)
@@ -157,19 +158,19 @@ class PermissionManager:
                     member.config = True
                     updated.append(member)
 
-                for perm in data["perms"]:
+                for perm in data["perms"]:  # pyright: ignore[reportAny] # TODO: type configs
                     binding = session.get(
                         GroupPermission,
                         {
-                            "group_id": group_id.lower(),
-                            "name": perm.lower(),
+                            "group_id": group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            "name": perm.lower(),  # pyright: ignore[reportAny] # TODO: type configs
                             "connection": self.name.lower(),
                         },
                     )
                     if not binding:
                         binding = GroupPermission(
-                            group_id=group_id.lower(),
-                            name=perm.lower(),
+                            group_id=group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            name=perm.lower(),  # pyright: ignore[reportAny] # TODO: type configs
                             connection=self.name.lower(),
                         )
                         session.add(binding)

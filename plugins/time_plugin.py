@@ -126,7 +126,7 @@ def time_command(text: str, reply: EventReply, bot: CloudBot) -> str:
 
 
 @hook.command(autohelp=False)
-def beats(text) -> str:
+def beats(text: str) -> str:
     """- Gets the current time in .beats (Swatch Internet Time)."""
 
     if text.lower() == "wut":

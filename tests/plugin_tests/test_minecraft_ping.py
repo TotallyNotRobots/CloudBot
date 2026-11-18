@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import socket
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import mcstatus
@@ -7,9 +10,12 @@ from mcstatus.responses import JavaStatusResponse
 
 from plugins import minecraft_ping
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 
 @pytest.fixture()
-def mock_mcserver():
+def mock_mcserver() -> Generator[MagicMock]:
     with patch.object(mcstatus.JavaServer, "lookup") as mock:
         yield mock
 

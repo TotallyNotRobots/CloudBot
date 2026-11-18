@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from collections import defaultdict, deque
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
 
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import CLIENT_ATTR
@@ -32,6 +32,14 @@ class ClientConnectError(Exception):
         self.server = server
 
 
+class ChannelConfig(TypedDict):
+    name: str
+    key: NotRequired[str]
+
+
+ConfigChannelList = list[str | list[str] | ChannelConfig]
+
+
 class Client:
     """
     A Client representing each connection the bot makes to a single server
@@ -44,8 +52,8 @@ class Client:
         name: str,
         nick: str,
         *,
-        channels=None,
-        config=None,
+        channels: ConfigChannelList | None = None,
+        config: dict[str, Any] | None = None,
     ) -> None:
         self.bot = bot
         if bot.loop is None:
@@ -109,7 +117,7 @@ class Client:
 
             await asyncio.sleep(random.randrange(timeout))
 
-    async def connect(self, timeout=None):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    async def connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         """
         Connects to the server, or reconnects if already connected.
         """
@@ -145,7 +153,7 @@ class Client:
         """
         raise NotImplementedError
 
-    def notice(self, target, text):
+    def notice(self, target: str, text: str) -> None:  # pyright: ignore[reportUnusedParameter] # TODO: Mark as abstract
         """
         Sends a notice to the given target
         """
@@ -157,19 +165,19 @@ class Client:
         """
         raise NotImplementedError
 
-    def join(self, channel, key=None):
+    def join(self, channel: str, key: str | None = None) -> None:  # pyright: ignore[reportUnusedParameter] # TODO: Mark as abstract
         """
         Joins a given channel
         """
         raise NotImplementedError
 
-    def part(self, channel):
+    def part(self, channel: str) -> None:
         """
         Parts a given channel
         """
         raise NotImplementedError
 
-    def is_nick_valid(self, nick):
+    def is_nick_valid(self, nick: str) -> bool:
         """
         Determines if a nick is valid for this connection
         :param nick: The nick to check
@@ -178,19 +186,19 @@ class Client:
         raise NotImplementedError
 
     @property
-    def connected(self):
+    def connected(self) -> bool:
         raise NotImplementedError
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self._type
 
     @property
-    def active(self):
+    def active(self) -> bool:
         return self._active
 
     @active.setter
-    def active(self, value) -> None:
+    def active(self, value: bool) -> None:
         self._active = value
 
     def reload(self) -> None:

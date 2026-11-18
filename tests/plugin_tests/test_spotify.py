@@ -1,9 +1,19 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
 
 from plugins import spotify
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator, Callable
+
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.parametrize(
@@ -54,7 +64,11 @@ def test_format_response(data, item_type, output) -> None:
 
 
 @pytest_asyncio.fixture()
-async def setup_api(mock_bot_factory, unset_bot, mock_requests):
+async def setup_api(
+    mock_bot_factory: Callable[..., MockBot],
+    unset_bot: None,  # pyright: ignore[reportUnusedParameter] # Necessary fixture
+    mock_requests: RequestsMock,
+) -> AsyncGenerator[None]:
     bot = mock_bot_factory(
         config={
             "api_keys": {
