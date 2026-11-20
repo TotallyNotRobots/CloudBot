@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
-from sqlalchemy import Column, PrimaryKeyConstraint, String, Table, select
+from sqlalchemy import delete, insert
+from sqlalchemy.orm import Mapped, MappedAsDataclass, Session, mapped_column
 
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -16,14 +17,15 @@ if TYPE_CHECKING:
     from cloudbot.clients.irc import IrcClient
     from cloudbot.event_functions import EventMessage
 
-table = Table(
-    "badwords",
-    database.metadata,
-    Column("word", String),
-    Column("nick", String),
-    Column("chan", String),
-    PrimaryKeyConstraint("word", "chan"),
-)
+
+@final
+class BadWord(MappedAsDataclass, database.Base):  # pyright: ignore[reportUnsafeMultipleInheritance]
+    __tablename__ = "badwords"
+
+    word: Mapped[str] = mapped_column(primary_key=True)
+    nick: Mapped[str | None]
+    chan: Mapped[str] = mapped_column(primary_key=True)
+
 
 badcache: dict[str, list[str]] = defaultdict(list)
 
@@ -37,13 +39,13 @@ matcher = BadwordMatcher()
 
 @hook.on_start()
 @hook.command("loadbad", permissions=["badwords"], autohelp=False)
-def load_bad(db) -> None:
+def load_bad(db: Session) -> None:
     """- Should run on start of bot to load the existing words into the regex"""
-    words = []
-    new_cache = defaultdict(list)
-    for chan, word in db.execute(select(table.c.chan, table.c.word)):
-        new_cache[chan.casefold()].append(word)
-        words.append(word)
+    words: list[str] = []
+    new_cache: defaultdict[str, list[str]] = defaultdict(list)
+    for badword in db.query(BadWord).all():
+        new_cache[badword.chan.casefold()].append(badword.word)
+        words.append(badword.word)
 
     new_regex = re.compile(
         rf"(?:\s|^|[^\w\s])({'|'.join(words)})(?:\s|$|[^\w\s])", re.IGNORECASE
@@ -56,7 +58,7 @@ def load_bad(db) -> None:
 
 
 @hook.command("addbad", permissions=["badwords"])
-def add_bad(text, nick, db) -> str:
+def add_bad(text, nick, db: Session) -> str:
     """<word> <channel> - adds a bad word to the auto kick list must specify a channel with each word"""
     splt = text.lower().split(None, 1)
     word, channel = splt
@@ -74,7 +76,7 @@ def add_bad(text, nick, db) -> str:
             "anymore. For a list of bad words use .listbad"
         )
 
-    db.execute(table.insert().values(word=word, nick=nick, chan=channel))
+    db.execute(insert(BadWord).values(word=word, nick=nick, chan=channel))
     db.commit()
     load_bad(db)
     wordlist = list_bad(channel)
@@ -82,7 +84,7 @@ def add_bad(text, nick, db) -> str:
 
 
 @hook.command("rmbad", "delbad", permissions=["badwords"])
-def del_bad(text, db) -> str:
+def del_bad(text, db: Session) -> str:
     """<word> <channel> - removes the specified word from the specified channels bad word list"""
     splt = text.lower().split(None, 1)
     word, channel = splt
@@ -90,9 +92,9 @@ def del_bad(text, db) -> str:
         return "Please specify a valid channel name after the bad word."
 
     db.execute(
-        table.delete()
-        .where(table.c.word == word)
-        .where(table.c.chan == channel)
+        delete(BadWord)
+        .where(BadWord.word == word)
+        .where(BadWord.chan == channel)
     )
     db.commit()
     newlist = list_bad(channel)
