@@ -16,7 +16,7 @@ from sqlalchemy import (
     not_,
     update,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, Session, mapped_column
 from sqlalchemy.sql import select
 
 from cloudbot import hook
@@ -34,14 +34,16 @@ if TYPE_CHECKING:
 class TellMessage(database.Base):
     __tablename__ = "tell_messages"
 
-    msg_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    msg_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
     conn: Mapped[str | None] = mapped_column(index=True)
     sender: Mapped[str | None]
     target: Mapped[str | None] = mapped_column(index=True)
     message: Mapped[str | None]
     is_read: Mapped[bool] = mapped_column(default=False, index=True)
-    time_sent: Mapped[datetime | None]
-    time_read: Mapped[datetime | None]
+    time_sent: Mapped[datetime | None] = mapped_column(default=None)
+    time_read: Mapped[datetime | None] = mapped_column(default=None)
 
     def format_for_message(self) -> str:
         reltime = timeformat.time_since(self.time_sent)
@@ -242,7 +244,9 @@ def read_all_tells(db, server, target) -> None:
     load_cache(db)
 
 
-def add_tell(db, server, sender, target, message) -> None:
+def add_tell(
+    db: Session, server: str, sender: str, target: str, message: str
+) -> None:
     new_tell = TellMessage(
         conn=server.lower(),
         sender=sender.lower(),
@@ -255,7 +259,7 @@ def add_tell(db, server, sender, target, message) -> None:
     load_cache(db)
 
 
-def tell_check(conn: str, nick) -> bool:
+def tell_check(conn: str, nick: str) -> bool:
     for _conn, _target in tell_cache:
         if (conn, nick.lower()) == (_conn, _target):
             return True
