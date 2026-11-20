@@ -74,7 +74,7 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: db073f6e2776db0e634dc8d6c20d4123a1cab086  # frozen: v4.18.1
+  rev: 0ece078fe7bb21d31d47f4fd0d3376051eb5b756  # frozen: v4.19.4
   hooks:
   - id: commitizen
 - repo: https://github.com/andreoliwa/nitpick
@@ -121,7 +121,7 @@ repos:
     - --inline-comment-spaces
     - '1'
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: ef6cf06c079dd6b299dfc720b0f14400c9d168e1  # frozen: v0.17.5
+  rev: 9026c9127e153371d7a78dfcb0c45ae2046a3d10  # frozen: v0.17.6
   hooks:
   - id: ruff-check
     args:
