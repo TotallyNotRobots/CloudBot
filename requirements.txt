@@ -15,7 +15,7 @@ pydantic-extra-types==2.11.1
 pydantic[email]==2.14.3
 pyowm==3.5.0
 requests==2.34.2
-sqlalchemy==2.0.57
+sqlalchemy==2.0.58
 typing_extensions==4.16.0
 urllib3==2.8.0
 watchdog==7.1.0
