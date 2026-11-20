@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
-
-import attrs
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -24,7 +23,7 @@ class ModeType(Enum):
 PARAM_MODE_TYPES = (ModeType.A, ModeType.B, ModeType.Status)
 
 
-@attrs.define(hash=True)
+@dataclass(frozen=True)
 class ChannelMode:
     """
     An IRC channel mode
@@ -39,7 +38,7 @@ class ChannelMode:
         )
 
 
-@attrs.define(hash=True)
+@dataclass(frozen=True)
 class ModeChange:
     """
     Represents a single change of a mode
@@ -58,7 +57,7 @@ class ModeChange:
         return self.info.type == ModeType.Status
 
 
-@attrs.define(hash=True)
+@dataclass(frozen=True)
 class StatusMode(ChannelMode):
     """
     An IRC status mode
