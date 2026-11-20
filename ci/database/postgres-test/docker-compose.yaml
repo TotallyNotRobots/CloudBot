@@ -1,0 +1,30 @@
+services:
+  database:
+    image: 'postgres:17'
+    ports:
+    - 15432:5432
+    env_file:
+    - .env
+    networks:
+    - postgres-network
+    volumes:
+    - ${PWD}/db-data/:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+    - 15433:80
+    env_file:
+    - .env
+    depends_on:
+    - database
+    networks:
+    - postgres-network
+    volumes:
+      # pgAdmin writes session data here. If startup fails with a permission
+      # error, set the host folder owner to 5050:5050 before starting.
+    - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
+
+networks:
+  postgres-network:
+    driver: bridge
