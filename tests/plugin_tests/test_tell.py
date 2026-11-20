@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, call, patch
@@ -9,12 +11,14 @@ from plugins import tell
 from tests.util.mock_conn import MockClient
 
 if TYPE_CHECKING:
-    import sqlalchemy as sa
+    from sqlalchemy import Table
+
+    from tests.util.mock_db import MockDB
 
 
-def init_tables(mock_db) -> None:
+def init_tables(mock_db: MockDB) -> None:
     db_engine = mock_db.engine
-    cast("sa.Table", tell.TellMessage.__table__).create(db_engine)
+    cast("Table", tell.TellMessage.__table__).create(db_engine)
     tell.disable_table.create(db_engine)
     tell.ignore_table.create(db_engine)
     session = mock_db.session()

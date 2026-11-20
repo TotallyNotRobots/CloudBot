@@ -6,7 +6,7 @@
         "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
             "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions"
         },
-        "ghcr.io/devcontainers/features/docker-in-docker:4": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
           "moby": false
         }
     },
