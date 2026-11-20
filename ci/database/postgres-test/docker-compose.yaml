@@ -1,6 +1,6 @@
 services:
   database:
-    image: 'postgres:17'
+    image: 'postgres:17@sha256:b60e90042aa6b8dbecd58e224b3e36114dbf8ad754465264c2476ad58a86e45c'
     ports:
     - 15432:5432
     env_file:
@@ -11,7 +11,7 @@ services:
     - ${PWD}/db-data/:/var/lib/postgresql/data/
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4@sha256:3591b3d02910dcd817dec6fcaa681c278ba6966945283dd0ea0042731c330c83
     ports:
     - 15433:80
     env_file:
