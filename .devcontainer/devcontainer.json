@@ -5,6 +5,9 @@
     "features": {
         "ghcr.io/devcontainers-extra/features/zsh-plugins:0": {
             "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:4": {
+          "moby": false
         }
     },
     "postCreateCommand": "pip3 install -Ur requirements-dev.txt",
