@@ -4,15 +4,13 @@ import logging
 from typing import TYPE_CHECKING, cast
 
 from irclib.util.compare import match_mask
-from sqlalchemy import ForeignKeyConstraint, select
+from sqlalchemy import ForeignKeyConstraint, Table, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from cloudbot.util import database
 from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
-    import sqlalchemy as sa
-
     from cloudbot.client import Client
 
 logger = logging.getLogger("cloudbot")
@@ -123,11 +121,9 @@ class PermissionManager:
         if engine is None:
             raise ValueError("No session bind found")
 
-        cast("sa.Table", Group.__table__).create(engine, checkfirst=True)
-        cast("sa.Table", GroupPermission.__table__).create(
-            engine, checkfirst=True
-        )
-        cast("sa.Table", GroupMember.__table__).create(engine, checkfirst=True)
+        cast("Table", Group.__table__).create(engine, checkfirst=True)
+        cast("Table", GroupPermission.__table__).create(engine, checkfirst=True)
+        cast("Table", GroupMember.__table__).create(engine, checkfirst=True)
 
         self.reload()
 

@@ -14,7 +14,7 @@ from cloudbot.permissions import (
 from tests.util.mock_conn import MockClient
 
 if TYPE_CHECKING:
-    import sqlalchemy as sa
+    from sqlalchemy import Table
 
     from cloudbot.util.database import Base
 
@@ -116,9 +116,9 @@ async def test_db(mock_db, mock_bot_factory) -> None:
     bot = mock_bot_factory(db=mock_db)
     session = mock_db.session()
 
-    group_table = cast("sa.Table", Group.__table__)
-    group_member_table = cast("sa.Table", GroupMember.__table__)
-    permission_table = cast("sa.Table", GroupPermission.__table__)
+    group_table = cast("Table", Group.__table__)
+    group_member_table = cast("Table", GroupMember.__table__)
+    permission_table = cast("Table", GroupPermission.__table__)
 
     group_table.create(mock_db.engine)
     group_member_table.create(mock_db.engine)
@@ -214,9 +214,9 @@ async def test_db_config_merge(mock_db, mock_bot_factory) -> None:
     bot = mock_bot_factory(db=mock_db)
     session = mock_db.session()
 
-    group_table = cast("sa.Table", Group.__table__)
-    group_member_table = cast("sa.Table", GroupMember.__table__)
-    permission_table = cast("sa.Table", GroupPermission.__table__)
+    group_table = cast("Table", Group.__table__)
+    group_member_table = cast("Table", GroupMember.__table__)
+    permission_table = cast("Table", GroupPermission.__table__)
 
     group_table.create(mock_db.engine)
     group_member_table.create(mock_db.engine)

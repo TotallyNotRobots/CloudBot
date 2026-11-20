@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 from weakref import WeakValueDictionary
 
-import sqlalchemy
+from sqlalchemy import Table
 
 from cloudbot.event import Event, PostHookEvent
 from cloudbot.plugin_hooks import hook_name_to_plugin
@@ -22,8 +22,6 @@ if TYPE_CHECKING:
     import os
     from collections.abc import MutableMapping
     from re import Pattern
-
-    from sqlalchemy import Table
 
     from cloudbot.event import EventType
     from cloudbot.plugin_hooks import (
@@ -84,17 +82,14 @@ def find_hooks(parent, module) -> HookDict:
     return cast("HookDict", hooks)
 
 
-def find_tables(code) -> list[sqlalchemy.Table]:
+def find_tables(code) -> list[Table]:
     tables = []
     for obj in code.__dict__.values():
-        if (
-            isinstance(obj, sqlalchemy.Table)
-            and obj.metadata == database.metadata
-        ):
+        if isinstance(obj, Table) and obj.metadata == database.metadata:
             # if it's a Table, and it's using our metadata, append it to the list
             tables.append(obj)
         elif isinstance(obj, type) and issubclass(obj, database.Base):
-            tables.append(cast("sqlalchemy.Table", obj.__table__))
+            tables.append(cast("Table", obj.__table__))
 
     return tables
 
