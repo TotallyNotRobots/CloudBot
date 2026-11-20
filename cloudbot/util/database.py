@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import (
     DeclarativeBase,
+    MappedAsDataclass,
     close_all_sessions,
     scoped_session,
     sessionmaker,
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 __all__ = ("metadata", "base", "Base", "Session", "configure")
 
 
-class Base(DeclarativeBase):
+class Base(MappedAsDataclass, DeclarativeBase):  # pyright: ignore[reportUnsafeMultipleInheritance]
     pass
 
 

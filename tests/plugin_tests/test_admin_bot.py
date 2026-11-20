@@ -327,7 +327,8 @@ async def test_remove_permission_user_too_few_args(
 
 def test_get_permission_groups(mock_db: MockDB) -> None:
     conn = MagicMock(nick="testconn", config={})
-    conn.name = "testconn"
+    conn_name = "testconn"
+    conn.name = conn_name
 
     session: sa_orm.Session = mock_db.session()
 
@@ -340,9 +341,9 @@ def test_get_permission_groups(mock_db: MockDB) -> None:
     permission_table.create(mock_db.engine)
     session.add_all(
         [
-            Group(connection=conn.name, name="foo"),
-            Group(connection=conn.name, name="bar"),
-            Group(connection=conn.name, name="baz"),
+            Group(connection=conn_name, name="foo"),
+            Group(connection=conn_name, name="bar"),
+            Group(connection=conn_name, name="baz"),
         ]
     )
     session.commit()

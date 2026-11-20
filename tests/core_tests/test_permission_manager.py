@@ -127,19 +127,15 @@ async def test_db(mock_db, mock_bot_factory) -> None:
     conn = MockClient(bot=bot, name="testconn")
 
     perm = "bar"
-    group = Group(
-        name="foo",
-        connection=conn.name,
-        perms=[GroupPermission(name=perm)],
-        members=[GroupMember(mask="thing")],
-    )
+    group = Group(name="foo", connection=conn.name)
 
-    group1 = Group(
-        name="foo1",
-        connection=conn.name,
-        perms=[GroupPermission(name=perm)],
-        members=[GroupMember(mask="thing1")],
-    )
+    group.perms.append(GroupPermission(name=perm))
+    group.members.append(GroupMember(mask="thing"))
+
+    group1 = Group(name="foo1", connection=conn.name)
+
+    group1.perms.append(GroupPermission(name=perm))
+    group1.members.append(GroupMember(mask="thing1"))
 
     session.add(group)
     session.add(group1)
@@ -229,19 +225,15 @@ async def test_db_config_merge(mock_db, mock_bot_factory) -> None:
     conn = MockClient(bot=bot, name="testconn")
 
     perm = "bar"
-    group = Group(
-        name="foo",
-        connection=conn.name,
-        perms=[GroupPermission(name=perm)],
-        members=[GroupMember(mask="thing")],
-    )
+    group = Group(name="foo", connection=conn.name)
 
-    group1 = Group(
-        name="foo1",
-        connection=conn.name,
-        perms=[GroupPermission(name=perm)],
-        members=[GroupMember(mask="thing1")],
-    )
+    group.perms.append(GroupPermission(name=perm))
+    group.members.append(GroupMember(mask="thing"))
+
+    group1 = Group(name="foo1", connection=conn.name)
+
+    group1.perms.append(GroupPermission(name=perm))
+    group1.members.append(GroupMember(mask="thing1"))
 
     session.add(group)
     session.add(group1)

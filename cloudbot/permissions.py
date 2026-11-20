@@ -28,10 +28,16 @@ class Group(database.Base):
     connection: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(primary_key=True)
     members: Mapped[list[GroupMember]] = relationship(
-        "GroupMember", back_populates="group", uselist=True
+        "GroupMember",
+        back_populates="group",
+        uselist=True,
+        default_factory=list,
     )
     perms: Mapped[list[GroupPermission]] = relationship(
-        "GroupPermission", back_populates="group", uselist=True
+        "GroupPermission",
+        back_populates="group",
+        uselist=True,
+        default_factory=list,
     )
 
     config: Mapped[bool | None] = mapped_column(default=False)
@@ -54,10 +60,12 @@ class Group(database.Base):
 class GroupMember(database.Base):
     __tablename__ = "group_member"
 
-    connection: Mapped[str] = mapped_column(primary_key=True)
-    group_id: Mapped[str] = mapped_column(primary_key=True)
+    connection: Mapped[str] = mapped_column(primary_key=True, init=False)
+    group_id: Mapped[str] = mapped_column(primary_key=True, init=False)
 
-    group: Mapped[Group] = relationship(back_populates="members", uselist=False)
+    group: Mapped[Group] = relationship(
+        back_populates="members", uselist=False, init=False
+    )
 
     mask: Mapped[str] = mapped_column(primary_key=True)
 
@@ -78,10 +86,10 @@ class GroupMember(database.Base):
 class GroupPermission(database.Base):
     __tablename__ = "group_perm"
 
-    connection: Mapped[str] = mapped_column(primary_key=True)
-    group_id: Mapped[str] = mapped_column(primary_key=True)
+    connection: Mapped[str] = mapped_column(primary_key=True, init=False)
+    group_id: Mapped[str] = mapped_column(primary_key=True, init=False)
     group: Mapped[Group] = relationship(
-        Group, back_populates="perms", uselist=False
+        Group, back_populates="perms", uselist=False, init=False
     )
 
     name: Mapped[str] = mapped_column(primary_key=True)
@@ -142,18 +150,16 @@ class PermissionManager:
                     member = session.get(
                         GroupMember,
                         {
-                            "group_id": group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            "group_id": group.name,
                             "mask": user.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            "connection": self.name.lower(),
+                            "connection": group.connection,
                         },
                     )
                     if not member:
                         member = GroupMember(
-                            group_id=group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            mask=user.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            connection=self.name.lower(),
+                            mask=user.lower()  # pyright: ignore[reportAny] # TODO: type configs
                         )
-                        session.add(member)
+                        group.members.append(member)
 
                     member.config = True
                     updated.append(member)
@@ -162,18 +168,16 @@ class PermissionManager:
                     binding = session.get(
                         GroupPermission,
                         {
-                            "group_id": group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
+                            "group_id": group.name,
                             "name": perm.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            "connection": self.name.lower(),
+                            "connection": group.connection,
                         },
                     )
                     if not binding:
                         binding = GroupPermission(
-                            group_id=group_id.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            name=perm.lower(),  # pyright: ignore[reportAny] # TODO: type configs
-                            connection=self.name.lower(),
+                            name=perm.lower()  # pyright: ignore[reportAny] # TODO: type configs
                         )
-                        session.add(binding)
+                        group.perms.append(binding)
 
                     binding.config = True
                     updated.append(binding)
@@ -339,11 +343,7 @@ class PermissionManager:
         group = self.get_or_create_group(group_id)
         session = Session()
 
-        session.add(
-            GroupMember(
-                mask=user_mask, group=group, connection=self.name.lower()
-            )
-        )
+        group.members.append(GroupMember(mask=user_mask))
 
         session.commit()
 

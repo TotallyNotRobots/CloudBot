@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, final
 
 from sqlalchemy import delete, insert
-from sqlalchemy.orm import Mapped, MappedAsDataclass, Session, mapped_column
+from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from cloudbot import hook
 from cloudbot.event import EventType
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 @final
-class BadWord(MappedAsDataclass, database.Base):  # pyright: ignore[reportUnsafeMultipleInheritance]
+class BadWord(database.Base):
     __tablename__ = "badwords"
 
     word: Mapped[str] = mapped_column(primary_key=True)
