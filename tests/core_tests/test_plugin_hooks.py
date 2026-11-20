@@ -235,6 +235,8 @@ def test_hook_doc(hook) -> None:
 
 
 def test_hook_args(hook, mock_bot) -> None:
+    re_match = re.match(".", "a")
+    assert re_match is not None
     bot = mock_bot
     if hook.type in (
         "irc_raw",
@@ -251,7 +253,7 @@ def test_hook_args(hook, mock_bot) -> None:
             bot=bot, hook=hook, text="", triggered_command="", cmd_prefix="."
         )
     elif hook.type == "regex":
-        event = RegexEvent(bot=bot, hook=hook, match=None)
+        event = RegexEvent(bot=bot, hook=hook, match=re_match)
     elif hook.type.startswith("on_cap"):
         event = CapEvent(bot=bot, cap="")
     elif hook.type == "post_hook":

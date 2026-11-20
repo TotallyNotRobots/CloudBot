@@ -26,7 +26,7 @@ async def _do_test(
     mock_bot_factory,
     text: str | None = "test _ data",
     is_nick_valid=None,
-    nick=None,
+    nick: str | None = None,
     bot_nick=None,
 ):
     plugin = importlib.import_module(f"plugins.{plugin_name}")

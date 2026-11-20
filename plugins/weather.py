@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import math
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 import googlemaps
 import pyowm
 from googlemaps.exceptions import ApiError
 from pyowm import OWM
-from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
+from sqlalchemy import insert, update
+from sqlalchemy.orm import Mapped, mapped_column
 
 from cloudbot import hook
+from cloudbot.errors import ShouldBeUnreachable
 from cloudbot.util import colors, database
 
 if TYPE_CHECKING:
@@ -56,15 +58,15 @@ class PluginData:
 
 data = PluginData()
 
-# Define database table
 
-table = Table(
-    "weather",
-    database.metadata,
-    Column("nick", String),
-    Column("loc", String),
-    PrimaryKeyConstraint("nick"),
-)
+# Define database table
+@final
+class WeatherLocation(database.Base):
+    __tablename__ = "weather"
+
+    nick: Mapped[str] = mapped_column(primary_key=True)
+    loc: Mapped[str]
+
 
 location_cache: list[tuple[str, str]] = []
 
@@ -145,18 +147,20 @@ def find_location(location, bias=None):
     return out
 
 
-def add_location(nick, location, db) -> None:
+def add_location(nick: str, location: str, db: Session) -> None:
     test = dict(location_cache)
     location = str(location)
     if nick.lower() in test:
         db.execute(
-            table.update()
+            update(WeatherLocation)
             .values(loc=location.lower())
-            .where(table.c.nick == nick.lower())
+            .where(WeatherLocation.nick == nick.lower())
         )
     else:
         db.execute(
-            table.insert().values(nick=nick.lower(), loc=location.lower())
+            insert(WeatherLocation).values(
+                nick=nick.lower(), loc=location.lower()
+            )
         )
 
     db.commit()
@@ -164,9 +168,9 @@ def add_location(nick, location, db) -> None:
 
 
 @hook.on_start()
-def load_cache(db) -> None:
+def load_cache(db: Session) -> None:
     new_cache = []
-    for row in db.execute(table.select()):
+    for row in db.query(WeatherLocation).all():
         new_cache.append((row.nick, row.loc))
 
     location_cache.clear()
@@ -210,6 +214,9 @@ def check_and_parse(event: CommandEvent, db: Session):
             return None, None
     else:
         location = event.text
+        if event.nick is None:
+            raise ShouldBeUnreachable
+
         add_location(event.nick, location, db)
 
     # Change this in the config to a ccTLD code (eg. uk, nz)

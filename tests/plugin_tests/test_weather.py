@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from responses import RequestsMock
 
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBot, MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -64,12 +64,10 @@ def test_mph_to_kph(mph, kph) -> None:
     assert weather.mph_to_kph(mph) == kph
 
 
-def get_test_data() -> dict[str, Any]:
-    return {
-        "json": json.loads(
-            get_data_file("owm.json").read_text(encoding="utf-8")
-        )
-    }
+def get_test_data() -> Any:  # pyright: ignore[reportAny]
+    return json.loads(  # pyright: ignore[reportAny]
+        get_data_file("owm.json").read_text(encoding="utf-8")
+    )
 
 
 def setup_api(
@@ -136,15 +134,15 @@ async def test_rounding(
 
     weather.location_cache.append(("foobar", "test location"))
 
-    new_data = deepcopy(get_test_data())
+    new_data = deepcopy(get_test_data())  # pyright: ignore[reportAny]
 
-    new_data["json"]["current"]["temp"] = 273.0944
+    new_data["current"]["temp"] = 273.0944
 
     mock_requests.add(
         "GET",
         "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
-        **new_data,
+        json=new_data,
     )
 
     out_text = (
@@ -251,7 +249,7 @@ async def test_find_location(
         "GET",
         "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
-        **get_test_data(),
+        json=get_test_data(),
     )
     assert wrap_hook_response(weather.weather, cmd_event) == [
         (
@@ -418,7 +416,11 @@ async def test_no_google_key(
 
 
 @pytest.mark.asyncio
-async def test_db_save(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_db_save(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -439,14 +441,14 @@ async def test_db_save(mock_bot_factory, mock_requests, mock_db) -> None:
         nick="foobar",
     )
 
-    weather.table.create(mock_db.engine, checkfirst=True)
+    mock_db.create_table(weather.WeatherLocation)
     cmd_event.db = mock_db.session()
 
     mock_requests.add(
         "GET",
         "https://api.openweathermap.org/data/3.0/onecall?"
         "APPID=abc12345abc12345abc12345abc12345&lang=en&lon=123.456&lat=30.123&exclude=minutely%2Chourly",
-        **get_test_data(),
+        json=get_test_data(),
     )
 
     (loc, data), err = call_with_args(weather.check_and_parse, cmd_event)
@@ -460,36 +462,31 @@ async def test_db_save(mock_bot_factory, mock_requests, mock_db) -> None:
 
     assert weather.location_cache == [(cmd_event.nick, cmd_event.text)]
 
-    db_data = mock_db.session().execute(weather.table.select()).fetchall()
-    assert len(db_data) == 1
-    assert list(db_data[0]) == [cmd_event.nick, cmd_event.text]
+    assert mock_db.get_data(weather.WeatherLocation) == [
+        (cmd_event.nick, cmd_event.text)
+    ]
 
 
-def test_update_location(mock_db) -> None:
-    weather.table.create(mock_db.engine, checkfirst=True)
+def test_update_location(mock_db: MockDB) -> None:
+    mock_db.create_table(weather.WeatherLocation)
 
     db = mock_db.session()
 
     nick = "testuser"
     loc = "testloc"
 
-    db.execute(weather.table.insert().values(nick=nick, loc=loc))
-    db.commit()
+    mock_db.add_row(weather.WeatherLocation, nick=nick, loc=loc)
 
     weather.load_cache(db)
 
     weather.add_location(nick, "newloc", db)
 
-    db_data = mock_db.session().execute(weather.table.select()).fetchall()
-
-    table_data = [list(row) for row in db_data]
-
-    assert table_data == [[nick, "newloc"]]
+    assert mock_db.get_data(weather.WeatherLocation) == [(nick, "newloc")]
 
 
 @pytest.mark.asyncio
 async def test_parse_no_results(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
+    mock_bot_factory, mock_requests, patch_try_shorten, mock_db: MockDB
 ) -> None:
     mock_requests.add(
         "GET",
@@ -497,7 +494,7 @@ async def test_parse_no_results(
         json={"status": "OK", "results": []},
     )
 
-    weather.table.create(mock_db.engine, True)
+    mock_db.create_table(weather.WeatherLocation)
 
     bot = mock_bot_factory(
         config={
