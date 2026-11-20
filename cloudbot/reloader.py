@@ -35,7 +35,7 @@ class Reloader(ABC):
 
 class PluginReloader(Reloader):
     def __init__(self, bot) -> None:
-        super().__init__(bot, PluginEventHandler, "[!_]*.py", recursive=True)
+        super().__init__(bot, PluginEventHandler, "**/[!_]*.py", recursive=True)
         self.reloading = set[Path]()
 
     def reload(self, path: str) -> None:
