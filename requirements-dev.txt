@@ -5,7 +5,7 @@ pytest-asyncio==1.5.0
 pytest-cov==7.1.0
 pytest-pythonhashseed==2.0.1
 pytest-random-order==1.2.0
-pytest==9.1.1
+pytest==9.2.0
 responses==0.26.3
 ruff==0.15.22
 types-requests==2.33.0.20261030
