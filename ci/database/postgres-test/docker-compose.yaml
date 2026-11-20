@@ -8,7 +8,7 @@ services:
     networks:
     - postgres-network
     volumes:
-    - ${PWD}/db-data/:/var/lib/postgresql/data/
+    - database:/var/lib/postgresql/data/
 
   pgadmin:
     image: dpage/pgadmin4
@@ -20,10 +20,10 @@ services:
     - database
     networks:
     - postgres-network
-    volumes:
-      # pgAdmin writes session data here. If startup fails with a permission
-      # error, set the host folder owner to 5050:5050 before starting.
-    - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
+
+volumes:
+  database:
+    driver: local
 
 networks:
   postgres-network:

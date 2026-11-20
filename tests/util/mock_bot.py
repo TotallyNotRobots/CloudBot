@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from watchdog.observers import Observer
@@ -68,3 +69,6 @@ class MockBot(AbstractBot):
 
     def migrate_db(self, *, old_db_url: str) -> None:
         return CloudBot.migrate_db(self, old_db_url=old_db_url)  # type: ignore[arg-type]
+
+
+MockBotFactory = Callable[..., MockBot]

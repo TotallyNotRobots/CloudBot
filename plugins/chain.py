@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
-from sqlalchemy import Boolean, Column, PrimaryKeyConstraint, String, Table
+from sqlalchemy import delete
+from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from cloudbot import hook
 from cloudbot.event import CommandEvent
@@ -13,21 +14,22 @@ from cloudbot.util.formatting import chunk_str, pluralize_auto
 if TYPE_CHECKING:
     from cloudbot.event_functions import EventNoticeDoc
 
-commands = Table(
-    "chain_commands",
-    database.metadata,
-    Column("hook", String),
-    Column("allowed", Boolean, default=True),
-    PrimaryKeyConstraint("hook", "allowed"),
-)
+
+@final
+class Commands(database.Base):
+    __tablename__ = "chain_commands_v2"
+
+    hook: Mapped[str] = mapped_column(primary_key=True)
+    allowed: Mapped[bool] = mapped_column(default=True)
+
 
 allow_cache: dict[str, bool] = {}
 
 
 @hook.on_start()
-def load_cache(db) -> None:
-    new_cache = {}
-    for row in db.execute(commands.select()):
+def load_cache(db: Session) -> None:
+    new_cache: dict[str, bool] = {}
+    for row in db.query(Commands).all():
         new_cache[row.hook] = row.allowed
 
     allow_cache.clear()
@@ -62,26 +64,21 @@ def get_hook_from_command(bot, hook_name):
     return possible[0] if len(possible) == 1 else None
 
 
-def handle_chainallow_add(args, notice_doc, hook_name, db):
-    values = {"hook": hook_name}
+def handle_chainallow_add(
+    args: list[str], notice_doc: EventNoticeDoc, hook_name: str, db: Session
+) -> str | None:
+    item = Commands(hook=hook_name)
     if args:
         allow = args.pop(0).lower()
         if allow == "allow":
-            allow = True
+            item.allowed = True
         elif allow == "deny":
-            allow = False
+            item.allowed = False
         else:
             return notice_doc()
 
-        values["allowed"] = allow
-
-    updated = True
-    res = db.execute(
-        commands.update().values(**values).where(commands.c.hook == hook_name)
-    )
-    if res.rowcount == 0:
-        updated = False
-        db.execute(commands.insert().values(**values))
+    updated = hook_name in allow_cache
+    item = db.merge(item)
 
     db.commit()
     load_cache(db)
@@ -94,11 +91,14 @@ def handle_chainallow_add(args, notice_doc, hook_name, db):
     return f"Added '{hook_name}' as a denied command"
 
 
-def handle_chainallow_del(args, notice_doc, hook_name, db) -> str:
-    res = db.execute(commands.delete().where(commands.c.hook == hook_name))
+def handle_chainallow_del(args, notice_doc, hook_name: str, db: Session) -> str:
+    condition = Commands.hook == hook_name
+    items = db.query(Commands).filter(condition).all()
+    count = len(items)
+    db.execute(delete(Commands).where(condition))
     db.commit()
     load_cache(db)
-    return f"Deleted {pluralize_auto(res.rowcount, 'row')}."
+    return f"Deleted {pluralize_auto(count, 'row')}."
 
 
 chainallow_subcmds = {

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
@@ -12,7 +14,8 @@ from plugins import chain
 from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBotFactory
+    from tests.util.mock_db import MockDB
 
 
 def _get_hook(func, name):
@@ -20,9 +23,11 @@ def _get_hook(func, name):
 
 
 @pytest.mark.asyncio
-async def test_chainlist_empty(mock_db, mock_bot_factory) -> None:
+async def test_chainlist_empty(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     chain.load_cache(mock_db.session())
     event = MagicMock()
     res = chain.chainlist(mock_bot, event)
@@ -31,7 +36,9 @@ async def test_chainlist_empty(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainlist(mock_db, mock_bot_factory) -> None:
+async def test_chainlist(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
 
     @command()
@@ -43,9 +50,9 @@ async def test_chainlist(mock_db, mock_bot_factory) -> None:
         _get_hook(func, "command"),
     )
     db = mock_db.session()
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     event = MagicMock()
-    mock_db.add_row(chain.commands, hook="foo.func", allowed=True)
+    mock_db.add_row(chain.Commands, hook="foo.func", allowed=True)
     chain.load_cache(db)
     res = chain.chainlist(mock_bot, event)
     assert res is None
@@ -53,7 +60,9 @@ async def test_chainlist(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainallow_bad_subcmd(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_bad_subcmd(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
@@ -63,7 +72,9 @@ async def test_chainallow_bad_subcmd(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_no_args(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_no_args(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
@@ -73,7 +84,9 @@ async def test_chainallow_add_no_args(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_no_cmd(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_no_cmd(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
@@ -83,7 +96,9 @@ async def test_chainallow_add_no_cmd(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainallow_del_no_cmd(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_del_no_cmd(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
@@ -93,134 +108,8 @@ async def test_chainallow_del_no_cmd(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_chainallow_del_hook_not_set(mock_db, mock_bot_factory) -> None:
-    @hook.command("foo")
-    def hook_func():
-        raise NotImplementedError
-
-    @hook.command("bar")
-    def other_hook_func():
-        raise NotImplementedError
-
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
-    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
-    mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
-    )
-
-    mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
-    )
-
-    chain.commands.create(mock_db.engine)
-    db = mock_db.session()
-    notice_doc = MagicMock(return_value=None)
-    res = chain.chainallow("del foo.other_hook_func", db, notice_doc, mock_bot)
-    assert res == "Deleted 0 rows."
-    assert notice_doc.mock_calls == []
-
-    assert mock_db.get_data(chain.commands) == []
-
-
-@pytest.mark.asyncio
-async def test_chainallow_del_hook(mock_db, mock_bot_factory) -> None:
-    @hook.command("foo")
-    def hook_func():
-        raise NotImplementedError
-
-    @hook.command("bar")
-    def other_hook_func():
-        raise NotImplementedError
-
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
-    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
-    mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
-    )
-
-    mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
-    )
-
-    chain.commands.create(mock_db.engine)
-    mock_db.load_data(
-        chain.commands, [{"hook": "foo.other_hook_func", "allowed": False}]
-    )
-
-    db = mock_db.session()
-    chain.load_cache(db)
-    notice_doc = MagicMock(return_value=None)
-    res = chain.chainallow("del foo.other_hook_func", db, notice_doc, mock_bot)
-    assert res == "Deleted 1 row."
-    assert notice_doc.mock_calls == []
-    assert mock_db.get_data(chain.commands) == []
-
-
-@pytest.mark.asyncio
-async def test_chainallow_add_hook_no_arg(mock_db, mock_bot_factory) -> None:
-    @hook.command("foo")
-    def hook_func():
-        raise NotImplementedError
-
-    @hook.command("bar")
-    def other_hook_func():
-        raise NotImplementedError
-
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
-    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
-    mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
-    )
-
-    mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
-    )
-
-    chain.commands.create(mock_db.engine)
-    db = mock_db.session()
-    notice_doc = MagicMock(return_value=None)
-    res = chain.chainallow("add foo.other_hook_func", db, notice_doc, mock_bot)
-    assert res == "Added 'foo.other_hook_func' as an allowed command"
-    assert notice_doc.mock_calls == []
-
-    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
-
-
-@pytest.mark.asyncio
-async def test_chainallow_add_hook_allow(mock_db, mock_bot_factory) -> None:
-    @hook.command("foo")
-    def hook_func():
-        raise NotImplementedError
-
-    @hook.command("bar")
-    def other_hook_func():
-        raise NotImplementedError
-
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
-    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
-    mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
-    )
-
-    mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
-    )
-
-    chain.commands.create(mock_db.engine)
-    db = mock_db.session()
-    notice_doc = MagicMock(return_value=None)
-    res = chain.chainallow(
-        "add foo.other_hook_func allow", db, notice_doc, mock_bot
-    )
-    assert res == "Added 'foo.other_hook_func' as an allowed command"
-    assert notice_doc.mock_calls == []
-
-    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
-
-
-@pytest.mark.asyncio
-async def test_chainallow_add_hook_allow_update(
-    mock_db, mock_bot_factory
+async def test_chainallow_del_hook_not_set(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
     def hook_func():
@@ -230,7 +119,7 @@ async def test_chainallow_add_hook_allow_update(
     def other_hook_func():
         raise NotImplementedError
 
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
+    mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
         plugin, _get_hook(hook_func, "command")
@@ -240,9 +129,148 @@ async def test_chainallow_add_hook_allow_update(
         plugin, _get_hook(other_hook_func, "command")
     )
 
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
+    db = mock_db.session()
+    notice_doc = MagicMock(return_value=None)
+    res = chain.chainallow("del foo.other_hook_func", db, notice_doc, mock_bot)
+    assert res == "Deleted 0 rows."
+    assert notice_doc.mock_calls == []
+
+    assert mock_db.get_data(chain.Commands) == []
+
+
+@pytest.mark.asyncio
+async def test_chainallow_del_hook(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @hook.command("foo")
+    def hook_func():
+        raise NotImplementedError
+
+    @hook.command("bar")
+    def other_hook_func():
+        raise NotImplementedError
+
+    mock_bot = mock_bot_factory(db=mock_db)
+    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
+    mock_bot.plugin_manager.commands["foo"] = CommandHook(
+        plugin, _get_hook(hook_func, "command")
+    )
+
+    mock_bot.plugin_manager.commands["bar"] = CommandHook(
+        plugin, _get_hook(other_hook_func, "command")
+    )
+
+    mock_db.create_table(chain.Commands)
     mock_db.load_data(
-        chain.commands, [{"hook": "foo.other_hook_func", "allowed": False}]
+        chain.Commands, [{"hook": "foo.other_hook_func", "allowed": False}]
+    )
+
+    db = mock_db.session()
+    chain.load_cache(db)
+    notice_doc = MagicMock(return_value=None)
+    res = chain.chainallow("del foo.other_hook_func", db, notice_doc, mock_bot)
+    assert res == "Deleted 1 row."
+    assert notice_doc.mock_calls == []
+    assert mock_db.get_data(chain.Commands) == []
+
+
+@pytest.fixture(autouse=True)
+def reset_allowcache() -> None:
+    chain.allow_cache.clear()
+
+
+@pytest.mark.asyncio
+async def test_chainallow_add_hook_no_arg(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @hook.command("foo")
+    def hook_func():
+        raise NotImplementedError
+
+    @hook.command("bar")
+    def other_hook_func():
+        raise NotImplementedError
+
+    mock_bot = mock_bot_factory(db=mock_db)
+    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
+    mock_bot.plugin_manager.commands["foo"] = CommandHook(
+        plugin, _get_hook(hook_func, "command")
+    )
+
+    mock_bot.plugin_manager.commands["bar"] = CommandHook(
+        plugin, _get_hook(other_hook_func, "command")
+    )
+
+    mock_db.create_table(chain.Commands)
+    db = mock_db.session()
+    notice_doc = MagicMock(return_value=None)
+    res = chain.chainallow("add foo.other_hook_func", db, notice_doc, mock_bot)
+    assert res == "Added 'foo.other_hook_func' as an allowed command"
+    assert notice_doc.mock_calls == []
+
+    assert mock_db.get_data(chain.Commands) == [("foo.other_hook_func", True)]
+
+
+@pytest.mark.asyncio
+async def test_chainallow_add_hook_allow(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @hook.command("foo")
+    def hook_func():
+        raise NotImplementedError
+
+    @hook.command("bar")
+    def other_hook_func():
+        raise NotImplementedError
+
+    mock_bot = mock_bot_factory(db=mock_db)
+    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
+    mock_bot.plugin_manager.commands["foo"] = CommandHook(
+        plugin, _get_hook(hook_func, "command")
+    )
+
+    mock_bot.plugin_manager.commands["bar"] = CommandHook(
+        plugin, _get_hook(other_hook_func, "command")
+    )
+
+    mock_db.create_table(chain.Commands)
+    db = mock_db.session()
+    notice_doc = MagicMock(return_value=None)
+    res = chain.chainallow(
+        "add foo.other_hook_func allow", db, notice_doc, mock_bot
+    )
+    assert res == "Added 'foo.other_hook_func' as an allowed command"
+    assert notice_doc.mock_calls == []
+
+    assert mock_db.get_data(chain.Commands) == [("foo.other_hook_func", True)]
+
+
+@pytest.mark.asyncio
+async def test_chainallow_add_hook_allow_update(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @hook.command("foo")
+    def hook_func():
+        raise NotImplementedError
+
+    @hook.command("bar")
+    def other_hook_func():
+        raise NotImplementedError
+
+    mock_bot = mock_bot_factory(db=mock_db)
+    plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
+    mock_bot.plugin_manager.commands["foo"] = CommandHook(
+        plugin, _get_hook(hook_func, "command")
+    )
+
+    mock_bot.plugin_manager.commands["bar"] = CommandHook(
+        plugin, _get_hook(other_hook_func, "command")
+    )
+
+    mock_db.create_table(chain.Commands)
+    mock_db.load_data(
+        chain.Commands, [{"hook": "foo.other_hook_func", "allowed": False}]
     )
     db = mock_db.session()
     chain.load_cache(db)
@@ -257,11 +285,13 @@ async def test_chainallow_add_hook_allow_update(
     )
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", True)]
+    assert mock_db.get_data(chain.Commands) == [("foo.other_hook_func", True)]
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_hook_deny(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     @hook.command("foo")
     def hook_func():
         raise NotImplementedError
@@ -270,7 +300,7 @@ async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
     def other_hook_func():
         raise NotImplementedError
 
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
+    mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
         plugin, _get_hook(hook_func, "command")
@@ -280,7 +310,7 @@ async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
         plugin, _get_hook(other_hook_func, "command")
     )
 
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
     res = chain.chainallow(
@@ -289,11 +319,13 @@ async def test_chainallow_add_hook_deny(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.other_hook_func' as a denied command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [("foo.other_hook_func", False)]
+    assert mock_db.get_data(chain.Commands) == [("foo.other_hook_func", False)]
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_hook_bad_arg(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_hook_bad_arg(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     @hook.command("foo")
     def hook_func():
         raise NotImplementedError
@@ -302,7 +334,7 @@ async def test_chainallow_add_hook_bad_arg(mock_db, mock_bot_factory) -> None:
     def other_hook_func():
         raise NotImplementedError
 
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
+    mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
         plugin, _get_hook(hook_func, "command")
@@ -312,7 +344,7 @@ async def test_chainallow_add_hook_bad_arg(mock_db, mock_bot_factory) -> None:
         plugin, _get_hook(other_hook_func, "command")
     )
 
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
     res = chain.chainallow(
@@ -321,11 +353,13 @@ async def test_chainallow_add_hook_bad_arg(mock_db, mock_bot_factory) -> None:
     assert res is None
     assert notice_doc.mock_calls == [call()]
 
-    assert mock_db.get_data(chain.commands) == []
+    assert mock_db.get_data(chain.Commands) == []
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_cmd(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_cmd(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     @hook.command("foo")
     def hook_func():
         raise NotImplementedError
@@ -334,7 +368,7 @@ async def test_chainallow_add_cmd(mock_db, mock_bot_factory) -> None:
     def other_hook_func():
         raise NotImplementedError
 
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
+    mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
         plugin, _get_hook(hook_func, "command")
@@ -344,18 +378,20 @@ async def test_chainallow_add_cmd(mock_db, mock_bot_factory) -> None:
         plugin, _get_hook(other_hook_func, "command")
     )
 
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
     res = chain.chainallow("add foo allow", db, notice_doc, mock_bot)
     assert res == "Added 'foo.hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [("foo.hook_func", True)]
+    assert mock_db.get_data(chain.Commands) == [("foo.hook_func", True)]
 
 
 @pytest.mark.asyncio
-async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
+async def test_chainallow_add_partial_cmd(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     @hook.command("foo")
     def hook_func():
         raise NotImplementedError
@@ -364,7 +400,7 @@ async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
     def other_hook_func():
         raise NotImplementedError
 
-    mock_bot: MockBot = mock_bot_factory(db=mock_db)
+    mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
         plugin, _get_hook(hook_func, "command")
@@ -374,7 +410,7 @@ async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
         plugin, _get_hook(other_hook_func, "command")
     )
 
-    chain.commands.create(mock_db.engine)
+    mock_db.create_table(chain.Commands)
     db = mock_db.session()
     notice_doc = MagicMock(return_value=None)
     res = chain.chainallow(
@@ -386,4 +422,4 @@ async def test_chainallow_add_partial_cmd(mock_db, mock_bot_factory) -> None:
     assert res == "Added 'foo.hook_func' as an allowed command"
     assert notice_doc.mock_calls == []
 
-    assert mock_db.get_data(chain.commands) == [("foo.hook_func", True)]
+    assert mock_db.get_data(chain.Commands) == [("foo.hook_func", True)]
