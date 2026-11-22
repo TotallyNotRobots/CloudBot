@@ -25,7 +25,7 @@ __all__ = (
 
 
 class LoggingInfo:
-    dir = Path("logs")
+    dir: Path = Path("logs")
 
     def make_dir(self) -> None:
         self.dir.mkdir(exist_ok=True, parents=True)

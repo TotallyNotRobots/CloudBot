@@ -13,13 +13,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 from irclib.parser import Message
+from typing_extensions import override
 
 from cloudbot.client import Client, ClientConnectError, client
 from cloudbot.event import Event, EventType, IrcOutEvent
 from cloudbot.util import colors
 
 if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
     from collections.abc import Mapping
+
+    from cloudbot.bot import AbstractBot
 
 logger = logging.getLogger("cloudbot")
 
@@ -81,7 +85,7 @@ chan_params = {
 target_params = {"KICK": 1, "INVITE": 0, "MODE": 0}
 
 
-def decode(bytestring):
+def decode(bytestring: bytes) -> str:
     """
     Tries to decode a bytestring using multiple encoding formats
 
@@ -200,12 +204,14 @@ class IrcClient(Client):
 
         return ssl_context
 
+    @override
     def describe_server(self) -> str:
         if self.use_ssl:
             return f"+{self.server}:{self.port}"
 
         return f"{self.server}:{self.port}"
 
+    @override
     async def auto_reconnect(self) -> None:
         """
         This method should be called by code that attempts to automatically reconnect to a server
@@ -219,6 +225,7 @@ class IrcClient(Client):
 
         await self.try_connect()
 
+    @override
     async def try_connect(self) -> None:
         while self.active and not self.connected:
             try:
@@ -250,7 +257,8 @@ class IrcClient(Client):
             except (asyncio.CancelledError, TimeoutError):
                 pass
 
-    async def connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    @override
+    async def connect(self, timeout: float | None = None) -> None:
         """
         Connects to the IRC server, or reconnects if already connected.
         """
@@ -265,7 +273,7 @@ class IrcClient(Client):
         finally:
             self._connecting = False
 
-    async def _connect(self, timeout=None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    async def _connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
         # connect to the clients server
         if self.connected:
             logger.info("[%s] Reconnecting", self.name)
@@ -302,7 +310,10 @@ class IrcClient(Client):
         # TODO stop connecting if a connect hook fails?
         await asyncio.gather(*tasks)
 
-    def quit(self, reason=None, set_inactive=True) -> None:
+    @override
+    def quit(
+        self, reason: str | None = None, set_inactive: bool = True
+    ) -> None:
         if set_inactive:
             self._active = False
 
@@ -312,32 +323,39 @@ class IrcClient(Client):
             else:
                 self.cmd("QUIT")
 
+    @override
     def close(self) -> None:
         self.quit()
         if self._protocol:
             self._protocol.close()
 
-    def message(self, target, *messages) -> None:
+    @override
+    def message(self, target: str, *messages: str) -> None:
         for text in messages:
             self.cmd("PRIVMSG", target, text)
 
-    def admin_log(self, text, console=True) -> None:
+    @override
+    def admin_log(self, text: str, console: bool = True) -> None:
         if log_chan := self.config.get("log_channel"):
             self.message(log_chan, text)  # pyright: ignore[reportAny] # TODO: type configs
 
         if console:
             logger.info("[%s|admin] %s", self.name, text)
 
-    def action(self, target, text) -> None:
+    @override
+    def action(self, target: str, text: str) -> None:
         self.ctcp(target, "ACTION", text)
 
-    def notice(self, target, text) -> None:
+    @override
+    def notice(self, target: str, text: str) -> None:
         self.cmd("NOTICE", target, text)
 
-    def set_nick(self, nick) -> None:
+    @override
+    def set_nick(self, nick: str) -> None:
         self.cmd("NICK", nick)
 
-    def join(self, channel, key=None) -> None:
+    @override
+    def join(self, channel: str, key: str | None = None) -> None:
         key = self.get_channel_key(channel, key)
         if key:
             self.cmd("JOIN", channel, key)
@@ -347,24 +365,25 @@ class IrcClient(Client):
         if channel not in self.channels:
             self.channels.append(channel)
 
-    def part(self, channel) -> None:
+    @override
+    def part(self, channel: str) -> None:
         self.cmd("PART", channel)
         if channel in self.channels:
             self.channels.remove(channel)
 
-    def set_pass(self, password) -> None:
+    def set_pass(self, password: str) -> None:
         if not password:
             return
         self.cmd("PASS", password)
 
-    def ctcp(self, target, ctcp_type, text) -> None:
+    def ctcp(self, target: str, ctcp_type: str, text: str) -> None:
         """
         Makes the bot send a PRIVMSG CTCP of type <ctcp_type> to the target
         """
         out = f"\x01{ctcp_type} {text}\x01"
         self.cmd("PRIVMSG", target, out)
 
-    def cmd(self, command, *params) -> None:
+    def cmd(self, command: str, *params: str) -> None:
         """
         Sends a raw IRC command of type <command> with params <params>
         :param command: The IRC command to send
@@ -385,7 +404,7 @@ class IrcClient(Client):
 
         self.loop.call_soon_threadsafe(self._send, line, log)
 
-    def _send(self, line, log=True):
+    def _send(self, line: str, log: bool = True) -> None:
         """
         Sends a raw IRC line unchecked. Doesn't do connected check, and is *not* threadsafe
         """
@@ -397,13 +416,15 @@ class IrcClient(Client):
         )
 
     @property
+    @override
     def connected(self) -> bool:
         if not self._protocol:
             return False
 
         return self._protocol.connected
 
-    def is_nick_valid(self, nick):
+    @override
+    def is_nick_valid(self, nick: str) -> bool:
         return bool(irc_nick_re.fullmatch(nick))
 
 
@@ -412,16 +433,16 @@ class _IrcProtocol(asyncio.Protocol):
 
     def __init__(self, conn: IrcClient) -> None:
         """ """
-        self.loop = conn.loop
-        self.bot = conn.bot
-        self.conn = conn
+        self.loop: AbstractEventLoop = conn.loop
+        self.bot: AbstractBot = conn.bot
+        self.conn: IrcClient = conn
 
         # input buffer
-        self._input_buffer = b""
+        self._input_buffer: bytes = b""
 
         # connected
-        self._connected = False
-        self._connecting = True
+        self._connected: bool = False
+        self._connecting: bool = True
 
         # transport
         self._transport: asyncio.Transport | None = None
@@ -429,7 +450,8 @@ class _IrcProtocol(asyncio.Protocol):
         # Future that waits until we are connected
         self._connected_future = self.loop.create_future()
 
-    def connection_made(self, transport) -> None:
+    @override
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
         self._transport = transport
         self._connecting = False
         self._connected = True
@@ -437,7 +459,8 @@ class _IrcProtocol(asyncio.Protocol):
         # we don't need the _connected_future, everything uses it will check _connected first.
         del self._connected_future
 
-    def connection_lost(self, exc) -> None:
+    @override
+    def connection_lost(self, exc: Exception | None) -> None:
         self._connected = False
         if exc:
             logger.error("[%s] Connection lost: %s", self.conn.name, exc)
@@ -458,7 +481,7 @@ class _IrcProtocol(asyncio.Protocol):
             if not fut.done():
                 fut.cancel()
 
-    async def send(self, line, log=True):
+    async def send(self, line, log: bool = True) -> None:
         # make sure we are connected before sending
         if not self.connected or self._transport is None:
             if self._connecting:
@@ -512,7 +535,8 @@ class _IrcProtocol(asyncio.Protocol):
 
         self._transport.write(line)
 
-    def data_received(self, data) -> None:
+    @override
+    def data_received(self, data: bytes) -> None:
         self._input_buffer += data
 
         while b"\r\n" in self._input_buffer:

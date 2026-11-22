@@ -4,7 +4,7 @@ import asyncio
 import logging
 import random
 from collections import defaultdict, deque
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import CLIENT_ATTR
@@ -15,13 +15,20 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("cloudbot")
 
+_ClientT = TypeVar("_ClientT", bound="Client")
 
-def client(_type):
-    def _decorate(cls):
-        setattr(cls, CLIENT_ATTR, _type)
+
+class ClientDecorator:
+    def __init__(self, type_: str) -> None:
+        self.type_: str = type_
+
+    def __call__(self, cls: type[_ClientT]) -> type[_ClientT]:
+        setattr(cls, CLIENT_ATTR, self.type_)
         return cls
 
-    return _decorate
+
+def client(_type: str) -> ClientDecorator:
+    return ClientDecorator(_type)
 
 
 class ClientConnectError(Exception):

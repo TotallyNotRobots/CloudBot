@@ -8,7 +8,8 @@ import logging
 import re
 import time
 import warnings
-from concurrent.futures.thread import ThreadPoolExecutor
+from asyncio import AbstractEventLoop
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -39,10 +40,10 @@ logger = logging.getLogger("cloudbot")
 
 class AbstractBot:
     def __init__(
-        self, *, config: Config, loop: asyncio.AbstractEventLoop | None = None
+        self, *, config: Config, loop: AbstractEventLoop | None = None
     ) -> None:
-        self.config = config
-        self.loop = loop
+        self.config: Config = config
+        self.loop: AbstractEventLoop | None = loop
 
     def get_connection_configs(self) -> KeyFoldDict[ConnConfig]:
         out = KeyFoldDict[ConnConfig]()
@@ -114,7 +115,7 @@ def __getattr__(item: str):
     raise AttributeError(item)
 
 
-def clean_name(n):
+def clean_name(n: str) -> str:
     """strip all spaces and capitalization"""
     return re.sub("[^A-Za-z0-9_]+", "", n.replace(" ", "_"))
 
@@ -274,7 +275,7 @@ class CloudBot(AbstractBot):
     def get_client(self, name: str) -> type[Client]:
         return self.clients[name]
 
-    def register_client(self, name, cls) -> None:
+    def register_client(self, name: str, cls: type[Client]) -> None:
         self.clients[name] = cls
 
     def create_connections(self) -> None:
@@ -293,7 +294,9 @@ class CloudBot(AbstractBot):
             )
             logger.debug("[%s] Created connection.", name)
 
-    async def stop(self, reason=None, *, restart=False) -> None:
+    async def stop(
+        self, reason: str | None = None, *, restart: bool = False
+    ) -> None:
         """quits all networks and shuts the bot down"""
         logger.info("Stopping bot.")
 
@@ -338,7 +341,7 @@ class CloudBot(AbstractBot):
         if self.stopped_future:
             self.stopped_future.set_result(restart)
 
-    async def restart(self, reason=None) -> None:
+    async def restart(self, reason: str | None = None) -> None:
         """shuts the bot down and restarts it"""
         await self.stop(reason=reason, restart=True)
 
