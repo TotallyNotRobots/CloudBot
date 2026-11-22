@@ -47,7 +47,7 @@ class MemberNotFoundException(KeyError):
         self.masks = [memb.user.mask.mask for memb in self.members]
 
 
-class ChannelMembersDict(KeyFoldDict):
+class ChannelMembersDict(KeyFoldDict["Channel.Member"]):
     def __init__(self, chan) -> None:
         super().__init__()
         self.chan = weakref.ref(chan)
@@ -71,7 +71,7 @@ class ChannelMembersDict(KeyFoldDict):
             raise MemberNotFoundException(key, self.chan()) from e
 
 
-class ChanDict(KeyFoldDict):
+class ChanDict(KeyFoldDict["Channel"]):
     """
     Mapping for channels on a network
     """
@@ -89,7 +89,7 @@ class ChanDict(KeyFoldDict):
             return value
 
 
-class UsersDict(KeyFoldWeakValueDict):
+class UsersDict(KeyFoldWeakValueDict["User"]):
     """
     Mapping for users on a network
     """
@@ -218,7 +218,7 @@ class User(MappingAttributeAdapter):
 
         self.is_oper = False
 
-        self.channels = KeyFoldWeakValueDict()
+        self.channels = KeyFoldWeakValueDict[Channel.Member]()
         super().__init__()
 
     def join_channel(self, channel):

@@ -19,7 +19,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from typing_extensions import override
 from watchdog.observers import Observer
 
-from cloudbot.config import Config
+from cloudbot.config import Config, ConnConfig
 from cloudbot.event import CommandEvent, Event, EventType, RegexEvent
 from cloudbot.hook import Action
 from cloudbot.plugin import PluginManager
@@ -44,8 +44,8 @@ class AbstractBot:
         self.config = config
         self.loop = loop
 
-    def get_connection_configs(self) -> KeyFoldDict:
-        out = KeyFoldDict()
+    def get_connection_configs(self) -> KeyFoldDict[ConnConfig]:
+        out = KeyFoldDict[ConnConfig]()
         for config in self.config["connections"]:
             # strip all spaces and capitalization from the connection name
             original_name = config["name"]
@@ -170,7 +170,7 @@ class CloudBot(AbstractBot):
         self.stopped_future: asyncio.Future[bool] | None = None
 
         # stores each bot server connection
-        self.connections = KeyFoldDict()
+        self.connections: KeyFoldDict[Client] = KeyFoldDict()
 
         # for plugins
         self.logger = logger
@@ -288,7 +288,7 @@ class CloudBot(AbstractBot):
                 _type,
                 name,
                 nick,
-                config=config,
+                config=dict(config),
                 channels=config["channels"],
             )
             logger.debug("[%s] Created connection.", name)
