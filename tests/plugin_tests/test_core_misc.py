@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, call
 import pytest
 from irclib.parser import ParamList
 
-from cloudbot.client import ChannelConfig
+from cloudbot.config import ChannelConfig
 from plugins.core import core_misc
 from tests.util.mock_conn import MockClient
 from tests.util.mock_irc_client import MockIrcClient

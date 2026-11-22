@@ -5,13 +5,14 @@ from unittest.mock import MagicMock
 
 from typing_extensions import override
 
-from cloudbot.client import Client, ConfigChannelList
+from cloudbot.client import Client
 
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
     from unittest.mock import _CallList
 
     from cloudbot.bot import AbstractBot
+    from cloudbot.config import ConfigChannelList
     from cloudbot.permissions import PermissionManager
 
 

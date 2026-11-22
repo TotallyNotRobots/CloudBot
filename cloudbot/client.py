@@ -4,13 +4,14 @@ import asyncio
 import logging
 import random
 from collections import defaultdict, deque
-from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any
 
 from cloudbot.permissions import PermissionManager
 from cloudbot.util import CLIENT_ATTR
 
 if TYPE_CHECKING:
     from cloudbot.bot import AbstractBot
+    from cloudbot.config import ConfigChannelList
 
 logger = logging.getLogger("cloudbot")
 
@@ -30,14 +31,6 @@ class ClientConnectError(Exception):
         )
         self.client_name = client_name
         self.server = server
-
-
-class ChannelConfig(TypedDict):
-    name: str
-    key: NotRequired[str]
-
-
-ConfigChannelList = list[str | list[str] | ChannelConfig]
 
 
 class Client:

@@ -4,9 +4,24 @@ import sys
 import time
 from collections import OrderedDict
 from pathlib import Path
-from typing import cast
+from typing import NotRequired, TypedDict, cast
 
 logger = logging.getLogger("cloudbot")
+
+
+class ChannelConfig(TypedDict):
+    name: str
+    key: NotRequired[str]
+
+
+ConfigChannelList = list[str | list[str] | ChannelConfig]
+
+
+class ConnConfig(TypedDict):
+    name: str
+    nick: str
+    type: NotRequired[str]
+    channels: ConfigChannelList
 
 
 class Config(OrderedDict):
