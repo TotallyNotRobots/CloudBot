@@ -13,6 +13,7 @@ from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
 from tests.util import HookResult, get_data_file, wrap_hook_response
+from tests.util.mock_conn import MockClient
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -118,7 +119,8 @@ async def test_rounding(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -132,7 +134,7 @@ async def test_rounding(
         nick="foobar",
     )
 
-    weather.location_cache.append(("foobar", "test location"))
+    weather.location_cache[(conn_name, "foobar")] = "test location"
 
     new_data = deepcopy(get_test_data())  # pyright: ignore[reportAny]
 
@@ -224,7 +226,8 @@ async def test_find_location(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -243,7 +246,7 @@ async def test_find_location(
 
     cmd_event.prepare_threaded()
 
-    weather.location_cache.append(("foobar", "test location"))
+    weather.location_cache[(conn_name, "foobar")] = "test location"
 
     mock_requests.add(
         "GET",
@@ -291,7 +294,8 @@ async def test_api_error(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -310,7 +314,7 @@ async def test_api_error(
 
     cmd_event.prepare_threaded()
 
-    weather.location_cache.append(("foobar", "test location"))
+    weather.location_cache[(conn_name, "foobar")] = "test location"
 
     mock_requests.reset()
     mock_requests.add(
@@ -338,7 +342,8 @@ async def test_no_owm_key(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -357,7 +362,7 @@ async def test_no_owm_key(
 
     cmd_event.prepare_threaded()
 
-    weather.location_cache.append(("foobar", "test location"))
+    weather.location_cache[(conn_name, "foobar")] = "test location"
 
     bot.config["api_keys"]["openweathermap"] = None
     bot.config.load_config()
@@ -381,7 +386,8 @@ async def test_no_google_key(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -400,7 +406,7 @@ async def test_no_google_key(
 
     cmd_event.prepare_threaded()
 
-    weather.location_cache.append(("foobar", "test location"))
+    weather.location_cache[(conn_name, "foobar")] = "test location"
 
     bot.config["api_keys"]["google_dev_key"] = None
     bot.config.load_config()
@@ -427,7 +433,8 @@ async def test_db_save(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(
@@ -460,28 +467,35 @@ async def test_db_save(
     assert data is not None
     assert err is None
 
-    assert weather.location_cache == [(cmd_event.nick, cmd_event.text)]
+    assert weather.location_cache == {
+        (conn_name, cmd_event.nick): cmd_event.text
+    }
 
     assert mock_db.get_data(weather.WeatherLocation) == [
-        (cmd_event.nick, cmd_event.text)
+        (cmd_event.nick, cmd_event.text, conn_name)
     ]
 
 
-def test_update_location(mock_db: MockDB) -> None:
+@pytest.mark.asyncio()
+async def test_update_location(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    mock_bot = mock_bot_factory(db=mock_db)
     mock_db.create_table(weather.WeatherLocation)
 
     db = mock_db.session()
 
     nick = "testuser"
     loc = "testloc"
-
-    mock_db.add_row(weather.WeatherLocation, nick=nick, loc=loc)
-
+    conn = MockClient(bot=mock_bot)
+    mock_db.add_row(weather.WeatherLocation, nick=nick, loc=loc, conn=conn.name)
     weather.load_cache(db)
 
-    weather.add_location(nick, "newloc", db)
+    weather.add_location(nick, "newloc", conn.name, db)
 
-    assert mock_db.get_data(weather.WeatherLocation) == [(nick, "newloc")]
+    assert mock_db.get_data(weather.WeatherLocation) == [
+        (nick, "newloc", conn.name)
+    ]
 
 
 @pytest.mark.asyncio
@@ -511,7 +525,8 @@ async def test_parse_no_results(
 
     conn = MagicMock()
     conn.config = {}
-
+    conn_name = "foo"
+    conn.name = conn_name
     conn.bot = bot
 
     cmd_event = CommandEvent(

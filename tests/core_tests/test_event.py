@@ -11,7 +11,7 @@ from tests.util.mock_module import MockModule
 def test_event_copy() -> None:
     event = Event(
         bot=object(),
-        conn=object(),
+        conn=MagicMock(),
         hook=object(),
         event_type=object(),
         channel=object(),

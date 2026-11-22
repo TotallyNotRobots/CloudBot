@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
     import sqlalchemy.orm as sa_orm
 
+    from cloudbot.client import Client
     from cloudbot.plugin_hooks import CommandHook
 
 logger = logging.getLogger("cloudbot")
@@ -44,7 +45,7 @@ class Event(Mapping[str, Any]):
         *,
         bot=None,
         hook=None,
-        conn=None,
+        conn: Client | None = None,
         base_event: Event | None = None,
         event_type=EventType.other,
         content=None,
