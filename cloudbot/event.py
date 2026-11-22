@@ -12,9 +12,13 @@ from irclib.parser import Message
 from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
+    import re
     from collections.abc import Callable, Iterator
 
     import sqlalchemy.orm as sa_orm
+
+    from cloudbot.client import Client
+    from cloudbot.plugin_hooks import CommandHook
 
 logger = logging.getLogger("cloudbot")
 
@@ -41,14 +45,14 @@ class Event(Mapping[str, Any]):
         *,
         bot=None,
         hook=None,
-        conn=None,
-        base_event=None,
+        conn: Client | None = None,
+        base_event: Event | None = None,
         event_type=EventType.other,
         content=None,
         content_raw=None,
         target=None,
         channel=None,
-        nick=None,
+        nick: str | None = None,
         user=None,
         host=None,
         mask=None,
@@ -385,18 +389,18 @@ class CommandEvent(Event):
         self,
         *,
         bot=None,
-        hook,
-        text,
-        triggered_command,
-        cmd_prefix,
+        hook: CommandHook,
+        text: str,
+        triggered_command: str,
+        cmd_prefix: str,
         conn=None,
-        base_event=None,
+        base_event: Event | None = None,
         event_type=None,
         content=None,
         content_raw=None,
         target=None,
         channel=None,
-        nick=None,
+        nick: str | None = None,
         user=None,
         host=None,
         mask=None,
@@ -438,9 +442,6 @@ class CommandEvent(Event):
         """sends a notice containing this command's docstring to
         the current channel/user or a specific channel/user
         """
-        if self.triggered_command is None:
-            raise ValueError("Triggered command not set on this event")
-
         if self.hook.doc is None:
             message = f"{self.triggered_prefix}{self.triggered_command} requires additional arguments."
         else:
@@ -455,15 +456,15 @@ class RegexEvent(Event):
         *,
         bot=None,
         hook,
-        match,
+        match: re.Match[str],
         conn=None,
-        base_event=None,
+        base_event: Event | None = None,
         event_type=None,
         content=None,
         content_raw=None,
         target=None,
         channel=None,
-        nick=None,
+        nick: str | None = None,
         user=None,
         host=None,
         mask=None,

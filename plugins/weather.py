@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import math
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 import googlemaps
 import pyowm
 from googlemaps.exceptions import ApiError
 from pyowm import OWM
-from sqlalchemy import Column, PrimaryKeyConstraint, String, Table
+from sqlalchemy.orm import Mapped, mapped_column
 
 from cloudbot import hook
 from cloudbot.util import colors, database
@@ -56,17 +56,18 @@ class PluginData:
 
 data = PluginData()
 
+
 # Define database table
+@final
+class WeatherLocation(database.Base):
+    __tablename__ = "weather"
 
-table = Table(
-    "weather",
-    database.metadata,
-    Column("nick", String),
-    Column("loc", String),
-    PrimaryKeyConstraint("nick"),
-)
+    nick: Mapped[str] = mapped_column(primary_key=True)
+    loc: Mapped[str]
+    conn: Mapped[str] = mapped_column(primary_key=True)
 
-location_cache: list[tuple[str, str]] = []
+
+location_cache: dict[tuple[str, str], str] = {}
 
 BEARINGS = (
     "N",
@@ -145,32 +146,24 @@ def find_location(location, bias=None):
     return out
 
 
-def add_location(nick, location, db) -> None:
-    test = dict(location_cache)
-    location = str(location)
-    if nick.lower() in test:
-        db.execute(
-            table.update()
-            .values(loc=location.lower())
-            .where(table.c.nick == nick.lower())
+def add_location(nick: str, location: str, conn: str, db: Session) -> None:
+    db.merge(
+        WeatherLocation(
+            nick=nick.lower(), loc=location.lower(), conn=conn.lower()
         )
-    else:
-        db.execute(
-            table.insert().values(nick=nick.lower(), loc=location.lower())
-        )
-
+    )
     db.commit()
     load_cache(db)
 
 
 @hook.on_start()
-def load_cache(db) -> None:
-    new_cache = []
-    for row in db.execute(table.select()):
-        new_cache.append((row.nick, row.loc))
+def load_cache(db: Session) -> None:
+    new_cache = dict[tuple[str, str], str]()
+    for row in db.query(WeatherLocation).all():
+        new_cache[(row.conn, row.nick)] = row.loc
 
     location_cache.clear()
-    location_cache.extend(new_cache)
+    location_cache.update(new_cache)
 
 
 @hook.on_start()
@@ -189,28 +182,30 @@ def create_owm_api(bot) -> None:
         data.owm_api = None
 
 
-def get_location(nick):
+def get_location(nick: str, conn: str) -> str | None:
     """looks in location_cache for a saved location"""
-    location = [row[1] for row in location_cache if nick.lower() == row[0]]
-    if not location:
-        return None
-
-    return location[0]
+    return location_cache.get((conn.lower(), nick.lower()))
 
 
 def check_and_parse(event: CommandEvent, db: Session):
     """
     Check for the API keys and parse the location from user input
     """
+    if event.conn is None:
+        raise ValueError("Missing connection in weather command")
+
+    if event.nick is None:
+        raise ValueError("Missing nick in weather command")
+
     # If no input try the db
     if not event.text:
-        location = get_location(event.nick)
+        location = get_location(event.nick, event.conn.name)
         if not location:
             event.notice_doc()
             return None, None
     else:
         location = event.text
-        add_location(event.nick, location, db)
+        add_location(event.nick, location, event.conn.name, db)
 
     # Change this in the config to a ccTLD code (eg. uk, nz)
     # to make results more targeted towards that specific country.

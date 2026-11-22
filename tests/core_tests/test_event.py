@@ -11,11 +11,11 @@ from tests.util.mock_module import MockModule
 def test_event_copy() -> None:
     event = Event(
         bot=object(),
-        conn=object(),
+        conn=MagicMock(),
         hook=object(),
         event_type=object(),
         channel=object(),
-        nick=object(),
+        nick="foobar",
         user=object(),
         host=object(),
     )
@@ -25,7 +25,7 @@ def test_event_copy() -> None:
     assert event.bot is new_event.bot
     assert event.conn is new_event.conn
     assert event.hook is new_event.hook
-    assert event.nick is new_event.nick
+    assert event.nick == new_event.nick
     assert len(event) == 20
     assert len(new_event) == len(event)
 
