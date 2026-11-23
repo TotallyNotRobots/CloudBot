@@ -293,6 +293,7 @@ EXPECTED_ANNOTATIONS: dict[str, TypeForm[Any]] = {
     "message": EventMessage,
     "reply": EventReply,
     "triggered_prefix": str,
+    "target": str,
 }
 
 
