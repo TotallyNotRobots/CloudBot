@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from cloudbot.util import database
+from cloudbot.util.textgen import TemplateConfig
 from plugins import hookup, seen
 
 if TYPE_CHECKING:
@@ -20,16 +21,24 @@ async def test_load_data(mock_bot_factory) -> None:
         base_dir=Path(__file__).parent.parent.parent.resolve()
     )
     hookup.load_data(bot)
-    assert hookup.hookups
+    assert hookup.data.hookups
 
 
 def test_hookup_no_seen(mock_db: MockDB, temp_metadata) -> None:
+    hookup.data.hookups = TemplateConfig(
+        templates=["{user1} : {user2}"], parts={}
+    )
+
     db = mock_db.session()
     res = hookup.hookup(db, "#chan")
     assert res is None
 
 
 def test_hookup_no_data(mock_db: MockDB, temp_metadata) -> None:
+    hookup.data.hookups = TemplateConfig(
+        templates=["{user1} : {user2}"], parts={}
+    )
+
     database.metadata._add_table(seen.table.name, seen.table.schema, seen.table)
     seen.table.create(mock_db.engine)
     db = mock_db.session()
@@ -38,6 +47,10 @@ def test_hookup_no_data(mock_db: MockDB, temp_metadata) -> None:
 
 
 def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
+    hookup.data.hookups = TemplateConfig(
+        templates=["{user1} : {user2}"], parts={}
+    )
+
     database.metadata._add_table(seen.table.name, seen.table.schema, seen.table)
     seen.table.create(mock_db.engine)
 
@@ -62,7 +75,9 @@ def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
 
 
 def test_hookup_basic(mock_db: MockDB, freeze_time) -> None:
-    hookup.hookups = {"templates": ["{user1} : {user2}"], "parts": {}}
+    hookup.data.hookups = TemplateConfig(
+        templates=["{user1} : {user2}"], parts={}
+    )
 
     database.metadata._add_table(seen.table.name, seen.table.schema, seen.table)
     seen.table.create(mock_db.engine)
@@ -97,6 +112,10 @@ def test_hookup_basic(mock_db: MockDB, freeze_time) -> None:
 
 
 def test_hookup_active_time(mock_db: MockDB, freeze_time) -> None:
+    hookup.data.hookups = TemplateConfig(
+        templates=["{user1} : {user2}"], parts={}
+    )
+
     database.metadata._add_table(seen.table.name, seen.table.schema, seen.table)
     seen.table.create(mock_db.engine)
     mock_db.load_data(

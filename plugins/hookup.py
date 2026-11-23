@@ -1,16 +1,27 @@
-import json
+from __future__ import annotations
+
 import random
 import time
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Float, String, and_, column, select, table
 
 from cloudbot import hook
-from cloudbot.util import database
-from cloudbot.util.textgen import TextGenerator
+from cloudbot.util import database, textgen
 
-hookups: dict[str, Any] = {}
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
+    from cloudbot.bot import CloudBot
+
+
+@dataclass
+class PluginData:
+    hookups: textgen.TemplateConfig | None = None
+
+
+data = PluginData()
 seen_table = table(
     "seen_user",
     column("name", String),
@@ -22,16 +33,16 @@ seen_table = table(
 
 
 @hook.on_start()
-def load_data(bot) -> None:
-    hookups.clear()
-    with open((bot.data_path / "hookup.json"), encoding="utf-8") as f:
-        hookups.update(json.load(f))
+def load_data(bot: CloudBot) -> None:
+    data.hookups = textgen.TemplateConfig.from_json_file(
+        bot.data_path / "hookup.json"
+    )
 
 
 @hook.command(autohelp=False)
-def hookup(db, chan):
+def hookup(db: Session, chan: str) -> str | None:
     """- matches two users from the channel in a sultry scene."""
-    if seen_table.name not in database.metadata.tables:
+    if seen_table.name not in database.metadata.tables or not data.hookups:
         return None
 
     times = time.time() - 86400
@@ -45,13 +56,11 @@ def hookup(db, chan):
         return "something went wrong"
 
     # Make sure the list of people is unique
-    people = sorted({row[0] for row in results})
+    people: list[str] = sorted({row[0] for row in results})
     random.shuffle(people)
     person1, person2 = people[:2]
     variables = {"user1": person1, "user2": person2}
 
-    generator = TextGenerator(
-        hookups["templates"], hookups["parts"], variables=variables
-    )
-
-    return generator.generate_string()
+    return data.hookups.make_generator(
+        has_target=False, variables=variables
+    ).generate_string()
