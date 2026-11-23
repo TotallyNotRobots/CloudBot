@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import json
 import re
-from collections import defaultdict
 from enum import Enum, unique
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import textgen
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from cloudbot.bot import CloudBot
     from cloudbot.client import Client
     from cloudbot.event_functions import (
         EventAction,
@@ -33,30 +34,30 @@ def is_self(conn: Client, target):
     )
 
 
-attack_data: dict[str, dict[str, Any]] = defaultdict(dict)
+attack_data = dict[str, textgen.TemplateConfig]()
 
 
 class BasicAttack:
     def __init__(
         self,
-        name,
-        doc,
-        *commands,
-        action=None,
-        file=None,
-        response=RespType.ACTION,
-        require_target=True,
+        name: str,
+        doc: str,
+        *commands: str,
+        action: str | None = None,
+        file: str | None = None,
+        response: RespType = RespType.ACTION,
+        require_target: bool = True,
     ) -> None:
-        self.name = name
-        self.action = action or name
-        self.doc = doc
-        self.commands = commands or [name]
+        self.name: str = name
+        self.action: str = action or name
+        self.doc: str = doc
+        self.commands: tuple[str, ...] = commands or (name,)
         if file is None:
             file = f"{name}.json"
 
-        self.file = file
-        self.response = response
-        self.require_target = require_target
+        self.file: str = file
+        self.response: RespType = response
+        self.require_target: bool = require_target
 
 
 ATTACKS = (
@@ -151,51 +152,38 @@ ATTACKS = (
 )
 
 
-def load_data(path, data_dict) -> None:
-    data_dict.clear()
-    with path.open(encoding="utf-8") as f:
-        data_dict.update(json.load(f))
-
-
 @hook.on_start()
-def load_attacks(bot) -> None:
+def load_attacks(bot: CloudBot) -> None:
     attack_data.clear()
     data_dir = bot.data_path / "attacks"
     for data_file in ATTACKS:
-        load_data(data_dir / data_file.file, attack_data[data_file.name])
+        attack_data[data_file.name] = textgen.TemplateConfig.from_json_file(
+            data_dir / data_file.file
+        )
 
 
-def basic_format(nick, text, data, **kwargs):
+def basic_format(
+    nick: str, text: str, data: textgen.TemplateConfig, **kwargs: str
+) -> str:
     user = text
     kwargs["user"] = user
     kwargs["target"] = user
     kwargs["nick"] = nick
 
-    if text:
-        try:
-            templates = data["target_templates"]
-        except KeyError:
-            templates = data["templates"]
-    else:
-        templates = data["templates"]
-
-    generator = textgen.TextGenerator(
-        templates, data.get("parts", {}), variables=kwargs
-    )
-
+    generator = data.make_generator(has_target=bool(text), variables=kwargs)
     return generator.generate_string()
 
 
-def basic_attack(attack):
+def basic_attack(attack: BasicAttack) -> Callable[..., str | None]:
     def func(
-        text,
+        text: str,
         conn: Client,
-        nick,
+        nick: str,
         action: EventAction,
         message: EventMessage,
         reply: EventReply,
         is_nick_valid: EventIsNickValid,
-    ):
+    ) -> str | None:
         responses = {
             RespType.ACTION: action,
             RespType.REPLY: reply,

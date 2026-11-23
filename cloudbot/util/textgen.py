@@ -41,30 +41,93 @@ License:
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from __future__ import annotations
+
 import copy
 import random
 import re
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Self
+
+from pydantic import BaseModel, Field, model_validator
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 TEMPLATE_RE = re.compile(r"{(.+?)\}")
 
 
+class TemplateConfig(BaseModel):
+    templates: list[str] | None = None
+    target_templates: list[str] | None = None
+    parts: dict[str, list[str | tuple[str, int]]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def check_templates(self) -> Self:
+        if not self.templates and not self.target_templates:
+            raise ValueError(
+                "Either templates or target_templates must be specified"
+            )
+
+        return self
+
+    @classmethod
+    def from_json_file(cls, path: Path) -> Self:
+        return cls.model_validate_json(path.read_text(encoding="utf-8"))
+
+    def make_generator(
+        self,
+        *,
+        has_target: bool = False,
+        default_templates: list[int] | None = None,
+        variables: dict[str, str] | None = None,
+    ) -> TextGenerator:
+        if has_target and self.target_templates is not None:
+            templates = self.target_templates
+        elif self.templates is not None:
+            templates = self.templates
+        else:
+            raise ValueError(
+                "Target not set and only target_templates are specified"
+            )
+
+        return TextGenerator(
+            templates=templates,
+            parts=self.parts,
+            default_templates=default_templates,
+            variables=variables,
+        )
+
+
+Parts = Mapping[str, Sequence[str | list[str | int] | tuple[str, int]]]
+
+
 class TextGenerator:
     def __init__(
-        self, templates, parts, default_templates=None, variables=None
+        self,
+        templates: list[str],
+        parts: Parts,
+        default_templates: list[int] | None = None,
+        variables: dict[str, str] | None = None,
     ) -> None:
-        self.templates = templates
-        self.default_templates = default_templates
-        self.parts = parts
-        self.variables = variables
+        self.templates: list[str] = templates
+        self.default_templates: list[int] | None = default_templates
+        self.parts: Parts = parts
+        self.variables: dict[str, str] | None = variables
 
-    def get_part(self, required_part, part_list):
+    def get_part(self, required_part: str, part_list: Parts) -> str:
         _parts = part_list[required_part]
-        _weighted_parts = []
+        _weighted_parts: list[tuple[str, int]] = []
         # this uses way too much code, but I wrote it at like 6am
 
         for _part in _parts:
             if isinstance(_part, (list, tuple)):
                 __part, __weight = _part
+                if not isinstance(__part, str) or not isinstance(__weight, int):
+                    raise TypeError(
+                        "Parts must be a string or a 2-element list or tuple with a string followed by an int"
+                    )
+
                 _weighted_parts.append((__part, __weight))
             else:
                 __part = _part
@@ -73,7 +136,7 @@ class TextGenerator:
         population = [val for val, cnt in _weighted_parts for _ in range(cnt)]
         return random.choice(population)
 
-    def generate_string(self, template=None):
+    def generate_string(self, template: int | None = None) -> str:
         """
         Generates one string using the specified templates.
         If no templates are specified, use a random template from the default_templates list.
@@ -86,10 +149,10 @@ class TextGenerator:
             text = random.choice(self.templates)
 
         # make a copy of parts for this string generation
-        _parts = copy.deepcopy(self.parts)
+        _parts = {k: list(v) for k, v in copy.deepcopy(self.parts).items()}
 
         # get a list of all text parts we need
-        required_parts = TEMPLATE_RE.findall(text)
+        required_parts: list[str] = TEMPLATE_RE.findall(text)
 
         # do magic
         for required_part in required_parts:
@@ -115,11 +178,8 @@ class TextGenerator:
 
         return text
 
-    def generate_strings(self, amount):
-        strings = []
-        for _ in range(amount):
-            strings.append(self.generate_string())
-        return strings
+    def generate_strings(self, amount: int) -> list[str]:
+        return [self.generate_string() for _ in range(amount)]
 
-    def get_template(self, template):
+    def get_template(self, template: int) -> str:
         return self.templates[template]

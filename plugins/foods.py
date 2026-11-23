@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-import json
-from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from cloudbot import hook
 from cloudbot.util import textgen
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from cloudbot.bot import CloudBot
     from cloudbot.event_functions import EventAction, EventIsNickValid
 
 
 class BasicFood:
-    def __init__(self, name, unit, *commands, file=None) -> None:
-        self.name = name
-        self.unit = unit
-        self.commands = commands or (name,)
-        self.file = file or f"{self.name}.json"
+    def __init__(
+        self, name: str, unit: str, *commands: str, file: str | None = None
+    ) -> None:
+        self.name: str = name
+        self.unit: str = unit
+        self.commands: tuple[str, ...] = commands or (name,)
+        self.file: str = file or f"{self.name}.json"
 
 
 BASIC_FOOD = (
@@ -65,47 +68,38 @@ BASIC_FOOD = (
     BasicFood("birthday", "birthday cake"),
 )
 
-basic_food_data: dict[str, dict[str, Any]] = defaultdict(dict)
-
-
-def load_template_data(bot, filename, data_dict) -> None:
-    data_dict.clear()
-    food_dir = bot.data_path / "food"
-    with open((food_dir / filename), encoding="utf-8") as f:
-        data_dict.update(json.load(f))
+basic_food_data = dict[str, textgen.TemplateConfig]()
 
 
 @hook.on_start()
-def load_foods(bot) -> None:
+def load_foods(bot: CloudBot) -> None:
     basic_food_data.clear()
-
+    food_dir = bot.data_path / "food"
     for food in BASIC_FOOD:
-        load_template_data(bot, food.file, basic_food_data[food.name])
+        basic_food_data[food.name] = textgen.TemplateConfig.from_json_file(
+            food_dir / food.file
+        )
 
 
-def basic_format(nick, text, data, **kwargs):
+def basic_format(
+    nick: str, text: str, data: textgen.TemplateConfig, **kwargs: str
+) -> str:
     user = text
     kwargs["user"] = user
     kwargs["target"] = user
     kwargs["nick"] = nick
 
-    if text:
-        try:
-            templates = data["target_templates"]
-        except KeyError:
-            templates = data["templates"]
-    else:
-        templates = data["templates"]
-
-    generator = textgen.TextGenerator(
-        templates, data.get("parts", {}), variables=kwargs
-    )
-
+    generator = data.make_generator(has_target=bool(text), variables=kwargs)
     return generator.generate_string()
 
 
-def basic_food(food):
-    def func(text, nick, action: EventAction, is_nick_valid: EventIsNickValid):
+def basic_food(food: BasicFood) -> Callable[..., str | None]:
+    def func(
+        text: str,
+        nick: str,
+        action: EventAction,
+        is_nick_valid: EventIsNickValid,
+    ) -> str | None:
         if not is_nick_valid(text):
             return f"I can't give {food.unit} to that user."
 
