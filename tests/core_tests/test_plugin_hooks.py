@@ -120,8 +120,7 @@ def patch_hook(wrapped: Callable[P, T]) -> Callable[P, T]:
 
 def gather_plugins() -> Generator[Path]:
     plugin_dir = Path("plugins")
-    path_list = plugin_dir.rglob("[!_]*.py")
-    return path_list
+    return plugin_dir.rglob("[!_]*.py")
 
 
 @patch_hook
@@ -516,8 +515,7 @@ def get_and_wrap_hook(
     func_hook = getattr(func, HOOK_ATTR)[hook_type]
     plugin = make_plugin()
 
-    _hook = hook_name_to_plugin(hook_type)(plugin, func_hook)
-    return _hook
+    return hook_name_to_plugin(hook_type)(plugin, func_hook)
 
 
 def test_hook_kwargs_warning() -> None:

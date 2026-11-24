@@ -636,7 +636,7 @@ class _IrcProtocol(asyncio.Protocol):
 
         # Set up parsed message
         # TODO: Do we really want to send the raw `prefix` and `command_params` here?
-        event = Event(
+        return Event(
             bot=self.bot,
             conn=self.conn,
             event_type=event_type,
@@ -655,7 +655,6 @@ class _IrcProtocol(asyncio.Protocol):
             irc_ctcp_text=ctcp_text,
             irc_tags=message.tags,
         )
-        return event
 
     @property
     def connected(self) -> bool:

@@ -15,13 +15,12 @@ if TYPE_CHECKING:
 
 def make_conn(mock_bot_factory, loop=None) -> MockIrcClient:
     bot = mock_bot_factory(loop=loop)
-    conn = MockIrcClient(
+    return MockIrcClient(
         bot=bot,
         name="conn",
         nick="foobot",
         config={"connection": {"server": "host.invalid"}},
     )
-    return conn
 
 
 @pytest.mark.asyncio

@@ -51,11 +51,10 @@ def load_cache(db) -> None:
     profile_cache.update(new_cache)
 
 
-def format_profile(nick, category, text):
+def format_profile(nick, category, text) -> str:
     # Add zwsp to avoid pinging users
     nick = f"{nick[0]}\u200b{nick[1:]}"
-    msg = f"{nick}->{category}: {text}"
-    return msg
+    return f"{nick}->{category}: {text}"
 
 
 # modified from grab.py

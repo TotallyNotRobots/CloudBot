@@ -365,8 +365,7 @@ def hit_or_miss(deploy, shoot):
         return 0.05
 
     if 1 <= shoot - deploy <= 7:
-        out = random.uniform(0.60, 0.75)
-        return out
+        return random.uniform(0.60, 0.75)
 
     return 1
 
@@ -563,8 +562,7 @@ def get_scores(db, score_type, network, chan=None):
         .order_by(desc(table.c[score_type]))
     )
 
-    scores = db.execute(query).fetchall()
-    return scores
+    return db.execute(query).fetchall()
 
 
 class ScoreType:

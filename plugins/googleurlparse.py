@@ -12,7 +12,7 @@ def google_url(match):
     url = matches
 
     url = f"http://{url}"
-    out = (
+    return (
         "".join(
             [
                 (unquote(a[4:]) if a[:4] == "url=" else "")
@@ -22,4 +22,3 @@ def google_url(match):
         .replace(", ,", "")
         .strip()
     )
-    return out

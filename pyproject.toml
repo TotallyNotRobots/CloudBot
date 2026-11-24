@@ -154,10 +154,6 @@ ignore = [
     "PTH123", # use Path.open()
     "PTH201", # don't pass current dir to path
     "PTH208", # use pathlib iterdir
-    "RET501", # explicit return None
-    "RET502", # implicit return None
-    "RET503", # missing explicit return
-    "RET504", # unnecessary assignment before return
     "RSE102", # unnecessary parentheses
     "RUF005", # list star instead of concat
     "RUF006", # store result from asyncio.ensure_future
@@ -192,7 +188,7 @@ ignore = [
 select = [
     "ALL",
 ]
-extend-safe-fixes = ["TC", "UP", "RUF046", "ICN001", "PT006"]
+extend-safe-fixes = ["TC", "UP", "RUF046", "ICN001", "PT006", "RET504"]
 future-annotations = true
 fixable = ["ALL"]
 

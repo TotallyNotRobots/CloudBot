@@ -22,5 +22,4 @@ def fact(reply: EventReply):
         reply("There was an error contacting the numbersapi.com API.")
         raise
 
-    response = json["text"]
-    return response
+    return json["text"]

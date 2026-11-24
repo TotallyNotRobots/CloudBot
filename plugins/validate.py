@@ -9,7 +9,7 @@ api_url = "https://validator.w3.org/check"
 
 
 @hook.command("validate", "w3c")
-def validate(text):
+def validate(text) -> str:
     """<url> - Runs url through the W3C Markup Validator."""
     warning_count = 0
     error_count = 0
@@ -41,6 +41,4 @@ def validate(text):
     out_warning = "warnings" if warning_count > 1 else "warning"
     out_error = "errors" if error_count > 1 else "error"
 
-    out = f"{text} has {warning_count} {out_warning} and {error_count} {out_error} ({url})"
-
-    return out
+    return f"{text} has {warning_count} {out_warning} and {error_count} {out_error} ({url})"

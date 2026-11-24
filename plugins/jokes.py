@@ -107,10 +107,9 @@ def boobies(text):
 
 
 @hook.command(autohelp=False)
-def zombs():
+def zombs() -> str:
     """- Prints some fucked up shit."""
-    out = "\u2299\u2299\u0505\u0f0d\u0020\u0e88\u0020\u25de\u0c6a\u25df\u0e88\u0020\u0f0d\u0648"
-    return out
+    return "\u2299\u2299\u0505\u0f0d\u0020\u0e88\u0020\u25de\u0c6a\u25df\u0e88\u0020\u0f0d\u0648"
 
 
 @hook.command("awesome", "iscool", "cool")

@@ -24,7 +24,7 @@ def striphtml(data):
 
 
 @hook.command("dragon", "ds")
-def dragonsearch(text, reply: EventReply):
+def dragonsearch(text, reply: EventReply) -> str:
     """<query> - Searches the dragonvale wiki for the specified text."""
     params = {"query": text.strip(), "limit": 1}
 
@@ -40,8 +40,7 @@ def dragonsearch(text, reply: EventReply):
         return f"The API returned error code {r.status_code}."
 
     data = r.json()["items"][0]
-    out = f"\x02{data['title']}\x02 -- {striphtml(data['snippet']).split('&hellip;')[0].strip()}: {data['url']}"
-    return out
+    return f"\x02{data['title']}\x02 -- {striphtml(data['snippet']).split('&hellip;')[0].strip()}: {data['url']}"
 
 
 @hook.command("eggcalc", "dragoncalc", "dc")

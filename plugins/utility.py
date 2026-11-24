@@ -235,16 +235,15 @@ def munge(text):
 @hook.command()
 def leet(text):
     """<text> - Makes <text> more 1337h4x0rz."""
-    output = "".join(
+    return "".join(
         random.choice(leet_text[ch]) if ch.isalpha() else ch
         for ch in text.lower()
     )
-    return output
 
 
 # Based on plugin by FurCode - <https://github.com/FurCode/RoboCop2>
 @hook.command()
-def derpify(text):
+def derpify(text) -> str:
     """<text> - returns some amusing responses from your input."""
     string = text.upper()
     pick_the = random.choice(["TEH", "DA"])  # codespell:ignore teh
@@ -290,9 +289,7 @@ def derpify(text):
         "!": pick_ex,
         "?": pick_qt,
     }
-    output = f"{translate(string, rules)} {pick_end}"
-
-    return output
+    return f"{translate(string, rules)} {pick_end}"
 
 
 # colors

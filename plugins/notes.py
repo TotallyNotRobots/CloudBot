@@ -162,12 +162,12 @@ def cmd_clear(db, event) -> None:
     event.notice("All notes deleted!")
 
 
-def cmd_listall(db, event):
+def cmd_listall(db, event) -> None:
     # user is getting all notes including deleted ones
     notes = read_all_notes(db, event.conn.name, event.nick, show_deleted=True)
     if not notes:
         event.notice("You have no notes.")
-        return None
+        return
 
     event.notice(f"All notes for {event.nick}:")
     for n in notes:
@@ -175,15 +175,15 @@ def cmd_listall(db, event):
         text = format_note(n)
         event.notice(text)
 
-    return None
+    return
 
 
-def cmd_list(db, event):
+def cmd_list(db, event) -> None:
     # user is getting all notes
     notes = read_all_notes(db, event.conn.name, event.nick)
     if not notes:
         event.notice("You have no notes.")
-        return None
+        return
 
     event.notice(f"All notes for {event.nick}:")
     for n in notes:
@@ -191,7 +191,7 @@ def cmd_list(db, event):
         text = format_note(n)
         event.notice(text)
 
-    return None
+    return
 
 
 def cmd_show(args, db, event):
@@ -207,8 +207,7 @@ def cmd_show(args, db, event):
         return None
 
     # show the note
-    text = format_note(n)
-    return text
+    return format_note(n)
 
 
 def cmd_get(args, db, event) -> None:

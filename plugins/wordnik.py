@@ -149,9 +149,7 @@ class WordLookupRequest:
         return params
 
     def get_results(self) -> list[dict[str, Any]]:
-        data = api_request(self.endpoint, params=self.get_params())
-
-        return data
+        return api_request(self.endpoint, params=self.get_params())
 
     def is_result_valid(self, result: dict[str, Any]) -> bool:
         for field in self.required_fields:
@@ -281,10 +279,9 @@ def word_usage(text, event):
         event.reply(e.user_msg())
         raise
 
-    out = colors.parse("$(b){word}$(b): {text}").format(
+    return colors.parse("$(b){word}$(b): {text}").format(
         word=text, text=example["text"]
     )
-    return out
 
 
 @hook.command("pronounce", "sounditout")
