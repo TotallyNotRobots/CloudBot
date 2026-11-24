@@ -1,6 +1,6 @@
 services:
   database:
-    image: 'postgres:18@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a'
+    image: 'postgres:18@sha256:f5cbc081c25690710f3fc6f4c61a7565382bae01ca0d0f2028a53d7926b85a20'
     ports:
     - 15432:5432
     env_file:
