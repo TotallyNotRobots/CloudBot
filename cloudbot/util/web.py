@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 import requests
 from requests import HTTPError, RequestException
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -209,7 +210,10 @@ class Shortener:
         pass
 
     def shorten(
-        self, url: str, custom: str | None = None, key: str | None = None
+        self,
+        url: str,
+        custom: str | None = None,  # pyright: ignore[reportUnusedParameter]  # noqa: ARG002
+        key: str | None = None,  # pyright: ignore[reportUnusedParameter]  # noqa: ARG002
     ) -> str:
         return url
 
@@ -252,6 +256,7 @@ pastebins = Registry[Pastebin]()
 
 
 class Isgd(Shortener):
+    @override
     def shorten(
         self, url: str, custom: str | None = None, key: str | None = None
     ) -> str:
@@ -278,6 +283,7 @@ class Isgd(Shortener):
 
         raise ServiceHTTPError(j["errormessage"], r)
 
+    @override
     def expand(self, url: str) -> str:
         p = {"shorturl": url, "format": "json"}
         try:
@@ -298,6 +304,7 @@ class Isgd(Shortener):
 
 
 class Googl(Shortener):
+    @override
     def shorten(
         self, url: str, custom: str | None = None, key: str | None = None
     ) -> str:
@@ -325,6 +332,7 @@ class Googl(Shortener):
 
         raise ServiceHTTPError(j["error"]["message"], r)
 
+    @override
     def expand(self, url: str) -> str:
         p = {"shortUrl": url}
         try:
@@ -347,6 +355,7 @@ class Googl(Shortener):
 
 
 class Gitio(Shortener):
+    @override
     def shorten(
         self, url: str, custom: str | None = None, key: str | None = None
     ) -> str:
@@ -375,6 +384,7 @@ class Hastebin(Pastebin):
         super().__init__()
         self.url = base_url
 
+    @override
     def paste(self, data: str | bytes, ext: str) -> str:
         if isinstance(data, str):
             encoded = data.encode()

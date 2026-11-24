@@ -109,10 +109,11 @@ def setup_api(
     return bot
 
 
+pytestmark = pytest.mark.usefixtures("patch_try_shorten")
+
+
 @pytest.mark.asyncio
-async def test_rounding(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
-) -> None:
+async def test_rounding(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -161,7 +162,7 @@ async def test_rounding(
 
 
 @pytest.mark.asyncio
-async def test_no_keys(mock_bot_factory, patch_try_shorten, mock_db) -> None:
+async def test_no_keys(mock_bot_factory, mock_db) -> None:
     bot = mock_bot_factory(config={}, db=mock_db)
     weather.create_maps_api(bot)
     weather.create_owm_api(bot)
@@ -172,7 +173,7 @@ async def test_no_keys(mock_bot_factory, patch_try_shorten, mock_db) -> None:
 
 @pytest.mark.asyncio
 async def test_weather_no_args(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
+    mock_bot_factory, mock_requests, mock_db
 ) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
@@ -211,9 +212,7 @@ async def test_weather_no_args(
 
 
 @pytest.mark.asyncio
-async def test_find_location(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
-) -> None:
+async def test_find_location(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -285,9 +284,7 @@ async def test_find_location(
 
 
 @pytest.mark.asyncio
-async def test_api_error(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
-) -> None:
+async def test_api_error(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -333,9 +330,7 @@ async def test_api_error(
 
 
 @pytest.mark.asyncio
-async def test_no_owm_key(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
-) -> None:
+async def test_no_owm_key(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -377,9 +372,7 @@ async def test_no_owm_key(
 
 
 @pytest.mark.asyncio
-async def test_no_google_key(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db
-) -> None:
+async def test_no_google_key(mock_bot_factory, mock_requests, mock_db) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -500,7 +493,7 @@ async def test_update_location(
 
 @pytest.mark.asyncio
 async def test_parse_no_results(
-    mock_bot_factory, mock_requests, patch_try_shorten, mock_db: MockDB
+    mock_bot_factory, mock_requests, mock_db: MockDB
 ) -> None:
     mock_requests.add(
         "GET",

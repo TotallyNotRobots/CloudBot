@@ -128,7 +128,7 @@ def pympler_diff() -> str:
 if sys.platform == "linux":  # pragma: no cover
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
-    def debug(sig, frame) -> None:
+    def debug(sig, frame) -> None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
         print(get_thread_dump())
 
     signal.signal(signal.SIGUSR1, debug)  # Register handler

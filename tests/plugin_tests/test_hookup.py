@@ -12,6 +12,8 @@ from cloudbot.util.textgen import TemplateConfig
 from plugins import hookup, seen
 
 if TYPE_CHECKING:
+    from freezegun.api import FrozenDateTimeFactory
+
     from tests.util.mock_db import MockDB
 
 
@@ -24,7 +26,8 @@ async def test_load_data(mock_bot_factory) -> None:
     assert hookup.data.hookups
 
 
-def test_hookup_no_seen(mock_db: MockDB, temp_metadata) -> None:
+@pytest.mark.usefixtures("temp_metadata")
+def test_hookup_no_seen(mock_db: MockDB) -> None:
     hookup.data.hookups = TemplateConfig(
         templates=["{user1} : {user2}"], parts={}
     )
@@ -34,7 +37,8 @@ def test_hookup_no_seen(mock_db: MockDB, temp_metadata) -> None:
     assert res is None
 
 
-def test_hookup_no_data(mock_db: MockDB, temp_metadata) -> None:
+@pytest.mark.usefixtures("temp_metadata")
+def test_hookup_no_data(mock_db: MockDB) -> None:
     hookup.data.hookups = TemplateConfig(
         templates=["{user1} : {user2}"], parts={}
     )
@@ -46,7 +50,9 @@ def test_hookup_no_data(mock_db: MockDB, temp_metadata) -> None:
     assert res == "something went wrong"
 
 
-def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
+def test_hookup_one_user(
+    mock_db: MockDB, freeze_time: FrozenDateTimeFactory
+) -> None:
     hookup.data.hookups = TemplateConfig(
         templates=["{user1} : {user2}"], parts={}
     )
@@ -74,7 +80,9 @@ def test_hookup_one_user(mock_db: MockDB, freeze_time) -> None:
     assert res == "something went wrong"
 
 
-def test_hookup_basic(mock_db: MockDB, freeze_time) -> None:
+def test_hookup_basic(
+    mock_db: MockDB, freeze_time: FrozenDateTimeFactory
+) -> None:
     hookup.data.hookups = TemplateConfig(
         templates=["{user1} : {user2}"], parts={}
     )
@@ -111,7 +119,9 @@ def test_hookup_basic(mock_db: MockDB, freeze_time) -> None:
     assert res == "testnick2 : testnick"
 
 
-def test_hookup_active_time(mock_db: MockDB, freeze_time) -> None:
+def test_hookup_active_time(
+    mock_db: MockDB, freeze_time: FrozenDateTimeFactory
+) -> None:
     hookup.data.hookups = TemplateConfig(
         templates=["{user1} : {user2}"], parts={}
     )

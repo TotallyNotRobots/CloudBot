@@ -9,7 +9,9 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from plugins import duckhunt
+from tests.util import with_frozen_time
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import with_mock_db
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
@@ -27,7 +29,8 @@ if TYPE_CHECKING:
         ]
     ],
 )
-def test_top_list(prefix, items, result, mock_db) -> None:
+@with_mock_db()
+def test_top_list(prefix, items, result) -> None:
     assert duckhunt.top_list(prefix, items.items()) == result
 
 
@@ -144,7 +147,8 @@ async def test_display_scores(mock_db, mock_bot_factory) -> None:
     assert event.notice_doc.call_count == 1
 
 
-def test_ignore_integration(mock_db) -> None:
+@with_mock_db()
+def test_ignore_integration() -> None:
     event = MagicMock()
     event.chan = "#chan"
     event.mask = "nick!user@host"
@@ -561,7 +565,8 @@ class TestDuckKick:
 
 class TestAttack:
     @pytest.mark.asyncio
-    async def test_shoot(self, mock_db, freeze_time, mock_bot_factory) -> None:
+    @with_frozen_time()
+    async def test_shoot(self, mock_db, mock_bot_factory) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -600,9 +605,8 @@ class TestAttack:
         ]
 
     @pytest.mark.asyncio
-    async def test_befriend(
-        self, mock_db, freeze_time, mock_bot_factory
-    ) -> None:
+    @with_frozen_time()
+    async def test_befriend(self, mock_db, mock_bot_factory) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -638,9 +642,8 @@ class TestAttack:
         ]
 
     @pytest.mark.asyncio
-    async def test_miss(
-        self, mock_db: MockDB, freeze_time, mock_bot_factory
-    ) -> None:
+    @with_frozen_time()
+    async def test_miss(self, mock_db: MockDB, mock_bot_factory) -> None:
         bot = mock_bot_factory(db=mock_db)
         random.seed(0)
         duckhunt.table.create(mock_db.engine)
@@ -675,8 +678,9 @@ class TestAttack:
         duckhunt.scripters.clear()
 
     @pytest.mark.asyncio
+    @with_frozen_time()
     async def test_miss_scripter(
-        self, mock_db: MockDB, freeze_time, mock_bot_factory
+        self, mock_db: MockDB, mock_bot_factory
     ) -> None:
         bot = mock_bot_factory(db=mock_db)
         random.seed(0)

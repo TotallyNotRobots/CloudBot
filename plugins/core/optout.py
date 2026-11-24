@@ -197,7 +197,7 @@ def load_cache(db) -> None:
 
 
 @hook.sieve(priority=Priority.HIGHEST)
-def optout_sieve(bot, event, _hook):
+def optout_sieve(bot, event, _hook):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     if not event.chan or not event.conn:
         return event
 

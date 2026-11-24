@@ -35,7 +35,7 @@ async def async_main() -> int:
     # define closure for signal handling
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
-    def exit_gracefully(signum, frame):
+    def exit_gracefully(signum, frame):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
         nonlocal stopped_while_restarting
         if not _bot:
             # we are currently in the process of restarting

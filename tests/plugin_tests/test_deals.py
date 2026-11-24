@@ -1,9 +1,11 @@
+import pytest
 from feedparser import FeedParserDict
 
 from plugins import deals
 
 
-def test_slickdeals(patch_try_shorten, mock_feedparse) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_slickdeals(mock_feedparse) -> None:
     feed = FeedParserDict(entries=[FeedParserDict(link="foo", title="bar")])
     mock_feedparse.return_value = feed
 

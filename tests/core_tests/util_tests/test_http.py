@@ -48,7 +48,7 @@ def test_get_soup() -> None:
         </body>
     </html>
     """
-    with patch("cloudbot.util.http.get", lambda *a, **k: test_data):
+    with patch("cloudbot.util.http.get", lambda *a, **k: test_data):  # noqa: ARG005
         soup = http.get_soup("http://example.com")
         tag = soup.find("div", {"class": "thing"})
         assert tag is not None

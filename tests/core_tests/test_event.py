@@ -67,7 +67,8 @@ def test_event_ctcp_no_rarget() -> None:
 
 
 @pytest.mark.asyncio()
-async def test_check_permission(mock_bot, caplog_bot) -> None:
+@pytest.mark.usefixtures("caplog_bot")
+async def test_check_permission(mock_bot) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = True
@@ -79,7 +80,8 @@ async def test_check_permission(mock_bot, caplog_bot) -> None:
 
 
 @pytest.mark.asyncio()
-async def test_check_permission_no_hooks(mock_bot, caplog_bot) -> None:
+@pytest.mark.usefixtures("caplog_bot")
+async def test_check_permission_no_hooks(mock_bot) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = False
@@ -91,9 +93,8 @@ async def test_check_permission_no_hooks(mock_bot, caplog_bot) -> None:
 
 
 @pytest.mark.asyncio()
-async def test_check_permission_hooks(
-    mock_bot, caplog_bot, patch_import_module
-) -> None:
+@pytest.mark.usefixtures("caplog_bot")
+async def test_check_permission_hooks(mock_bot, patch_import_module) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
 

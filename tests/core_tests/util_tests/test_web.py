@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import datetime as dt
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 
 from cloudbot.util import web
+
+if TYPE_CHECKING:
+    from freezegun.api import FrozenDateTimeFactory
 
 
 def test_paste(mock_requests) -> None:
@@ -52,7 +58,7 @@ def test_registry_items() -> None:
     assert list(registry.items()) == [("test", item)]
 
 
-def test_registry_item_working(freeze_time) -> None:
+def test_registry_item_working(freeze_time: FrozenDateTimeFactory) -> None:
     registry = web.Registry[object]()
     registry.register("test", object())
     item = registry.get_item("test")

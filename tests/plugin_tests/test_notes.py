@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import datetime as dt
 from unittest.mock import MagicMock, call
 
 from plugins import notes
+from tests.util import with_frozen_time
 
 
-def test_note_add(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_add(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -18,7 +22,8 @@ def test_note_add(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_add_multiple(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_add_multiple(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -38,7 +43,8 @@ def test_note_add_multiple(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_del(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_del(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -49,7 +55,8 @@ def test_note_del(mock_db, freeze_time) -> None:
     assert res is None
 
 
-def test_note_del_no_text(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_del_no_text(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -65,7 +72,8 @@ def test_note_del_no_text(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_get(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_get(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -83,7 +91,8 @@ def test_note_get(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_get_no_id(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_get_no_id(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -99,7 +108,8 @@ def test_note_get_no_id(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_get_bad_id(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_get_bad_id(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -112,7 +122,8 @@ def test_note_get_bad_id(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("2 is not a valid note ID.")]
 
 
-def test_note_show_no_id(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_show_no_id(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -125,7 +136,8 @@ def test_note_show_no_id(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("No note ID provided!")]
 
 
-def test_note_show_bad_id(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_show_bad_id(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -138,7 +150,8 @@ def test_note_show_bad_id(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("2 is not a valid note ID.")]
 
 
-def test_note_share(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_share(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -151,7 +164,8 @@ def test_note_share(mock_db, freeze_time) -> None:
     assert event.mock_calls == []
 
 
-def test_note_bad_cmd(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_bad_cmd(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -164,7 +178,8 @@ def test_note_bad_cmd(mock_db, freeze_time) -> None:
     assert mock_db.get_data(notes.table) == []
 
 
-def test_note_list(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_list(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -184,7 +199,8 @@ def test_note_list(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_listall(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_listall(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -205,7 +221,8 @@ def test_note_listall(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_list_no_notes(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_list_no_notes(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -216,7 +233,8 @@ def test_note_list_no_notes(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("You have no notes.")]
 
 
-def test_note_listall_no_notes(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_listall_no_notes(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -227,7 +245,8 @@ def test_note_listall_no_notes(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("You have no notes.")]
 
 
-def test_note_clear(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_clear(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -246,7 +265,8 @@ def test_note_clear(mock_db, freeze_time) -> None:
     ]
 
 
-def test_note_del_no_note(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_del_no_note(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")
@@ -258,7 +278,8 @@ def test_note_del_no_note(mock_db, freeze_time) -> None:
     assert mock_db.get_data(notes.table) == []
 
 
-def test_note_add_no_text(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_note_add_no_text(mock_db) -> None:
     db = mock_db.session()
     notes.table.create(bind=mock_db.engine)
     event = MagicMock(nick="bar")

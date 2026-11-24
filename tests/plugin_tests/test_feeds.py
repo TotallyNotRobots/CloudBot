@@ -3,7 +3,7 @@ from feedparser import FeedParserDict
 from plugins import feeds
 
 
-def test_feeds(mock_feedparse, patch_try_shorten) -> None:
+def test_feeds(mock_feedparse) -> None:
     mock_feedparse.return_value = FeedParserDict(entries=[])
     assert feeds.rss("xkcd") == "Feed not found."
 
@@ -38,7 +38,7 @@ def test_feeds(mock_feedparse, patch_try_shorten) -> None:
     mock_feedparse.reset_mock()
 
 
-def test_feeds_block_file(mock_feedparse, patch_try_shorten) -> None:
+def test_feeds_block_file(mock_feedparse) -> None:
     assert feeds.rss("file://etc/passwd") == "Invalid URL scheme."
     assert feeds.rss("ftp://example.com/feed.xml") == "Invalid URL scheme."
     assert feeds.rss("javascript:alert(1)") == "Invalid URL scheme."

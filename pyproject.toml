@@ -79,12 +79,6 @@ line-length = 80
 
 [tool.ruff.lint]
 ignore = [
-    "CPY001",
-    "ISC001",
-    "EXE002",
-    "FURB192",
-    "ASYNC240",
-    "FURB110",
     "ANN001", # missing function arg type annotation
     "ANN002", # no annotation for *args
     "ANN003", # no annotation for kwargs
@@ -94,12 +88,8 @@ ignore = [
     "ANN205", # missing return type for staticmethod
     "ANN206", # missing return type for classmethod
     "ANN401", # dynamically typed expressions
-    "ARG001", # unused function arg
-    "ARG002", # Unused arg
-    "ARG003", # unused arg in class method
-    "ARG004", # unused staticmethod args
-    "ARG005", # unused lambda arg
     "ASYNC110", # use asyncio.Event
+    "ASYNC240", # Don't do blocking path ops in async func
     "ASYNC251", # no time.sleep in async func
     "B007", # unused loop var
     "B011", # don't assert False
@@ -114,6 +104,7 @@ ignore = [
     "C420", # unnecessary dict comprehension
     "C901", # complex code
     "COM812", # trailing comma
+    "CPY001", # Don't enforce copyright headers
     "D", # Don't check docs
     "D400", # first line should end with period
     "D415", # end doc with punctuation
@@ -124,15 +115,20 @@ ignore = [
     "EM101", # Exception must not use a string literal, assign to variable first
     "EM102", # don't use f-string for exception message, assign to var
     "ERA001", # commented-out code
+    "EXE002", # Let pre-commit handle checking executables
     "FBT001", # boolean typed positional arg
     "FBT002", # boolean positional arg
     "FBT003", # boolean positional arg
     "FIX002", # line has todo
+    "FURB110", # replace ternary with or
     "FURB129", # replace readlines() with iter
     "FURB167", # re.I alias
     "FURB177", # Path.cwd()
     "FURB188", # str.removesuffix
+    "FURB192", # Replace sorted with max
     "INP001", # namespace packages
+    "ISC001", # Ignore implicit string concat
+    "ISC004", # Ignore implicit string concat
     "N802", # bad function name
     "N806", # variable case
     "N818", # exception class name
@@ -146,8 +142,7 @@ ignore = [
     "PLR0912", # too-many-branches
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
-    "PLR0917",
-    "ISC004",
+    "PLR0917", # Too many positional arguments
     "PLR1730", # replace if with max
     "PLR2004", # Magic value
     "PLR2044", # line with empty comment

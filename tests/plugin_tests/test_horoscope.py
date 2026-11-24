@@ -61,7 +61,7 @@ def test_horoscope(mock_requests: RequestsMock, mock_db: MockDB) -> None:
     assert mock_db.get_data(horoscope.table) == [("some_user", "aries")]
 
 
-def test_invalid_syntax(mock_requests: RequestsMock, mock_db: MockDB) -> None:
+def test_invalid_syntax(mock_db: MockDB) -> None:
     sess = setup_db(mock_db)
 
     event = MagicMock()
@@ -144,7 +144,7 @@ def test_page_error(mock_requests: RequestsMock, mock_db: MockDB) -> None:
     )
 
 
-def test_bad_sign(mock_requests: RequestsMock) -> None:
+def test_bad_sign() -> None:
     db = MagicMock()
     event = MagicMock()
     sign = "some_sign"

@@ -2,6 +2,7 @@ import asyncio
 from abc import ABC
 from pathlib import Path
 
+from typing_extensions import override
 from watchdog.events import PatternMatchingEventHandler
 
 
@@ -76,6 +77,7 @@ class ConfigReloader(Reloader):
     def __init__(self, bot) -> None:
         super().__init__(bot, ConfigEventHandler, f"*{bot.config.filename}")
 
+    @override
     def reload(self, path) -> None:
         if self.bot.running:
             self.bot.logger.info("Config changed, triggering reload.")

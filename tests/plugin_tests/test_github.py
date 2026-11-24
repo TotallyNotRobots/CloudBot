@@ -6,9 +6,8 @@ from requests import HTTPError
 from plugins import github
 
 
-def test_github_invalid_repo(
-    mock_requests, mock_bot, patch_try_shorten
-) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_invalid_repo(mock_bot) -> None:
     github.load_shortcuts(mock_bot)
     event = MagicMock()
     res = github.issue_cmd("myinvalid-repo", event)
@@ -16,7 +15,8 @@ def test_github_invalid_repo(
     assert event.mock_calls == []
 
 
-def test_github(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -41,7 +41,8 @@ def test_github(mock_requests, mock_bot, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_github_error(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_error(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -64,7 +65,8 @@ def test_github_error(mock_requests, mock_bot, patch_try_shorten) -> None:
     ]
 
 
-def test_github_closed(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_closed(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -91,7 +93,8 @@ def test_github_closed(mock_requests, mock_bot, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_github_shortcut(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_shortcut(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -117,9 +120,8 @@ def test_github_shortcut(mock_requests, mock_bot, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_github_no_num_no_issues(
-    mock_requests, mock_bot, patch_try_shorten
-) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_no_num_no_issues(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     mock_requests.add(
@@ -134,7 +136,8 @@ def test_github_no_num_no_issues(
     assert event.mock_calls == []
 
 
-def test_github_no_num(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_no_num(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     mock_requests.add(
@@ -149,7 +152,8 @@ def test_github_no_num(mock_requests, mock_bot, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_github_no_exist(mock_requests, mock_bot, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_github_no_exist(mock_requests, mock_bot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123

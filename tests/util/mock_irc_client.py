@@ -46,6 +46,7 @@ class MockIrcClient(IrcClient):
     async def try_connect(self) -> None:
         await self._client.try_connect()
 
+    @override
     def is_nick_valid(self, nick: str | None) -> bool:
         return True
 

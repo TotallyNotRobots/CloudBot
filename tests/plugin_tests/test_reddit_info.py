@@ -8,7 +8,7 @@ from requests import HTTPError
 
 from cloudbot.event import CommandEvent, Event
 from plugins import reddit_info
-from tests.util import HookResult, wrap_hook_response
+from tests.util import HookResult, with_frozen_time, wrap_hook_response
 
 if TYPE_CHECKING:
     from responses import RequestsMock
@@ -104,7 +104,8 @@ def test_reddit_no_posts(mock_requests) -> None:
     assert response == "There do not appear to be any posts to show."
 
 
-def test_reddit_random_post(mock_requests, freeze_time) -> None:
+@with_frozen_time()
+def test_reddit_random_post(mock_requests) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/r/foobar/.json",
@@ -275,7 +276,8 @@ def test_reddit_random_post_sub_not_found(mock_requests: RequestsMock) -> None:
     ]
 
 
-def test_karma(mock_requests, freeze_time) -> None:
+@with_frozen_time()
+def test_karma(mock_requests) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",
@@ -371,7 +373,8 @@ def test_karma(mock_requests, freeze_time) -> None:
     ]
 
 
-def test_cake_day(mock_requests, freeze_time) -> None:
+@with_frozen_time()
+def test_cake_day(mock_requests) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",

@@ -25,7 +25,7 @@ def task_clear() -> None:
 
 
 @hook.sieve()
-def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
+def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     """
     Handle config ACLs
     """
@@ -52,7 +52,7 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
 
 
 @hook.sieve()
-async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
+async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     """check permissions"""
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -71,7 +71,9 @@ async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
 
 @hook.sieve()
 def check_disabled(
-    bot: CloudBot, event: CommandEvent, _hook: Hook
+    bot: CloudBot,  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+    event: CommandEvent,
+    _hook: Hook,
 ) -> Event | None:
     """
     check disabled_commands
@@ -86,7 +88,7 @@ def check_disabled(
 
 
 @hook.sieve()
-def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
+def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     """
     Handle rate limiting certain hooks
     """

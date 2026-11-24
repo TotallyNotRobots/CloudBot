@@ -6,7 +6,7 @@ import requests
 from plugins import books
 
 
-def test_no_key(mock_bot, mock_requests) -> None:
+def test_no_key(mock_bot) -> None:
     event = MagicMock()
     res = books.books("foo", event.reply, mock_bot)
     assert res == "This command requires a Google Developers Console API key."
@@ -69,7 +69,8 @@ def test_books_error_api_off(mock_bot, mock_requests) -> None:
     assert event.mock_calls == []
 
 
-def test_books(mock_bot, mock_requests, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(
@@ -99,7 +100,8 @@ def test_books(mock_bot, mock_requests, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_books_no_authors(mock_bot, mock_requests, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books_no_authors(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(
@@ -128,7 +130,8 @@ def test_books_no_authors(mock_bot, mock_requests, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_books_no_desc(mock_bot, mock_requests, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books_no_desc(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(
@@ -158,7 +161,8 @@ def test_books_no_desc(mock_bot, mock_requests, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_books_no_pagecount(mock_bot, mock_requests, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books_no_pagecount(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(
@@ -185,9 +189,8 @@ def test_books_no_pagecount(mock_bot, mock_requests, patch_try_shorten) -> None:
     assert event.mock_calls == []
 
 
-def test_books_no_author_or_publisher(
-    mock_bot, mock_requests, patch_try_shorten
-) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books_no_author_or_publisher(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(
@@ -215,7 +218,8 @@ def test_books_no_author_or_publisher(
     assert event.mock_calls == []
 
 
-def test_books_no_date(mock_bot, mock_requests, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_books_no_date(mock_bot, mock_requests) -> None:
     mock_bot.config["api_keys"] = {"google_dev_key": "foo"}
     event = MagicMock()
     mock_requests.add(

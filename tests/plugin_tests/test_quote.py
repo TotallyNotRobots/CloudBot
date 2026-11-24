@@ -2,9 +2,11 @@ import time
 from unittest.mock import MagicMock, call
 
 from plugins import quote
+from tests.util import with_frozen_time
 
 
-def test_add_quote(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_add_quote(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
     chan = "#foo"
@@ -17,7 +19,8 @@ def test_add_quote(mock_db, freeze_time) -> None:
     ]
 
 
-def test_add_quote_existing(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_add_quote_existing(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
 
@@ -46,7 +49,8 @@ def test_add_quote_existing(mock_db, freeze_time) -> None:
     ]
 
 
-def test_quote_cmd_add(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_quote_cmd_add(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
     chan = "#foo"
@@ -63,7 +67,8 @@ def test_quote_cmd_add(mock_db, freeze_time) -> None:
     assert event.mock_calls == [call.notice("Quote added.")]
 
 
-def test_quote_cmd_get_nick_random(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_quote_cmd_get_nick_random(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
     chan = "#foo"
@@ -79,7 +84,8 @@ def test_quote_cmd_get_nick_random(mock_db, freeze_time) -> None:
     assert event.mock_calls == []
 
 
-def test_quote_cmd_get_chan_random(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_quote_cmd_get_chan_random(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
     chan = "#foo"
@@ -94,7 +100,8 @@ def test_quote_cmd_get_chan_random(mock_db, freeze_time) -> None:
     assert event.mock_calls == []
 
 
-def test_quote_cmd_get_nick_chan_random(mock_db, freeze_time) -> None:
+@with_frozen_time()
+def test_quote_cmd_get_nick_chan_random(mock_db) -> None:
     db = mock_db.session()
     quote.qtable.create(bind=mock_db.engine)
     chan = "#foo"
