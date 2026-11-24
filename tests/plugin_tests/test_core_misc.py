@@ -78,9 +78,9 @@ async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
     assert conn.mock_calls() == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "config,calls",
+    ("config", "calls"),
     [
         ({}, []),
         ({"log_channel": "#foo"}, [call.send("JOIN #foo", True)]),

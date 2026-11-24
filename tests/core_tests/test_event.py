@@ -33,7 +33,7 @@ def test_event_copy() -> None:
 def test_event_message_no_rarget() -> None:
     conn = MagicMock()
     event = Event(conn=conn)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Target must be specified"):
         event.message("foobar")
 
     assert conn.mock_calls == []
@@ -42,7 +42,7 @@ def test_event_message_no_rarget() -> None:
 def test_event_reply_no_rarget() -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Target must be specified"):
         event.reply("foobar")
 
     assert conn.mock_calls == []
@@ -51,7 +51,7 @@ def test_event_reply_no_rarget() -> None:
 def test_event_action_no_rarget() -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Target must be specified"):
         event.action("foobar")
 
     assert conn.mock_calls == []
@@ -60,13 +60,13 @@ def test_event_action_no_rarget() -> None:
 def test_event_ctcp_no_rarget() -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Target must be specified"):
         event.ctcp("foobar", "PING")
 
     assert conn.mock_calls == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
 async def test_check_permission(mock_bot) -> None:
     conn = MagicMock(config={})
@@ -79,7 +79,7 @@ async def test_check_permission(mock_bot) -> None:
     ]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
 async def test_check_permission_no_hooks(mock_bot) -> None:
     conn = MagicMock(config={})
@@ -92,7 +92,7 @@ async def test_check_permission_no_hooks(mock_bot) -> None:
     ]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
 async def test_check_permission_hooks(mock_bot, patch_import_module) -> None:
     conn = MagicMock(config={})
@@ -130,34 +130,34 @@ def test_event_notice_with_rarget() -> None:
 def test_event_notice_no_rarget() -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Target must be specified"):
         event.notice("foobar")
 
     assert conn.mock_calls == []
 
 
 @pytest.mark.parametrize(
-    "reply_ping,messages,chan,nick,target,calls",
+    ("reply_ping", "messages", "chan", "nick", "target", "calls"),
     [
-        [True, [], "#foo", "bar", None, []],
-        [
+        (True, [], "#foo", "bar", None, []),
+        (
             True,
             ["test"],
             "#foo",
             "bar",
             None,
             [call.message("#foo", "(bar) test")],
-        ],
-        [False, ["test"], "#foo", "bar", None, [call.message("#foo", "test")]],
-        [True, ["test"], "bar", "bar", None, [call.message("bar", "test")]],
-        [
+        ),
+        (False, ["test"], "#foo", "bar", None, [call.message("#foo", "test")]),
+        (True, ["test"], "bar", "bar", None, [call.message("bar", "test")]),
+        (
             True,
             ["test"],
             "bar",
             "bar",
             "baz",
             [call.message("baz", "(bar) test")],
-        ],
+        ),
     ],
 )
 def test_reply(reply_ping, messages, chan, nick, target, calls) -> None:
@@ -191,7 +191,7 @@ def test_irc_out_prepare_error_threaded() -> None:
     assert event.parsed_line is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_irc_out_prepare() -> None:
     _hook = MagicMock(required_args=["parsed_line"])
     event = IrcOutEvent(hook=_hook, irc_raw=Message(None, None, "PING", "foo"))
@@ -199,7 +199,7 @@ async def test_irc_out_prepare() -> None:
     assert event.parsed_line == "PING foo"
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_irc_out_prepare_error() -> None:
     _hook = MagicMock(required_args=["parsed_line"])
     event = IrcOutEvent(hook=_hook, irc_raw="@")

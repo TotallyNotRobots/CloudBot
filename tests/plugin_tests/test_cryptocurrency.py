@@ -188,7 +188,7 @@ def test_cache(freeze_time: FrozenDateTimeFactory) -> None:
 
 
 @pytest.mark.parametrize(
-    "price,out",
+    ("price", "out"),
     [
         (1, "1.00"),
         (50000, "50,000.00"),

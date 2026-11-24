@@ -87,7 +87,7 @@ async def test_client_connect_exc(mock_bot_factory, mock_db) -> None:
         await client.try_connect()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_try_connect(mock_bot_factory, mock_db) -> None:
     client = MockClient(
         bot=mock_bot_factory(db=mock_db),

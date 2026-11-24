@@ -24,7 +24,7 @@ def reset_api() -> Generator[None]:
         tvdb.api = tvdb.TvdbApi()
 
 
-@pytest.fixture()
+@pytest.fixture
 def enable_api() -> None:
     tvdb.api.set_token("foobar")
 

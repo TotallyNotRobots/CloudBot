@@ -271,7 +271,7 @@ def test_register_duplicate_paste() -> None:
     registry = web.Registry[object]()
 
     registry.register("test", obj)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Attempt to register duplicate item"):
         registry.register("test", obj1)
 
     registry.remove("test")

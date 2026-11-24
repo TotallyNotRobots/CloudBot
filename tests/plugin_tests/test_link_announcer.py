@@ -94,7 +94,8 @@ def test_urls() -> None:
 def test_search() -> None:
     for text, out in SEARCH:
         match = link_announcer.url_re.search(text)
-        assert match and match.group() == out
+        assert match
+        assert match.group() == out
 
 
 ENCODINGS = (
@@ -143,7 +144,7 @@ TESTS = {
 
 
 @pytest.mark.parametrize(
-    "match,test_str,res",
+    ("match", "test_str", "res"),
     [
         (link_announcer.url_re.search(a), b.format(c), c)
         for a, (b, c) in TESTS.items()
@@ -204,7 +205,7 @@ def test_read_timeout(mock_requests) -> None:
 
 
 @pytest.mark.parametrize(
-    "body,encoding",
+    ("body", "encoding"),
     [
         (
             b"""\

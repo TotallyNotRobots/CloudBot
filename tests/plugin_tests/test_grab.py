@@ -81,7 +81,7 @@ async def test_grab_error(mock_db, caplog_bot, mock_bot_factory) -> None:
 
 
 @pytest.mark.parametrize(
-    "nick,quote,out",
+    ("nick", "quote", "out"),
     [
         ("foo", "bar baz", "<f\u200boo> bar baz"),
         ("foo", "\1ACTION bar baz\1", "* f\u200boo bar baz"),

@@ -44,7 +44,7 @@ class TestWelcome:
         assert result == []
 
     @pytest.mark.parametrize(
-        "text,out",
+        ("text", "out"),
         [
             ("Hello world", "\u200b Hello world"),
             ("bino", "\u200b flenny"),

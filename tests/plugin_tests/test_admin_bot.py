@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "chan,text,result",
+    ("chan", "text", "result"),
     [("#foo", "bar", ("#foo", "bar")), ("#foo", "#bar baz", ("#bar", "baz"))],
 )
 def test_get_chan(chan, text, result) -> None:
@@ -34,7 +34,7 @@ def test_get_chan(chan, text, result) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,chan,out",
+    ("text", "chan", "out"),
     [
         ("foo", "#bar", ["foo"]),
         ("", "#bar", ["#bar"]),
@@ -58,7 +58,7 @@ async def test_reload_config() -> None:
 
 
 @pytest.mark.parametrize(
-    "input_text,chan,key",
+    ("input_text", "chan", "key"),
     [
         ("#channel key", "#channel", "key"),
         ("channel key", "#channel", "key"),

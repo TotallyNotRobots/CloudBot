@@ -99,7 +99,7 @@ def test_bookpun() -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         (
             "test",

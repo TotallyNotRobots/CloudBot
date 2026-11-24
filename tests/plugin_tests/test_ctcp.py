@@ -9,7 +9,7 @@ from tests.util import with_frozen_time
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         (
             "VERSION",

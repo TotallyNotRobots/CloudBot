@@ -8,7 +8,7 @@ from tests.util.async_mock import AsyncMock
 
 
 class TestConfigReload:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_reload(self, mock_bot_factory, tmp_path) -> None:
         config_file = tmp_path / "config.json"
         config_file.touch()
@@ -24,7 +24,7 @@ class TestConfigReload:
 
             assert mocked.mock_calls == [call()]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_reload_not_running(self, mock_bot_factory, tmp_path) -> None:
         config_file = tmp_path / "config.json"
         config_file.touch()
@@ -42,7 +42,7 @@ class TestConfigReload:
 
 
 class TestPluginReload:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_reload(self, mock_bot_factory, tmp_path) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()
@@ -59,7 +59,7 @@ class TestPluginReload:
 
             assert mocked.mock_calls == [call(Path(str(plugin_file)))]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_reload_no_path(self, mock_bot_factory, tmp_path) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()
@@ -75,7 +75,7 @@ class TestPluginReload:
 
             assert mocked.mock_calls == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_unload(self, mock_bot_factory, tmp_path) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()

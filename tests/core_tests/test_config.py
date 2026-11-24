@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_sleep() -> Generator[None]:
     with patch("time.sleep"):
         yield

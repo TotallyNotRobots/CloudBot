@@ -4,7 +4,7 @@ from plugins import steam_store
 
 
 @pytest.mark.parametrize(
-    "is_free,price_now,price_original,price_str",
+    ("is_free", "price_now", "price_original", "price_str"),
     [
         (True, None, None, "\2free\2"),
         (False, 500, 500, "\x02$5.00\x02"),

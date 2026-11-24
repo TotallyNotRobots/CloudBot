@@ -74776,8 +74776,8 @@
             {
                 "code": "reportUnknownVariableType",
                 "range": {
-                    "startColumn": 47,
-                    "endColumn": 60,
+                    "startColumn": 4,
+                    "endColumn": 17,
                     "lineCount": 1
                 }
             },

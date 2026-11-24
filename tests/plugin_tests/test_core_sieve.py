@@ -129,7 +129,7 @@ def test_task_clear() -> None:
 
 
 @pytest.mark.parametrize(
-    "config,allowed",
+    ("config", "allowed"),
     [
         ({"foo": {"allow-except": ["#foo"]}}, False),
         ({"foo": {"deny-except": ["#bar"]}}, False),
@@ -155,7 +155,7 @@ def test_check_acls_no_chan() -> None:
     assert core_sieve.check_acls(event.bot, event, event.hook) is event
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_permissions() -> None:
     event = make_command_event()
     event.hook.permissions = ["admin"]
@@ -169,7 +169,7 @@ async def test_permissions() -> None:
         assert res is None
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_permissions_no_perms() -> None:
     event = make_command_event()
     event.hook.permissions = []

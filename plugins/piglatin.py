@@ -38,7 +38,7 @@ def translate(word: str):
             if is_vowel:
                 break
         else:  # no vowels
-            assert 0
+            assert 0  # noqa: PT015
 
         if i == 0:  # starts with a vowel
             return f"{word}way"

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "text,post_id",
+    ("text", "post_id"),
     [
         ("http://reddit.com/r/foo/comments/bar", "bar"),
         ("http://www.reddit.com/r/foo/comments/bar", "bar"),
@@ -30,7 +30,8 @@ if TYPE_CHECKING:
 )
 def test_post_re_match(text, post_id) -> None:
     match = reddit_info.post_re.search(text)
-    assert match and (match.group(1) == post_id)
+    assert match
+    assert match.group(1) == post_id
 
 
 @pytest.mark.parametrize(
@@ -47,7 +48,7 @@ def test_post_re_no_match(text) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("test", "test"),
         ("/test", "test"),
@@ -64,7 +65,7 @@ def test_get_sub(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("test", "test"),
         ("test/", "test"),

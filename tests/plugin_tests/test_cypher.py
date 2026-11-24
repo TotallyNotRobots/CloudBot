@@ -6,7 +6,7 @@ from plugins import cypher
 
 
 @pytest.mark.parametrize(
-    "plaintext,key,ciphertext",
+    ("plaintext", "key", "ciphertext"),
     [
         ("some input", "supersecretkey", "w6bDpMOdw4rCksOcw5PDk8Onw5k="),
         (
@@ -22,7 +22,7 @@ def test_encipher(plaintext, key, ciphertext) -> None:
 
 
 @pytest.mark.parametrize(
-    "ciphertext,key,plaintext",
+    ("ciphertext", "key", "plaintext"),
     [
         ("w6bDpMOdw4rCksOcw5PDk8Onw5k=", "supersecretkey", "some input"),
         (

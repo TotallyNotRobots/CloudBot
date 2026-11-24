@@ -38,7 +38,7 @@ def test_send_not_connected() -> None:
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be connected"):
         client.send("foobar")
 
     assert bot.mock_calls == [call.loop.create_future()]
@@ -56,7 +56,9 @@ async def test_send_closed() -> None:
     proto._connected = False
     proto._connecting = False
     client._send("foobar")
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="Attempted to send data to a closed connection"
+    ):
         await TestLineParsing.wait_tasks()
 
 
@@ -481,7 +483,7 @@ class TestConnect:
         client.active = True
         return client, bot
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_mock_db()
     async def test_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
@@ -536,7 +538,7 @@ class TestConnect:
         ]
         assert bot.mock_calls == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_mock_db()
     async def test_timeout_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
@@ -586,7 +588,7 @@ class TestConnect:
         ]
         assert bot.mock_calls == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_mock_db()
     async def test_other_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
@@ -606,7 +608,7 @@ class TestConnect:
         ]
         assert bot.mock_calls == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_mock_db()
     async def test_one_connect(self, caplog_bot) -> None:
         client, bot = await self.make_client()
@@ -630,7 +632,7 @@ class TestConnect:
         ]
         assert bot.mock_calls == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_mock_db()
     async def test_create_socket(self, caplog_bot) -> None:
         client, bot = await self.make_client()
@@ -682,7 +684,7 @@ class TestProtocol:
 
 
 class TestSend:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_send_sieve_error(self, caplog_bot) -> None:
         conn = make_mock_conn()
         proto = irc._IrcProtocol(conn)

@@ -77,6 +77,11 @@ class GlobalBotNotSet(ValueError):
         super().__init__("Not bot instance available")
 
 
+class GlobalBotAlreadySet(ValueError):
+    def __init__(self) -> None:
+        super().__init__("There seems to already be a bot running!")
+
+
 class BotInstanceHolder:
     def __init__(self) -> None:
         self._instance: AbstractBot | None = None
@@ -158,7 +163,7 @@ class CloudBot(AbstractBot):
         create_connections: bool = True,
     ) -> None:
         if bot_instance.get():
-            raise ValueError("There seems to already be a bot running!")
+            raise GlobalBotAlreadySet
 
         bot_instance.set(self)
         # basic variables

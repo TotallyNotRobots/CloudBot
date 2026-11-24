@@ -76,7 +76,7 @@ async def test_no_results(mock_bot_factory, mock_requests) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "style,abv,website,out",
+    ("style", "abv", "website", "out"),
     [
         (
             None,

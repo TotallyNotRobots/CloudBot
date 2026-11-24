@@ -4,7 +4,7 @@ from plugins import stock
 
 
 @pytest.mark.parametrize(
-    "number,output",
+    ("number", "output"),
     [
         (0, "0.00"),
         (1, "1.00"),

@@ -7,7 +7,7 @@ from plugins import flip
 
 
 @pytest.mark.parametrize(
-    "text,chan,calls",
+    ("text", "chan", "calls"),
     [
         (
             "table",
@@ -59,7 +59,7 @@ def test_flip(text, chan, calls) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,calls",
+    ("text", "calls"),
     [
         (
             "table",

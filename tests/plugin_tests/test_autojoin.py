@@ -96,7 +96,7 @@ async def test_kick_other(
     assert mock_db.get_data(autojoin.Autojoin) == [("testconn", "#foo")]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_joins(mock_db: MockDB, mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory(db=mock_db)
     autojoin.chan_cache.clear()

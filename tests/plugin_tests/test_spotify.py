@@ -17,26 +17,31 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "text,item_type,item_id",
+    ("text", "item_type", "item_id"),
     [("open.spotify.com/user/foobar", "user", "foobar")],
 )
 def test_http_re(text, item_type, item_id) -> None:
     match = spotify.http_re.search(text)
-    assert match and match.group(2) == item_type and match.group(3) == item_id
+    assert match
+    assert match.group(2) == item_type
+    assert match.group(3) == item_id
 
 
 @pytest.mark.parametrize(
-    "text,item_type,item_id", [("spotify:user:foobar", "user", "foobar")]
+    ("text", "item_type", "item_id"),
+    [("spotify:user:foobar", "user", "foobar")],
 )
 def test_spotify_re(text, item_type, item_id) -> None:
     match = spotify.spotify_re.search(text)
-    assert match and match.group(2) == item_type and match.group(3) == item_id
+    assert match
+    assert match.group(2) == item_type
+    assert match.group(3) == item_id
 
 
 @pytest.mark.parametrize(
-    "data,item_type,output",
+    ("data", "item_type", "output"),
     [
-        [
+        (
             {
                 "display_name": "linuxdaemon",
                 "external_urls": {
@@ -47,8 +52,8 @@ def test_spotify_re(text, item_type, item_id) -> None:
             },
             "user",
             "\x02linuxdaemon\x02, Followers: \x022,500\x02",
-        ],
-        [
+        ),
+        (
             {
                 "name": "foobar",
                 "artists": [{"name": "FooBar"}],
@@ -56,7 +61,7 @@ def test_spotify_re(text, item_type, item_id) -> None:
             },
             "track",
             "\x02foobar\x02 by \x02FooBar\x02 from the album \x02Baz\x02",
-        ],
+        ),
     ],
 )
 def test_format_response(data, item_type, output) -> None:
@@ -121,9 +126,9 @@ def test_search_no_results(mock_requests) -> None:
 
 
 @pytest.mark.parametrize(
-    "data,output",
+    ("data", "output"),
     [
-        [
+        (
             {
                 "tracks": {
                     "items": [
@@ -142,7 +147,7 @@ def test_search_no_results(mock_requests) -> None:
             },
             "\x02foobar\x02 by \x02FooBar\x02 from the album \x02Baz\x02 - "
             "https://example.com/foo [spotify:track:6rqhFgbbKwnb9MLmUQDhG6]",
-        ]
+        )
     ],
 )
 @pytest.mark.usefixtures("setup_api")
