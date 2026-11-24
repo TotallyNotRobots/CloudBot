@@ -4,6 +4,7 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from typing_extensions import override
 from watchdog.observers import Observer
 
 from cloudbot.bot import AbstractBot, CloudBot
@@ -27,7 +28,7 @@ class MockBot(AbstractBot):
         *,
         config: dict[str, Any] | None = None,
         loop: AbstractEventLoop | None = None,
-        db: MockDB | None = None,
+        db: MockDB,
         base_dir: Path,
     ) -> None:
         self.old_db = None
@@ -41,10 +42,7 @@ class MockBot(AbstractBot):
         else:
             self.stopped_future = None
 
-        if db:
-            self.db_engine: Engine | None = db.engine
-        else:
-            self.db_engine = None
+        self._db_engine: Engine = db.engine
 
         self.running = True
         self.logger = logging.getLogger("cloudbot")
@@ -60,6 +58,11 @@ class MockBot(AbstractBot):
         self.repo_link = "https://github.com/foobar/baz"
         self.user_agent = "User agent"
         self.connections: dict[str, Client] = {}
+
+    @property
+    @override
+    def db_engine(self) -> Engine:
+        return self._db_engine
 
     def get_plugin_manager(self) -> PluginManager:
         return self._plugin_manager

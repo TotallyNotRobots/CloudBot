@@ -11,6 +11,7 @@ from cloudbot.db import db_init, get_db_version, get_schema_version
 from cloudbot.util import database
 
 if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -41,7 +42,9 @@ async def test_empty_init(mock_db: MockDB, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 async def test_init_no_upgrade(
-    mock_db: MockDB, mock_bot_factory, caplog_bot: pytest.LogCaptureFixture
+    mock_db: MockDB,
+    mock_bot_factory: MockBotFactory,
+    caplog_bot: pytest.LogCaptureFixture,
 ) -> None:
     mock_bot = mock_bot_factory(
         db=mock_db,
@@ -62,16 +65,8 @@ async def test_init_no_upgrade(
     # Load all remaining unloaded plugins
     mock_bot.plugin_manager.get_plugin_tables(mock_bot.plugin_dir, reload=False)
     assert len(database.metadata.tables) > 10
-    assert not db_init(mock_bot)
-    assert caplog_bot.record_tuples == [
-        (
-            "cloudbot",
-            50,
-            "Database schema is out of date and auto-updating is disabled! Use "
-            '`alembic upgrade heads` or set `"upgrade_schema": true` in the '
-            "config. NOTE: ALWAYS take a backup of the database before upgrading!",
-        )
-    ]
+    assert db_init(mock_bot)
+    assert caplog_bot.record_tuples == []
 
 
 @pytest.mark.asyncio
