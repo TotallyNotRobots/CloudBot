@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, call, patch
 
 import pytest
+from typing_extensions import override
 
 from cloudbot.client import Client
 from tests.util.mock_conn import MockClient
@@ -11,7 +12,8 @@ class FailingMockClient(MockClient):
         super().__init__(*args, **kwargs)
         self.fail_count = fail_count
 
-    async def connect(self, timeout: float | None = None) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+    @override
+    async def connect(self, timeout: float | None = None) -> None:
         if self.fail_count is not None and self.fail_count > 0:
             self.fail_count -= 1
             raise ValueError("This is a test")

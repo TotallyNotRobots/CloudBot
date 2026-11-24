@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +11,9 @@ from cloudbot.bot import bot_instance
 from cloudbot.event import CommandEvent
 from plugins import cryptocurrency
 from tests.util import HookResult, wrap_hook_response
+
+if TYPE_CHECKING:
+    from freezegun.api import FrozenDateTimeFactory
 
 
 class MatchAPIKey(Response):
@@ -169,7 +174,7 @@ def test_api(mock_requests, mock_api_keys) -> None:
     assert result.circulating_supply == 100
 
 
-def test_cache(freeze_time) -> None:
+def test_cache(freeze_time: FrozenDateTimeFactory) -> None:
     c = cryptocurrency.Cache[str, str]()
     c.put("foo", "bar", 30)
 

@@ -265,7 +265,7 @@ def log(event) -> None:
 
 # Log console separately to prevent lag
 @hook.irc_raw("*")
-async def console_log(bot, event) -> None:
+async def console_log(event) -> None:
     text = format_event(event)
     if text is not None:
         logger.info(text)

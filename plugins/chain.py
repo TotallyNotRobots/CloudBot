@@ -91,7 +91,7 @@ def handle_chainallow_add(
     return f"Added '{hook_name}' as a denied command"
 
 
-def handle_chainallow_del(args, notice_doc, hook_name: str, db: Session) -> str:
+def handle_chainallow_del(args, notice_doc, hook_name: str, db: Session) -> str:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     condition = Commands.hook == hook_name
     items = db.query(Commands).filter(condition).all()
     count = len(items)

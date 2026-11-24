@@ -756,7 +756,7 @@ class Plugin:
             for table in self.tables:
                 await bot.loop.run_in_executor(None, _create_table, table, bot)
 
-    def unregister_tables(self, bot) -> None:
+    def unregister_tables(self, bot) -> None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG002
         """
         Unregisters all sqlalchemy Tables registered to the global metadata by this plugin
         """

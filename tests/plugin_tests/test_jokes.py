@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import random
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
 
 from plugins import jokes
 from tests.util.mock_conn import MockClient
+
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.asyncio
@@ -107,16 +113,18 @@ def test_boobies(text, out) -> None:
     assert jokes.boobies(text) == out
 
 
-def test_awesome() -> None:
-    res = jokes.awesome("foo", lambda nick: True)
+def test_awesome(mock_bot: MockBot) -> None:
+    conn = MockClient(bot=mock_bot)
+    res = jokes.awesome("foo", conn.is_nick_valid)
     assert res == (
         "foo: I am blown away by your recent awesome action(s). Please read "
         "\x02http://foo.is-awesome.cool/\x02"
     )
 
 
-def test_awesome_bad_nick() -> None:
-    res = jokes.awesome("foo", lambda nick: False)
+def test_awesome_bad_nick(mock_bot: MockBot) -> None:
+    conn = MockClient(bot=mock_bot, is_nick_valid_return=False)
+    res = jokes.awesome("foo", conn.is_nick_valid)
     assert res == "Sorry I can't tell foo how awesome they are."
 
 

@@ -1,7 +1,9 @@
 from plugins.core import log
+from tests.util import with_temp_logs
 
 
-def test_get_log_stream(tmp_logs) -> None:
+@with_temp_logs()
+def test_get_log_stream() -> None:
     log.stream_cache.clear()
     res = log.get_log_stream("foo", "bar")
     assert res is not None
@@ -11,7 +13,8 @@ def test_get_log_stream(tmp_logs) -> None:
     log.stream_cache.clear()
 
 
-def test_get_raw_log_stream(tmp_logs) -> None:
+@with_temp_logs()
+def test_get_raw_log_stream() -> None:
     log.raw_cache.clear()
     res = log.get_raw_log_stream("foo")
     assert res is not None

@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import AbstractContextManager
 from typing import TYPE_CHECKING, Any
 
+import pytest
 from sqlalchemy import Table, create_engine, insert, inspect, select
 from sqlalchemy.orm import close_all_sessions, scoped_session, sessionmaker
 
@@ -69,3 +70,10 @@ class MockDB(AbstractContextManager):
         with self.session() as session, session.begin():
             for item in data:
                 session.execute(insert(table).values(item))
+
+
+def with_mock_db() -> pytest.MarkDecorator:
+    """
+    Use the mock DB setup for the decorated test
+    """
+    return pytest.mark.usefixtures("mock_db")

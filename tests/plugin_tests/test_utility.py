@@ -38,7 +38,8 @@ def test_compare_urls(a, b, match) -> None:
         ]
     ],
 )
-def test_qrcode(data, url, patch_try_shorten) -> None:
+@pytest.mark.usefixtures("patch_try_shorten")
+def test_qrcode(data, url) -> None:
     assert compare_urls(utility.qrcode(data), url)
 
 
@@ -289,12 +290,14 @@ async def leet_data(mock_bot_factory) -> AsyncGenerator[None]:
 
 
 @pytest.mark.parametrize("text", ["foo bar baz!"])
-def test_munge(text, leet_data) -> None:
+@pytest.mark.usefixtures("leet_data")
+def test_munge(text) -> None:
     assert utility.munge(text)
 
 
 @pytest.mark.parametrize("text", ["foo bar baz!"])
-def test_leet(text, leet_data) -> None:
+@pytest.mark.usefixtures("leet_data")
+def test_leet(text) -> None:
     assert utility.leet(text)
 
 

@@ -5,6 +5,7 @@ import pytest
 
 from plugins import grab
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import with_mock_db
 
 
 def test_grab_add(mock_db) -> None:
@@ -131,7 +132,8 @@ def test_grabsearch(mock_bot) -> None:
     assert event.mock_calls == []
 
 
-def test_last_grab_none(mock_db) -> None:
+@with_mock_db()
+def test_last_grab_none() -> None:
     chan = "#foo"
     text = "bar"
     grab.grab_cache.clear()
@@ -142,7 +144,8 @@ def test_last_grab_none(mock_db) -> None:
     assert event.mock_calls == []
 
 
-def test_last_grab_empty(mock_db) -> None:
+@with_mock_db()
+def test_last_grab_empty() -> None:
     chan = "#foo"
     text = "bar"
     grab.grab_cache.clear()
@@ -153,7 +156,8 @@ def test_last_grab_empty(mock_db) -> None:
     assert event.mock_calls == []
 
 
-def test_last_grab(mock_db) -> None:
+@with_mock_db()
+def test_last_grab() -> None:
     chan = "#foo"
     text = "bar"
     grab.grab_cache.clear()

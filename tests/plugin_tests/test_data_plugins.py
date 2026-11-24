@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import asyncio
 import importlib
 import random
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,6 +12,9 @@ import pytest
 from cloudbot.event import CommandEvent, Event
 from cloudbot.util import async_util
 from plugins import attacks, foods
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 async def _call(func, event):
@@ -25,7 +31,9 @@ async def _do_test(
     loop,
     mock_bot_factory,
     text: str | None = "test _ data",
-    is_nick_valid=None,
+    *,
+    is_nick_valid: Callable[[str], bool] | None = None,
+    is_nick_valid_return: bool | None = None,
     nick: str | None = None,
     bot_nick=None,
 ):
@@ -58,7 +66,12 @@ async def _do_test(
         triggered_command="foo",
         base_event=event,
     )
-    if is_nick_valid:
+
+    if is_nick_valid is None and is_nick_valid_return is not None:
+        is_nick_valid = MagicMock()
+        is_nick_valid.return_value = is_nick_valid_return
+
+    if is_nick_valid is not None:
         with patch.object(cmd_event, "is_nick_valid", new=is_nick_valid):
             res = await _call(cmd_func, cmd_event), cmd_event
     else:
@@ -198,7 +211,7 @@ async def test_foods(food, mock_bot_factory) -> None:
         food,
         asyncio.get_running_loop(),
         mock_bot_factory,
-        is_nick_valid=lambda *args: False,
+        is_nick_valid_return=False,
     )
     assert res
     event.conn.action.assert_not_called()
@@ -274,7 +287,7 @@ async def test_attacks(attack, mock_bot_factory) -> None:
         attack.name,
         asyncio.get_running_loop(),
         mock_bot_factory,
-        is_nick_valid=lambda *args: False,
+        is_nick_valid_return=False,
     )
     assert res
     event.conn.action.assert_not_called()

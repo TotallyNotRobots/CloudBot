@@ -111,7 +111,7 @@ def test_forget(mock_db, patch_paste) -> None:
     assert mock_db.get_data(factoids.table) == []
 
 
-def test_remove_fact_no_paste(mock_requests, mock_db) -> None:
+def test_remove_fact_no_paste(mock_db) -> None:
     factoids.table.create(mock_db.engine)
     factoids.load_cache(mock_db.session())
     event = MagicMock()

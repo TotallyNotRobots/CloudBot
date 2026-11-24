@@ -6,6 +6,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from imgurpython import ImgurClient
+from typing_extensions import override
 
 from cloudbot import hook
 from cloudbot.util import web
@@ -15,16 +16,18 @@ if TYPE_CHECKING:
 
     from cloudbot.client import Client
 
-# imgurpython has an issue where it does not allow anonymous album creation
-# to fix this we monkeypatch logged_in to disable login checking
-# yes, it's kinda dirty, but it works :)
-ImgurClient.logged_in = lambda x: None
+
+class CustomImgurClient(ImgurClient):
+    @override
+    def logged_in(self) -> None:
+        return None
+
 
 NO_NSFW = False
 
 
 class APIContainer:
-    api: ImgurClient | None = None
+    api: CustomImgurClient | None = None
 
 
 container = APIContainer()
@@ -38,7 +41,7 @@ def make_api(bot):
         # Either the client id or secret aren't specified
         return None
 
-    return ImgurClient(client_id, client_secret)
+    return CustomImgurClient(client_id, client_secret)
 
 
 @hook.on_start()
@@ -46,7 +49,7 @@ def set_api(bot) -> None:
     container.api = make_api(bot)
 
 
-def get_items(text, api: ImgurClient):
+def get_items(text, api: CustomImgurClient):
     reddit_search: Match[str] | None
     if text:
         reddit_search = re.search(r"/r/([^\s/]+)", text)

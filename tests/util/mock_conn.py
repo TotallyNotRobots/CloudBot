@@ -8,12 +8,10 @@ from typing_extensions import override
 from cloudbot.client import Client
 
 if TYPE_CHECKING:
-    from asyncio import AbstractEventLoop
     from unittest.mock import _CallList
 
     from cloudbot.bot import AbstractBot
     from cloudbot.config import ConfigChannelList
-    from cloudbot.permissions import PermissionManager
 
 
 class MockClient(Client):
@@ -26,6 +24,7 @@ class MockClient(Client):
         config: dict[str, Any] | None = None,
         channels: ConfigChannelList | None = None,
         connected: bool = True,
+        is_nick_valid_return: bool = True,
     ) -> None:
         super().__init__(
             bot=bot,
@@ -35,6 +34,7 @@ class MockClient(Client):
             config=config or {},
             channels=channels,
         )
+        self.is_nick_valid_return: bool = is_nick_valid_return
         self._mock = MagicMock(spec=Client)
         self._client: Client = cast("Client", self._mock)
         self.active = True
@@ -74,31 +74,7 @@ class MockClient(Client):
 
     @override
     def is_nick_valid(self, nick: str) -> bool:
-        return True
+        return self.is_nick_valid_return
 
     def mock_calls(self) -> _CallList:
         return self._mock.mock_calls
-
-
-class MockConn:
-    def __init__(
-        self,
-        *,
-        nick: str | None = None,
-        name: str | None = None,
-        loop: AbstractEventLoop | None = None,
-    ) -> None:
-        self.nick = nick or "TestBot"
-        self.name = name or "testconn"
-        self.permissions: PermissionManager | None = None
-        self.config: dict[str, Any] = {}
-        self.history: dict[str, list[tuple[str, float, str]]] = {}
-        self.reload = MagicMock()
-        self.try_connect = MagicMock()
-        self.notice = MagicMock()
-        self.join = MagicMock()
-        self.loop = loop
-        self.ready = True
-
-    def is_nick_valid(self, nick: str) -> bool:
-        return True

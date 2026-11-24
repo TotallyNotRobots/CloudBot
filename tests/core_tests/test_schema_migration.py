@@ -75,9 +75,8 @@ async def test_init_no_upgrade(
 
 
 @pytest.mark.asyncio
-async def test_get_db_version(
-    mock_db: MockDB, mock_bot_factory, caplog_bot
-) -> None:
+@pytest.mark.usefixtures("caplog_bot")
+async def test_get_db_version(mock_db: MockDB, mock_bot_factory) -> None:
     mock_bot = mock_bot_factory(
         db=mock_db,
         base_dir=Path.cwd(),
@@ -103,9 +102,8 @@ async def test_get_db_version(
 
 
 @pytest.mark.asyncio
-async def test_get_schema_version(
-    mock_db: MockDB, mock_bot_factory, caplog_bot
-) -> None:
+@pytest.mark.usefixtures("caplog_bot")
+async def test_get_schema_version(mock_db: MockDB, mock_bot_factory) -> None:
     original_cwd = Path.cwd().resolve()
     mock_bot = mock_bot_factory(
         db=mock_db,

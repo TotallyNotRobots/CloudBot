@@ -8,6 +8,7 @@ import pytest
 from cloudbot.event import CommandEvent, Event, RegexEvent
 from cloudbot.util.tokenbucket import TokenBucket
 from plugins.core import core_sieve
+from tests.util import with_frozen_time
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -117,7 +118,8 @@ def test_rate_limit_other() -> None:
     assert res is event
 
 
-def test_task_clear(freeze_time) -> None:
+@with_frozen_time()
+def test_task_clear() -> None:
     core_sieve.buckets["a"] = bucket = TokenBucket(10, 2)
     bucket.timestamp = 0
     core_sieve.buckets["b"] = TokenBucket(10, 2)

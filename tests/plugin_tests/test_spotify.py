@@ -65,9 +65,7 @@ def test_format_response(data, item_type, output) -> None:
 
 @pytest_asyncio.fixture()
 async def setup_api(
-    mock_bot_factory: Callable[..., MockBot],
-    unset_bot: None,  # pyright: ignore[reportUnusedParameter] # Necessary fixture
-    mock_requests: RequestsMock,
+    mock_bot_factory: Callable[..., MockBot], mock_requests: RequestsMock
 ) -> AsyncGenerator[None]:
     bot = mock_bot_factory(
         config={
@@ -91,7 +89,8 @@ async def setup_api(
     spotify.api = spotify.SpotifyAPI()
 
 
-def test_api_active(setup_api) -> None:
+@pytest.mark.usefixtures("setup_api")
+def test_api_active() -> None:
     assert spotify.api
 
 
@@ -101,7 +100,8 @@ def test_api_inactive() -> None:
     assert not spotify.api
 
 
-def test_search_no_results(mock_requests, setup_api) -> None:
+@pytest.mark.usefixtures("setup_api")
+def test_search_no_results(mock_requests) -> None:
     mock_requests.add(
         "GET",
         "https://api.spotify.com/v1/search",
@@ -145,7 +145,8 @@ def test_search_no_results(mock_requests, setup_api) -> None:
         ]
     ],
 )
-def test_format_search_track(data, output, mock_requests, setup_api) -> None:
+@pytest.mark.usefixtures("setup_api")
+def test_format_search_track(data, output, mock_requests) -> None:
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()

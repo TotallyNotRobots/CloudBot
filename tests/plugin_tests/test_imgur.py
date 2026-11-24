@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from responses import RequestsMock
 
 
-def test_imgur_no_api(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_no_api(mock_api_keys) -> None:
     mock_api_keys.config.get_api_key.return_value = None
     imgur.set_api(mock_api_keys)
     response = imgur.imgur("aries")

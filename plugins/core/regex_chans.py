@@ -123,7 +123,7 @@ def change_status(db, event, status) -> None:
 
 
 @hook.sieve()
-def sieve_regex(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:
+def sieve_regex(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     if (
         _hook.type == "regex"
         and event.chan.startswith("#")

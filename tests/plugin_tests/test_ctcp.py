@@ -4,6 +4,7 @@ import pytest
 
 import cloudbot
 from plugins.core import core_ctcp
+from tests.util import with_frozen_time
 
 
 @pytest.mark.asyncio
@@ -18,7 +19,8 @@ from plugins.core import core_ctcp
         ("TIME", "\x01TIME Thu Aug 22 13:14:36 2019\x01"),
     ],
 )
-async def test_ctcp_handler(text, out, freeze_time) -> None:
+@with_frozen_time()
+async def test_ctcp_handler(text, out) -> None:
     event = MagicMock()
     res = await core_ctcp.ctcp_version(event.notice, text)
     assert res is None

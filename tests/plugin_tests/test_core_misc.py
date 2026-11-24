@@ -9,6 +9,7 @@ from irclib.parser import ParamList
 from cloudbot.config import ChannelConfig
 from plugins.core import core_misc
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import with_mock_db
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
@@ -114,7 +115,8 @@ async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
         ({"mode": "+I"}, [call.send("MODE foobot +I", True)]),
     ],
 )
-async def test_on_connect(config, calls, mock_db) -> None:
+@with_mock_db()
+async def test_on_connect(config, calls) -> None:
     bot = MagicMock()
     config = config.copy()
     config.setdefault("connection", {}).setdefault("server", "host.invalid")

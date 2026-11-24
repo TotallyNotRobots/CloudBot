@@ -8,7 +8,7 @@ from responses.matchers import query_param_matcher
 
 from cloudbot.event import CommandEvent
 from plugins import librefm
-from tests.util import wrap_hook_response
+from tests.util import with_frozen_time, wrap_hook_response
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from tests.util.mock_db import MockDB
 
 
-def test_get_account(mock_db, mock_requests) -> None:
+def test_get_account(mock_db) -> None:
     librefm.table.create(mock_db.engine)
     mock_db.add_row(librefm.table, nick="foo", acc="bar")
     librefm.load_cache(mock_db.session())
@@ -288,8 +288,9 @@ class TestTopTrack:
         assert out == expected
 
 
+@with_frozen_time()
 def test_now_playing_no_plays(
-    mock_db: MockDB, mock_bot, mock_requests: RequestsMock, freeze_time
+    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     librefm.load_cache(mock_db.session())
@@ -329,12 +330,9 @@ def test_now_playing_no_plays(
     assert mock_db.get_data(librefm.table) == []
 
 
+@with_frozen_time()
 def test_save_account(
-    mock_db: MockDB,
-    mock_bot,
-    mock_requests: RequestsMock,
-    mock_bot_factory,
-    freeze_time,
+    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     librefm.load_cache(mock_db.session())
@@ -404,12 +402,9 @@ def test_save_account(
     assert mock_db.get_data(librefm.table) == [("foo", "myaccount")]
 
 
+@with_frozen_time()
 def test_update_account(
-    mock_db: MockDB,
-    mock_bot,
-    mock_requests: RequestsMock,
-    mock_bot_factory,
-    freeze_time,
+    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     mock_db.add_row(librefm.table, nick="foo", acc="oldaccount")
@@ -482,12 +477,12 @@ def test_update_account(
 
 
 @pytest.mark.asyncio
+@with_frozen_time()
+@pytest.mark.usefixtures("patch_try_shorten")
 async def test_displaybandinfo_no_tags(
     mock_db: MockDB,
     mock_requests: RequestsMock,
     mock_bot_factory: Callable[..., MockBot],
-    freeze_time,
-    patch_try_shorten,
 ) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
 

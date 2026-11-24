@@ -3,7 +3,7 @@ from cloudbot.hook import Priority
 
 
 @hook.sieve(priority=Priority.LOWEST)
-def cmd_autohelp(bot, event, _hook):
+def cmd_autohelp(bot, event, _hook):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     if (
         _hook.type == "command"
         and _hook.auto_help

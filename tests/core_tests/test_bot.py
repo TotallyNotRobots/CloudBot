@@ -49,21 +49,19 @@ async def test_get_connection_configs_with_dupes(
         assert mock_bot.get_connection_configs() == {"foo": {"name": "FOO"}}
 
 
-def test_no_instance_config(unset_bot) -> None:
+def test_no_instance_config() -> None:
     cloudbot.bot.bot_instance.set(None)
     with pytest.raises(ValueError):
         _ = cloudbot.bot.bot_instance.config
 
 
-def test_deprecated_bot_var(unset_bot) -> None:
+def test_deprecated_bot_var() -> None:
     with pytest.deprecated_call():
         _ = cloudbot.bot.bot.get()
 
 
 @pytest.mark.asyncio()
-async def test_migrate_db(
-    mock_db, mock_bot_factory, mock_requests, tmp_path
-) -> None:
+async def test_migrate_db(mock_db, mock_bot_factory, tmp_path) -> None:
     old_db_url = f"sqlite:///{tmp_path / 'database1.db'!s}"
     with MockDB(old_db_url, True) as old_db:
         table = Table(
@@ -483,9 +481,7 @@ def config_mock(config) -> Callable[..., None]:
 @pytest.mark.parametrize(
     "config_enabled,plugin_enabled", list(product([True, False], [True, False]))
 )
-async def test_reloaders(
-    tmp_path, config_enabled, plugin_enabled, unset_bot
-) -> None:
+async def test_reloaders(tmp_path, config_enabled, plugin_enabled) -> None:
     with patch_config(
         {
             "connections": [],
@@ -502,7 +498,7 @@ async def test_reloaders(
 
 
 @pytest.mark.asyncio
-async def test_set_error(tmp_path, unset_bot) -> None:
+async def test_set_error(tmp_path) -> None:
     with patch_config({"connections": []}):
         bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         with pytest.raises(ValueError):
@@ -512,7 +508,7 @@ async def test_set_error(tmp_path, unset_bot) -> None:
 
 
 @pytest.mark.asyncio
-async def test_load_clients(tmp_path, unset_bot, mock_db) -> None:
+async def test_load_clients(tmp_path, mock_db) -> None:
     with (
         patch_config(
             {

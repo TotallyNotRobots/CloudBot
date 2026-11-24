@@ -113,7 +113,7 @@ def is_ignored(conn: str, chan, mask) -> bool:
 
 
 @hook.sieve(priority=50)
-async def ignore_sieve(bot, event, _hook):
+async def ignore_sieve(bot, event, _hook):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     # don't block event hooks
     if _hook.type in ("irc_raw", "event"):
         return event

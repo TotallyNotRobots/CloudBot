@@ -12,13 +12,14 @@ from responses.matchers import query_param_matcher
 
 from cloudbot.event import CommandEvent
 from plugins import lastfm
-from tests.util import wrap_hook_response
+from tests.util import with_frozen_time, with_mock_api_keys, wrap_hook_response
+from tests.util.mock_db import with_mock_db
 
 if TYPE_CHECKING:
     from tests.util.mock_db import MockDB
 
 
-def test_get_account(mock_db, mock_requests) -> None:
+def test_get_account(mock_db) -> None:
     lastfm.table.create(mock_db.engine)
     mock_db.add_row(lastfm.table, nick="foo", acc="bar")
     lastfm.load_cache(mock_db.session())
@@ -30,7 +31,7 @@ def test_get_account(mock_db, mock_requests) -> None:
 
 
 @pytest.mark.asyncio
-async def test_api(mock_bot_factory, unset_bot) -> None:
+async def test_api(mock_bot_factory) -> None:
     _ = mock_bot_factory(config={"api_keys": {"lastfm": "hunter20"}})
 
     with RequestsMock() as reqs:
@@ -65,7 +66,8 @@ async def test_api(mock_bot_factory, unset_bot) -> None:
             lastfm.api_request("track.getTopTags")
 
 
-def test_api_error_message(mock_requests, mock_api_keys) -> None:
+@with_mock_api_keys()
+def test_api_error_message(mock_requests) -> None:
     mock_requests.add(
         "GET",
         "http://ws.audioscrobbler.com/2.0/",
@@ -77,7 +79,8 @@ def test_api_error_message(mock_requests, mock_api_keys) -> None:
     assert error == "Error: Invalid API Key."
 
 
-def test_getartisttags(mock_requests, mock_api_keys) -> None:
+@with_mock_api_keys()
+def test_getartisttags(mock_requests) -> None:
     url = "http://ws.audioscrobbler.com/2.0/"
     mock_requests.add(
         "GET",
@@ -114,7 +117,8 @@ class TestGetArtistTags:
     def get_tags(self) -> str:
         return lastfm.getartisttags("foobar")
 
-    def test_missing_tags(self, mock_requests, mock_api_keys) -> None:
+    @with_mock_api_keys()
+    def test_missing_tags(self, mock_requests) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -124,7 +128,8 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_no_tags(self, mock_requests, mock_api_keys) -> None:
+    @with_mock_api_keys()
+    def test_no_tags(self, mock_requests) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -134,7 +139,8 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_non_existent_artist(self, mock_requests, mock_api_keys) -> None:
+    @with_mock_api_keys()
+    def test_non_existent_artist(self, mock_requests) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -144,7 +150,8 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_tags(self, mock_requests, mock_api_keys) -> None:
+    @with_mock_api_keys()
+    def test_tags(self, mock_requests) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -170,7 +177,8 @@ class TestGetArtistTags:
         assert res == "tag2, tag4, tag5, tag6"
 
 
-def test_gettracktags(mock_requests, mock_api_keys) -> None:
+@with_mock_api_keys()
+def test_gettracktags(mock_requests) -> None:
     url = "http://ws.audioscrobbler.com/2.0/"
     mock_requests.add(
         "GET",
@@ -194,7 +202,8 @@ def test_gettracktags(mock_requests, mock_api_keys) -> None:
 
 
 class TestCheckKeyAndUser:
-    def test_text(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_api_keys()
+    def test_text(self, mock_db) -> None:
         lastfm.table.create(mock_db.engine)
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
@@ -203,7 +212,8 @@ class TestCheckKeyAndUser:
         assert err is None
         assert res == "baz"
 
-    def test_db_lookup(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_api_keys()
+    def test_db_lookup(self, mock_db) -> None:
         lastfm.table.create(mock_db.engine)
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
@@ -212,7 +222,8 @@ class TestCheckKeyAndUser:
         assert err is None
         assert res == "bar"
 
-    def test_missing_user(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_api_keys()
+    def test_missing_user(self, mock_db) -> None:
         lastfm.table.create(mock_db.engine)
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
@@ -222,7 +233,8 @@ class TestCheckKeyAndUser:
         expected = "No last.fm username specified and no last.fm username is set in the database."
         assert err == expected
 
-    def test_no_key(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_db()
+    def test_no_key(self, mock_api_keys) -> None:
         mock_api_keys.config.get_api_key.return_value = None
         res, err = lastfm.check_key_and_user("foo", "baz")
         assert res is None
@@ -230,7 +242,8 @@ class TestCheckKeyAndUser:
 
 
 class TestTopArtists:
-    def test_topweek_self(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_api_keys()
+    def test_topweek_self(self, mock_requests, mock_db) -> None:
         lastfm.table.create(mock_db.engine)
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
@@ -266,7 +279,8 @@ class TestTopArtists:
 
 
 class TestTopTrack:
-    def test_toptrack_self(self, mock_api_keys, mock_requests, mock_db) -> None:
+    @with_mock_api_keys()
+    def test_toptrack_self(self, mock_requests, mock_db) -> None:
         lastfm.table.create(mock_db.engine)
         mock_db.add_row(lastfm.table, nick="foo", acc="bar")
         lastfm.load_cache(mock_db.session())
@@ -306,8 +320,9 @@ class TestTopTrack:
 
 
 @pytest.mark.asyncio
+@with_frozen_time()
 async def test_save_account(
-    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
+    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory
 ) -> None:
     lastfm.table.create(mock_db.engine)
     lastfm.load_cache(mock_db.session())
@@ -403,8 +418,9 @@ async def test_save_account(
 
 
 @pytest.mark.asyncio
+@with_frozen_time()
 async def test_update_account(
-    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory, freeze_time
+    mock_db: MockDB, mock_requests: RequestsMock, mock_bot_factory
 ) -> None:
     lastfm.table.create(mock_db.engine)
     mock_db.add_row(lastfm.table, nick="foo", acc="oldaccount")

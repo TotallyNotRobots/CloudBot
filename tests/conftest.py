@@ -88,9 +88,7 @@ def mock_db(tmp_path) -> Generator[MockDB]:
 
 @pytest.fixture()
 def mock_bot_factory(
-    tmp_path: Path,
-    unset_bot: None,  # pyright: ignore[reportUnusedParameter] # necessary fixture, value unused
-    mock_db: MockDB,
+    tmp_path: Path, mock_db: MockDB
 ) -> Generator[Callable[..., MockBot]]:
     instances: list[MockBot] = []
 
@@ -121,7 +119,7 @@ async def mock_bot(
     yield mock_bot_factory()
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def mock_requests() -> Generator[RequestsMock]:
     with RequestsMock() as reqs:
         yield reqs
@@ -149,7 +147,7 @@ def mock_api_keys() -> Generator[MagicMock]:
         bot_instance.set(None)
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def unset_bot() -> Generator[None]:
     try:
         yield

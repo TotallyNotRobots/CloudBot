@@ -11,14 +11,13 @@ from cloudbot.client import ClientConnectError
 from cloudbot.clients import irc
 from cloudbot.event import EventType
 from tests.util.async_mock import AsyncMock
+from tests.util.mock_db import with_mock_db
 
 if TYPE_CHECKING:
     from asyncio import Future
 
-    from cloudbot.client import Client
     from cloudbot.clients.irc import _IrcProtocol  # pyright: ignore[reportPrivateUsage] # This is testing, importing the proto is fine
     from cloudbot.event import Event
-    from tests.util.mock_db import MockDB
 
 
 def make_mock_conn(*, name: str = "testconn") -> MagicMock:
@@ -32,7 +31,8 @@ def make_mock_conn(*, name: str = "testconn") -> MagicMock:
     return conn
 
 
-def test_send_not_connected(mock_db: MockDB) -> None:
+@with_mock_db()
+def test_send_not_connected() -> None:
     bot = MagicMock()
     client = irc.IrcClient(
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
@@ -45,7 +45,8 @@ def test_send_not_connected(mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_send_closed(mock_db) -> None:
+@with_mock_db()
+async def test_send_closed() -> None:
     bot = MagicMock(loop=asyncio.get_running_loop())
     client = irc.IrcClient(
         bot, "irc", "foo", "bar", config={"connection": {"server": "server"}}
@@ -56,12 +57,12 @@ async def test_send_closed(mock_db) -> None:
     proto._connecting = False
     client._send("foobar")
     with pytest.raises(ValueError):
-        await TestLineParsing.wait_tasks(client)
+        await TestLineParsing.wait_tasks()
 
 
 class TestLineParsing:
     @staticmethod
-    async def wait_tasks(conn: Client, cancel: bool = False) -> None:
+    async def wait_tasks(*, cancel: bool = False) -> None:
         current = asyncio.current_task()
         tasks = {t for t in asyncio.all_tasks() if t is not current}
 
@@ -101,7 +102,7 @@ class TestLineParsing:
             b":server.host COMMAND this is :a command\r\n:server.host PRIVMSG me :hi\r\n"
         )
 
-        await self.wait_tasks(conn)
+        await self.wait_tasks()
 
         assert out == [
             {
@@ -156,7 +157,7 @@ class TestLineParsing:
             b":server\2.host CMD this is :a command\r\nPRIVMSG\r\n:server.host PRIVMSG me :hi\r\n"
         )
 
-        await self.wait_tasks(conn)
+        await self.wait_tasks()
 
         assert out == [
             {
@@ -216,7 +217,7 @@ class TestLineParsing:
         proto.data_received(b":server PING hi\r\n")
 
         conn.send.assert_called_with("PONG hi", log=False)
-        await self.wait_tasks(conn, cancel=True)
+        await self.wait_tasks(cancel=True)
         assert caplog_bot.record_tuples == []
 
     @pytest.mark.asyncio
@@ -481,11 +482,12 @@ class TestConnect:
         return client, bot
 
     @pytest.mark.asyncio()
-    async def test_exc(self, caplog_bot, mock_db) -> None:
+    @with_mock_db()
+    async def test_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
         runs = 0
 
-        async def connect(timeout):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+        async def connect(timeout):  # noqa: ARG001, ASYNC109
             nonlocal runs
             if runs == 5:
                 return
@@ -535,11 +537,12 @@ class TestConnect:
         assert bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_timeout_exc(self, caplog_bot, mock_db) -> None:
+    @with_mock_db()
+    async def test_timeout_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
         runs = 0
 
-        async def connect(timeout):  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
+        async def connect(timeout):  # noqa: ARG001, ASYNC109
             nonlocal runs
             if runs == 5:
                 return
@@ -584,7 +587,8 @@ class TestConnect:
         assert bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_other_exc(self, caplog_bot, mock_db) -> None:
+    @with_mock_db()
+    async def test_other_exc(self, caplog_bot) -> None:
         client, bot = await self.make_client()
 
         client.connect = AsyncMock()  # type: ignore[method-assign]
@@ -603,7 +607,8 @@ class TestConnect:
         assert bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_one_connect(self, caplog_bot, mock_db) -> None:
+    @with_mock_db()
+    async def test_one_connect(self, caplog_bot) -> None:
         client, bot = await self.make_client()
 
         async def _connect(timeout=5) -> None:  # noqa: ASYNC109 # TODO: Replace timeout logic with asyncio.timeout
@@ -626,7 +631,8 @@ class TestConnect:
         assert bot.mock_calls == []
 
     @pytest.mark.asyncio()
-    async def test_create_socket(self, caplog_bot, mock_db) -> None:
+    @with_mock_db()
+    async def test_create_socket(self, caplog_bot) -> None:
         client, bot = await self.make_client()
         bot.loop.create_connection = mock = MagicMock()
         fut: Future[tuple[None, None]] = asyncio.Future(loop=client.loop)

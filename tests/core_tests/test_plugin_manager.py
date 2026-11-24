@@ -210,7 +210,9 @@ def test_plugin_with_objs_none_attr(
     mock_manager: PluginManager, patch_import_module: MagicMock
 ) -> None:
     _test_weird_obj(
-        patch_import_module, mock_manager, WeirdObject(lambda *args: None)
+        patch_import_module,
+        mock_manager,
+        WeirdObject(lambda *args: None),  # noqa: ARG005
     )
 
 
@@ -220,7 +222,7 @@ def test_plugin_with_objs_mock_attr(
     _test_weird_obj(
         patch_import_module,
         mock_manager,
-        WeirdObject(lambda *args: MagicMock()),
+        WeirdObject(lambda *args: MagicMock()),  # noqa: ARG005
     )
 
 
@@ -230,7 +232,7 @@ def test_plugin_with_objs_dict_attr(
     _test_weird_obj(
         patch_import_module,
         mock_manager,
-        WeirdObject[dict[Any, Any]](lambda *args: {}),  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType] # Untyped lambda, just testing so its fine
+        WeirdObject[dict[Any, Any]](lambda *args: {}),  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType] # Untyped lambda, just testing so its fine  # noqa: ARG005
     )
 
 
@@ -240,7 +242,7 @@ def test_plugin_with_objs_full_dict_attr(
     _test_weird_obj(
         patch_import_module,
         mock_manager,
-        WeirdObject(lambda *args: {"some_thing": object()}),
+        WeirdObject(lambda *args: {"some_thing": object()}),  # noqa: ARG005
     )
 
 
@@ -274,14 +276,9 @@ def test_plugin_load_disabled(
 
 class TestPluginLoad:
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("patch_import_reload")
     async def test_duplicate_command(
-        self,
-        mock_manager,
-        tmp_path,
-        mock_bot,
-        patch_import_module,
-        patch_import_reload,
-        caplog_bot,
+        self, mock_manager, mock_bot, patch_import_module, caplog_bot
     ) -> None:
         plugin_a = MockModule()
         plugin_b = MockModule()
@@ -343,14 +340,9 @@ class TestPluginLoad:
         await mock_manager.unload_plugin(str(plugin_file_b))
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("patch_import_reload")
     async def test_load_regex_hooks(
-        self,
-        mock_manager,
-        tmp_path,
-        mock_bot,
-        patch_import_module,
-        patch_import_reload,
-        caplog_bot,
+        self, mock_manager, mock_bot, patch_import_module, caplog_bot
     ) -> None:
         mod = MockModule()
 
@@ -387,14 +379,9 @@ class TestPluginLoad:
         ]
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("patch_import_reload")
     async def test_load_periodic_hooks(
-        self,
-        mock_manager,
-        tmp_path,
-        mock_bot,
-        patch_import_module,
-        patch_import_reload,
-        caplog_bot,
+        self, mock_manager, mock_bot, patch_import_module, caplog_bot
     ) -> None:
         mod = MockModule()
 
@@ -442,9 +429,8 @@ class TestPluginLoad:
 
 
 @pytest.mark.asyncio
-async def test_load_all(
-    mock_manager, tmp_path, mock_bot, patch_import_module, patch_import_reload
-) -> None:
+@pytest.mark.usefixtures("patch_import_reload")
+async def test_load_all(mock_manager, mock_bot, patch_import_module) -> None:
     mod = MockModule()
 
     @hook.command("foo")
@@ -489,13 +475,9 @@ async def test_load_all(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("patch_import_reload")
 async def test_load_on_start_error(
-    mock_manager,
-    tmp_path,
-    mock_bot,
-    patch_import_module,
-    patch_import_reload,
-    caplog_bot,
+    mock_manager, mock_bot, patch_import_module, caplog_bot
 ) -> None:
     caplog_bot.set_level(logging.INFO)
     mod = MockModule()
@@ -527,13 +509,9 @@ async def test_load_on_start_error(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("patch_import_reload")
 async def test_load_config_hooks(
-    mock_manager,
-    tmp_path,
-    mock_bot,
-    patch_import_module,
-    patch_import_reload,
-    caplog_bot,
+    mock_manager, mock_bot, patch_import_module, caplog_bot
 ) -> None:
     mod = MockModule()
 
@@ -571,13 +549,9 @@ async def test_load_config_hooks(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("patch_import_reload")
 async def test_unload_raw_hooks(
-    mock_manager,
-    tmp_path,
-    mock_bot,
-    patch_import_module,
-    patch_import_reload,
-    caplog_bot,
+    mock_manager, mock_bot, patch_import_module, caplog_bot
 ) -> None:
     mod = MockModule()
 
@@ -612,13 +586,9 @@ async def test_unload_raw_hooks(
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("patch_import_reload")
 async def test_unload_event_hooks(
-    mock_manager,
-    tmp_path,
-    mock_bot,
-    patch_import_module,
-    patch_import_reload,
-    caplog_bot,
+    mock_manager, mock_bot, patch_import_module, caplog_bot
 ) -> None:
     mod = MockModule()
 
@@ -858,9 +828,7 @@ async def test_launch_async(
 
 
 @pytest.mark.asyncio
-async def test_create_tables(
-    mock_bot_factory, caplog_bot, tmp_path, mock_db
-) -> None:
+async def test_create_tables(mock_bot_factory, caplog_bot, mock_db) -> None:
     db = mock_db
     bot = mock_bot_factory(db=db)
     table = Table("test", database.metadata, Column("a", String))

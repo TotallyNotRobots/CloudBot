@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
+import pytest
+
 from cloudbot.util.func_utils import call_with_args
 
 if TYPE_CHECKING:
@@ -151,3 +153,15 @@ def get_data_path() -> Path:
 
 def get_data_file(name: str) -> Path:
     return get_data_path() / name
+
+
+def with_frozen_time() -> pytest.MarkDecorator:
+    return pytest.mark.usefixtures("freeze_time")
+
+
+def with_mock_api_keys() -> pytest.MarkDecorator:
+    return pytest.mark.usefixtures("mock_api_keys")
+
+
+def with_temp_logs() -> pytest.MarkDecorator:
+    return pytest.mark.usefixtures("tmp_logs")

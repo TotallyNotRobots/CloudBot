@@ -185,7 +185,7 @@ def test_link_announce_404(mock_requests) -> None:
 def test_read_timeout(mock_requests) -> None:
     url = "http://example.com"
 
-    def callback(resp):
+    def callback(resp):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
         raise requests.ReadTimeout()
 
     mock_requests.add_callback("GET", url, callback)
@@ -247,7 +247,7 @@ def test_change_encoding(body, encoding) -> None:
     )
 
 
-def test_connection_error(mock_requests) -> None:
+def test_connection_error() -> None:
     url = "http://example.com"
 
     match = link_announcer.url_re.search(url)
