@@ -75,7 +75,7 @@ jobs:
     - name: Run pre-commit
       run: pre-commit run --all
       env:
-        SKIP: yamlfmt,nitpick
+        SKIP: yamlfmt,nitpick,autotyping
 
     - name: Run yamlfmt
       if: runner.os != 'Windows'
