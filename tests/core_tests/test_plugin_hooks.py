@@ -263,7 +263,7 @@ def test_hook_args(hook, mock_bot) -> None:
     elif hook.type == "sieve":
         return
     else:  # pragma: no cover
-        assert False, f"Unhandled hook type '{hook.type}' in tests"
+        assert False, f"Unhandled hook type '{hook.type}' in tests"  # noqa: PT015
 
     for arg in hook.required_args:
         has = hasattr(event, arg)

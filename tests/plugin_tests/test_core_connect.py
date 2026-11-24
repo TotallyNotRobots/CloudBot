@@ -56,7 +56,7 @@ async def test_ssl_client_no_verify(mock_bot_factory, mock_db) -> None:
     assert client.ssl_context.verify_mode is ssl.CERT_NONE
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_core_connects(mock_bot_factory, mock_db) -> None:
     bot = mock_bot_factory(db=mock_db)
     client = MockIrcClient(

@@ -149,15 +149,6 @@ ignore = [
     "PLW1641", # no __hash__
     "PLW2901", # shadowing loop var
     "PLW3301", # nested max calls
-    "PT001", # bare fixture annotation
-    "PT006", # parameterize non-tuple args
-    "PT007", # use list of tuples for parameterize
-    "PT011", # broad pytest.raises
-    "PT015", # assertion always fails
-    "PT017", # use pytest.raises
-    "PT018", # split assertions
-    "PT022", # missing teardown
-    "PT023", # bare asyncio mark
     "PTH103", # use Path.mkdir
     "PTH120", # use Path.parent
     "PTH123", # use Path.open()
@@ -201,7 +192,7 @@ ignore = [
 select = [
     "ALL",
 ]
-extend-safe-fixes = ["TC", "UP", "RUF046", "ICN001"]
+extend-safe-fixes = ["TC", "UP", "RUF046", "ICN001", "PT006"]
 future-annotations = true
 fixable = ["ALL"]
 

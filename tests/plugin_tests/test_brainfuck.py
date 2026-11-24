@@ -4,7 +4,7 @@ from plugins import brainfuck
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("", "No output"),
         ("[", "Unbalanced brackets"),

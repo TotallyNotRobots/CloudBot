@@ -11,10 +11,10 @@ from tests.util.mock_conn import MockClient
 
 
 @pytest.mark.parametrize(
-    "plugin_name,hook_name,pages_name,page_type",
+    ("plugin_name", "hook_name", "pages_name", "page_type"),
     [
-        ["grab", "moregrab", "search_pages", "grabsearch"],
-        ["reddit_info", "moremod", "search_pages", "modlist"],
+        ("grab", "moregrab", "search_pages", "grabsearch"),
+        ("reddit_info", "moremod", "search_pages", "modlist"),
     ],
 )
 def test_page_commands(

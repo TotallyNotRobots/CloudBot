@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-@pytest.fixture()
+@pytest.fixture
 def temp_metadata() -> Generator[None]:
     new_base = sa_orm.declarative_base()
     with (
@@ -43,37 +43,35 @@ def temp_metadata() -> Generator[None]:
         yield
 
 
-@pytest.fixture()
+@pytest.fixture
 def tmp_logs(tmp_path) -> None:
     cloudbot._setup(tmp_path)
 
 
-@pytest.fixture()
-def caplog_bot(
-    caplog: pytest.LogCaptureFixture,
-) -> Generator[pytest.LogCaptureFixture]:
+@pytest.fixture
+def caplog_bot(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
     caplog.set_level(logging.WARNING, "asyncio")
     caplog.set_level(logging.WARNING, "alembic")
     caplog.set_level(0, "cloudbot")
     caplog.set_level(0, "plugins")
     caplog.set_level(0)
     logging.getLogger("cloudbot").propagate = True
-    yield caplog
+    return caplog
 
 
-@pytest.fixture()
+@pytest.fixture
 def patch_import_module() -> Generator[MagicMock]:
     with patch.object(importlib, "import_module") as mocked:
         yield mocked
 
 
-@pytest.fixture()
+@pytest.fixture
 def patch_import_reload() -> Generator[MagicMock]:
     with patch.object(importlib, "reload") as mocked:
         yield mocked
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_db(tmp_path) -> Generator[MockDB]:
     db = MockDB(f"sqlite:///{tmp_path / 'database.db'!s}")
     database.configure(db.engine)
@@ -86,7 +84,7 @@ def mock_db(tmp_path) -> Generator[MockDB]:
         db.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_bot_factory(
     tmp_path: Path, mock_db: MockDB
 ) -> Generator[Callable[..., MockBot]]:
@@ -125,7 +123,7 @@ def mock_requests() -> Generator[RequestsMock]:
         yield reqs
 
 
-@pytest.fixture()
+@pytest.fixture
 def freeze_time() -> Generator[FrozenDateTimeFactory]:
     # Make sure some randomness in the time doesn't break a test
     ts = dt.datetime(2019, 8, 22, 18, 14, 36)
@@ -136,7 +134,7 @@ def freeze_time() -> Generator[FrozenDateTimeFactory]:
         yield ft
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_api_keys() -> Generator[MagicMock]:
     mock_bot = MagicMock()
     try:
@@ -155,7 +153,7 @@ def unset_bot() -> Generator[None]:
         bot_instance.set(None)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_feedparse() -> Generator[MagicMock]:
     with patch("feedparser.parse") as mock:
         yield mock

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from tests.util.mock_db import MockDB
 
 
-@pytest.fixture()
+@pytest.fixture
 def clear_bad_words() -> Generator[None]:
     badwords.badcache.clear()
     yield

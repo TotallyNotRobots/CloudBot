@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_mcserver() -> Generator[MagicMock]:
     with patch.object(mcstatus.JavaServer, "lookup") as mock:
         yield mock
@@ -38,7 +38,7 @@ def test_mcping(mock_mcserver) -> None:
 
 
 @pytest.mark.parametrize(
-    "error,reply",
+    ("error", "reply"),
     [
         (OSError("Some IOError"), "Some IOError"),
         (ValueError("Some other ValueError"), "Some other ValueError"),
@@ -52,7 +52,7 @@ def test_mcping_lookup_errors(error, reply, mock_mcserver) -> None:
 
 
 @pytest.mark.parametrize(
-    "error,reply",
+    ("error", "reply"),
     [
         (socket.gaierror(2, "Foo"), "Invalid hostname"),
         (TimeoutError(), "Request timed out"),

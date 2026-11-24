@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-@pytest.fixture()
+@pytest.fixture
 def patch_subproc() -> Generator[MagicMock]:
     with patch("subprocess.check_output") as mocked:
         yield mocked

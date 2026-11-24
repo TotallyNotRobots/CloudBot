@@ -12,7 +12,13 @@ from sqlalchemy import Column, String, Table
 
 import cloudbot.bot
 from cloudbot import hook
-from cloudbot.bot import CloudBot, clean_name, get_cmd_regex
+from cloudbot.bot import (
+    CloudBot,
+    GlobalBotAlreadySet,
+    GlobalBotNotSet,
+    clean_name,
+    get_cmd_regex,
+)
 from cloudbot.event import Event, EventType
 from cloudbot.hook import Action, Priority
 from cloudbot.plugin_hooks import CommandHook, ConfigHook, EventHook, RawHook
@@ -51,7 +57,7 @@ async def test_get_connection_configs_with_dupes(
 
 def test_no_instance_config() -> None:
     cloudbot.bot.bot_instance.set(None)
-    with pytest.raises(ValueError):
+    with pytest.raises(GlobalBotNotSet):
         _ = cloudbot.bot.bot_instance.config
 
 
@@ -60,7 +66,7 @@ def test_deprecated_bot_var() -> None:
         _ = cloudbot.bot.bot.get()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_migrate_db(mock_db, mock_bot_factory, tmp_path) -> None:
     old_db_url = f"sqlite:///{tmp_path / 'database1.db'!s}"
     with MockDB(old_db_url, True) as old_db:
@@ -114,7 +120,7 @@ async def test_migrate_db(mock_db, mock_bot_factory, tmp_path) -> None:
         assert old_db.get_data(table) == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_connect_clients(mock_bot_factory) -> None:
     bot = mock_bot_factory()
     conn = MockClient(bot=bot)
@@ -128,7 +134,7 @@ async def test_connect_clients(mock_bot_factory) -> None:
     assert conn.mock_calls() == [call.try_connect()]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_start_plugin_reload(tmp_path) -> None:
     bot = MagicMock(old_db=None, do_migrate_db=False)
 
@@ -148,7 +154,7 @@ async def test_start_plugin_reload(tmp_path) -> None:
 
 
 class TestProcessing:
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_irc_catch_all(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -175,7 +181,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_irc_catch_all_block(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -208,7 +214,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_command(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -237,7 +243,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_command_partial(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -270,7 +276,7 @@ class TestProcessing:
             call.notice("bar", "Possible matches: foob or fooc")
         ]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_event(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -300,7 +306,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_event_block(self, mock_bot_factory, mock_db) -> None:
         bot = mock_bot_factory(db=mock_db)
         conn = MockClient(bot=bot, nick="bot")
@@ -342,7 +348,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_irc_raw(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -368,7 +374,7 @@ class TestProcessing:
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_irc_raw_block(self, mock_bot_factory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
@@ -402,7 +408,7 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_reload_config(mock_bot_factory) -> None:
     bot = mock_bot_factory()
     conn = MockClient(bot=bot)
@@ -428,12 +434,12 @@ async def test_reload_config(mock_bot_factory) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,result",
-    (
+    ("text", "result"),
+    [
         ("connection", "connection"),
         ("c onn ection", "c_onn_ection"),
         ("c+onn ection", "conn_ection"),
-    ),
+    ],
 )
 def test_clean_name(text, result) -> None:
     assert clean_name(text) == result
@@ -479,7 +485,8 @@ def config_mock(config) -> Callable[..., None]:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "config_enabled,plugin_enabled", list(product([True, False], [True, False]))
+    ("config_enabled", "plugin_enabled"),
+    list(product([True, False], [True, False])),
 )
 async def test_reloaders(tmp_path, config_enabled, plugin_enabled) -> None:
     with patch_config(
@@ -501,7 +508,7 @@ async def test_reloaders(tmp_path, config_enabled, plugin_enabled) -> None:
 async def test_set_error(tmp_path) -> None:
     with patch_config({"connections": []}):
         bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
-        with pytest.raises(ValueError):
+        with pytest.raises(GlobalBotAlreadySet):
             CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
 
         bot.observer.stop()

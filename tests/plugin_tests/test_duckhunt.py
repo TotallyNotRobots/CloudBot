@@ -19,14 +19,14 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "prefix,items,result",
+    ("prefix", "items", "result"),
     [
-        [
+        (
             "Duck friend scores in #TestChannel: ",
             {"testuser": 5, "testuser1": 1},
             "Duck friend scores in #TestChannel: "
             "\x02t\u200bestuser\x02: 5 \u2022 \x02t\u200bestuser1\x02: 1",
-        ]
+        )
     ],
 )
 @with_mock_db()

@@ -27,7 +27,7 @@ pronunciations: dict[str, list[list[str]]] = {}
 # <https://stackoverflow.com/questions/22773826/pig-latin-translator>
 
 
-def translate(word: str):
+def translate(word: str) -> str:
     word = word.lower()  # NOTE: ignore Unicode casefold
     i = 0
     # find out whether the word start with a vowel sound using
@@ -38,7 +38,7 @@ def translate(word: str):
             if is_vowel:
                 break
         else:  # no vowels
-            assert 0
+            break
 
         if i == 0:  # starts with a vowel
             return f"{word}way"
@@ -71,7 +71,7 @@ def load_nltk() -> None:
 
 
 @hook.command("pig", "piglatin")
-def piglatin(text):
+def piglatin(text: str) -> str:
     """<text> - Converts <text> to pig latin."""
     if not pronunciations:
         return "Please wait, getting NLTK ready!"

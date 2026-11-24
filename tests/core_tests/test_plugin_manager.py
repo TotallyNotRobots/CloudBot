@@ -22,7 +22,7 @@ from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
     from asyncio import Task
-    from collections.abc import AsyncGenerator, Callable, Generator
+    from collections.abc import AsyncGenerator, Callable
 
     from tests.util.mock_bot import MockBot
 
@@ -37,9 +37,9 @@ async def mock_bot(
     yield mock_bot_factory(base_dir=tmp_base)
 
 
-@pytest.fixture()
-def mock_manager(mock_bot: MockBot) -> Generator[PluginManager]:
-    yield mock_bot.plugin_manager
+@pytest.fixture
+def mock_manager(mock_bot: MockBot) -> PluginManager:
+    return mock_bot.plugin_manager
 
 
 def test_get_plugin(mock_manager: PluginManager) -> None:
@@ -161,9 +161,9 @@ def test_plugin_load(
     patch_import_reload.assert_called_once_with(mod)
 
     plugin = mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType] # TODO: type plugin manager
+    assert plugin is not None
     assert (
-        plugin is not None
-        and plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
+        plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
         is newmod
     )
 
@@ -646,7 +646,7 @@ def test_file_path_to_import(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "do_sieve,sieve_allow,single_thread,sieve_error",
+    ("do_sieve", "sieve_allow", "single_thread", "sieve_error"),
     list(
         itertools.product(
             [True, False], [True, False], [True, False], [True, False]
@@ -721,7 +721,8 @@ async def test_launch(
         expected_post = 1
 
     if sieve_error and sieve_called:
-        assert result == called and not called
+        assert result == called
+        assert not called
         assert caplog_bot.record_tuples == [
             (
                 "cloudbot",
@@ -730,7 +731,8 @@ async def test_launch(
             )
         ]
     else:
-        assert result == called and called == (sieve_allow or not do_sieve)
+        assert result == called
+        assert called == (sieve_allow or not do_sieve)
 
     assert sieve_called == do_sieve
     assert post_called == expected_post
@@ -738,7 +740,7 @@ async def test_launch(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "do_sieve,sieve_allow,single_thread,sieve_error",
+    ("do_sieve", "sieve_allow", "single_thread", "sieve_error"),
     list(
         itertools.product(
             [True, False], [True, False], [True, False], [True, False]
@@ -812,7 +814,8 @@ async def test_launch_async(
         expected_post = 1
 
     if sieve_error and sieve_called:
-        assert result == called and not called
+        assert result == called
+        assert not called
         assert caplog_bot.record_tuples == [
             (
                 "cloudbot",
@@ -821,7 +824,8 @@ async def test_launch_async(
             )
         ]
     else:
-        assert result == called and called == (sieve_allow or not do_sieve)
+        assert result == called
+        assert called == (sieve_allow or not do_sieve)
 
     assert sieve_called == do_sieve
     assert post_called == expected_post

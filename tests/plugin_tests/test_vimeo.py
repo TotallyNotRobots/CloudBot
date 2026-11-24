@@ -7,7 +7,7 @@ from cloudbot.util import http
 from plugins import vimeo
 
 
-@pytest.fixture()
+@pytest.fixture
 def patch_get_json(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     mock = MagicMock(spec=http.get_json)  # pyright: ignore[reportUnknownMemberType] # TODO: type http util
     monkeypatch.setattr(http, "get_json", mock)

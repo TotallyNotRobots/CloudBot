@@ -12,7 +12,7 @@ def _get_hook(func, name):
 
 
 @pytest.mark.parametrize(
-    "func,name",
+    ("func", "name"),
     [
         (hook.command, "command"),
         (hook.post_hook, "post_hook"),

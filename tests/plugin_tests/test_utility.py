@@ -19,7 +19,7 @@ ESCAPE_DATA = [("\x00\x01345\x05", r"\x00\x01345\x05")]
 
 
 @pytest.mark.parametrize(
-    "a,b,match",
+    ("a", "b", "match"),
     [("http://example.com/?a=1&b=1", "http://example.com/?b=1&a=1", True)],
 )
 def test_compare_urls(a, b, match) -> None:
@@ -27,15 +27,15 @@ def test_compare_urls(a, b, match) -> None:
 
 
 @pytest.mark.parametrize(
-    "data,url",
+    ("data", "url"),
     [
-        [
+        (
             "foo bar_baz+bing//",
             (
                 "http://chart.googleapis.com/chart"
                 "?cht=qr&chs=200x200&chl=foo+bar_baz%2Bbing%2F%2F"
             ),
-        ]
+        )
     ],
 )
 @pytest.mark.usefixtures("patch_try_shorten")
@@ -44,26 +44,28 @@ def test_qrcode(data, url) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output", [("\2foo\2", "foo"), ("\x0301,03foo\x0f", "foo")]
+    ("text", "output"), [("\2foo\2", "foo"), ("\x0301,03foo\x0f", "foo")]
 )
 def test_strip(text, output) -> None:
     assert utility.strip(text) == output
 
 
-@pytest.mark.parametrize("text,replace,out", [("foo", {"f": "br"}, "broo")])
+@pytest.mark.parametrize(
+    ("text", "replace", "out"), [("foo", {"f": "br"}, "broo")]
+)
 def test_translate(text, replace, out) -> None:
     assert utility.translate(text, replace) == out
 
 
 @pytest.mark.parametrize(
-    "text,output", [("foo. bar", "Foo. Bar"), ("foo. bar. ", "Foo. Bar. ")]
+    ("text", "output"), [("foo. bar", "Foo. Bar"), ("foo. bar. ", "Foo. Bar. ")]
 )
 def test_capitalize(text, output) -> None:
     assert utility.capitalize(text) == output
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "FOO"),
         ("foo bar", "FOO BAR"),
@@ -77,7 +79,7 @@ def test_upper(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "foo"),
         ("foo bar", "foo bar"),
@@ -91,7 +93,7 @@ def test_lower(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "Foo"),
         ("foo bar", "Foo Bar"),
@@ -105,7 +107,7 @@ def test_titlecase(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "FOO"),
         ("foo bar", "FOO BAR"),
@@ -119,7 +121,7 @@ def test_swapcase(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "\uff46\uff4f\uff4f"),
         ("foo bar", "\uff46\uff4f\uff4f\u3000\uff42\uff41\uff52"),
@@ -133,7 +135,7 @@ def test_fullwidth(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "sbb"),
         ("foo bar", "sbb one"),
@@ -147,7 +149,7 @@ def test_rot13_encode(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "Zm9v"),
         ("foo bar", "Zm9vIGJhcg=="),
@@ -161,7 +163,7 @@ def test_base64_encode(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         ("az", None),
         ("Zm9v", "foo"),
@@ -170,10 +172,10 @@ def test_base64_encode(text, output) -> None:
         ("Zk9P", "fOO"),
         ("Rk9P", "FOO"),
         ("4oSi", "\u2122"),
-        [
+        (
             "AQ==",
             "Non printable characters detected in output, escaped output: '\\x01'",
-        ],
+        ),
     ],
 )
 def test_base64_decode(text, out) -> None:
@@ -188,7 +190,7 @@ def test_base64_decode(text, out) -> None:
         assert ret == out
 
 
-@pytest.mark.parametrize("text,valid", [("aa", False), ("aaa=", True)])
+@pytest.mark.parametrize(("text", "valid"), [("aa", False), ("aaa=", True)])
 def test_base64_check(text, valid) -> None:
     ret = utility.base64_check(text)
     if valid:
@@ -197,20 +199,20 @@ def test_base64_check(text, valid) -> None:
         assert ret == f"'{text}' is not a valid base64 encoded string"
 
 
-@pytest.mark.parametrize("text,output", ESCAPE_DATA)
+@pytest.mark.parametrize(("text", "output"), ESCAPE_DATA)
 def test_escape(text, output) -> None:
     assert utility.escape(text) == output
 
 
 @pytest.mark.parametrize(
-    "text,output", [(out, text) for text, out in ESCAPE_DATA]
+    ("text", "output"), [(out, text) for text, out in ESCAPE_DATA]
 )
 def test_unescape(text, output) -> None:
     assert utility.unescape(text) == output
 
 
 @pytest.mark.parametrize(
-    "text,output",
+    ("text", "output"),
     [
         ("foo", "oof"),
         ("foo bar", "rab oof"),
@@ -224,7 +226,7 @@ def test_reverse(text, output) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,text_length",
+    ("text", "text_length"),
     [("foo", 3), ("foo bar", 7), ("Foo", 3), ("fOO", 3), ("FOO", 3)],
 )
 def test_length(text, text_length) -> None:
@@ -235,7 +237,7 @@ def test_length(text, text_length) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         ("$(red)foo$(clear)", "\x0304foo\x0f"),
         ("$(bold)foo$(clear)", "\x02foo\x0f"),
@@ -246,7 +248,7 @@ def test_color_parse(text, out) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         ("foobar", "\x0304f\x0307o\x0308o\x0309b\x0303a\x0310r"),
         ("foo bar", "\x0304f\x0307o\x0308o \x0303b\x0310a\x0312r"),
@@ -257,16 +259,16 @@ def test_rainbow(text, out) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out", [("foo bar baz", "\x0304foo \x0307bar \x0308baz")]
+    ("text", "out"), [("foo bar baz", "\x0304foo \x0307bar \x0308baz")]
 )
 def test_wrainbow(text, out) -> None:
     assert utility.wrainbow(text) == out
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
-        [
+        (
             "foo bar baz!",
             (
                 "md5: e23f57ae0441216d5c818ba18c1fc98b, "
@@ -274,7 +276,7 @@ def test_wrainbow(text, out) -> None:
                 "sha256: "
                 "6afee6de002d236bd35ea0918848b8f85342acd887499b5e8567598af1e337b4"
             ),
-        ]
+        )
     ],
 )
 def test_hash_command(text, out) -> None:
@@ -307,16 +309,16 @@ def test_derpify(text) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
-        [
+        (
             "foo bar baz!",
             (
                 "\x0304f\x0300o\x0302o\x0304 "
                 "\x0300b\x0302a\x0304r\x0300 "
                 "\x0302b\x0304a\x0300z\x0302!"
             ),
-        ]
+        )
     ],
 )
 def test_usa(text, out) -> None:
@@ -324,7 +326,7 @@ def test_usa(text, out) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         (
             "foo bar baz!",

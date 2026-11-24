@@ -24,7 +24,7 @@ minute = 60 * second
 hour = 60 * minute
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_db(mock_db) -> None:
     remind.table.create(mock_db.engine)
 
@@ -47,7 +47,7 @@ async def make_reminder(
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @with_frozen_time()
 @pytest.mark.usefixtures("setup_db")
 async def test_invalid_reminder(mock_db) -> None:
@@ -67,7 +67,7 @@ async def test_invalid_reminder(mock_db) -> None:
     assert mock_db.get_data(remind.table) == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @with_frozen_time()
 @pytest.mark.usefixtures("setup_db")
 async def test_invalid_reminder_time(mock_db) -> None:
@@ -139,7 +139,7 @@ async def test_add_reminder(mock_db) -> None:
     ]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @with_frozen_time()
 @pytest.mark.usefixtures("setup_db")
 async def test_add_reminder_fail_count(mock_db) -> None:
@@ -231,7 +231,7 @@ class TestCheckReminders:
         await remind.load_cache(async_call, mock_db.session())
         await remind.check_reminders(bot, async_call, mock_db.session())
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_frozen_time()
     @pytest.mark.usefixtures("setup_db")
     async def test_no_conn(self, mock_bot_factory, mock_db) -> None:
@@ -257,7 +257,7 @@ class TestCheckReminders:
             )
         ]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_frozen_time()
     @pytest.mark.usefixtures("setup_db")
     async def test_conn_not_ready(self, mock_bot_factory, mock_db) -> None:
@@ -283,7 +283,7 @@ class TestCheckReminders:
             )
         ]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_frozen_time()
     @pytest.mark.usefixtures("setup_db")
     async def test_late(self, mock_bot_factory, mock_db) -> None:
@@ -311,7 +311,7 @@ class TestCheckReminders:
 
         assert mock_db.get_data(remind.table) == []
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     @with_frozen_time()
     @pytest.mark.usefixtures("setup_db")
     async def test_normal(self, mock_bot_factory, mock_db) -> None:
@@ -334,7 +334,7 @@ class TestCheckReminders:
         assert mock_db.get_data(remind.table) == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("setup_db")
 async def test_clear_reminders(mock_db) -> None:
     now = dt.datetime.now()
@@ -373,7 +373,7 @@ async def test_clear_reminders(mock_db) -> None:
     assert mock_db.get_data(remind.table) == []
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_clear_reminders_empty(mock_db) -> None:
     remind.table.create(mock_db.engine, checkfirst=True)
     assert mock_db.get_data(remind.table) == []

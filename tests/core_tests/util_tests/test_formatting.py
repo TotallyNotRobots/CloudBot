@@ -94,7 +94,7 @@ def test_pluralize() -> None:
 
 
 @pytest.mark.parametrize(
-    "item,count,output",
+    ("item", "count", "output"),
     [
         ("foo", 1, "1 foo"),
         ("bar", 2, "2 bars"),

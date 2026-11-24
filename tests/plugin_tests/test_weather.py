@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "bearing,direction",
+    ("bearing", "direction"),
     [
         (360, "N"),
         (0, "N"),
@@ -51,16 +51,20 @@ def test_wind_direction(bearing, direction) -> None:
 
 
 def test_wind_dir_error() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Invalid wind bearing"):
         weather.bearing_to_card(400)
 
 
-@pytest.mark.parametrize("temp_f,temp_c", [(32, 0), (212, 100), (-40, -40)])
+@pytest.mark.parametrize(
+    ("temp_f", "temp_c"), [(32, 0), (212, 100), (-40, -40)]
+)
 def test_temp_convert(temp_f, temp_c) -> None:
     assert weather.convert_f2c(temp_f) == temp_c
 
 
-@pytest.mark.parametrize("mph,kph", [(0, 0), (20, 32.18688), (43, 69.201792)])
+@pytest.mark.parametrize(
+    ("mph", "kph"), [(0, 0), (20, 32.18688), (43, 69.201792)]
+)
 def test_mph_to_kph(mph, kph) -> None:
     assert weather.mph_to_kph(mph) == kph
 
@@ -469,7 +473,7 @@ async def test_db_save(
     ]
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_update_location(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:

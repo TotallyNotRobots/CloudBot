@@ -12,7 +12,7 @@ from plugins.core import cap
 from tests.util.mock_module import MockModule
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_cap_req(patch_import_module) -> None:
     caps = [
         "some-cap",

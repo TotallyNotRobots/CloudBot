@@ -12,7 +12,7 @@ from tests.util import with_mock_api_keys
 
 
 @pytest.mark.parametrize(
-    "source,name",
+    ("source", "name"),
     [
         ("ahd", "AHD/Wordnik"),
         ("ahd-5", "AHD/Wordnik"),

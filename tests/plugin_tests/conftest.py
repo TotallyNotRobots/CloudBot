@@ -15,7 +15,7 @@ def patch_paste() -> Generator[MagicMock]:
         yield mock
 
 
-@pytest.fixture()
+@pytest.fixture
 def patch_try_shorten() -> Generator[Callable[..., Any]]:
     with patch("cloudbot.util.web.try_shorten", new=lambda x, **kwargs: x) as p:  # noqa: ARG005
         yield p

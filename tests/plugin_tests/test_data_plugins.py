@@ -82,7 +82,7 @@ async def _do_test(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "plugin_name,loader,data_name,cmd",
+    ("plugin_name", "loader", "data_name", "cmd"),
     [
         ("fmk", "load_fmk", "fmklist", "fmk"),
         ("kenm", "load_kenm", "kenm_data", "kenm"),
@@ -123,7 +123,7 @@ async def test_message_reply(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "plugin_name,loader,data_name,cmd",
+    ("plugin_name", "loader", "data_name", "cmd"),
     [
         ("eightball", "load_responses", "responses", "eightball"),
         ("foods", "load_foods", "basic_food_data", "potato"),
@@ -160,7 +160,7 @@ async def test_drinks(seed, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "plugin_name,loader,data_name,cmd",
+    ("plugin_name", "loader", "data_name", "cmd"),
     [
         ("verysmart", "load_quotes", "vsquotes", "verysmart"),
         ("fortune", "load_fortunes", "fortunes", "fortune"),

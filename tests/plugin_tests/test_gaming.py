@@ -7,7 +7,7 @@ from plugins import gaming
 
 
 @pytest.mark.parametrize(
-    "text,out",
+    ("text", "out"),
     [
         ("d5", "2 (2)"),
         ("2d5+3", "10 (2, 5)"),
@@ -71,7 +71,7 @@ def test_dice_num_only() -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out", [("a or b", "a"), ("a, b", "a"), ("a,b,c", "a")]
+    ("text", "out"), [("a or b", "a"), ("a, b", "a"), ("a,b,c", "a")]
 )
 def test_choose(text, out) -> None:
     random.seed(1)
@@ -81,7 +81,7 @@ def test_choose(text, out) -> None:
 
 
 @pytest.mark.parametrize(
-    "text,out,seed",
+    ("text", "out", "seed"),
     [
         ("", [call.action("flips a coin and gets heads.")], 4),
         ("a", [call.notice("Invalid input 'a': not a number")], 4),

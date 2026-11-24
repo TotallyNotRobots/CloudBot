@@ -10,7 +10,7 @@ from tests.util import wrap_hook_response
 
 
 @pytest.mark.parametrize(
-    "status,out",
+    ("status", "out"),
     [
         (
             "REQUEST_DENIED",
