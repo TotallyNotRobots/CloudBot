@@ -8,7 +8,7 @@ services:
     networks:
     - postgres-network
     volumes:
-    - database:/var/lib/postgresql/data/
+    - database:/var/lib/postgresql/
 
   pgadmin:
     image: dpage/pgadmin4@sha256:3591b3d02910dcd817dec6fcaa681c278ba6966945283dd0ea0042731c330c83
