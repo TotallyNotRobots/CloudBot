@@ -363,9 +363,7 @@ def getuserartistplaycount(event, text, nick, bot):
 
     playcount = artist_info["artist"]["stats"]["userplaycount"]
 
-    out = f'"{format_user(user)}" has {int(playcount):,} {text} plays.'
-
-    return out
+    return f'"{format_user(user)}" has {int(playcount):,} {text} plays.'
 
 
 @hook.command("band", "la")

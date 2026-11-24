@@ -144,14 +144,13 @@ def is_hook_allowed(_hook):
 
 
 def wrap_event(_hook, event, cmd, args):
-    cmd_event = CommandEvent(
+    return CommandEvent(
         base_event=event,
         text=args.strip(),
         triggered_command=cmd,
         hook=_hook,
         cmd_prefix="",
     )
-    return cmd_event
 
 
 @hook.command()
@@ -168,7 +167,7 @@ async def chain(text, bot, event):
             event.notice(
                 f"'{format_hook_name(_hook)}' may not be used in command piping"
             )
-            return
+            return None
 
         if _hook.permissions:
             allowed = await event.check_permissions(_hook.permissions)
@@ -176,7 +175,7 @@ async def chain(text, bot, event):
                 event.notice(
                     f"Sorry, you are not allowed to use '{format_hook_name(_hook)}'."
                 )
-                return
+                return None
 
     buffer = ""
 
@@ -240,6 +239,8 @@ async def chain(text, bot, event):
             out_func = event.reply
 
         out_func(buffer, target=_target)
+
+    return None
 
 
 @hook.command(autohelp=False)

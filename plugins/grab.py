@@ -124,16 +124,14 @@ def grab(text, nick, chan, db, conn: Client) -> str:
         return "the operation failed"
 
 
-def format_grab(name, quote):
+def format_grab(name, quote) -> str:
     # add nonbreaking space to nicks to avoid highlighting people with printed grabs
     name = f"{name[0]}\u200b{name[1:]}"
     if quote.startswith("\x01ACTION") or quote.startswith("*"):
         quote = quote.replace("\x01ACTION", "").replace("\x01", "")
-        out = f"* {name}{quote}"
-        return out
+        return f"* {name}{quote}"
 
-    out = f"<{name}> {quote}"
-    return out
+    return f"<{name}> {quote}"
 
 
 @hook.command("lastgrab", "lgrab")

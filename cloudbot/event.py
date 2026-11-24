@@ -372,8 +372,7 @@ class Event(Mapping[str, Any]):
             executor = None
 
         part = partial(func, *args, **kwargs)
-        result = await self.loop.run_in_executor(executor, part)
-        return result
+        return await self.loop.run_in_executor(executor, part)
 
     def is_nick_valid(self, nick: str) -> bool:
         """

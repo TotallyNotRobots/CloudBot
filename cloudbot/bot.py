@@ -130,7 +130,7 @@ def get_cmd_regex(event):
     is_pm = event.chan.lower() == event.nick.lower()
     command_prefix = re.escape(conn.config.get("command_prefix", "."))
     conn_nick = re.escape(event.conn.nick)
-    cmd_re = re.compile(
+    return re.compile(
         r"""
         ^
         # Prefix or nick
@@ -151,7 +151,6 @@ def get_cmd_regex(event):
         """,
         re.IGNORECASE | re.VERBOSE,
     )
-    return cmd_re
 
 
 class CloudBot(AbstractBot):

@@ -59,8 +59,7 @@ def approximate(count, n):
     mid = 0.5 * (n + 1) * count
     var = (n**2 - 1) / 12
     adj_var = (var * count) ** 0.5
-    normalvariate = random.normalvariate(mid, adj_var)
-    return normalvariate
+    return random.normalvariate(mid, adj_var)
 
 
 @hook.command("roll", "dice")
@@ -136,7 +135,7 @@ def choose(text, event):
 
 
 @hook.command(autohelp=False)
-def coin(text, notice: EventNotice, action: EventAction):
+def coin(text, notice: EventNotice, action: EventAction) -> None:
     """[amount] - flips [amount] coins"""
 
     if text:
@@ -144,17 +143,17 @@ def coin(text, notice: EventNotice, action: EventAction):
             amount = int(text)
         except (ValueError, TypeError):
             notice(f"Invalid input '{text}': not a number")
-            return None
+            return
     else:
         amount = 1
 
     if amount == 1:
         action(f"flips a coin and gets {random.choice(['heads', 'tails'])}.")
-        return None
+        return
 
     if amount == 0:
         action("makes a coin flipping motion")
-        return None
+        return
 
     mu = 0.5 * amount
     sigma = (0.75 * amount) ** 0.5
@@ -162,4 +161,4 @@ def coin(text, notice: EventNotice, action: EventAction):
     heads = clamp(round(n), 0, amount)
     tails = amount - heads
     action(f"flips {amount} coins and gets {heads} heads and {tails} tails.")
-    return None
+    return

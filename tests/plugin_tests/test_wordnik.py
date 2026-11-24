@@ -51,10 +51,9 @@ class WordTestBase:
         return out
 
     @classmethod
-    def build_url(cls, word, op=None):
+    def build_url(cls, word, op=None) -> str:
         base = "http://api.wordnik.com/v4/word.json"
-        url = f"{base}/{word}/{op or cls.get_op()}"
-        return url
+        return f"{base}/{word}/{op or cls.get_op()}"
 
     @classmethod
     def get_func(cls):
@@ -509,10 +508,9 @@ class WordsTestBase(WordTestBase):
 
     @classmethod
     @override
-    def build_url(cls, word=None, op=None):
+    def build_url(cls, word=None, op=None) -> str:
         base = "http://api.wordnik.com/v4/words.json"
-        url = f"{base}/{op or cls.get_op()}"
-        return url
+        return f"{base}/{op or cls.get_op()}"
 
 
 class TestWOTD(WordsTestBase):

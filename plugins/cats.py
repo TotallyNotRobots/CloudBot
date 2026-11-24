@@ -31,8 +31,7 @@ def cats(reply: EventReply, bot):
         "https://catfact.ninja/fact", reply, bot, params={"max_length": 100}
     )
     json = r.json()
-    response = json["fact"]
-    return response
+    return json["fact"]
 
 
 @hook.command(autohelp=False)

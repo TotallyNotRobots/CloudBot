@@ -182,7 +182,7 @@ async def remind(
     if len(parts) == 1:
         # user didn't add a message, send them help
         event.notice_doc()
-        return
+        return None
 
     if count > 10:
         return (

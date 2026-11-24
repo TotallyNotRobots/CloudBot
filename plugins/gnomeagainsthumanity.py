@@ -28,5 +28,4 @@ def CAHblackcard(text):
     def blankfiller(matchobj):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
         return random.choice(gnomecards["white"])
 
-    out = re.sub(r"\b_\b", blankfiller, CardText)
-    return out
+    return re.sub(r"\b_\b", blankfiller, CardText)

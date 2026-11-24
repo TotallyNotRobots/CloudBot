@@ -234,7 +234,7 @@ async def optout(
         event.notice(
             "Sorry, you may not configure optout settings for that channel."
         )
-        return
+        return None
 
     pattern = args.pop(0)
 
@@ -269,7 +269,7 @@ async def deloptout(
         event.notice(
             "Sorry, you may not configure optout settings for that channel."
         )
-        return
+        return None
 
     pattern = args.pop(0)
 
@@ -315,7 +315,7 @@ async def list_optout(
     chan, allowed = await check_global_perms(event)
 
     if not allowed:
-        return
+        return None
 
     opts = await async_call(get_channel_optouts, conn.name, chan)
     table = await async_call(format_optout_list, opts)
@@ -331,7 +331,7 @@ async def clear(
     chan, allowed = await check_global_perms(event)
 
     if not allowed:
-        return
+        return None
 
     count = await async_call(clear_optout, db, conn.name, chan)
 

@@ -218,10 +218,9 @@ def do_list(text, db, chan, loved=True):
 
     scores = counts.items()
     sorts = sorted(scores, key=operator.itemgetter(1), reverse=loved)[:10]
-    out = out.format(len(sorts), chan) + " \u2022 ".join(
+    return out.format(len(sorts), chan) + " \u2022 ".join(
         f"{thing[0]} with {thing[1]} points" for thing in sorts
     )
-    return out
 
 
 @hook.command("topten", "pointstop", "loved", autohelp=False)

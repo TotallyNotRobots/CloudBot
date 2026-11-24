@@ -192,7 +192,7 @@ def make_command_event(chan: str | None = "#foo") -> CommandEvent:
     hook = MagicMock()
     hook.type = "command"
     hook.function_name = "foo"
-    event = CommandEvent(
+    return CommandEvent(
         text="bar",
         cmd_prefix=".",
         triggered_command="foo",
@@ -204,7 +204,6 @@ def make_command_event(chan: str | None = "#foo") -> CommandEvent:
         user="user",
         host="host",
     )
-    return event
 
 
 def test_disabled() -> None:
