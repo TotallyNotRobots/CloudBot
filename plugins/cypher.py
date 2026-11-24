@@ -16,7 +16,6 @@ License:
 """
 
 import base64
-import binascii
 
 from cloudbot import hook
 
@@ -35,7 +34,7 @@ def decode(password, encoded, event):
     dec = []
     try:
         encoded_bytes = base64.urlsafe_b64decode(encoded.encode()).decode()
-    except binascii.Error:
+    except ValueError:
         event.notice(f"Invalid input '{encoded}'")
         return None
 
