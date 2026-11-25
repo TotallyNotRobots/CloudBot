@@ -30,6 +30,11 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade schema."""
     name = "weather"
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (inspector.has_table(name)):
+        return
+
     old_name = f"weather_pre_{revision}"
     op.rename_table(name, old_name)
 
@@ -47,10 +52,7 @@ def upgrade() -> None:
         new_table,
         [
             {"conn": conn, "loc": row["loc"], "nick": row["nick"]}
-            for row in op.get_bind()
-            .execute(sa.select(old_table))
-            .mappings()
-            .all()
+            for row in bind.execute(sa.select(old_table)).mappings().all()
             for conn in bot_instance.get_or_raise()
             .get_connection_configs()
             .keys()
@@ -62,6 +64,11 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     name = "weather"
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (inspector.has_table(name)):
+        return
+
     old_name = f"weather_pre_{revision}"
     op.rename_table(name, old_name)
 
@@ -78,7 +85,7 @@ def downgrade() -> None:
     )
 
     locs: defaultdict[str, list[str]] = defaultdict(list)
-    for row in op.get_bind().execute(sa.select(old_table)).mappings().all():
+    for row in bind.execute(sa.select(old_table)).mappings().all():
         locs[row["nick"]].append(row["loc"])
 
     op.bulk_insert(

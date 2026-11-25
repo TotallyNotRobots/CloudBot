@@ -28,6 +28,11 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (inspector.has_table("weather")):
+        return
+
     op.execute(
         sa.delete(weather.WeatherLocation).where(
             weather.WeatherLocation.loc.is_(None)
@@ -39,5 +44,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (inspector.has_table("weather")):
+        return
+
     with op.batch_alter_table("weather") as batch:
         batch.alter_column("loc", nullable=True)
