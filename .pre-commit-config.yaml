@@ -93,7 +93,7 @@ repos:
     additional_dependencies:
     - tomli ; python_version < '3.11'
 - repo: https://github.com/MarcoGorelli/auto-walrus
-  rev: 1743edbed52f3d61886b59d98a27164a8af29c0d  # frozen: 0.4.1
+  rev: d376c6a49feac78bc2115bf3df7e862629cce612  # frozen: 0.4.1
   hooks:
   - id: auto-walrus
     additional_dependencies:
