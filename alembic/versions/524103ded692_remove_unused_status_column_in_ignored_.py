@@ -26,15 +26,17 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    with op.batch_alter_table("ignored") as batch:
-        batch.drop_column("status")
+    if sa.inspect(op.get_bind()).has_table("ignored"):
+        with op.batch_alter_table("ignored") as batch:
+            batch.drop_column("status")
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    with op.batch_alter_table("ignored") as batch:
-        batch.add_column(
-            sa.Column(
-                "status", sa.BOOLEAN(), autoincrement=False, nullable=True
+    if sa.inspect(op.get_bind()).has_table("ignored"):
+        with op.batch_alter_table("ignored") as batch:
+            batch.add_column(
+                sa.Column(
+                    "status", sa.BOOLEAN(), autoincrement=False, nullable=True
+                )
             )
-        )
