@@ -40,7 +40,6 @@ def db_init(bot: AbstractBot | None = None) -> bool:
     ):
         stamp_version(bot)
 
-    database.metadata.create_all(bot.db_engine)
     return upgrade_db_schema(bot)
 
 
