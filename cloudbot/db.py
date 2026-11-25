@@ -3,11 +3,9 @@ import logging
 
 import alembic.command
 import alembic.config
-from sqlalchemy import inspect
 
 import cloudbot
 from cloudbot.bot import AbstractBot, CloudBot, bot_instance
-from cloudbot.util import database
 
 
 def get_db_version(cfg: alembic.config.Config) -> str:
@@ -33,21 +31,7 @@ def db_init(bot: AbstractBot | None = None) -> bool:
         bot = CloudBot(create_connections=False)
         bot.plugin_manager.get_plugin_tables(bot.plugin_dir)
 
-    inspector = inspect(bot.db_engine)
-    # Check if the DB is empty
-    if not any(
-        inspector.has_table(t.name) for t in database.metadata.tables.values()
-    ):
-        stamp_version(bot)
-
     return upgrade_db_schema(bot)
-
-
-def stamp_version(bot: AbstractBot) -> None:
-    cfg = alembic.config.Config(
-        "alembic.ini", "pyproject.toml", attributes={"bot": bot}
-    )
-    alembic.command.stamp(cfg, "heads")
 
 
 def upgrade_db_schema(bot: AbstractBot) -> bool:

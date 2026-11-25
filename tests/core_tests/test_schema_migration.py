@@ -65,8 +65,16 @@ async def test_init_no_upgrade(
     # Load all remaining unloaded plugins
     mock_bot.plugin_manager.get_plugin_tables(mock_bot.plugin_dir, reload=False)
     assert len(database.metadata.tables) > 10
-    assert db_init(mock_bot)
-    assert caplog_bot.record_tuples == []
+    assert not db_init(mock_bot)
+    assert caplog_bot.record_tuples == [
+        (
+            "cloudbot",
+            50,
+            "Database schema is out of date and auto-updating is disabled! Use "
+            '`alembic upgrade heads` or set `"upgrade_schema": true` in the '
+            "config. NOTE: ALWAYS take a backup of the database before upgrading!",
+        )
+    ]
 
 
 @pytest.mark.asyncio
