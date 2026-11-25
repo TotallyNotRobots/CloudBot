@@ -74,26 +74,26 @@ repos:
     - -e
     - -p
 - repo: https://github.com/commitizen-tools/commitizen
-  rev: ace110dad65751d559e9ffd239752f6f5e8f6f1e  # frozen: v4.20.0
+  rev: 12a0e5b23a0f849f1977df7128985e163de11274  # frozen: v4.20.1
   hooks:
   - id: commitizen
 - repo: https://github.com/andreoliwa/nitpick
-  rev: '3ba97e5d57882cca6ef1eccaae683753c8a26630'  # frozen: v0.38.1
+  rev: 3ba97e5d57882cca6ef1eccaae683753c8a26630  # frozen: v0.38.1
   hooks:
   - id: nitpick
 - repo: https://github.com/ikamensh/flynt
-  rev: '97be693bf18bc2f050667dd282d243e2824b81e2'    # frozen: 1.0.6
+  rev: 97be693bf18bc2f050667dd282d243e2824b81e2    # frozen: 1.0.6
   hooks:
   - id: flynt
 - repo: https://github.com/codespell-project/codespell
-  rev: '57b21406f092110c18776e39b0bda50d37c945c8'  # frozen: v2.4.3
+  rev: 57b21406f092110c18776e39b0bda50d37c945c8  # frozen: v2.4.3
   hooks:
   - id: codespell
     exclude: data/.*
     additional_dependencies:
     - tomli ; python_version < '3.11'
 - repo: https://github.com/MarcoGorelli/auto-walrus
-  rev: '1743edbed52f3d61886b59d98a27164a8af29c0d'  # frozen: 0.4.1
+  rev: 1743edbed52f3d61886b59d98a27164a8af29c0d  # frozen: 0.4.1
   hooks:
   - id: auto-walrus
     additional_dependencies:
@@ -109,7 +109,7 @@ repos:
     - conn:cloudbot.client.Client
     - --safe
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: '4380fbb73a154b5f5624794c1c78d9719ccc860f'  # frozen: v2.16.0
+  rev: 4380fbb73a154b5f5624794c1c78d9719ccc860f  # frozen: v2.16.0
   hooks:
   - id: pretty-format-toml
     args:
