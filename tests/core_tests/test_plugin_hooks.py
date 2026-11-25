@@ -14,7 +14,7 @@ from numbers import Number
 from pathlib import Path
 from re import Match
 from types import GenericAlias, NoneType, UnionType
-from typing import Any, ParamSpec, TypeVar, assert_never, cast, get_type_hints
+from typing import Any, ParamSpec, TypeVar, assert_never, get_type_hints
 from unittest.mock import patch
 
 import pytest
@@ -89,6 +89,7 @@ from cloudbot.plugin_hooks import (
 )
 from cloudbot.util import HOOK_ATTR
 from tests.util.mock_bot import MockBot
+from tests.util.mock_db import MockDB
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -141,11 +142,12 @@ def load_plugin(plugin_path) -> Plugin:
 
 def get_plugins() -> list[Plugin]:
     if not PLUGINS:
-        bot = MockBot(base_dir=Path().resolve())
-        cloudbot.bot.bot_instance.set(cast("CloudBot", bot))
-        PLUGINS.extend(map(load_plugin, gather_plugins()))
-        cloudbot.bot.bot_instance.set(None)
-        bot.close()
+        with MockDB() as db:
+            bot = MockBot(base_dir=Path().resolve(), db=db)
+            cloudbot.bot.bot_instance.set(bot)
+            PLUGINS.extend(map(load_plugin, gather_plugins()))
+            cloudbot.bot.bot_instance.set(None)
+            bot.close()
 
     return PLUGINS
 

@@ -11,6 +11,7 @@ from cloudbot.db import db_init, get_db_version, get_schema_version
 from cloudbot.util import database
 
 if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -41,7 +42,9 @@ async def test_empty_init(mock_db: MockDB, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 async def test_init_no_upgrade(
-    mock_db: MockDB, mock_bot_factory, caplog_bot: pytest.LogCaptureFixture
+    mock_db: MockDB,
+    mock_bot_factory: MockBotFactory,
+    caplog_bot: pytest.LogCaptureFixture,
 ) -> None:
     mock_bot = mock_bot_factory(
         db=mock_db,

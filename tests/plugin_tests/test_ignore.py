@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,9 +8,12 @@ import pytest
 from plugins.core import ignore
 from tests.util.mock_conn import MockClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_db import MockDB
 
-def setup_db(mock_db) -> None:
-    ignore.table.create(mock_db.engine, checkfirst=True)
+
+def setup_db(mock_db: MockDB) -> None:
+    mock_db.create_table(ignore.Ignored)
 
     sess = mock_db.session()
 
@@ -85,7 +91,7 @@ def test_ignore_case(mock_db) -> None:
 
     assert ignore.remove_ignore(sess, "atestconn", "#achan", "*!*@OTherHost")
 
-    assert mock_db.get_data(ignore.table) == []
+    assert mock_db.get_data(ignore.Ignored) == []
 
 
 @pytest.mark.asyncio

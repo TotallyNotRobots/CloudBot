@@ -50,7 +50,7 @@ repos:
   - id: basedpyright
     name: basedpyright
     entry: basedpyright
-    require_serial: true
+    pass_filenames: false
     language: system
     types_or: [python, pyi]
   - id: replace-non-ascii

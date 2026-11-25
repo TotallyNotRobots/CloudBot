@@ -65,6 +65,10 @@ class AbstractBot:
         raise NotImplementedError
 
     @property
+    def db_engine(self) -> Engine:
+        raise NotImplementedError
+
+    @property
     def plugin_manager(self) -> PluginManager:
         return self.get_plugin_manager()
 
@@ -220,7 +224,7 @@ class CloudBot(AbstractBot):
 
         # setup db
         db_path = self.config.get("database", "sqlite:///cloudbot.db")
-        self.db_engine = create_engine(db_path, future=True)
+        self._db_engine: Engine = create_engine(db_path, future=True)
         database.configure(self.db_engine)
 
         logger.debug("Database system initialised.")
@@ -243,6 +247,11 @@ class CloudBot(AbstractBot):
             self.config_reloader = ConfigReloader(self)
 
         self._plugin_manager = PluginManager(self)
+
+    @property
+    @override
+    def db_engine(self) -> Engine:
+        return self._db_engine
 
     @override
     def get_plugin_manager(self) -> PluginManager:

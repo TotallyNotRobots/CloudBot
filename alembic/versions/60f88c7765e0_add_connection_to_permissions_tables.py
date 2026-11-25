@@ -14,7 +14,6 @@ import sqlalchemy as sa
 from alembic import op
 
 from cloudbot.bot import bot_instance
-from cloudbot.util.database import Session
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -28,6 +27,15 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (
+        inspector.has_table("group_member")
+        and inspector.has_table("group_perm")
+        and inspector.has_table("perm_group")
+    ):
+        return
+
     op.rename_table("group_member", "group_member_old")
     op.rename_table("group_perm", "group_perm_old")
     op.rename_table("perm_group", "perm_group_old")
@@ -88,12 +96,11 @@ def upgrade() -> None:
             ["name", "connection"],
         )
 
-    session = Session(bind=op.get_bind())
     op.bulk_insert(
         group_table,
         [
             {"connection": conn, "name": row.name, "config": row.config}
-            for row in session.execute(sa.select(old_group_table)).all()
+            for row in bind.execute(sa.select(old_group_table)).all()
             for conn in bot_instance.get_or_raise()
             .get_connection_configs()
             .keys()
@@ -108,7 +115,7 @@ def upgrade() -> None:
                 "group_id": row.group_id,
                 "config": row.config,
             }
-            for row in session.execute(sa.select(old_perm_table)).all()
+            for row in bind.execute(sa.select(old_perm_table)).all()
             for conn in bot_instance.get_or_raise()
             .get_connection_configs()
             .keys()
@@ -123,7 +130,7 @@ def upgrade() -> None:
                 "group_id": row.group_id,
                 "config": row.config,
             }
-            for row in session.execute(sa.select(old_member_table)).all()
+            for row in bind.execute(sa.select(old_member_table)).all()
             for conn in bot_instance.get_or_raise()
             .get_connection_configs()
             .keys()
@@ -136,6 +143,15 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if not (
+        inspector.has_table("group_member")
+        and inspector.has_table("group_perm")
+        and inspector.has_table("perm_group")
+    ):
+        return
+
     op.rename_table("group_member", "group_member_old")
     op.rename_table("group_perm", "group_perm_old")
     op.rename_table("perm_group", "perm_group_old")
@@ -190,16 +206,15 @@ def downgrade() -> None:
             "group_member_group_fk", group_table.name, ["group_id"], ["name"]
         )
 
-    session = Session(bind=op.get_bind())
     existing_groups = {}
-    for group in session.execute(sa.select(old_group_table)).all():
+    for group in bind.execute(sa.select(old_group_table)).all():
         key = group.name
         if key not in existing_groups:
             existing_groups[key] = {"name": group.name, "config": group.config}
 
     existing_members = {}
     existing_perms = {}
-    for member in session.execute(sa.select(old_member_table)).all():
+    for member in bind.execute(sa.select(old_member_table)).all():
         key = (member.group_id, member.mask)
         if key not in existing_members:
             existing_members[key] = {
@@ -208,7 +223,7 @@ def downgrade() -> None:
                 "config": member.config,
             }
 
-    for perm in session.execute(sa.select(old_perm_table)).all():
+    for perm in bind.execute(sa.select(old_perm_table)).all():
         key = (perm.group_id, perm.name)
         if key not in existing_perms:
             existing_perms[key] = {
