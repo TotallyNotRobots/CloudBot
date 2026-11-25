@@ -18,6 +18,8 @@ from yarl import URL
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from typing_extensions import Buffer
+
 # security
 parser = etree.XMLParser(resolve_entities=False, no_network=True)
 
@@ -77,7 +79,7 @@ def get_xml(*args, **kwargs):
     return parse_xml(get(*args, **kwargs))
 
 
-def parse_xml(text):
+def parse_xml(text: str | Buffer):
     """
     >>> elem = parse_xml("<foo>bar</foo>")
     >>> elem.tag

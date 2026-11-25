@@ -70,13 +70,23 @@ def get_data(user):
         raise SteamError(f"Could not get user info: {e}") from e
 
     profile = parse_xml(request.content)
+    steam_id_elem = profile.find("steamID")
+    if steam_id_elem is None or steam_id_elem.text is None:
+        raise SteamError("Could not get data for this user.")
 
+    steam_id_64_elem = profile.find("steamID64")
+    if steam_id_64_elem is None or steam_id_64_elem.text is None:
+        raise SteamError("Could not get data for this user.")
+    state_message = profile.find("stateMessage")
+    if state_message is None or state_message.text is None:
+        raise SteamError("Could not get data for this user.")
+    data["name"] = steam_id_elem.text
     try:
-        data["name"] = profile.find("steamID").text
-        data["id_64"] = int(profile.find("steamID64").text)
-        online_state = profile.find("stateMessage").text
-    except AttributeError as e:
+        data["id_64"] = int(steam_id_64_elem.text)
+    except ValueError as e:
         raise SteamError("Could not get data for this user.") from e
+
+    online_state = state_message.text
 
     # will make this pretty later
     online_state = online_state.replace("<br/>", ": ")
