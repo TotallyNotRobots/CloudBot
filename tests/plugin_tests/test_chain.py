@@ -42,7 +42,7 @@ async def test_chainlist(
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
         Plugin("test/foo.py", "foo.py", "foo", MockModule()),
-        CommandFuncHook.get_or_add_hook(func),
+        CommandFuncHook.get_hook(func, raise_on_missing=True),
     )
     db = mock_db.session()
     mock_db.create_table(chain.Commands)
@@ -117,11 +117,11 @@ async def test_chainallow_del_hook_not_set(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -149,11 +149,11 @@ async def test_chainallow_del_hook(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -190,11 +190,11 @@ async def test_chainallow_add_hook_no_arg(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -222,11 +222,11 @@ async def test_chainallow_add_hook_allow(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -256,11 +256,11 @@ async def test_chainallow_add_hook_allow_update(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -298,11 +298,11 @@ async def test_chainallow_add_hook_deny(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -332,11 +332,11 @@ async def test_chainallow_add_hook_bad_arg(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -366,11 +366,11 @@ async def test_chainallow_add_cmd(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)
@@ -398,11 +398,11 @@ async def test_chainallow_add_partial_cmd(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(hook_func)
+        plugin, CommandFuncHook.get_hook(hook_func, raise_on_missing=True)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
+        plugin, CommandFuncHook.get_hook(other_hook_func, raise_on_missing=True)
     )
 
     mock_db.create_table(chain.Commands)

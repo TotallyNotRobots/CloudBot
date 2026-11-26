@@ -12,6 +12,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
+    Literal,
     NotRequired,
     Protocol,
     Self,
@@ -185,6 +186,30 @@ class FuncHook(ABC, Generic[_KwargsT]):
     @abstractmethod
     def get_type(cls) -> HookType:
         raise NotImplementedError
+
+    @classmethod
+    @overload
+    def get_hook(
+        cls, func: HookFunc, *, raise_on_missing: Literal[True]
+    ) -> Self: ...
+
+    @classmethod
+    @overload
+    def get_hook(
+        cls, func: HookFunc, *, raise_on_missing: Literal[False] = False
+    ) -> Self | None: ...
+
+    @classmethod
+    def get_hook(
+        cls, func: HookFunc, *, raise_on_missing: bool = False
+    ) -> Self | None:
+        if (hooks := Hooks.get_from_func(func)) is not None:
+            return hooks.get(cls)
+
+        if raise_on_missing:
+            raise ValueError(f"Missing hook for {cls.get_type()}")
+
+        return None
 
     @classmethod
     def get_or_add_hook(cls, func: HookFunc) -> Self:

@@ -50,7 +50,7 @@ def test_deprecated_hooks(func, cls: type[FuncHook[Any]]) -> None:
         def f():
             raise NotImplementedError
 
-        assert cls.get_or_add_hook(f).function is f
+        assert cls.get_hook(f, raise_on_missing=True).function is f
 
 
 def test_sieve_deprecated_bare() -> None:
@@ -60,7 +60,7 @@ def test_sieve_deprecated_bare() -> None:
         def f(_bot: CloudBot, _event: Event, _hook: Hook[Any]) -> None:
             raise NotImplementedError
 
-        assert SieveFuncHook.get_or_add_hook(f).function is f
+        assert SieveFuncHook.get_hook(f, raise_on_missing=True).function is f
 
 
 def test_hook_decorate() -> None:
@@ -84,13 +84,18 @@ def test_hook_decorate() -> None:
     def f() -> None:
         raise NotImplementedError
 
-    assert EventFuncHook.get_or_add_hook(f).types == {
+    assert EventFuncHook.get_hook(f, raise_on_missing=True).types == {
         EventType.message,
         EventType.notice,
         EventType.action,
     }
-    assert CommandFuncHook.get_or_add_hook(f).aliases == {"test"}
-    assert RawFuncHook.get_or_add_hook(f).triggers == {"*", "PRIVMSG"}
+    assert CommandFuncHook.get_hook(f, raise_on_missing=True).aliases == {
+        "test"
+    }
+    assert RawFuncHook.get_hook(f, raise_on_missing=True).triggers == {
+        "*",
+        "PRIVMSG",
+    }
 
     hooks = Hooks.get_from_func(f)
     hook_types = hooks.get_types() if hooks is not None else []
@@ -105,8 +110,8 @@ def test_hook_decorate() -> None:
     assert HookType.CAP_AVAILABLE in hook_types
     assert HookType.CAP_ACK in hook_types
 
-    assert len(RegexFuncHook.get_or_add_hook(f).regexes) == 4
-    assert PeriodicFuncHook.get_or_add_hook(f).interval == 20
+    assert len(RegexFuncHook.get_hook(f, raise_on_missing=True).regexes) == 4
+    assert PeriodicFuncHook.get_hook(f, raise_on_missing=True).interval == 20
 
     with pytest.raises(ValueError, match="Invalid command name test 123"):
         hook.command("test 123")(f)
@@ -181,7 +186,7 @@ def test_command_hook_doc() -> None:
 
         foo"""
 
-    cmd_hook = CommandFuncHook.get_or_add_hook(test)
+    cmd_hook = CommandFuncHook.get_hook(test, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
@@ -190,14 +195,14 @@ def test_command_hook_doc() -> None:
 
         foo"""
 
-    cmd_hook = CommandFuncHook.get_or_add_hook(test1)
+    cmd_hook = CommandFuncHook.get_hook(test1, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
     def test2(bot) -> None:
         """<arg> - foo bar baz"""
 
-    cmd_hook = CommandFuncHook.get_or_add_hook(test2)
+    cmd_hook = CommandFuncHook.get_hook(test2, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
@@ -206,14 +211,14 @@ def test_command_hook_doc() -> None:
         <arg> - foo bar baz
         """
 
-    cmd_hook = CommandFuncHook.get_or_add_hook(test3)
+    cmd_hook = CommandFuncHook.get_hook(test3, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
     def test4(bot) -> None:
         """<arg> - foo bar baz"""
 
-    cmd_hook = CommandFuncHook.get_or_add_hook(test4)
+    cmd_hook = CommandFuncHook.get_hook(test4, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
 
