@@ -8,6 +8,7 @@ import pytest
 
 from cloudbot.client import Client
 from cloudbot.event import CommandEvent, Event, RegexEvent
+from cloudbot.hook import HookType
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import CommandHook, EventHook, RegexHook
 from plugins.core import regex_chans
@@ -296,7 +297,7 @@ class TestRegexSieve:
 
             hook = MagicMock()
             hook.configure_mock(
-                type="regex", plugin=plugin, function_name="my_func"
+                type=HookType.REGEX, plugin=plugin, function_name="my_func"
             )
             hook.mock_add_spec(spec=RegexHook, spec_set=True)
 
@@ -371,7 +372,7 @@ class TestRegexSieve:
 
             hook = MagicMock()
             hook.configure_mock(
-                type="regex", plugin=plugin, function_name="my_func"
+                type=HookType.REGEX, plugin=plugin, function_name="my_func"
             )
             hook.mock_add_spec(spec=RegexHook, spec_set=True)
 
@@ -446,7 +447,7 @@ class TestRegexSieve:
 
             hook = MagicMock()
             hook.configure_mock(
-                type="event", plugin=plugin, function_name="my_func"
+                type=HookType.EVENT, plugin=plugin, function_name="my_func"
             )
             hook.mock_add_spec(spec=EventHook, spec_set=True)
 
@@ -511,7 +512,7 @@ class TestRegexSieve:
 
             hook = MagicMock()
             hook.configure_mock(
-                type="event", plugin=plugin, function_name="my_func"
+                type=HookType.EVENT, plugin=plugin, function_name="my_func"
             )
             hook.mock_add_spec(spec=EventHook, spec_set=True)
 
@@ -559,7 +560,10 @@ class SetStatusBase:
 
         hook = MagicMock()
         hook.configure_mock(
-            type="event", plugin=plugin, function_name="my_func", doc="foo"
+            type=HookType.EVENT,
+            plugin=plugin,
+            function_name="my_func",
+            doc="foo",
         )
         hook.mock_add_spec(spec=CommandHook, spec_set=True)
 

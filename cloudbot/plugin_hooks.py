@@ -1,21 +1,56 @@
+from __future__ import annotations
+
 import asyncio
 import inspect
 import logging
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Generic, TypeVar
 
-from cloudbot.hook import Action, Priority
+from typing_extensions import override
+
+from cloudbot.hook import (
+    Action,
+    CapFuncHook,
+    CommandFuncHook,
+    CommandHookKwargs,
+    ConfigFuncHook,
+    ConnectFuncHook,
+    EventFuncHook,
+    FuncHook,
+    HookKwargs,
+    HookType,
+    IrcOutFuncHook,
+    OnStartFuncHook,
+    OnStopFuncHook,
+    PeriodicFuncHook,
+    PeriodicHookKwargs,
+    PermissionFuncHook,
+    PostHookFuncHook,
+    Priority,
+    RawFuncHook,
+    RegexFuncHook,
+    RegexHookKwargs,
+    SieveFuncHook,
+)
+
+if TYPE_CHECKING:
+    from cloudbot.plugin import Plugin
 
 logger = logging.getLogger("cloudbot")
 
+_KwargsT = TypeVar("_KwargsT", bound=HookKwargs)
 
-class Hook:
+
+class Hook(ABC, Generic[_KwargsT]):
     """
     Each hook is specific to one function. This class is never used by itself,
     rather extended.
     """
 
-    def __init__(self, _type, plugin, func_hook) -> None:
+    def __init__(
+        self, plugin: Plugin, func_hook: FuncHook[_KwargsT], kwargs: _KwargsT
+    ) -> None:
         """ """
-        self.type = _type
         self.plugin = plugin
         self.function = func_hook.function
         self.function_name = self.function.__name__
@@ -32,35 +67,42 @@ class Hook:
         else:
             self.threaded = True
 
-        self.permissions = func_hook.kwargs.pop("permissions", [])
-        self.single_thread = func_hook.kwargs.pop("singlethread", False)
-        self.action = func_hook.kwargs.pop("action", Action.CONTINUE)
-        self.priority: int | Priority = func_hook.kwargs.pop(
-            "priority", Priority.NORMAL
-        )
-        self.do_sieve = func_hook.kwargs.pop("do_sieve", True)
+        self.permissions = kwargs.pop("permissions", [])
+        self.single_thread = kwargs.pop("singlethread", False)
+        self.action = kwargs.pop("action", Action.CONTINUE)
+        self.priority: int | Priority = kwargs.pop("priority", Priority.NORMAL)
+        self.do_sieve = kwargs.pop("do_sieve", True)
 
-        lock = func_hook.kwargs.pop("lock", None)
+        lock = kwargs.pop("lock", None)
 
         if self.single_thread and not lock:
             lock = asyncio.Lock()
 
         self.lock = lock
 
-        clients = func_hook.kwargs.pop("clients", [])
+        clients = kwargs.pop("clients", [])
 
         if isinstance(clients, str):
             clients = [clients]
 
         self.clients = clients
 
-        if func_hook.kwargs:
+        if kwargs:
             # we should have popped all the args, so warn if there are any left
             logger.warning(
                 "Ignoring extra args %s from %s",
                 func_hook.kwargs,
                 self.description,
             )
+
+    @classmethod
+    @abstractmethod
+    def get_type(cls) -> HookType:
+        raise NotImplementedError
+
+    @property
+    def type(self) -> HookType:
+        return self.get_type()
 
     @property
     def description(self) -> str:
@@ -77,13 +119,20 @@ class Hook:
         return ", ".join(f"{k}: {v}" for k, v in parts)
 
 
-class CommandHook(Hook):
-    def __init__(self, plugin, cmd_hook) -> None:
-        auto_help = cmd_hook.kwargs.pop("autohelp", True)
+class CommandHook(Hook[CommandHookKwargs]):
+    def __init__(self, plugin: Plugin, cmd_hook: CommandFuncHook) -> None:
+        kwargs = cmd_hook.kwargs
+        if kwargs is None:
+            kwargs = CommandHookKwargs()
 
-        super().__init__("command", plugin, cmd_hook)
+        auto_help = kwargs.pop("autohelp", True)
+
+        super().__init__(plugin, cmd_hook, kwargs)
 
         self.auto_help = auto_help
+
+        if cmd_hook.main_alias is None:
+            raise TypeError("Main alias not set on CommandFuncHook")
 
         self.name = cmd_hook.main_alias.lower()
         # turn the set into a list
@@ -93,118 +142,187 @@ class CommandHook(Hook):
         self.aliases.insert(0, self.name)
         self.doc = cmd_hook.doc
 
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.COMMAND
+
     def __repr__(self) -> str:
-        return f"Command[name: {self.name}, aliases: {self.aliases[1:]}, {Hook.__repr__(self)}]"
+        return f"Command[name: {self.name}, aliases: {self.aliases[1:]}, {super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"command {'/'.join(self.aliases)} from {self.plugin.file_name}"
 
 
-class RegexHook(Hook):
-    def __init__(self, plugin, regex_hook) -> None:
-        run_on_cmd = regex_hook.kwargs.pop("run_on_cmd", False)
-        only_no_match = regex_hook.kwargs.pop("only_no_match", False)
+class RegexHook(Hook[RegexHookKwargs]):
+    def __init__(self, plugin: Plugin, regex_hook: RegexFuncHook) -> None:
+        kwargs = regex_hook.kwargs
+        if kwargs is None:
+            kwargs = RegexHookKwargs()
 
-        super().__init__("regex", plugin, regex_hook)
+        run_on_cmd = kwargs.pop("run_on_cmd", False)
+        only_no_match = kwargs.pop("only_no_match", False)
+
+        super().__init__(plugin, regex_hook, kwargs)
 
         self.run_on_cmd = run_on_cmd
         self.only_no_match = only_no_match
 
         self.regexes = regex_hook.regexes
 
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.REGEX
+
     def __repr__(self) -> str:
-        return f"Regex[regexes: [{', '.join(regex.pattern for regex in self.regexes)}], {Hook.__repr__(self)}]"
+        return f"Regex[regexes: [{', '.join(regex.pattern for regex in self.regexes)}], {super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"regex {self.function_name} from {self.plugin.file_name}"
 
 
-class PeriodicHook(Hook):
-    def __init__(self, plugin, periodic_hook) -> None:
-        interval = periodic_hook.interval
-        initial_interval = periodic_hook.kwargs.pop(
-            "initial_interval", interval
-        )
+class PeriodicHook(Hook[PeriodicHookKwargs]):
+    def __init__(self, plugin: Plugin, periodic_hook: PeriodicFuncHook) -> None:
+        kwargs = periodic_hook.kwargs
+        if kwargs is None:
+            kwargs = PeriodicHookKwargs()
 
-        super().__init__("periodic", plugin, periodic_hook)
+        interval = periodic_hook.interval
+        initial_interval = kwargs.pop("initial_interval", interval)
+
+        super().__init__(plugin, periodic_hook, kwargs)
 
         self.interval = interval
         self.initial_interval = initial_interval
 
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.PERIODIC
+
     def __repr__(self) -> str:
-        return f"Periodic[interval: [{self.interval}], {Hook.__repr__(self)}]"
+        return f"Periodic[interval: [{self.interval}], {super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"periodic hook ({self.interval} seconds) {self.function_name} from {self.plugin.file_name}"
 
 
-class RawHook(Hook):
-    def __init__(self, plugin, irc_raw_hook) -> None:
-        super().__init__("irc_raw", plugin, irc_raw_hook)
+class RawHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, irc_raw_hook: RawFuncHook) -> None:
+        kwargs = irc_raw_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, irc_raw_hook, kwargs)
 
         self.triggers = irc_raw_hook.triggers
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.IRC_RAW
 
     def is_catch_all(self) -> bool:
         return "*" in self.triggers
 
     def __repr__(self) -> str:
-        return f"Raw[triggers: {list(self.triggers)}, {Hook.__repr__(self)}]"
+        return f"Raw[triggers: {list(self.triggers)}, {super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"irc raw {self.function_name} ({','.join(self.triggers)}) from {self.plugin.file_name}"
 
 
-class SieveHook(Hook):
-    def __init__(self, plugin, sieve_hook) -> None:
-        """ """
-        super().__init__("sieve", plugin, sieve_hook)
+class SieveHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, sieve_hook: SieveFuncHook) -> None:
+        kwargs = sieve_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, sieve_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.SIEVE
 
     def __repr__(self) -> str:
-        return f"Sieve[{Hook.__repr__(self)}]"
+        return f"Sieve[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"sieve {self.function_name} from {self.plugin.file_name}"
 
 
-class EventHook(Hook):
-    def __init__(self, plugin, event_hook) -> None:
-        super().__init__("event", plugin, event_hook)
+class EventHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, event_hook: EventFuncHook) -> None:
+        kwargs = event_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, event_hook, kwargs)
 
         self.types = event_hook.types
 
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.EVENT
+
     def __repr__(self) -> str:
-        return f"Event[types: {list(self.types)}, {Hook.__repr__(self)}]"
+        return f"Event[types: {list(self.types)}, {super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"event {self.function_name} ({','.join(str(t) for t in self.types)}) from {self.plugin.file_name}"
 
 
-class OnStartHook(Hook):
-    def __init__(self, plugin, on_start_hook) -> None:
+class OnStartHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, on_start_hook: OnStartFuncHook) -> None:
         """ """
-        super().__init__("on_start", plugin, on_start_hook)
+        kwargs = on_start_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, on_start_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.ON_START
 
     def __repr__(self) -> str:
-        return f"On_start[{Hook.__repr__(self)}]"
+        return f"On_start[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"on_start {self.function_name} from {self.plugin.file_name}"
 
 
-class OnStopHook(Hook):
-    def __init__(self, plugin, on_stop_hook) -> None:
-        super().__init__("on_stop", plugin, on_stop_hook)
+class OnStopHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, on_stop_hook: OnStopFuncHook) -> None:
+        kwargs = on_stop_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, on_stop_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.ON_STOP
 
     def __repr__(self) -> str:
-        return f"On_stop[{Hook.__repr__(self)}]"
+        return f"On_stop[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"on_stop {self.function_name} from {self.plugin.file_name}"
 
 
-class CapHook(Hook):
-    def __init__(self, _type, plugin, base_hook) -> None:
-        super().__init__(f"on_cap_{_type}", plugin, base_hook)
+class CapHook(Hook[HookKwargs], ABC):
+    def __init__(self, plugin: Plugin, base_hook: CapFuncHook) -> None:
+        kwargs = base_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, base_hook, kwargs)
 
         self.caps = base_hook.caps
 
@@ -215,20 +333,36 @@ class CapHook(Hook):
         return f"{self.type} {self.function_name} from {self.plugin.file_name}"
 
 
-class OnCapAvaliableHook(CapHook):
-    def __init__(self, plugin, base_hook) -> None:
-        super().__init__("available", plugin, base_hook)
+class OnCapAvailableHook(CapHook):
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.CAP_AVAILABLE
+
+
+OnCapAvaliableHook = OnCapAvailableHook
 
 
 class OnCapAckHook(CapHook):
-    def __init__(self, plugin, base_hook) -> None:
-        super().__init__("ack", plugin, base_hook)
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.CAP_ACK
 
 
-class OnConnectHook(Hook):
-    def __init__(self, plugin, sieve_hook) -> None:
+class OnConnectHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, sieve_hook: ConnectFuncHook) -> None:
         """ """
-        super().__init__("on_connect", plugin, sieve_hook)
+        kwargs = sieve_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, sieve_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.CONNECT
 
     def __repr__(self) -> str:
         return f"{self.type}[{super()!r}]"
@@ -237,68 +371,104 @@ class OnConnectHook(Hook):
         return f"{self.type} {self.function_name} from {self.plugin.file_name}"
 
 
-class IrcOutHook(Hook):
-    def __init__(self, plugin, out_hook) -> None:
-        super().__init__("irc_out", plugin, out_hook)
+class IrcOutHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, out_hook: IrcOutFuncHook) -> None:
+        kwargs = out_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, out_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.IRC_OUT
 
     def __repr__(self) -> str:
-        return f"Irc_Out[{Hook.__repr__(self)}]"
+        return f"Irc_Out[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"irc_out {self.function_name} from {self.plugin.file_name}"
 
 
-class PostHookHook(Hook):
-    def __init__(self, plugin, out_hook) -> None:
-        super().__init__("post_hook", plugin, out_hook)
+class PostHookHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, out_hook: PostHookFuncHook) -> None:
+        kwargs = out_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, out_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.POST_HOOK
 
     def __repr__(self) -> str:
-        return f"Post_hook[{Hook.__repr__(self)}]"
+        return f"Post_hook[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"post_hook {self.function_name} from {self.plugin.file_name}"
 
 
-class ConfigHook(Hook):
-    def __init__(self, plugin, out_hook) -> None:
-        super().__init__("config", plugin, out_hook)
+class ConfigHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, out_hook: ConfigFuncHook) -> None:
+        kwargs = out_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, out_hook, kwargs)
+
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.CONFIG
 
     def __repr__(self) -> str:
-        return f"ConfigHook[{Hook.__repr__(self)}]"
+        return f"ConfigHook[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"Config hook {self.function_name} from {self.plugin.file_name}"
 
 
-class PermHook(Hook):
-    def __init__(self, plugin, perm_hook) -> None:
-        super().__init__("perm_check", plugin, perm_hook)
+class PermHook(Hook[HookKwargs]):
+    def __init__(self, plugin: Plugin, perm_hook: PermissionFuncHook) -> None:
+        kwargs = perm_hook.kwargs
+        if kwargs is None:
+            kwargs = HookKwargs()
+
+        super().__init__(plugin, perm_hook, kwargs)
 
         self.perms = perm_hook.perms
 
+    @classmethod
+    @override
+    def get_type(cls) -> HookType:
+        return HookType.PERMISSION
+
     def __repr__(self) -> str:
-        return f"PermHook[{Hook.__repr__(self)}]"
+        return f"PermHook[{super().__repr__()}]"
 
     def __str__(self) -> str:
         return f"perm hook {self.function_name} from {self.plugin.file_name}"
 
 
 _hook_name_to_plugin = {
-    "command": CommandHook,
-    "regex": RegexHook,
-    "irc_raw": RawHook,
-    "sieve": SieveHook,
-    "event": EventHook,
-    "periodic": PeriodicHook,
-    "on_start": OnStartHook,
-    "on_stop": OnStopHook,
-    "on_cap_available": OnCapAvaliableHook,
-    "on_cap_ack": OnCapAckHook,
-    "on_connect": OnConnectHook,
-    "irc_out": IrcOutHook,
-    "post_hook": PostHookHook,
-    "perm_check": PermHook,
-    "config": ConfigHook,
+    HookType.COMMAND: CommandHook,
+    HookType.REGEX: RegexHook,
+    HookType.IRC_RAW: RawHook,
+    HookType.SIEVE: SieveHook,
+    HookType.EVENT: EventHook,
+    HookType.PERIODIC: PeriodicHook,
+    HookType.ON_START: OnStartHook,
+    HookType.ON_STOP: OnStopHook,
+    HookType.CAP_AVAILABLE: OnCapAvailableHook,
+    HookType.CAP_ACK: OnCapAckHook,
+    HookType.CONNECT: OnConnectHook,
+    HookType.IRC_OUT: IrcOutHook,
+    HookType.POST_HOOK: PostHookHook,
+    HookType.PERMISSION: PermHook,
+    HookType.CONFIG: ConfigHook,
 }
 
 hook_name_to_plugin = _hook_name_to_plugin.__getitem__

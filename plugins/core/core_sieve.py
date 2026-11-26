@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 from time import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cloudbot import hook
+from cloudbot.hook import HookType
 from cloudbot.util.tokenbucket import TokenBucket
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ def task_clear() -> None:
 
 
 @hook.sieve()
-def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+def check_acls(bot: CloudBot, event: Event, _hook: Hook[Any]) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     """
     Handle config ACLs
     """
@@ -52,7 +53,11 @@ def check_acls(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyr
 
 
 @hook.sieve()
-async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+async def perm_sieve(
+    bot: CloudBot,  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+    event: Event,
+    _hook: Hook[Any],
+) -> Event | None:
     """check permissions"""
     allowed_permissions = _hook.permissions
     if allowed_permissions:
@@ -73,13 +78,13 @@ async def perm_sieve(bot: CloudBot, event: Event, _hook: Hook) -> Event | None: 
 def check_disabled(
     bot: CloudBot,  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     event: CommandEvent,
-    _hook: Hook,
+    _hook: Hook[Any],
 ) -> Event | None:
     """
     check disabled_commands
     """
     conn = event.conn
-    if _hook.type == "command":
+    if _hook.type == HookType.COMMAND:
         disabled_commands = conn.config.get("disabled_commands", [])
         if event.triggered_command in disabled_commands:
             return None
@@ -88,13 +93,13 @@ def check_disabled(
 
 
 @hook.sieve()
-def rate_limit(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+def rate_limit(bot: CloudBot, event: Event, _hook: Hook[Any]) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     """
     Handle rate limiting certain hooks
     """
     conn = event.conn
     # check command spam tokens
-    if _hook.type in ("command", "regex"):
+    if _hook.type in (HookType.COMMAND, HookType.REGEX):
         uid = f"{conn.name}!{event.chan}!{event.nick}".lower()
 
         config = conn.config.get("ratelimit", {})

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import Column, String, Table, UniqueConstraint
 
 from cloudbot import hook
 from cloudbot.client import Client
+from cloudbot.hook import HookType
 from cloudbot.util import database
 
 if TYPE_CHECKING:
@@ -123,9 +124,9 @@ def change_status(db, event, status) -> None:
 
 
 @hook.sieve()
-def sieve_regex(bot: CloudBot, event: Event, _hook: Hook) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+def sieve_regex(bot: CloudBot, event: Event, _hook: Hook[Any]) -> Event | None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     if (
-        _hook.type == "regex"
+        _hook.type == HookType.REGEX
         and event.chan.startswith("#")
         and _hook.plugin.title != "factoids"
     ):

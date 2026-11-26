@@ -20,7 +20,7 @@ from sqlalchemy import (
 )
 
 from cloudbot import hook
-from cloudbot.hook import Priority
+from cloudbot.hook import HookType, Priority
 from cloudbot.util import database, web
 from cloudbot.util.formatting import gen_markdown_table
 from cloudbot.util.mapping import DefaultKeyFoldDict
@@ -207,7 +207,7 @@ def optout_sieve(bot, event, _hook):  # pyright: ignore[reportUnusedParameter]  
     hook_name = f"{_hook.plugin.title}.{_hook.function_name}"
     _optout = get_first_matching_optout(event.conn.name, event.chan, hook_name)
     if _optout and not _optout.allow:
-        if _hook.type == "command":
+        if _hook.type == HookType.COMMAND:
             event.notice("Sorry, that command is disabled in this channel.")
 
         return None
