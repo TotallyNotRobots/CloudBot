@@ -14,6 +14,7 @@ from cloudbot.hook import (
     CommandFuncHook,
     CommandHookKwargs,
     ConfigFuncHook,
+    ConnectFuncHook,
     EventFuncHook,
     FuncHook,
     HookKwargs,
@@ -350,7 +351,7 @@ class OnCapAckHook(CapHook):
 
 
 class OnConnectHook(Hook[HookKwargs]):
-    def __init__(self, plugin: Plugin, sieve_hook: SieveFuncHook) -> None:
+    def __init__(self, plugin: Plugin, sieve_hook: ConnectFuncHook) -> None:
         """ """
         kwargs = sieve_hook.kwargs
         if kwargs is None:
