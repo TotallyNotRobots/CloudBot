@@ -22,5 +22,5 @@
     "[toml]": {
       "editor.defaultFormatter": "tamasfe.even-better-toml"
     },
-    "basedpyright.analysis.diagnosticMode": "openFilesOnly"
+    "basedpyright.analysis.diagnosticMode": "workspace"
 }

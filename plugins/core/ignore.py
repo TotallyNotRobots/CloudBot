@@ -8,6 +8,8 @@ from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from cloudbot import hook
+from cloudbot.event import CommandEvent
+from cloudbot.hook import HookType
 from cloudbot.util import database, web
 
 if TYPE_CHECKING:
@@ -106,11 +108,11 @@ def is_ignored(conn: str, chan, mask) -> bool:
 @hook.sieve(priority=50)
 async def ignore_sieve(bot, event, _hook):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
     # don't block event hooks
-    if _hook.type in ("irc_raw", "event"):
+    if _hook.type in (HookType.IRC_RAW, HookType.EVENT):
         return event
 
     # don't block an event that could be unignoring
-    if _hook.type == "command" and event.triggered_command in (
+    if isinstance(event, CommandEvent) and event.triggered_command in (
         "unignore",
         "global_unignore",
     ):
@@ -118,6 +120,10 @@ async def ignore_sieve(bot, event, _hook):  # pyright: ignore[reportUnusedParame
 
     if event.mask is None:
         # this is a server message, we don't need to check it
+        return event
+
+    if event.conn is None:
+        # Not a connection-based event, ignore it
         return event
 
     if is_ignored(event.conn.name, event.chan, event.mask):

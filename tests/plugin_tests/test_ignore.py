@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cloudbot.hook import HookType
 from plugins.core import ignore
 from tests.util.mock_conn import MockClient
 
@@ -106,11 +107,11 @@ async def test_ignore_sieve(mock_db) -> None:
     bot = MagicMock()
     event = MagicMock()
 
-    _hook.type = "irc_raw"
+    _hook.type = HookType.IRC_RAW
 
     assert (await ignore.ignore_sieve(bot, event, _hook)) is event
 
-    _hook.type = "command"
+    _hook.type = HookType.COMMAND
     event.triggered_command = "unignore"
 
     assert (await ignore.ignore_sieve(bot, event, _hook)) is event

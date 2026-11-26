@@ -20,8 +20,21 @@ from cloudbot.bot import (
     get_cmd_regex,
 )
 from cloudbot.event import Event, EventType
-from cloudbot.hook import Action, Priority
-from cloudbot.plugin_hooks import CommandHook, ConfigHook, EventHook, RawHook
+from cloudbot.hook import (
+    Action,
+    CommandFuncHook,
+    ConfigFuncHook,
+    EventFuncHook,
+    Priority,
+    RawFuncHook,
+)
+from cloudbot.plugin_hooks import (
+    CommandHook,
+    ConfigHook,
+    EventHook,
+    Hook,
+    RawHook,
+)
 from cloudbot.util import database
 from tests.util.async_mock import AsyncMock
 from tests.util.mock_conn import MockClient
@@ -172,10 +185,10 @@ class TestProcessing:
         run_hooks = []
 
         @hook.irc_raw("*")
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
-        full_hook = RawHook(plugin, hook._get_hook(coro, "irc_raw"))
+        full_hook = RawHook(plugin, RawFuncHook.get_or_add_hook(coro))
         bot.plugin_manager.catch_all_triggers.append(full_hook)
 
         await CloudBot.process(bot, event)
@@ -196,18 +209,18 @@ class TestProcessing:
 
         plugin = MagicMock()
 
-        run_hooks = []
+        run_hooks: list[Hook[Any]] = []
 
         @hook.irc_raw("*", action=Action.HALTTYPE, priority=Priority.HIGH)
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
         @hook.irc_raw("*")
-        async def coro1(hook) -> None:  # pragma: no cover
+        async def coro1(hook: Hook[Any]) -> None:  # pragma: no cover
             run_hooks.append(hook)
 
-        full_hook = RawHook(plugin, hook._get_hook(coro, "irc_raw"))
-        full_hook1 = RawHook(plugin, hook._get_hook(coro1, "irc_raw"))
+        full_hook = RawHook(plugin, RawFuncHook.get_or_add_hook(coro))
+        full_hook1 = RawHook(plugin, RawFuncHook.get_or_add_hook(coro1))
         bot.plugin_manager.catch_all_triggers.append(full_hook)
         bot.plugin_manager.catch_all_triggers.append(full_hook1)
 
@@ -229,13 +242,13 @@ class TestProcessing:
 
         plugin = MagicMock()
 
-        run_hooks = []
+        run_hooks: list[Hook[Any]] = []
 
         @hook.command("foo")
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
-        full_hook = CommandHook(plugin, hook._get_hook(coro, "command"))
+        full_hook = CommandHook(plugin, CommandFuncHook.get_or_add_hook(coro))
 
         for cmd in full_hook.aliases:
             bot.plugin_manager.commands[cmd] = full_hook
@@ -258,13 +271,13 @@ class TestProcessing:
 
         plugin = MagicMock()
 
-        run_hooks = []
+        run_hooks: list[Hook[Any]] = []
 
         @hook.command("foob", "fooc")
-        async def coro(hook) -> None:  # pragma: no cover
+        async def coro(hook: Hook[Any]) -> None:  # pragma: no cover
             run_hooks.append(hook)
 
-        full_hook = CommandHook(plugin, hook._get_hook(coro, "command"))
+        full_hook = CommandHook(plugin, CommandFuncHook.get_or_add_hook(coro))
 
         for cmd in full_hook.aliases:
             bot.plugin_manager.commands[cmd] = full_hook
@@ -294,10 +307,10 @@ class TestProcessing:
         run_hooks = []
 
         @hook.event(EventType.message)
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
-        full_event_hook = EventHook(plugin, hook._get_hook(coro, "event"))
+        full_event_hook = EventHook(plugin, EventFuncHook.get_or_add_hook(coro))
         for event_type in full_event_hook.types:
             bot.plugin_manager.event_type_hooks[event_type].append(
                 full_event_hook
@@ -326,15 +339,17 @@ class TestProcessing:
         @hook.event(
             EventType.message, action=Action.HALTTYPE, priority=Priority.HIGH
         )
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
         @hook.event(EventType.message)
-        async def coro1(hook) -> None:  # pragma: no cover
+        async def coro1(hook: Hook[Any]) -> None:  # pragma: no cover
             run_hooks.append(hook)
 
-        full_event_hook = EventHook(plugin, hook._get_hook(coro, "event"))
-        full_event_hook1 = EventHook(plugin, hook._get_hook(coro1, "event"))
+        full_event_hook = EventHook(plugin, EventFuncHook.get_or_add_hook(coro))
+        full_event_hook1 = EventHook(
+            plugin, EventFuncHook.get_or_add_hook(coro1)
+        )
         for event_type in full_event_hook.types:
             bot.plugin_manager.event_type_hooks[event_type].append(
                 full_event_hook
@@ -366,10 +381,10 @@ class TestProcessing:
         run_hooks = []
 
         @hook.irc_raw("PRIVMSG")
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
-        full_hook = RawHook(plugin, hook._get_hook(coro, "irc_raw"))
+        full_hook = RawHook(plugin, RawFuncHook.get_or_add_hook(coro))
         bot.plugin_manager.raw_triggers["PRIVMSG"].append(full_hook)
         await CloudBot.process(bot, event)
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
@@ -392,15 +407,15 @@ class TestProcessing:
         run_hooks = []
 
         @hook.irc_raw("PRIVMSG", priority=Priority.HIGH, action=Action.HALTTYPE)
-        async def coro(hook) -> None:
+        async def coro(hook: Hook[Any]) -> None:
             run_hooks.append(hook)
 
         @hook.irc_raw("PRIVMSG", priority=Priority.NORMAL)
-        async def coro1(hook) -> None:  # pragma: no cover
+        async def coro1(hook: Hook[Any]) -> None:  # pragma: no cover
             run_hooks.append(hook)
 
-        full_hook = RawHook(plugin, hook._get_hook(coro, "irc_raw"))
-        full_hook1 = RawHook(plugin, hook._get_hook(coro1, "irc_raw"))
+        full_hook = RawHook(plugin, RawFuncHook.get_or_add_hook(coro))
+        full_hook1 = RawHook(plugin, RawFuncHook.get_or_add_hook(coro1))
         bot.plugin_manager.raw_triggers["PRIVMSG"].append(full_hook)
         bot.plugin_manager.raw_triggers["PRIVMSG"].append(full_hook1)
 
@@ -418,11 +433,11 @@ async def test_reload_config(mock_bot_factory) -> None:
 
     @hook.config()
     @hook.config()
-    async def coro(hook) -> None:
+    async def coro(hook: Hook[Any]) -> None:
         runs.append(hook)
 
     plugin = MagicMock()
-    config_hook = ConfigHook(plugin, hook._get_hook(coro, "config"))
+    config_hook = ConfigHook(plugin, ConfigFuncHook.get_or_add_hook(coro))
 
     bot.plugin_manager.config_hooks.append(config_hook)
 

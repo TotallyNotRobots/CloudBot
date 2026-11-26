@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cloudbot.event import CommandEvent, Event, RegexEvent
+from cloudbot.hook import HookType
 from cloudbot.util.tokenbucket import TokenBucket
 from plugins.core import core_sieve
 from tests.util import with_frozen_time
@@ -32,7 +33,7 @@ def test_rate_limit_command() -> None:
     conn.bot = MagicMock()
 
     hook = MagicMock()
-    hook.type = "command"
+    hook.type = HookType.COMMAND
     event = CommandEvent(
         text="bar",
         cmd_prefix=".",
@@ -58,7 +59,7 @@ def test_rate_limit_regex() -> None:
     conn.bot = MagicMock()
 
     hook = MagicMock()
-    hook.type = "regex"
+    hook.type = HookType.REGEX
     event = RegexEvent(
         hook=hook,
         bot=conn.bot,
@@ -82,7 +83,7 @@ def test_rate_limit_regex_strict() -> None:
     conn.bot = MagicMock()
 
     hook = MagicMock()
-    hook.type = "regex"
+    hook.type = HookType.REGEX
     event = RegexEvent(
         hook=hook,
         bot=conn.bot,
@@ -106,7 +107,7 @@ def test_rate_limit_other() -> None:
     conn.bot = MagicMock()
 
     hook = MagicMock()
-    hook.type = "event"
+    hook.type = HookType.EVENT
     event = Event(
         hook=hook, bot=conn.bot, conn=conn, channel="#foo", nick="foobaruser"
     )
@@ -190,7 +191,7 @@ def make_command_event(chan: str | None = "#foo") -> CommandEvent:
     conn.bot = MagicMock()
 
     hook = MagicMock()
-    hook.type = "command"
+    hook.type = HookType.COMMAND
     hook.function_name = "foo"
     return CommandEvent(
         text="bar",

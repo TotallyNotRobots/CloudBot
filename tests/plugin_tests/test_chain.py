@@ -6,20 +6,15 @@ from unittest.mock import MagicMock, call
 import pytest
 
 from cloudbot import hook
-from cloudbot.hook import command
+from cloudbot.hook import CommandFuncHook, command
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import CommandHook
-from cloudbot.util import HOOK_ATTR
 from plugins import chain
 from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
     from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
-
-
-def _get_hook(func, name):
-    return getattr(func, HOOK_ATTR)[name]
 
 
 @pytest.mark.asyncio
@@ -47,7 +42,7 @@ async def test_chainlist(
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
         Plugin("test/foo.py", "foo.py", "foo", MockModule()),
-        _get_hook(func, "command"),
+        CommandFuncHook.get_or_add_hook(func),
     )
     db = mock_db.session()
     mock_db.create_table(chain.Commands)
@@ -122,11 +117,11 @@ async def test_chainallow_del_hook_not_set(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -154,11 +149,11 @@ async def test_chainallow_del_hook(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -195,11 +190,11 @@ async def test_chainallow_add_hook_no_arg(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -227,11 +222,11 @@ async def test_chainallow_add_hook_allow(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -261,11 +256,11 @@ async def test_chainallow_add_hook_allow_update(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -303,11 +298,11 @@ async def test_chainallow_add_hook_deny(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -337,11 +332,11 @@ async def test_chainallow_add_hook_bad_arg(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -371,11 +366,11 @@ async def test_chainallow_add_cmd(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)
@@ -403,11 +398,11 @@ async def test_chainallow_add_partial_cmd(
     mock_bot = mock_bot_factory(db=mock_db)
     plugin = Plugin("plugins/foo.py", "foo.py", "foo", MockModule())
     mock_bot.plugin_manager.commands["foo"] = CommandHook(
-        plugin, _get_hook(hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(hook_func)
     )
 
     mock_bot.plugin_manager.commands["bar"] = CommandHook(
-        plugin, _get_hook(other_hook_func, "command")
+        plugin, CommandFuncHook.get_or_add_hook(other_hook_func)
     )
 
     mock_db.create_table(chain.Commands)

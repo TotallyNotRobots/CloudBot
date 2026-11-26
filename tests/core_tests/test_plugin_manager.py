@@ -144,10 +144,7 @@ def test_plugin_load(
     patch_import_reload.assert_not_called()
     plugin = mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType] # TODO: type plugin manager
     assert plugin is not None
-    assert (
-        plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
-        is mod
-    )
+    assert plugin.code is mod
 
     patch_import_module.reset_mock()
 
@@ -162,10 +159,7 @@ def test_plugin_load(
 
     plugin = mock_manager.get_plugin(mock_manager.bot.plugin_dir / "test.py")  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType] # TODO: type plugin manager
     assert plugin is not None
-    assert (
-        plugin.code  # pyright: ignore[reportUnknownMemberType] # TODO: type plugin
-        is newmod
-    )
+    assert plugin.code is newmod
 
 
 @pytest.mark.asyncio
@@ -656,9 +650,9 @@ def test_file_path_to_import(
 async def test_launch(
     mock_manager,
     patch_import_module,
-    do_sieve,
+    do_sieve: bool,
     sieve_allow,
-    single_thread,
+    single_thread: bool,
     sieve_error,
     caplog_bot,
 ) -> None:
@@ -750,9 +744,9 @@ async def test_launch(
 async def test_launch_async(
     mock_manager,
     patch_import_module,
-    do_sieve,
+    do_sieve: bool,
     sieve_allow,
-    single_thread,
+    single_thread: bool,
     sieve_error,
     caplog_bot,
 ) -> None:
