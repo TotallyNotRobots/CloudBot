@@ -1,5 +1,15 @@
 exclude: ^(\.vscode/.*|\.basedpyright/baseline\.json)$
 repos:
+- repo: https://github.com/JelleZijlstra/autotyping
+  rev: 4dcb8d9dcb3dceedce8de4df074d18de0b7cfe3c  # frozen: 24.9.0
+  hooks:
+  - id: autotyping
+    stages:
+    - pre-commit
+    args:
+    - --annotate-named-param
+    - conn:cloudbot.client.Client
+    - --safe
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c   # frozen: v6.0.0
   hooks:
@@ -98,16 +108,6 @@ repos:
   - id: auto-walrus
     additional_dependencies:
     - tomli ; python_version < '3.11'
-- repo: https://github.com/JelleZijlstra/autotyping
-  rev: 4dcb8d9dcb3dceedce8de4df074d18de0b7cfe3c  # frozen: 24.9.0
-  hooks:
-  - id: autotyping
-    stages:
-    - pre-commit
-    args:
-    - --annotate-named-param
-    - conn:cloudbot.client.Client
-    - --safe
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
   rev: 4380fbb73a154b5f5624794c1c78d9719ccc860f  # frozen: v2.16.0
   hooks:
