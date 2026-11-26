@@ -5,11 +5,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from cloudbot.hook import HookType
+from cloudbot.event import CommandEvent, Event
+from cloudbot.hook import CommandFuncHook, RawFuncHook, command, irc_raw
+from cloudbot.plugin import Plugin
+from cloudbot.plugin_hooks import CommandHook, RawHook
 from plugins.core import ignore
 from tests.util.mock_conn import MockClient
+from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -96,39 +101,163 @@ def test_ignore_case(mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_ignore_sieve(mock_db) -> None:
+async def test_ignore_sieve_allows_irc_raw(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @irc_raw("FOO")
+    def foo() -> None:
+        raise NotImplementedError
+
+    bot = mock_bot_factory(db=mock_db)
     setup_db(mock_db)
 
     sess = mock_db.session()
 
     ignore.add_ignore(sess, "testconn", "#chan", "*!*@host")
 
-    _hook = MagicMock()
-    bot = MagicMock()
-    event = MagicMock()
-
-    _hook.type = HookType.IRC_RAW
-
-    assert (await ignore.ignore_sieve(bot, event, _hook)) is event
-
-    _hook.type = HookType.COMMAND
-    event.triggered_command = "unignore"
-
-    assert (await ignore.ignore_sieve(bot, event, _hook)) is event
-
-    event.triggered_command = "somecommand"
-
-    event.mask = None
+    _hook = RawHook(
+        Plugin("", "", "", MockModule()),
+        RawFuncHook.get_hook(foo, raise_on_missing=True),
+    )
+    event = Event(
+        bot=bot,
+        hook=_hook,
+        conn=MockClient(bot=bot, name="testconn"),
+        channel="#chan",
+        mask="nick!user@host",
+    )
 
     assert (await ignore.ignore_sieve(bot, event, _hook)) is event
 
-    event.conn.name = "testconn"
-    event.chan = "#chan"
-    event.mask = "nick!user@host"
+
+@pytest.mark.asyncio
+async def test_ignore_sieve_allows_non_user(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @command()
+    def foo() -> None:
+        raise NotImplementedError
+
+    bot = mock_bot_factory(db=mock_db)
+    setup_db(mock_db)
+
+    sess = mock_db.session()
+
+    ignore.add_ignore(sess, "testconn", "#chan", "*!*@host")
+
+    _hook = CommandHook(
+        Plugin("", "", "", MockModule()),
+        CommandFuncHook.get_hook(foo, raise_on_missing=True),
+    )
+    event = CommandEvent(
+        bot=bot,
+        hook=_hook,
+        triggered_command="somecommand",
+        text="",
+        cmd_prefix=".",
+        conn=MockClient(bot=bot, name="testconn"),
+        channel="#chan",
+        mask=None,
+    )
+
+    assert (await ignore.ignore_sieve(bot, event, _hook)) is event
+
+
+@pytest.mark.asyncio
+async def test_ignore_sieve_block(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @command()
+    def foo() -> None:
+        raise NotImplementedError
+
+    bot = mock_bot_factory(db=mock_db)
+    setup_db(mock_db)
+
+    sess = mock_db.session()
+
+    ignore.add_ignore(sess, "testconn", "#chan", "*!*@host")
+
+    _hook = CommandHook(
+        Plugin("", "", "", MockModule()),
+        CommandFuncHook.get_hook(foo, raise_on_missing=True),
+    )
+    event = CommandEvent(
+        bot=bot,
+        hook=_hook,
+        triggered_command="somecommand",
+        text="",
+        cmd_prefix=".",
+        conn=MockClient(bot=bot, name="testconn"),
+        channel="#chan",
+        mask="nick!user@host",
+    )
 
     assert (await ignore.ignore_sieve(bot, event, _hook)) is None
 
-    event.conn.name = "testconn1"
+
+@pytest.mark.asyncio
+async def test_ignore_sieve_allows_unignore(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @command("unignore")
+    def foo() -> None:
+        raise NotImplementedError
+
+    bot = mock_bot_factory(db=mock_db)
+    setup_db(mock_db)
+
+    sess = mock_db.session()
+
+    ignore.add_ignore(sess, "testconn", "#chan", "*!*@host")
+
+    _hook = CommandHook(
+        Plugin("", "", "", MockModule()),
+        CommandFuncHook.get_hook(foo, raise_on_missing=True),
+    )
+    event = CommandEvent(
+        bot=bot,
+        hook=_hook,
+        triggered_command="unignore",
+        text="",
+        cmd_prefix=".",
+        conn=MockClient(bot=bot, name="testconn"),
+        channel="#chan",
+        mask="nick!user@host",
+    )
+
+    assert (await ignore.ignore_sieve(bot, event, _hook)) is event
+
+
+@pytest.mark.asyncio
+async def test_ignore_sieve_no_match(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
+    @command()
+    def foo() -> None:
+        raise NotImplementedError
+
+    bot = mock_bot_factory(db=mock_db)
+    setup_db(mock_db)
+
+    sess = mock_db.session()
+
+    ignore.add_ignore(sess, "testconn", "#chan", "*!*@host")
+
+    _hook = CommandHook(
+        Plugin("", "", "", MockModule()),
+        CommandFuncHook.get_hook(foo, raise_on_missing=True),
+    )
+    event = CommandEvent(
+        bot=bot,
+        hook=_hook,
+        triggered_command="somecommand",
+        text="",
+        cmd_prefix=".",
+        conn=MockClient(bot=bot, name="testconn1"),
+        channel="#chan",
+        mask="nick!user@host",
+    )
 
     assert (await ignore.ignore_sieve(bot, event, _hook)) is event
 

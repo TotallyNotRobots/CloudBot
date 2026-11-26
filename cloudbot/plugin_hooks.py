@@ -131,7 +131,7 @@ class CommandHook(Hook[CommandHookKwargs]):
         self.auto_help = auto_help
 
         if cmd_hook.main_alias is None:
-            raise TypeError("Main alias nto set on CommandFuncHook")
+            raise TypeError("Main alias not set on CommandFuncHook")
 
         self.name = cmd_hook.main_alias.lower()
         # turn the set into a list
