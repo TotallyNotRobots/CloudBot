@@ -204,7 +204,9 @@ class FuncHook(ABC, Generic[_KwargsT]):
         cls, func: HookFunc, *, raise_on_missing: bool = False
     ) -> Self | None:
         if (hooks := Hooks.get_from_func(func)) is not None:
-            return hooks.get(cls)
+            hook = hooks.get(cls)
+            if hook is not None:
+                return hook
 
         if raise_on_missing:
             raise ValueError(f"Missing hook for {cls.get_type()}")

@@ -22,6 +22,7 @@ from cloudbot.hook import (
     RawFuncHook,
     RegexFuncHook,
     SieveFuncHook,
+    command,
 )
 
 if TYPE_CHECKING:
@@ -161,6 +162,23 @@ def test_hook_decorate() -> None:
         HookType.ON_STOP,
         HookType.POST_HOOK,
     ]
+
+
+def test_hook_get_hook_raises_on_missing_hook_with_metadata() -> None:
+    @command()
+    def foo() -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Missing hook"):
+        RawFuncHook.get_hook(foo, raise_on_missing=True)
+
+
+def test_hook_get_hook_raises_on_missing_hook_no_metadata() -> None:
+    def foo() -> None:
+        raise NotImplementedError
+
+    with pytest.raises(ValueError, match="Missing hook"):
+        RawFuncHook.get_hook(foo, raise_on_missing=True)
 
 
 def test_command_validate() -> None:
