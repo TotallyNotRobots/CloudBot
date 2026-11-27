@@ -21,7 +21,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import ParamSpec, Unpack, override
+from typing_extensions import ParamSpec, Unpack, deprecated, override
 
 from cloudbot.event import EventType
 from cloudbot.util import HOOK_ATTR
@@ -493,6 +493,10 @@ class _CommandDecorator(_HookDecorator[CommandHookKwargs]):
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @command() instead of @command",
+    category=DeprecationWarning,
+)
 def command(arg: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -626,6 +630,10 @@ class _SieveDecorator(_HookDecorator[HookKwargs]):
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @sieve() instead of @sieve",
+    category=DeprecationWarning,
+)
 def sieve(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -697,6 +705,10 @@ def on_start(**kwargs: Unpack[HookKwargs]) -> _OnStartDecorator: ...
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @on_start() instead of @on_start",
+    category=DeprecationWarning,
+)
 def on_start(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -730,6 +742,10 @@ def on_stop(**kwargs: Unpack[HookKwargs]) -> _OnStopDecorator: ...
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @on_stop() instead of @on_stop",
+    category=DeprecationWarning,
+)
 def on_stop(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -805,6 +821,10 @@ def on_connect(**kwargs: Unpack[HookKwargs]) -> _ConnectDecorator: ...
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @on_connect() instead of @on_connect",
+    category=DeprecationWarning,
+)
 def on_connect(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -834,6 +854,10 @@ def irc_out(**kwargs: Unpack[HookKwargs]) -> _IrcOutDecorator: ...
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @irc_out() instead of @irc_out",
+    category=DeprecationWarning,
+)
 def irc_out(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
@@ -861,6 +885,10 @@ def post_hook(**kwargs: Unpack[HookKwargs]) -> _PostHookDecorator: ...
 
 
 @overload
+@deprecated(
+    "Bare decorators are deprecated, use @post_hook() instead of @post_hook",
+    category=DeprecationWarning,
+)
 def post_hook(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 

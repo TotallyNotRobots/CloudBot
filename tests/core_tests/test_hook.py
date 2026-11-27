@@ -57,7 +57,7 @@ def test_deprecated_hooks(func, cls: type[FuncHook[Any]]) -> None:
 def test_sieve_deprecated_bare() -> None:
     with pytest.deprecated_call():
 
-        @hook.sieve
+        @hook.sieve  # pyright: ignore[reportDeprecated]
         def f(_bot: CloudBot, _event: Event, _hook: Hook[Any]) -> None:
             raise NotImplementedError
 
