@@ -14,7 +14,6 @@ from typing import (
     Generic,
     Literal,
     NotRequired,
-    Protocol,
     Self,
     TypedDict,
     TypeVar,
@@ -58,10 +57,6 @@ class Action(Enum):
     HALTALL = 1
     # Normal execution of all hooks
     CONTINUE = 2
-
-
-class TransparentDecorator(Protocol):
-    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
 class HookKwargs(TypedDict):
@@ -108,12 +103,7 @@ class HookType(StrEnum):
     CAP_ACK = "on_cap_ack"
 
 
-class _TypeProto(Protocol):
-    @classmethod
-    def get_type(cls) -> HookType: ...
-
-
-_HookT = TypeVar("_HookT", bound=_TypeProto)
+_HookT = TypeVar("_HookT", bound="FuncHook[Any]")
 
 
 @dataclass
