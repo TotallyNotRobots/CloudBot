@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar
 
 import pytest
 
@@ -12,6 +12,7 @@ from cloudbot.hook import (
     ConnectFuncHook,
     EventFuncHook,
     FuncHook,
+    HookKwargs,
     Hooks,
     HookType,
     IrcOutFuncHook,
@@ -26,6 +27,9 @@ from cloudbot.hook import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Unpack
+
     from cloudbot.bot import CloudBot
     from cloudbot.plugin_hooks import Hook
 
@@ -36,10 +40,7 @@ if TYPE_CHECKING:
         (hook.command, CommandFuncHook),
         (hook.post_hook, PostHookFuncHook),
         (hook.on_start, OnStartFuncHook),
-        (hook.connect, ConnectFuncHook),
         (hook.on_connect, ConnectFuncHook),
-        (hook.onload, OnStartFuncHook),
-        (hook.on_unload, OnStopFuncHook),
         (hook.on_stop, OnStopFuncHook),
         (hook.irc_out, IrcOutFuncHook),
     ],
@@ -54,10 +55,46 @@ def test_deprecated_hooks(func, cls: type[FuncHook[Any]]) -> None:
         assert cls.get_hook(f, raise_on_missing=True).function is f
 
 
+_P = ParamSpec("_P")
+_T = TypeVar("_T")
+
+
+class _Decorator(Protocol):
+    def __call__(
+        self, func: Callable[_P, _T], /, **kwargs: Unpack[HookKwargs]
+    ) -> Callable[_P, _T]: ...
+
+
+@pytest.mark.parametrize(
+    ("func", "cls"),
+    [
+        (hook.command, CommandFuncHook),
+        (hook.post_hook, PostHookFuncHook),
+        (hook.on_start, OnStartFuncHook),
+        (hook.on_connect, ConnectFuncHook),
+        (hook.on_stop, OnStopFuncHook),
+        (hook.irc_out, IrcOutFuncHook),
+    ],
+)
+def test_bare_decorators_preserve_kwargs(
+    func: _Decorator, cls: type[FuncHook[HookKwargs]]
+) -> None:
+    with pytest.deprecated_call():
+
+        def f():
+            raise NotImplementedError
+
+        f = func(f, permissions=["foo"])
+        _hook = cls.get_hook(f, raise_on_missing=True)
+        assert _hook.function is f
+        assert _hook.kwargs
+        assert _hook.kwargs.get("permissions", []) == ["foo"]
+
+
 def test_sieve_deprecated_bare() -> None:
     with pytest.deprecated_call():
 
-        @hook.sieve
+        @hook.sieve  # pyright: ignore[reportDeprecated]
         def f(_bot: CloudBot, _event: Event, _hook: Hook[Any]) -> None:
             raise NotImplementedError
 
@@ -246,3 +283,12 @@ def test_sieve_hook_args_validate() -> None:
         @hook.sieve()
         def _() -> None:
             pass
+
+
+@pytest.mark.parametrize(
+    "name",
+    hook._deprecated_aliases,  # pyright: ignore[reportPrivateUsage]
+)
+def test_deprecated_names_resolve(name: str) -> None:
+    with pytest.deprecated_call():
+        assert getattr(hook, name) is not None

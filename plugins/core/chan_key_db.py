@@ -37,7 +37,7 @@ class ChannelKey(database.Base):
     key: Mapped[str | None]
 
 
-@hook.connect(clients=["irc"])
+@hook.on_connect(clients=["irc"])
 def load_keys(conn: IrcClient, db: Session) -> None:
     """
     Load channel keys to the client

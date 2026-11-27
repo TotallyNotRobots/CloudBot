@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("cloudbot")
 
 
-@hook.connect(priority=-10, clients="irc")
+@hook.on_connect(priority=-10, clients="irc")
 def send_cap_ls(conn: IrcClient) -> None:
     conn.cmd("CAP", "LS", "302")
     conn.memory.setdefault("available_caps", CapList()).clear()

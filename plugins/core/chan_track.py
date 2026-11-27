@@ -367,7 +367,7 @@ def clean_data(bot) -> None:
         clean_conn_data(conn)
 
 
-@hook.connect()
+@hook.on_connect()
 def init_chan_data(conn: Client, _clear=True):
     chan_data = get_chans(conn)
     users = get_users(conn)

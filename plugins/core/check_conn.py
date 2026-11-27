@@ -86,7 +86,7 @@ def list_conns(bot) -> str:
     return f"Current connections: {conns}"
 
 
-@hook.connect()
+@hook.on_connect()
 def on_connect(conn: Client) -> None:
     now = time.time()
     conn.memory["lag_sent"] = 0
