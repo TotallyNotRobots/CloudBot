@@ -31,6 +31,52 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from re import Pattern
 
+__all__ = [
+    "Action",
+    "CapAckFuncHook",
+    "CapAvailableFuncHook",
+    "CapFuncHook",
+    "CommandFuncHook",
+    "CommandHookKwargs",
+    "ConfigFuncHook",
+    "ConnectFuncHook",
+    "EventFuncHook",
+    "EventType",
+    "FuncHook",
+    "HookFunc",
+    "HookKwargs",
+    "HookType",
+    "Hooks",
+    "IrcOutFuncHook",
+    "OnStartFuncHook",
+    "OnStopFuncHook",
+    "PeriodicFuncHook",
+    "PeriodicHookKwargs",
+    "PermissionFuncHook",
+    "PostHookFuncHook",
+    "Priority",
+    "RawFuncHook",
+    "RegexFuncHook",
+    "RegexHookKwargs",
+    "SieveFuncHook",
+    "command",
+    "config",
+    "event",
+    "irc_out",
+    "irc_raw",
+    "on_cap_ack",
+    "on_cap_available",
+    "on_connect",
+    "on_start",
+    "on_stop",
+    "periodic",
+    "permission",
+    "post_hook",
+    "regex",
+    "sieve",
+    "valid_command_re",
+]
+
 _T = TypeVar("_T")
 _P = ParamSpec("_P")
 HookFunc = Callable[..., Any]
@@ -902,6 +948,8 @@ _deprecated_aliases = {
     "on_unload": "on_stop",
     "onload": "on_start",
 }
+
+__all__.extend(_deprecated_aliases.keys())  # noqa: PYI056  # pyright: ignore[reportUnsupportedDunderAll]
 
 
 def __getattr__(name: str) -> Any:  # pyright: ignore[reportAny]
