@@ -33,9 +33,7 @@ if TYPE_CHECKING:
     from re import Pattern
 
 _T = TypeVar("_T")
-_T1 = TypeVar("_T1")
 _P = ParamSpec("_P")
-_P1 = ParamSpec("_P1")
 HookFunc = Callable[..., Any]
 valid_command_re = re.compile(r"^\w+$")
 
@@ -235,7 +233,7 @@ class FuncHook(ABC, Generic[_KwargsT]):
             self.kwargs.update(kwargs)
 
 
-_Hook = FuncHook
+_Hook = FuncHook[Any]
 
 
 class CommandFuncHook(FuncHook[CommandHookKwargs]):
@@ -484,6 +482,26 @@ def _hook_warn() -> None:
     )
 
 
+@dataclass
+class _HookDecorator(ABC, Generic[_KwargsT]):
+    kwargs: _KwargsT
+
+    @abstractmethod
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        raise NotImplementedError
+
+
+@dataclass
+class _CommandDecorator(_HookDecorator[CommandHookKwargs]):
+    alias_param: Sequence[str] | None
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = CommandFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.alias_param, self.kwargs)
+        return func
+
+
 @overload
 def command(arg: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
@@ -494,7 +512,7 @@ def command(
     /,
     *args: str,
     **kwargs: Unpack[CommandHookKwargs],
-) -> TransparentDecorator: ...
+) -> _CommandDecorator: ...
 
 
 def command(
@@ -502,20 +520,13 @@ def command(
     /,
     *args: str | Sequence[str],
     **kwargs: Unpack[CommandHookKwargs],
-) -> Callable[_P, _T] | TransparentDecorator:
+) -> Callable[_P, _T] | _CommandDecorator:
     """External command decorator. Can be used directly as a decorator, or with args to return a decorator."""
-
-    def _command_hook(
-        func: Callable[_P1, _T1], alias_param: Sequence[str] | None = None
-    ) -> Callable[_P1, _T1]:
-        hook = CommandFuncHook.get_or_add_hook(func)
-        hook.add_hook(alias_param, kwargs)
-        return func
 
     if callable(arg):
         # this decorator is being used directly
         _hook_warn()
-        return _command_hook(arg)
+        return _CommandDecorator(alias_param=None, kwargs={})(arg)
 
     arg_list: list[str] = []
     if arg:
@@ -528,18 +539,24 @@ def command(
             arg_list.extend(item)
 
     # this decorator is being used indirectly, so return a decorator function
-    return lambda func: _command_hook(func, alias_param=arg_list)
+    return _CommandDecorator(alias_param=arg_list, kwargs=kwargs)
+
+
+@dataclass
+class _RawDecorator(_HookDecorator[HookKwargs]):
+    triggers_param: list[str] | str
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = RawFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.triggers_param, self.kwargs)
+        return func
 
 
 def irc_raw(
     triggers_param: str | list[str], **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator:
+) -> _RawDecorator:
     """External raw decorator. Must be used as a function to return a decorator"""
-
-    def _raw_hook(func: Callable[_P, _T], /) -> Callable[_P, _T]:
-        hook = RawFuncHook.get_or_add_hook(func)
-        hook.add_hook(triggers_param, kwargs)
-        return func
 
     if callable(triggers_param):
         # this decorator is being used directly, which isn't good
@@ -548,18 +565,24 @@ def irc_raw(
         )
 
     # this decorator is being used as a function, so return a decorator
-    return _raw_hook
+    return _RawDecorator(triggers_param=triggers_param, kwargs=kwargs)
+
+
+@dataclass
+class _EventDecorator(_HookDecorator[HookKwargs]):
+    types_param: list[EventType] | EventType
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = EventFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.types_param, self.kwargs)
+        return func
 
 
 def event(
     types_param: EventType | list[EventType], **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator:
+) -> _EventDecorator:
     """External event decorator. Must be used as a function to return a decorator"""
-
-    def _event_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = EventFuncHook.get_or_add_hook(func)
-        hook.add_hook(types_param, kwargs)
-        return func
 
     if callable(types_param):
         # this decorator is being used directly, which isn't good
@@ -568,19 +591,25 @@ def event(
         )
 
     # this decorator is being used as a function, so return a decorator
-    return _event_hook
+    return _EventDecorator(types_param=types_param, kwargs=kwargs)
+
+
+@dataclass
+class _RegexDecorator(_HookDecorator[RegexHookKwargs]):
+    regex_param: list[re.Pattern[str] | str] | re.Pattern[str] | str
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = RegexFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.regex_param, self.kwargs)
+        return func
 
 
 def regex(
     regex_param: list[re.Pattern[str] | str] | re.Pattern[str] | str,
     **kwargs: Unpack[RegexHookKwargs],
-) -> TransparentDecorator:
+) -> _RegexDecorator:
     """External regex decorator. Must be used as a function to return a decorator."""
-
-    def _regex_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = RegexFuncHook.get_or_add_hook(func)
-        hook.add_hook(regex_param, kwargs)
-        return func
 
     if callable(regex_param):
         # this decorator is being used directly, which isn't good
@@ -589,7 +618,21 @@ def regex(
         )
 
     # this decorator is being used as a function, so return a decorator
-    return _regex_hook
+    return _RegexDecorator(kwargs=kwargs, regex_param=regex_param)
+
+
+@dataclass
+class _SieveDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        if len(inspect.signature(func).parameters) != 3:
+            raise ValueError(
+                "Sieve hook has incorrect argument count. Needs params: bot, input, plugin"
+            )
+
+        hook = SieveFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
 
 
 @overload
@@ -597,40 +640,36 @@ def sieve(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 
 @overload
-def sieve(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def sieve(**kwargs: Unpack[HookKwargs]) -> _SieveDecorator: ...
 
 
 def sieve(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator | Callable[_P, _T]:
+) -> _SieveDecorator | Callable[_P, _T]:
     """External sieve decorator. Can be used directly as a decorator, or with args to return a decorator"""
-
-    def _sieve_hook(func: Callable[_P1, _T1], /) -> Callable[_P1, _T1]:
-        if len(inspect.signature(func).parameters) != 3:
-            raise ValueError(
-                "Sieve hook has incorrect argument count. Needs params: bot, input, plugin"
-            )
-
-        hook = SieveFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
 
     if callable(param):
         _hook_warn()
-        return _sieve_hook(param)
+        return _SieveDecorator(kwargs=kwargs)(param)
 
-    return _sieve_hook
+    return _SieveDecorator(kwargs=kwargs)
+
+
+@dataclass
+class _PeriodicDecorator(_HookDecorator[PeriodicHookKwargs]):
+    interval: float
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = PeriodicFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.interval, self.kwargs)
+        return func
 
 
 def periodic(
     interval: float, **kwargs: Unpack[PeriodicHookKwargs]
-) -> TransparentDecorator:
+) -> _PeriodicDecorator:
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator"""
-
-    def _periodic_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = PeriodicFuncHook.get_or_add_hook(func)
-        hook.add_hook(interval, kwargs)
-        return func
 
     if callable(interval):
         # this decorator is being used directly, which isn't good
@@ -639,20 +678,32 @@ def periodic(
         )
 
     # this decorator is being used as a function, so return a decorator
-    return _periodic_hook
+    return _PeriodicDecorator(interval=interval, kwargs=kwargs)
 
 
-def config(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator:
-    def _config_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
+class _ConfigDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
         hook = ConfigFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
+        hook._add_hook(self.kwargs)
         return func
 
-    return _config_hook
+
+def config(**kwargs: Unpack[HookKwargs]) -> _ConfigDecorator:
+    return _ConfigDecorator(kwargs=kwargs)
+
+
+@dataclass
+class _OnStartDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = OnStartFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
 
 
 @overload
-def on_start(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def on_start(**kwargs: Unpack[HookKwargs]) -> _OnStartDecorator: ...
 
 
 @overload
@@ -661,27 +712,31 @@ def on_start(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 def on_start(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> Callable[_P, _T] | TransparentDecorator:
+) -> Callable[_P, _T] | _OnStartDecorator:
     """External on_start decorator. Can be used directly as a decorator, or with args to return a decorator"""
-
-    def _on_start_hook(func: Callable[_P1, _T1]) -> Callable[_P1, _T1]:
-        hook = OnStartFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
 
     if callable(param):
         _hook_warn()
-        return _on_start_hook(param)
+        return _OnStartDecorator(kwargs=kwargs)(param)
 
-    return _on_start_hook
+    return _OnStartDecorator(kwargs=kwargs)
 
 
 # this is temporary, to ease transition
 onload = on_start
 
 
+@dataclass
+class _OnStopDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = OnStopFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
+
+
 @overload
-def on_stop(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def on_stop(**kwargs: Unpack[HookKwargs]) -> _OnStopDecorator: ...
 
 
 @overload
@@ -690,58 +745,73 @@ def on_stop(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 def on_stop(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> Callable[_P, _T] | TransparentDecorator:
+) -> Callable[_P, _T] | _OnStopDecorator:
     """External on_stop decorator. Can be used directly as a decorator, or with args to return a decorator"""
-
-    def _on_stop_hook(func: Callable[_P1, _T1]) -> Callable[_P1, _T1]:
-        hook = OnStopFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
 
     if callable(param):
         _hook_warn()
-        return _on_stop_hook(param)
+        return _OnStopDecorator(kwargs=kwargs)(param)
 
-    return _on_stop_hook
+    return _OnStopDecorator(kwargs=kwargs)
 
 
 on_unload = on_stop
 
 
+@dataclass
+class _CapDecorator(_HookDecorator[HookKwargs], ABC):
+    caps: tuple[str, ...]
+
+
+@dataclass
+class _CapAvailableDecorator(_CapDecorator):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = CapAvailableFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.caps, self.kwargs)
+        return func
+
+
 def on_cap_available(
     *caps: str, **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator:
+) -> _CapAvailableDecorator:
     """External on_cap_available decorator. Must be used as a function that returns a decorator
 
     This hook will fire for each capability in a `CAP LS` response from the server
     """
 
-    def _on_cap_available_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = CapAvailableFuncHook.get_or_add_hook(func)
-        hook.add_hook(caps, kwargs)
+    return _CapAvailableDecorator(caps=caps, kwargs=kwargs)
+
+
+@dataclass
+class _CapAckDecorator(_CapDecorator):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = CapAckFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.caps, self.kwargs)
         return func
 
-    return _on_cap_available_hook
 
-
-def on_cap_ack(
-    *caps: str, **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator:
+def on_cap_ack(*caps: str, **kwargs: Unpack[HookKwargs]) -> _CapAckDecorator:
     """External on_cap_ack decorator. Must be used as a function that returns a decorator
 
     This hook will fire for each capability that is acknowledged from the server with `CAP ACK`
     """
 
-    def _on_cap_ack_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = CapAckFuncHook.get_or_add_hook(func)
-        hook.add_hook(caps, kwargs)
-        return func
+    return _CapAckDecorator(caps=caps, kwargs=kwargs)
 
-    return _on_cap_ack_hook
+
+@dataclass
+class _ConnectDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = ConnectFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
 
 
 @overload
-def on_connect(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def on_connect(**kwargs: Unpack[HookKwargs]) -> _ConnectDecorator: ...
 
 
 @overload
@@ -750,24 +820,27 @@ def on_connect(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 def on_connect(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> Callable[_P, _T] | TransparentDecorator:
-    def _on_connect_hook(func: Callable[_P1, _T1], /) -> Callable[_P1, _T1]:
-        hook = ConnectFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
-
+) -> Callable[_P, _T] | _ConnectDecorator:
     if callable(param):
         _hook_warn()
-        return _on_connect_hook(param)
+        return _ConnectDecorator(kwargs)(param)
 
-    return _on_connect_hook
+    return _ConnectDecorator(kwargs)
 
 
 connect = on_connect
 
 
+class _IrcOutDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = IrcOutFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
+
+
 @overload
-def irc_out(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def irc_out(**kwargs: Unpack[HookKwargs]) -> _IrcOutDecorator: ...
 
 
 @overload
@@ -776,21 +849,25 @@ def irc_out(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 def irc_out(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> Callable[_P, _T] | TransparentDecorator:
-    def _decorate(func: Callable[_P1, _T1], /) -> Callable[_P1, _T1]:
-        hook = IrcOutFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
-
+) -> Callable[_P, _T] | _IrcOutDecorator:
     if callable(param):
         _hook_warn()
-        return _decorate(param)
+        return _IrcOutDecorator(kwargs=kwargs)(param)
 
-    return _decorate
+    return _IrcOutDecorator(kwargs=kwargs)
+
+
+@dataclass
+class _PostHookDecorator(_HookDecorator[HookKwargs]):
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = PostHookFuncHook.get_or_add_hook(func)
+        hook._add_hook(self.kwargs)
+        return func
 
 
 @overload
-def post_hook(**kwargs: Unpack[HookKwargs]) -> TransparentDecorator: ...
+def post_hook(**kwargs: Unpack[HookKwargs]) -> _PostHookDecorator: ...
 
 
 @overload
@@ -799,29 +876,30 @@ def post_hook(param: Callable[_P, _T], /) -> Callable[_P, _T]: ...
 
 def post_hook(
     param: Callable[_P, _T] | None = None, /, **kwargs: Unpack[HookKwargs]
-) -> Callable[_P, _T] | TransparentDecorator:
+) -> Callable[_P, _T] | _PostHookDecorator:
     """
     This hook will be fired just after a hook finishes executing
     """
 
-    def _decorate(func: Callable[_P1, _T1]) -> Callable[_P1, _T1]:
-        hook = PostHookFuncHook.get_or_add_hook(func)
-        hook._add_hook(kwargs)
-        return func
-
     if callable(param):
         _hook_warn()
-        return _decorate(param)
+        return _PostHookDecorator(kwargs=kwargs)(param)
 
-    return _decorate
+    return _PostHookDecorator(kwargs=kwargs)
+
+
+@dataclass
+class _PermissionDecorator(_HookDecorator[HookKwargs]):
+    perms: tuple[str, ...]
+
+    @override
+    def __call__(self, func: Callable[_P, _T], /) -> Callable[_P, _T]:
+        hook = PermissionFuncHook.get_or_add_hook(func)
+        hook.add_hook(self.perms, self.kwargs)
+        return func
 
 
 def permission(
     *perms: str, **kwargs: Unpack[HookKwargs]
-) -> TransparentDecorator:
-    def _perm_hook(func: Callable[_P, _T]) -> Callable[_P, _T]:
-        hook = PermissionFuncHook.get_or_add_hook(func)
-        hook.add_hook(perms, kwargs)
-        return func
-
-    return _perm_hook
+) -> _PermissionDecorator:
+    return _PermissionDecorator(kwargs=kwargs, perms=perms)
