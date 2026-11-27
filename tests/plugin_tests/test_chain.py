@@ -180,11 +180,11 @@ async def test_chainallow_add_hook_no_arg(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)
@@ -212,11 +212,11 @@ async def test_chainallow_add_hook_allow(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)
@@ -246,11 +246,11 @@ async def test_chainallow_add_hook_allow_update(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)
@@ -288,11 +288,11 @@ async def test_chainallow_add_hook_deny(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)
@@ -322,11 +322,11 @@ async def test_chainallow_add_hook_bad_arg(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)
@@ -356,11 +356,11 @@ async def test_chainallow_add_cmd(
     mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     @hook.command("foo")
-    def hook_func():
+    def hook_func() -> None:
         raise NotImplementedError
 
     @hook.command("bar")
-    def other_hook_func():
+    def other_hook_func() -> None:
         raise NotImplementedError
 
     mock_bot = mock_bot_factory(db=mock_db)

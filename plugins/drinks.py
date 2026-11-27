@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 drink_data: list[dict[str, Any]] = []
 
 
-@hook.onload()
+@hook.on_start()
 def load_drinks(bot: CloudBot) -> None:
     """load the drink recipes"""
     drink_data.clear()

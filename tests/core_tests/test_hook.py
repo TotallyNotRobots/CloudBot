@@ -36,10 +36,7 @@ if TYPE_CHECKING:
         (hook.command, CommandFuncHook),
         (hook.post_hook, PostHookFuncHook),
         (hook.on_start, OnStartFuncHook),
-        (hook.connect, ConnectFuncHook),
         (hook.on_connect, ConnectFuncHook),
-        (hook.onload, OnStartFuncHook),
-        (hook.on_unload, OnStopFuncHook),
         (hook.on_stop, OnStopFuncHook),
         (hook.irc_out, IrcOutFuncHook),
     ],
@@ -246,3 +243,12 @@ def test_sieve_hook_args_validate() -> None:
         @hook.sieve()
         def _() -> None:
             pass
+
+
+@pytest.mark.parametrize(
+    "name",
+    hook._deprecated_aliases,  # pyright: ignore[reportPrivateUsage]
+)
+def test_deprecated_names_resolve(name: str) -> None:
+    with pytest.deprecated_call():
+        assert getattr(hook, name) is not None

@@ -26,7 +26,7 @@ def do_isupport(bot) -> None:
             conn.send("VERSION")
 
 
-@hook.connect()
+@hook.on_connect()
 def clear_isupport(conn: Client) -> None:
     serv_info = conn.memory.setdefault("server_info", {})
     statuses = get_status_modes(serv_info, clear=True)

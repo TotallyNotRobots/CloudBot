@@ -204,7 +204,7 @@ def save_channel_state(db, network, chan, status=None) -> None:
     db.commit()
 
 
-@hook.on_unload()
+@hook.on_stop()
 def save_on_exit(db):
     return save_status(db, False)
 

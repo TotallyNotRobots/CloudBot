@@ -223,9 +223,6 @@ class FuncHook(ABC, Generic[_KwargsT]):
             self.kwargs.update(kwargs)
 
 
-_Hook = FuncHook[Any]
-
-
 class CommandFuncHook(FuncHook[CommandHookKwargs]):
     def __init__(self, function: HookFunc) -> None:
         super().__init__(function)
@@ -265,9 +262,6 @@ class CommandFuncHook(FuncHook[CommandHookKwargs]):
         self.aliases.update(alias_param)
 
 
-_CommandHook = CommandFuncHook
-
-
 class RegexFuncHook(FuncHook[RegexHookKwargs]):
     def __init__(self, function: HookFunc) -> None:
         super().__init__(function)
@@ -299,9 +293,6 @@ class RegexFuncHook(FuncHook[RegexHookKwargs]):
                 self.regexes.append(re_to_match)
 
 
-_RegexHook = RegexFuncHook
-
-
 class SieveFuncHook(FuncHook[HookKwargs]):
     @classmethod
     @override
@@ -331,9 +322,6 @@ class RawFuncHook(FuncHook[HookKwargs]):
             self.triggers.update(trigger_param)
 
 
-_RawHook = RawFuncHook
-
-
 class PeriodicFuncHook(FuncHook[PeriodicHookKwargs]):
     def __init__(self, function: HookFunc) -> None:
         super().__init__(function)
@@ -349,9 +337,6 @@ class PeriodicFuncHook(FuncHook[PeriodicHookKwargs]):
 
         if interval:
             self.interval = interval
-
-
-_PeriodicHook = PeriodicFuncHook
 
 
 class ConfigFuncHook(FuncHook[HookKwargs]):
@@ -397,9 +382,6 @@ class EventFuncHook(FuncHook[HookKwargs]):
             self.types.update(trigger_param)
 
 
-_EventHook = EventFuncHook
-
-
 class CapFuncHook(FuncHook[HookKwargs], ABC):
     def __init__(self, func: HookFunc) -> None:
         super().__init__(func)
@@ -408,9 +390,6 @@ class CapFuncHook(FuncHook[HookKwargs], ABC):
     def add_hook(self, caps: tuple[str, ...], kwargs: HookKwargs) -> None:
         self._add_hook(kwargs)
         self.caps.update(caps)
-
-
-_CapHook = CapFuncHook
 
 
 class CapAvailableFuncHook(CapFuncHook):
@@ -461,9 +440,6 @@ class PermissionFuncHook(FuncHook[HookKwargs]):
     def add_hook(self, perms: Sequence[str], kwargs: HookKwargs) -> None:
         self._add_hook(kwargs)
         self.perms.update(perms)
-
-
-_PermissionHook = PermissionFuncHook
 
 
 def _hook_warn() -> None:
@@ -724,10 +700,6 @@ def on_start(
     return _OnStartDecorator(kwargs=kwargs)
 
 
-# this is temporary, to ease transition
-onload = on_start
-
-
 @dataclass
 class _OnStopDecorator(_HookDecorator[HookKwargs]):
     @override
@@ -759,9 +731,6 @@ def on_stop(
         return _OnStopDecorator(kwargs=kwargs)(param)
 
     return _OnStopDecorator(kwargs=kwargs)
-
-
-on_unload = on_stop
 
 
 @dataclass
@@ -836,9 +805,6 @@ def on_connect(
         return _ConnectDecorator(kwargs)(param)
 
     return _ConnectDecorator(kwargs)
-
-
-connect = on_connect
 
 
 class _IrcOutDecorator(_HookDecorator[HookKwargs]):
@@ -921,3 +887,31 @@ def permission(
     *perms: str, **kwargs: Unpack[HookKwargs]
 ) -> _PermissionDecorator:
     return _PermissionDecorator(kwargs=kwargs, perms=perms)
+
+
+_deprecated_aliases = {
+    "_Hook": "FuncHook",
+    "_CommandHook": "CommandFuncHook",
+    "_RegexHook": "RegexFuncHook",
+    "_RawHook": "RawFuncHook",
+    "_PeriodicHook": "PeriodicFuncHook",
+    "_EventHook": "EventFuncHook",
+    "_CapHook": "CapFuncHook",
+    "_PermissionHook": "PermissionFuncHook",
+    "connect": "on_connect",
+    "on_unload": "on_stop",
+    "onload": "on_start",
+}
+
+
+def __getattr__(name: str) -> Any:  # pyright: ignore[reportAny]
+    if name in _deprecated_aliases:
+        new_name = _deprecated_aliases[name]
+        warnings.warn(
+            f"{name} is deprecated, use {new_name} instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new_name]  # pyright: ignore[reportAny]
+
+    raise AttributeError(name)

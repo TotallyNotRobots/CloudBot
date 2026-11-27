@@ -182,7 +182,7 @@ def clear_optout(db, conn: str, chan=None):
     return res.rowcount
 
 
-@hook.onload()
+@hook.on_start()
 def load_cache(db) -> None:
     new_cache = defaultdict(list)
     for row in db.execute(optout_table.select()):
