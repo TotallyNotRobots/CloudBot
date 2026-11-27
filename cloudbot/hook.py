@@ -496,7 +496,7 @@ def command(
     if callable(arg):
         # this decorator is being used directly
         _hook_warn()
-        return _CommandDecorator(alias_param=None, kwargs={})(arg)
+        return _CommandDecorator(alias_param=None, kwargs=kwargs)(arg)
 
     arg_list: list[str] = []
     if arg:
