@@ -11,8 +11,10 @@ from plugins import imgur
 if TYPE_CHECKING:
     from responses import RequestsMock
 
+    from tests.util.mock_bot import MockApiKeys
 
-def test_imgur_no_api(mock_api_keys) -> None:
+
+def test_imgur_no_api(mock_api_keys: MockApiKeys) -> None:
     mock_api_keys.config.get_api_key.return_value = None
     imgur.set_api(mock_api_keys)
     response = imgur.imgur("aries")
@@ -20,7 +22,9 @@ def test_imgur_no_api(mock_api_keys) -> None:
     assert response == "No imgur API details"
 
 
-def test_imgur_no_results(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_no_results(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
@@ -36,7 +40,9 @@ def test_imgur_no_results(mock_requests: RequestsMock, mock_api_keys) -> None:
     assert response == "No results found."
 
 
-def test_imgur_meme(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_meme(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
@@ -76,7 +82,9 @@ def test_imgur_meme(mock_requests: RequestsMock, mock_api_keys) -> None:
     assert response == '[\2nsfw\2] "\2foo\2 - foo" - foo.bar'
 
 
-def test_imgur_reddit(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_reddit(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
@@ -118,7 +126,9 @@ def test_imgur_reddit(mock_requests: RequestsMock, mock_api_keys) -> None:
     )
 
 
-def test_imgur_user(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_user(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
@@ -158,7 +168,9 @@ def test_imgur_user(mock_requests: RequestsMock, mock_api_keys) -> None:
     assert response == '[\2nsfw\2] "\2foo\2 - foo" - foo.bar'
 
 
-def test_imgur_random(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur_random(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 
@@ -197,7 +209,7 @@ def test_imgur_random(mock_requests: RequestsMock, mock_api_keys) -> None:
     assert response == '[\2nsfw\2] "\2foo\2 - foo" - foo.bar'
 
 
-def test_imgur(mock_requests: RequestsMock, mock_api_keys) -> None:
+def test_imgur(mock_requests: RequestsMock, mock_api_keys: MockApiKeys) -> None:
     random.seed(0)
     mock_requests.add(responses.GET, "https://api.imgur.com/3/credits", json={})
 

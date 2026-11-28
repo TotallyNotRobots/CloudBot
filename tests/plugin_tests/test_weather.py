@@ -9,16 +9,17 @@ from unittest.mock import MagicMock
 
 import pytest
 from googlemaps.exceptions import ApiError
+from responses import RequestsMock
 
 from cloudbot.event import CommandEvent
 from cloudbot.util.func_utils import call_with_args
 from plugins import weather
 from tests.util import HookResult, get_data_file, wrap_hook_response
+from tests.util.mock_bot import MockBotFactory
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from responses import RequestsMock
 
     from tests.util.mock_bot import MockBot, MockBotFactory
@@ -80,7 +81,7 @@ def setup_api(
     mock_requests: RequestsMock,
     mock_db: MockDB,
     loop: AbstractEventLoop,
-    mock_bot_factory: Callable[..., MockBot],
+    mock_bot_factory: MockBotFactory,
 ) -> MockBot:
     bot = mock_bot_factory(
         loop=loop,
@@ -118,7 +119,11 @@ pytestmark = pytest.mark.usefixtures("patch_try_shorten")
 
 
 @pytest.mark.asyncio
-async def test_rounding(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_rounding(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -167,7 +172,9 @@ async def test_rounding(mock_bot_factory, mock_requests, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_no_keys(mock_bot_factory, mock_db) -> None:
+async def test_no_keys(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(config={}, db=mock_db)
     weather.create_maps_api(bot)
     weather.create_owm_api(bot)
@@ -178,7 +185,9 @@ async def test_no_keys(mock_bot_factory, mock_db) -> None:
 
 @pytest.mark.asyncio
 async def test_weather_no_args(
-    mock_bot_factory, mock_requests, mock_db
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
 ) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
@@ -217,7 +226,11 @@ async def test_weather_no_args(
 
 
 @pytest.mark.asyncio
-async def test_find_location(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_find_location(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -289,7 +302,11 @@ async def test_find_location(mock_bot_factory, mock_requests, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_api_error(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_api_error(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -335,7 +352,11 @@ async def test_api_error(mock_bot_factory, mock_requests, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_no_owm_key(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_no_owm_key(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -377,7 +398,11 @@ async def test_no_owm_key(mock_bot_factory, mock_requests, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_no_google_key(mock_bot_factory, mock_requests, mock_db) -> None:
+async def test_no_google_key(
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
+) -> None:
     bot = setup_api(
         mock_requests, mock_db, asyncio.get_running_loop(), mock_bot_factory
     )
@@ -498,7 +523,9 @@ async def test_update_location(
 
 @pytest.mark.asyncio
 async def test_parse_no_results(
-    mock_bot_factory, mock_requests, mock_db: MockDB
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    mock_db: MockDB,
 ) -> None:
     mock_requests.add(
         "GET",

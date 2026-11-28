@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import ssl
+from typing import TYPE_CHECKING
 from unittest.mock import call
 
 import pytest
@@ -6,9 +9,15 @@ import pytest
 from plugins.core import core_connect
 from tests.util.mock_irc_client import MockIrcClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
+    from tests.util.mock_db import MockDB
+
 
 @pytest.mark.asyncio
-async def test_ssl_client(mock_bot_factory, mock_db) -> None:
+async def test_ssl_client(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     client = MockIrcClient(
         bot=bot,
@@ -32,7 +41,9 @@ async def test_ssl_client(mock_bot_factory, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_ssl_client_no_verify(mock_bot_factory, mock_db) -> None:
+async def test_ssl_client_no_verify(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     client = MockIrcClient(
         bot=bot,
@@ -57,7 +68,9 @@ async def test_ssl_client_no_verify(mock_bot_factory, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_core_connects(mock_bot_factory, mock_db) -> None:
+async def test_core_connects(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     client = MockIrcClient(
         bot=bot,

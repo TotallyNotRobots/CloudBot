@@ -1,12 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
 
 from plugins import chatbot
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
+
 
 @pytest.mark.asyncio
-async def test_make_api(mock_bot_factory) -> None:
+async def test_make_api(mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory(config={"api_keys": {"cleverbot": "testapikey"}})
     chatbot.make_api(bot)
     assert chatbot.container.api is not None

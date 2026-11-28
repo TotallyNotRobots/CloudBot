@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from cloudbot.event import CommandEvent, Event, EventType
@@ -5,9 +8,13 @@ from plugins import seen
 from tests.util import with_frozen_time
 from tests.util.mock_conn import MockClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
+    from tests.util.mock_db import MockDB
+
 
 @with_frozen_time()
-def test_seen_track_correction(mock_db, mock_bot) -> None:
+def test_seen_track_correction(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -24,7 +31,7 @@ def test_seen_track_correction(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_track_pm(mock_db, mock_bot) -> None:
+def test_seen_track_pm(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -41,7 +48,7 @@ def test_seen_track_pm(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_track(mock_db, mock_bot) -> None:
+def test_seen_track(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -60,7 +67,7 @@ def test_seen_track(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_track_update(mock_db, mock_bot) -> None:
+def test_seen_track_update(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     nick = "bar"
     chan = "#foo"
@@ -87,7 +94,7 @@ def test_seen_track_update(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_track_action(mock_db, mock_bot) -> None:
+def test_seen_track_action(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -106,7 +113,7 @@ def test_seen_track_action(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_bot(mock_db, mock_bot) -> None:
+def test_seen_bot(mock_db: MockDB, mock_bot: MockBot) -> None:
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
     event = CommandEvent(
@@ -124,7 +131,7 @@ def test_seen_bot(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_self(mock_db, mock_bot) -> None:
+def test_seen_self(mock_db: MockDB, mock_bot: MockBot) -> None:
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
     nick = "bar"
@@ -143,7 +150,7 @@ def test_seen_self(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_not_seen(mock_db, mock_bot) -> None:
+def test_seen_not_seen(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -163,7 +170,7 @@ def test_seen_not_seen(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen(mock_db, mock_bot) -> None:
+def test_seen(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -193,7 +200,7 @@ def test_seen(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_bad_nick(mock_db, mock_bot) -> None:
+def test_seen_bad_nick(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(
@@ -224,7 +231,7 @@ def test_seen_bad_nick(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_seen_action(mock_db, mock_bot) -> None:
+def test_seen_action(mock_db: MockDB, mock_bot: MockBot) -> None:
     seen.table.create(mock_db.engine)
     chan = "#foo"
     mock_db.add_row(

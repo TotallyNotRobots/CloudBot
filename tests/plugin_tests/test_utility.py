@@ -13,6 +13,8 @@ from plugins import utility
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
+    from tests.util.mock_bot import MockBotFactory
+
 # Defined here because we use the same test cases for unescape
 # Except in reverse
 ESCAPE_DATA = [("\x00\x01345\x05", r"\x00\x01345\x05")]
@@ -22,7 +24,7 @@ ESCAPE_DATA = [("\x00\x01345\x05", r"\x00\x01345\x05")]
     ("a", "b", "match"),
     [("http://example.com/?a=1&b=1", "http://example.com/?b=1&a=1", True)],
 )
-def test_compare_urls(a, b, match) -> None:
+def test_compare_urls(a: str, b: str, match: bool) -> None:
     assert compare_urls(a, b) == match
 
 
@@ -39,28 +41,28 @@ def test_compare_urls(a, b, match) -> None:
     ],
 )
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_qrcode(data, url) -> None:
+def test_qrcode(data: str, url: str) -> None:
     assert compare_urls(utility.qrcode(data), url)
 
 
 @pytest.mark.parametrize(
     ("text", "output"), [("\2foo\2", "foo"), ("\x0301,03foo\x0f", "foo")]
 )
-def test_strip(text, output) -> None:
+def test_strip(text: str, output: str) -> None:
     assert utility.strip(text) == output
 
 
 @pytest.mark.parametrize(
     ("text", "replace", "out"), [("foo", {"f": "br"}, "broo")]
 )
-def test_translate(text, replace, out) -> None:
+def test_translate(text: str, replace: dict[str, str], out: str) -> None:
     assert utility.translate(text, replace) == out
 
 
 @pytest.mark.parametrize(
     ("text", "output"), [("foo. bar", "Foo. Bar"), ("foo. bar. ", "Foo. Bar. ")]
 )
-def test_capitalize(text, output) -> None:
+def test_capitalize(text: str, output: str) -> None:
     assert utility.capitalize(text) == output
 
 
@@ -74,7 +76,7 @@ def test_capitalize(text, output) -> None:
         ("FOO", "FOO"),
     ],
 )
-def test_upper(text, output) -> None:
+def test_upper(text: str, output: str) -> None:
     assert utility.upper(text) == output
 
 
@@ -88,7 +90,7 @@ def test_upper(text, output) -> None:
         ("FOO", "foo"),
     ],
 )
-def test_lower(text, output) -> None:
+def test_lower(text: str, output: str) -> None:
     assert utility.lower(text) == output
 
 
@@ -102,7 +104,7 @@ def test_lower(text, output) -> None:
         ("FOO", "Foo"),
     ],
 )
-def test_titlecase(text, output) -> None:
+def test_titlecase(text: str, output: str) -> None:
     assert utility.titlecase(text) == output
 
 
@@ -116,7 +118,7 @@ def test_titlecase(text, output) -> None:
         ("FOO", "foo"),
     ],
 )
-def test_swapcase(text, output) -> None:
+def test_swapcase(text: str, output: str) -> None:
     assert utility.swapcase(text) == output
 
 
@@ -130,7 +132,7 @@ def test_swapcase(text, output) -> None:
         ("FOO", "\uff26\uff2f\uff2f"),
     ],
 )
-def test_fullwidth(text, output) -> None:
+def test_fullwidth(text: str, output: str) -> None:
     assert utility.fullwidth(text) == output
 
 
@@ -144,7 +146,7 @@ def test_fullwidth(text, output) -> None:
         ("FOO", "SBB"),
     ],
 )
-def test_rot13_encode(text, output) -> None:
+def test_rot13_encode(text: str, output: str) -> None:
     assert utility.rot13_encode(text) == output
 
 
@@ -158,7 +160,7 @@ def test_rot13_encode(text, output) -> None:
         ("FOO", "Rk9P"),
     ],
 )
-def test_base64_encode(text, output) -> None:
+def test_base64_encode(text: str, output: str) -> None:
     assert utility.base64_encode(text) == output
 
 
@@ -178,7 +180,7 @@ def test_base64_encode(text, output) -> None:
         ),
     ],
 )
-def test_base64_decode(text, out) -> None:
+def test_base64_decode(text: str, out: str | None) -> None:
     mock_notice = MagicMock()
     ret = utility.base64_decode(text, mock_notice)
     if out is None:
@@ -191,7 +193,7 @@ def test_base64_decode(text, out) -> None:
 
 
 @pytest.mark.parametrize(("text", "valid"), [("aa", False), ("aaa=", True)])
-def test_base64_check(text, valid) -> None:
+def test_base64_check(text: str, valid: bool) -> None:
     ret = utility.base64_check(text)
     if valid:
         assert ret == f"'{text}' is a valid base64 encoded string"
@@ -200,14 +202,14 @@ def test_base64_check(text, valid) -> None:
 
 
 @pytest.mark.parametrize(("text", "output"), ESCAPE_DATA)
-def test_escape(text, output) -> None:
+def test_escape(text: str, output: str) -> None:
     assert utility.escape(text) == output
 
 
 @pytest.mark.parametrize(
     ("text", "output"), [(out, text) for text, out in ESCAPE_DATA]
 )
-def test_unescape(text, output) -> None:
+def test_unescape(text: str, output: str) -> None:
     assert utility.unescape(text) == output
 
 
@@ -221,7 +223,7 @@ def test_unescape(text, output) -> None:
         ("FOO", "OOF"),
     ],
 )
-def test_reverse(text, output) -> None:
+def test_reverse(text: str, output: str) -> None:
     assert utility.reverse(text) == output
 
 
@@ -229,7 +231,7 @@ def test_reverse(text, output) -> None:
     ("text", "text_length"),
     [("foo", 3), ("foo bar", 7), ("Foo", 3), ("fOO", 3), ("FOO", 3)],
 )
-def test_length(text, text_length) -> None:
+def test_length(text: str, text_length: int) -> None:
     assert (
         utility.length(text)
         == f"The length of that string is {text_length} characters."
@@ -243,7 +245,7 @@ def test_length(text, text_length) -> None:
         ("$(bold)foo$(clear)", "\x02foo\x0f"),
     ],
 )
-def test_color_parse(text, out) -> None:
+def test_color_parse(text: str, out: str) -> None:
     assert utility.color_parse(text) == out
 
 
@@ -254,14 +256,14 @@ def test_color_parse(text, out) -> None:
         ("foo bar", "\x0304f\x0307o\x0308o \x0303b\x0310a\x0312r"),
     ],
 )
-def test_rainbow(text, out) -> None:
+def test_rainbow(text: str, out: str) -> None:
     assert utility.rainbow(text) == out
 
 
 @pytest.mark.parametrize(
     ("text", "out"), [("foo bar baz", "\x0304foo \x0307bar \x0308baz")]
 )
-def test_wrainbow(text, out) -> None:
+def test_wrainbow(text: str, out: str) -> None:
     assert utility.wrainbow(text) == out
 
 
@@ -279,12 +281,12 @@ def test_wrainbow(text, out) -> None:
         )
     ],
 )
-def test_hash_command(text, out) -> None:
+def test_hash_command(text: str, out: str) -> None:
     assert utility.hash_command(text) == out
 
 
 @pytest_asyncio.fixture()
-async def leet_data(mock_bot_factory) -> AsyncGenerator[None]:
+async def leet_data(mock_bot_factory: MockBotFactory) -> AsyncGenerator[None]:
     mock_bot = mock_bot_factory(base_dir=Path().resolve())
     utility.load_text(mock_bot)
     yield
@@ -293,18 +295,18 @@ async def leet_data(mock_bot_factory) -> AsyncGenerator[None]:
 
 @pytest.mark.parametrize("text", ["foo bar baz!"])
 @pytest.mark.usefixtures("leet_data")
-def test_munge(text) -> None:
+def test_munge(text: str) -> None:
     assert utility.munge(text)
 
 
 @pytest.mark.parametrize("text", ["foo bar baz!"])
 @pytest.mark.usefixtures("leet_data")
-def test_leet(text) -> None:
+def test_leet(text: str) -> None:
     assert utility.leet(text)
 
 
 @pytest.mark.parametrize("text", ["foo bar baz!"])
-def test_derpify(text) -> None:
+def test_derpify(text: str) -> None:
     assert utility.derpify(text)
 
 
@@ -321,7 +323,7 @@ def test_derpify(text) -> None:
         )
     ],
 )
-def test_usa(text, out) -> None:
+def test_usa(text: str, out: str) -> None:
     assert utility.usa(text) == out
 
 
@@ -334,5 +336,5 @@ def test_usa(text, out) -> None:
         )
     ],
 )
-def test_superscript(text, out) -> None:
+def test_superscript(text: str, out: str) -> None:
     assert utility.superscript(text) == out

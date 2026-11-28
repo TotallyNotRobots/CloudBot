@@ -1,4 +1,6 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,9 +8,14 @@ from responses.matchers import query_param_matcher
 
 from plugins import brew
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockBotFactory
+
 
 @pytest.mark.asyncio
-async def test_no_key(mock_bot_factory) -> None:
+async def test_no_key(mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory(config={"api_keys": {}})
     reply = MagicMock()
     result = brew.brew("some text", reply, bot)
@@ -19,7 +26,9 @@ async def test_no_key(mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_empty_body(mock_bot_factory, mock_requests) -> None:
+async def test_empty_body(
+    mock_bot_factory: MockBotFactory, mock_requests: RequestsMock
+) -> None:
     bot = mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}})
     mock_requests.add(
         "GET",
@@ -47,7 +56,9 @@ async def test_empty_body(mock_bot_factory, mock_requests) -> None:
 
 
 @pytest.mark.asyncio
-async def test_no_results(mock_bot_factory, mock_requests) -> None:
+async def test_no_results(
+    mock_bot_factory: MockBotFactory, mock_requests: RequestsMock
+) -> None:
     bot = mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}})
     mock_requests.add(
         "GET",
@@ -105,7 +116,12 @@ async def test_no_results(mock_bot_factory, mock_requests) -> None:
     ],
 )
 async def test_results(
-    mock_bot_factory, mock_requests, style, abv, website, out
+    mock_bot_factory: MockBotFactory,
+    mock_requests: RequestsMock,
+    style: str | None,
+    abv: str | None,
+    website: str | None,
+    out: str,
 ) -> None:
     bot = mock_bot_factory(config={"api_keys": {"brewerydb": "APIKEY"}})
     brewery = {"name": "foo"}

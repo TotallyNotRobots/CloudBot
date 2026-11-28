@@ -111,7 +111,7 @@ def test_pluralize() -> None:
         ("tree", 2, "2 trees"),
     ],
 )
-def test_auto_pluralize(item, count, output) -> None:
+def test_auto_pluralize(item: str, count: int, output: str) -> None:
     assert pluralize_auto(count, item) == output
 
 

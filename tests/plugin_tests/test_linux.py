@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 from plugins import linux
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
 
-def test_linux(mock_requests) -> None:
+
+def test_linux(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://www.kernel.org/finger_banner",

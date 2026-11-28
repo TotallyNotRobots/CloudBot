@@ -1,16 +1,22 @@
+from __future__ import annotations
+
 import json
 import logging
+from typing import TYPE_CHECKING
 
 import cloudbot
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_add_path(tmp_path) -> None:
+
+def test_add_path(tmp_path: Path) -> None:
     cloudbot.logging_info.dir = tmp_path / "logs"
     path = cloudbot.logging_info.add_path("raw.log")
     assert path == str(tmp_path / "logs" / "raw.log")
 
 
-def test_setup(tmp_path) -> None:
+def test_setup(tmp_path: Path) -> None:
     cloudbot._setup(tmp_path)
     logger = logging.getLogger("cloudbot")
     assert len(logger.handlers) == 1
@@ -19,7 +25,7 @@ def test_setup(tmp_path) -> None:
     assert logger.filters == []
 
 
-def test_setup_with_config(tmp_path) -> None:
+def test_setup_with_config(tmp_path: Path) -> None:
     (tmp_path / "config.json").write_text("{}")
     cloudbot._setup(tmp_path)
     logger = logging.getLogger("cloudbot")
@@ -29,7 +35,7 @@ def test_setup_with_config(tmp_path) -> None:
     assert logger.filters == []
 
 
-def test_setup_with_config_console_debug(tmp_path) -> None:
+def test_setup_with_config_console_debug(tmp_path: Path) -> None:
     (tmp_path / "config.json").write_text(
         json.dumps({"logging": {"console_debug": True}})
     )
@@ -41,7 +47,7 @@ def test_setup_with_config_console_debug(tmp_path) -> None:
     assert logger.filters == []
 
 
-def test_setup_with_config_console_log_info_false(tmp_path) -> None:
+def test_setup_with_config_console_log_info_false(tmp_path: Path) -> None:
     (tmp_path / "config.json").write_text(
         json.dumps({"logging": {"console_log_info": False}})
     )
@@ -53,7 +59,7 @@ def test_setup_with_config_console_log_info_false(tmp_path) -> None:
     assert logger.filters == []
 
 
-def test_setup_with_config_file_log(tmp_path) -> None:
+def test_setup_with_config_file_log(tmp_path: Path) -> None:
     (tmp_path / "config.json").write_text(
         json.dumps({"logging": {"file_log": True}})
     )
@@ -66,7 +72,7 @@ def test_setup_with_config_file_log(tmp_path) -> None:
     assert logger.filters == []
 
 
-def test_setup_with_config_file_debug(tmp_path) -> None:
+def test_setup_with_config_file_debug(tmp_path: Path) -> None:
     (tmp_path / "config.json").write_text(
         json.dumps({"logging": {"file_debug": True}})
     )

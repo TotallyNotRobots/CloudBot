@@ -10,10 +10,15 @@ from plugins.core import chan_key_db, server_info
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
+    from asyncio import AbstractEventLoop
+
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
-def make_conn(mock_bot_factory, loop=None) -> MockIrcClient:
+def make_conn(
+    mock_bot_factory: MockBotFactory, loop: AbstractEventLoop | None = None
+) -> MockIrcClient:
     bot = mock_bot_factory(loop=loop)
     return MockIrcClient(
         bot=bot,
@@ -24,7 +29,9 @@ def make_conn(mock_bot_factory, loop=None) -> MockIrcClient:
 
 
 @pytest.mark.asyncio
-async def test_load_keys(mock_bot_factory, mock_db: MockDB) -> None:
+async def test_load_keys(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     conn = make_conn(mock_bot_factory)
     db = mock_db.session()
     mock_db.create_table(chan_key_db.ChannelKey)
@@ -43,7 +50,9 @@ async def test_load_keys(mock_bot_factory, mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_handle_modes(mock_bot_factory, mock_db: MockDB) -> None:
+async def test_handle_modes(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     conn = make_conn(mock_bot_factory)
     db = mock_db.session()
     mock_db.create_table(chan_key_db.ChannelKey)
@@ -104,7 +113,9 @@ async def test_handle_modes(mock_bot_factory, mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_check_send_key(mock_bot_factory, mock_db: MockDB) -> None:
+async def test_check_send_key(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     conn = make_conn(mock_bot_factory)
     db = mock_db.session()
     mock_db.create_table(chan_key_db.ChannelKey)
@@ -130,7 +141,9 @@ async def test_check_send_key(mock_bot_factory, mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_key_use(mock_bot_factory, mock_db: MockDB) -> None:
+async def test_key_use(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     conn = make_conn(mock_bot_factory)
     db = mock_db.session()
     mock_db.create_table(chan_key_db.ChannelKey)

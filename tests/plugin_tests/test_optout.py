@@ -8,8 +8,10 @@ import pytest
 from cloudbot.event import CommandEvent
 from plugins.core import optout
 from tests.util import wrap_hook_response_async
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
     from tests.util.mock_db import MockDB
 
 
@@ -67,7 +69,7 @@ def test_match() -> None:
         assert res is None
 
 
-def test_get_first_matching_optout(mock_db) -> None:
+def test_get_first_matching_optout(mock_db: MockDB) -> None:
     optout.optout_table.create(mock_db.engine)
     mock_db.load_data(
         optout.optout_table,
@@ -260,7 +262,7 @@ def test_format() -> None:
 
 class TestSetOptOut:
     @pytest.mark.asyncio
-    async def test_cmd(self, mock_db: MockDB, mock_bot) -> None:
+    async def test_cmd(self, mock_db: MockDB, mock_bot: MockBot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
             optout.load_cache(session)
@@ -331,7 +333,7 @@ class TestSetOptOut:
 
 class TestDelOptOut:
     @pytest.mark.asyncio
-    async def test_del_cmd(self, mock_db: MockDB, mock_bot) -> None:
+    async def test_del_cmd(self, mock_db: MockDB, mock_bot: MockBot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
             mock_db.load_data(
@@ -426,7 +428,7 @@ class TestDelOptOut:
 
 class TestClearOptOut:
     @pytest.mark.asyncio
-    async def test_clear_cmd(self, mock_db: MockDB, mock_bot) -> None:
+    async def test_clear_cmd(self, mock_db: MockDB, mock_bot: MockBot) -> None:
         with mock_db.session() as session:
             optout.optout_table.create(mock_db.engine)
             mock_db.load_data(

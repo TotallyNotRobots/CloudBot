@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from sqlalchemy import Table
 
     from cloudbot.util.database import Base
+    from tests.util.mock_bot import MockBotFactory
+    from tests.util.mock_db import MockDB
 
 
 def model_to_dict(obj: Base) -> dict[str, Any]:
@@ -29,11 +31,10 @@ def model_to_dict(obj: Base) -> dict[str, Any]:
 
 
 @pytest.mark.asyncio
-async def test_manager_load(mock_db, mock_bot_factory) -> None:
+async def test_manager_load(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
-    group_table = Group.__table__
-    group_member_table = GroupMember.__table__
-    permission_table = GroupPermission.__table__
     manager = PermissionManager(MockClient(bot=bot, name="testconn", config={}))
 
     assert not manager.get_groups()
@@ -76,13 +77,13 @@ async def test_manager_load(mock_db, mock_bot_factory) -> None:
     assert manager.get_group_permissions("admins") == [perm]
     assert manager.get_user_permissions(user) == {perm}
     assert not manager.get_user_permissions(other_user)
-    assert mock_db.get_data(group_table) == [(conn.name, "admins", True)]
+    assert mock_db.get_data(Group) == [(conn.name, "admins", True)]
 
-    assert mock_db.get_data(group_member_table) == [
+    assert mock_db.get_data(GroupMember) == [
         (conn.name, "admins", "user!*@host??om", True)
     ]
 
-    assert mock_db.get_data(permission_table) == [
+    assert mock_db.get_data(GroupPermission) == [
         (conn.name, "admins", perm, True)
     ]
     assert manager.get_perm_users(perm) == ["user!*@host??om"]
@@ -100,7 +101,9 @@ async def test_manager_load(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_add_user_to_group(mock_db, mock_bot_factory) -> None:
+async def test_add_user_to_group(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     manager = PermissionManager(MockClient(bot=bot, name="testconn", config={}))
     manager.add_user_to_group("*!*@host", "admins")
@@ -112,7 +115,7 @@ async def test_add_user_to_group(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_db(mock_db, mock_bot_factory) -> None:
+async def test_db(mock_db: MockDB, mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory(db=mock_db)
     session = mock_db.session()
 
@@ -210,7 +213,9 @@ async def test_db(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_db_config_merge(mock_db, mock_bot_factory) -> None:
+async def test_db_config_merge(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     session = mock_db.session()
 

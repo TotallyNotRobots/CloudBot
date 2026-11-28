@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
+from unittest.mock import MagicMock
 
+import pytest
 from typing_extensions import override
 from watchdog.observers import Observer
 
@@ -31,7 +33,7 @@ class MockBot(AbstractBot):
         db: MockDB,
         base_dir: Path,
     ) -> None:
-        self.old_db = None
+        self.old_db: str | None = None
         self.do_db_migrate = False
         self.base_dir = base_dir
         self.data_path = self.base_dir / "data"
@@ -75,3 +77,5 @@ class MockBot(AbstractBot):
 
 
 MockBotFactory = Callable[..., MockBot]
+MockApiKeys = MagicMock
+CloudBotLogCaptureFixture = pytest.LogCaptureFixture

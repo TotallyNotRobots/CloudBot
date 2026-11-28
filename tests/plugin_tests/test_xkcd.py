@@ -12,6 +12,8 @@ from plugins import xkcd
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+    from responses import RequestsMock
+
 DATA_PATH = Path().resolve() / "tests" / "data" / "xkcd"
 
 
@@ -28,7 +30,7 @@ def load_data(xkcd_id: int) -> Any:
 
 
 @pytest.mark.parametrize("xkcd_id", list(get_files()))
-def test_info(xkcd_id, mock_requests) -> None:
+def test_info(xkcd_id, mock_requests: RequestsMock) -> None:
     data = load_data(xkcd_id)
     mock_requests.add(
         "GET", f"http://www.xkcd.com/{xkcd_id}/info.0.json", json=data
@@ -46,7 +48,7 @@ def test_info(xkcd_id, mock_requests) -> None:
     assert xkcd.xkcd_info(str(xkcd_id), True) == with_url
 
 
-def test_search(mock_requests) -> None:
+def test_search(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "http://www.ohnorobot.com/?s=foo&Search=Search&comic=56&e=0&n=0&b=0&m=0&d=0&t=0",
@@ -71,7 +73,7 @@ def test_search(mock_requests) -> None:
     )
 
 
-def test_search_no_results(mock_requests) -> None:
+def test_search_no_results(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "http://www.ohnorobot.com/?s=foo&Search=Search&comic=56&e=0&n=0&b=0&m=0&d=0&t=0",

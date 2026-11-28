@@ -17,11 +17,13 @@ from cloudbot.util import func_utils
 from plugins import admin_bot
 from tests.util import wrap_hook_response
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     import sqlalchemy.orm as sa_orm
     from sqlalchemy import Table
 
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -107,7 +109,9 @@ def test_me() -> None:
 
 
 @pytest.mark.asyncio
-async def test_remove_permission_user(mock_db, mock_bot_factory) -> None:
+async def test_remove_permission_user(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot, nick="testconn")
 
@@ -181,7 +185,7 @@ async def test_remove_permission_user(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 async def test_remove_permission_user_too_many_args(
-    mock_db, mock_bot_factory
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot, nick="testconn")
@@ -254,7 +258,7 @@ async def test_remove_permission_user_too_many_args(
 
 @pytest.mark.asyncio
 async def test_remove_permission_user_too_few_args(
-    mock_db, mock_bot_factory
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot, nick="testconn")

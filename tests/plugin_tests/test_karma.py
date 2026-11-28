@@ -4,12 +4,13 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 from plugins import karma
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     from tests.util.mock_db import MockDB
 
 
-def test_db_clean(mock_db) -> None:
+def test_db_clean(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     mock_db.add_row(
         karma.karma_table, name="foo", chan="bar", thing="baz", score=50
@@ -22,7 +23,7 @@ def test_db_clean(mock_db) -> None:
     assert mock_db.get_data(karma.karma_table) == [("foo", "#bar", "baz", 50)]
 
 
-def test_update_score(mock_db) -> None:
+def test_update_score(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     karma.update_score("foo", "#bar", "thing", 1, db)
@@ -33,14 +34,14 @@ def test_update_score(mock_db) -> None:
     assert mock_db.get_data(karma.karma_table) == [("foo", "#bar", "thing", 1)]
 
 
-def test_update_score_in_pm(mock_db) -> None:
+def test_update_score_in_pm(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     karma.update_score("foo", "foo", "thing", 1, db)
     assert mock_db.get_data(karma.karma_table) == []
 
 
-def test_addpoint(mock_db) -> None:
+def test_addpoint(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     karma.addpoint("foo", "foo", "#bar", db)
@@ -160,7 +161,7 @@ def test_re_rmpt_multi_get(mock_db: MockDB) -> None:
     assert notice.mock_calls == [call("foo has -4 points foo2 has -4 points ")]
 
 
-def test_pointstop(mock_db) -> None:
+def test_pointstop(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -169,7 +170,7 @@ def test_pointstop(mock_db) -> None:
     assert res == "The 1 most loved things in #bar are: thing with 1 points"
 
 
-def test_pointstop_empty(mock_db) -> None:
+def test_pointstop_empty(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -177,7 +178,7 @@ def test_pointstop_empty(mock_db) -> None:
     assert res is None
 
 
-def test_pointstop_global_multi(mock_db) -> None:
+def test_pointstop_global_multi(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -191,7 +192,7 @@ def test_pointstop_global_multi(mock_db) -> None:
     )
 
 
-def test_pointstop_global(mock_db) -> None:
+def test_pointstop_global(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -203,7 +204,7 @@ def test_pointstop_global(mock_db) -> None:
     )
 
 
-def test_pointstop_global_other_chan(mock_db) -> None:
+def test_pointstop_global_other_chan(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -215,7 +216,7 @@ def test_pointstop_global_other_chan(mock_db) -> None:
     )
 
 
-def test_pointstop_global_empty(mock_db) -> None:
+def test_pointstop_global_empty(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -223,7 +224,7 @@ def test_pointstop_global_empty(mock_db) -> None:
     assert res is None
 
 
-def test_pointsbottom(mock_db) -> None:
+def test_pointsbottom(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -232,7 +233,7 @@ def test_pointsbottom(mock_db) -> None:
     assert res == "The 1 most hated things in #bar are: thing with 1 points"
 
 
-def test_pointsbottom_empty(mock_db) -> None:
+def test_pointsbottom_empty(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -240,7 +241,7 @@ def test_pointsbottom_empty(mock_db) -> None:
     assert res is None
 
 
-def test_pointsbottom_global_multi(mock_db) -> None:
+def test_pointsbottom_global_multi(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -253,7 +254,7 @@ def test_pointsbottom_global_multi(mock_db) -> None:
     )
 
 
-def test_pointsbottom_global(mock_db) -> None:
+def test_pointsbottom_global(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -265,7 +266,7 @@ def test_pointsbottom_global(mock_db) -> None:
     )
 
 
-def test_pointsbottom_global_other_chan(mock_db) -> None:
+def test_pointsbottom_global_other_chan(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"
@@ -277,7 +278,7 @@ def test_pointsbottom_global_other_chan(mock_db) -> None:
     )
 
 
-def test_pointsbottom_global_empty(mock_db) -> None:
+def test_pointsbottom_global_empty(mock_db: MockDB) -> None:
     karma.karma_table.create(mock_db.engine, checkfirst=True)
     db = mock_db.session()
     chan = "#bar"

@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 from plugins import poll
 from tests.util.mock_conn import MockClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
 
-def test_poll_close(mock_bot) -> None:
+
+def test_poll_close(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "close"
     conn = MockClient(bot=mock_bot)
@@ -26,7 +32,7 @@ def test_poll_close(mock_bot) -> None:
     assert uid not in poll.polls
 
 
-def test_poll_create(mock_bot) -> None:
+def test_poll_create(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "thing?: yes yes no"
     conn = MockClient(bot=mock_bot)
@@ -47,7 +53,7 @@ def test_poll_create(mock_bot) -> None:
     assert uid in poll.polls
 
 
-def test_poll_create_default(mock_bot) -> None:
+def test_poll_create_default(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "thing?"
     conn = MockClient(bot=mock_bot)
@@ -68,7 +74,7 @@ def test_poll_create_default(mock_bot) -> None:
     assert uid in poll.polls
 
 
-def test_vote_invalid_input(mock_bot) -> None:
+def test_vote_invalid_input(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "foo"
     conn = MockClient(bot=mock_bot)
@@ -84,7 +90,7 @@ def test_vote_invalid_input(mock_bot) -> None:
     assert event.mock_calls == []
 
 
-def test_vote(mock_bot) -> None:
+def test_vote(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "foo yes"
     conn = MockClient(bot=mock_bot)
@@ -102,7 +108,7 @@ def test_vote(mock_bot) -> None:
     assert p.format_results() == "Yes: 1, No: 0"
 
 
-def test_vote_unknown_opttion(mock_bot) -> None:
+def test_vote_unknown_opttion(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "foo bar"
     conn = MockClient(bot=mock_bot)
@@ -118,7 +124,7 @@ def test_vote_unknown_opttion(mock_bot) -> None:
     assert p.format_results() == "Yes: 0, No: 0"
 
 
-def test_vote_no_poll(mock_bot) -> None:
+def test_vote_no_poll(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = "foo yes"
     conn = MockClient(bot=mock_bot)
@@ -131,7 +137,7 @@ def test_vote_no_poll(mock_bot) -> None:
     assert event.mock_calls == []
 
 
-def test_results(mock_bot) -> None:
+def test_results(mock_bot: MockBot) -> None:
     poll.polls.clear()
     text = ""
     conn = MockClient(bot=mock_bot)

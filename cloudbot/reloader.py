@@ -78,7 +78,7 @@ class ConfigReloader(Reloader):
         super().__init__(bot, ConfigEventHandler, f"*{bot.config.filename}")
 
     @override
-    def reload(self, path) -> None:
+    def reload(self, path: str) -> None:
         if self.bot.running:
             self.bot.logger.info("Config changed, triggering reload.")
             asyncio.run_coroutine_threadsafe(

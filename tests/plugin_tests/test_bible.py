@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -5,8 +8,11 @@ from requests import HTTPError
 
 from plugins import bible
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
 
-def test_bible(mock_requests) -> None:
+
+def test_bible(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://labs.bible.org/api?passage=foo&formatting=plain&type=json",
@@ -25,7 +31,7 @@ def test_bible(mock_requests) -> None:
     assert event.mock_calls == []
 
 
-def test_bible_404(mock_requests) -> None:
+def test_bible_404(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://labs.bible.org/api?passage=foo&formatting=plain&type=json",

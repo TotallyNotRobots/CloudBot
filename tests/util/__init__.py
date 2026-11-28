@@ -4,9 +4,10 @@ import inspect
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+from typing_extensions import ParamSpec, TypeVar
 
 from cloudbot.util.func_utils import call_with_args
 
@@ -102,6 +103,10 @@ def wrap_hook_response(
     return results
 
 
+_P = ParamSpec("_P")
+_T = TypeVar("_T")
+
+
 async def wrap_hook_response_async(
     func: Callable[..., Any],
     event: Event,
@@ -114,7 +119,9 @@ async def wrap_hook_response_async(
     if results is None:
         results = []
 
-    async def async_call(func, *args, **kwargs):
+    async def async_call(
+        func: Callable[_P, _T], *args: _P.args, **kwargs: _P.kwargs
+    ) -> _T:
         return func(*args, **kwargs)
 
     def add_result(
@@ -165,3 +172,7 @@ def with_mock_api_keys() -> pytest.MarkDecorator:
 
 def with_temp_logs() -> pytest.MarkDecorator:
     return pytest.mark.usefixtures("tmp_logs")
+
+
+PatchImportModule = MagicMock
+PatchImportReload = MagicMock

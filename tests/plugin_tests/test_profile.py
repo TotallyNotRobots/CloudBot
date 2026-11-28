@@ -1,11 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from cloudbot.event import CommandEvent
 from plugins import profile
 from tests.util import wrap_hook_response
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
+    from tests.util.mock_db import MockDB
 
-def test_profile_add(mock_db, mock_bot) -> None:
+
+def test_profile_add(mock_db: MockDB, mock_bot: MockBot) -> None:
     profile.table.create(mock_db.engine)
     profile.load_cache(mock_db.session())
     conn = MagicMock()
@@ -26,7 +33,7 @@ def test_profile_add(mock_db, mock_bot) -> None:
     assert conn.mock_calls == []
 
 
-def test_profile_update(mock_db, mock_bot) -> None:
+def test_profile_update(mock_db: MockDB, mock_bot: MockBot) -> None:
     profile.table.create(mock_db.engine)
     mock_db.add_row(
         profile.table, chan="#chan", nick="nick", category="foo", text="text"
@@ -51,7 +58,7 @@ def test_profile_update(mock_db, mock_bot) -> None:
     assert conn.mock_calls == []
 
 
-def test_profile_category_delete(mock_db, mock_bot) -> None:
+def test_profile_category_delete(mock_db: MockDB, mock_bot: MockBot) -> None:
     profile.table.create(mock_db.engine)
     mock_db.add_row(
         profile.table, chan="#chan", nick="nick", category="foo", text="text"
@@ -76,7 +83,7 @@ def test_profile_category_delete(mock_db, mock_bot) -> None:
     assert conn.mock_calls == []
 
 
-def test_profile_clear(mock_db, mock_bot) -> None:
+def test_profile_clear(mock_db: MockDB, mock_bot: MockBot) -> None:
     profile.table.create(mock_db.engine)
     mock_db.add_row(
         profile.table, chan="#chan", nick="nick", category="foo", text="text"

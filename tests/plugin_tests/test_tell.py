@@ -10,11 +10,13 @@ from irclib.parser import Prefix
 from plugins import tell
 from tests.util import with_frozen_time
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from sqlalchemy import Table
 
+    from tests.util.mock_bot import MockBot, MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -29,7 +31,7 @@ def init_tables(mock_db: MockDB) -> None:
     tell.load_ignores(session)
 
 
-def test_tellcmd(mock_db) -> None:
+def test_tellcmd(mock_db: MockDB) -> None:
     init_tables(mock_db)
     session = mock_db.session()
 
@@ -101,7 +103,9 @@ def test_tellcmd(mock_db) -> None:
 
 @pytest.mark.asyncio
 async def test_showtells(
-    mock_db, freeze_time: FrozenDateTimeFactory, mock_bot_factory
+    mock_db: MockDB,
+    freeze_time: FrozenDateTimeFactory,
+    mock_bot_factory: MockBotFactory,
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     init_tables(mock_db)
@@ -114,7 +118,7 @@ async def test_showtells(
     event = MagicMock()
     tell.add_tell(mock_db.session(), server, sender, target, message)
 
-    assert mock_db.get_data(tell.TellMessage.__table__) == [
+    assert mock_db.get_data(tell.TellMessage) == [
         (
             1,
             "testconn",
@@ -133,7 +137,7 @@ async def test_showtells(
     assert event.mock_calls == [
         call.notice("foo sent you a message 60 seconds ago: bar")
     ]
-    assert mock_db.get_data(tell.TellMessage.__table__) == [
+    assert mock_db.get_data(tell.TellMessage) == [
         (
             1,
             "testconn",
@@ -149,7 +153,9 @@ async def test_showtells(
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_showtells_no_tells(mock_db, mock_bot_factory) -> None:
+async def test_showtells_no_tells(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     init_tables(mock_db)
     db = mock_db.session()
@@ -162,7 +168,7 @@ async def test_showtells_no_tells(mock_db, mock_bot_factory) -> None:
 
 
 @with_frozen_time()
-def test_tellinput_showtells(mock_db, mock_bot) -> None:
+def test_tellinput_showtells(mock_db: MockDB, mock_bot: MockBot) -> None:
     init_tables(mock_db)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -175,7 +181,7 @@ def test_tellinput_showtells(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_tellinput_no_tells(mock_db, mock_bot) -> None:
+def test_tellinput_no_tells(mock_db: MockDB, mock_bot: MockBot) -> None:
     init_tables(mock_db)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -189,7 +195,7 @@ def test_tellinput_no_tells(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_tellinput_bad_cache(mock_db, mock_bot) -> None:
+def test_tellinput_bad_cache(mock_db: MockDB, mock_bot: MockBot) -> None:
     init_tables(mock_db)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -203,7 +209,7 @@ def test_tellinput_bad_cache(mock_db, mock_bot) -> None:
 
 
 @with_frozen_time()
-def test_tellinput(mock_db, mock_bot) -> None:
+def test_tellinput(mock_db: MockDB, mock_bot: MockBot) -> None:
     init_tables(mock_db)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -221,7 +227,7 @@ def test_tellinput(mock_db, mock_bot) -> None:
 
 
 def test_read_tell_spam(
-    mock_db, freeze_time: FrozenDateTimeFactory, mock_bot
+    mock_db: MockDB, freeze_time: FrozenDateTimeFactory, mock_bot: MockBot
 ) -> None:
     init_tables(mock_db)
     db = mock_db.session()
@@ -240,7 +246,7 @@ def test_read_tell_spam(
     tell.add_tell(db, conn.name.lower(), sender, nick, message)
     freeze_time.tick()
     tell.add_tell(db, conn.name.lower(), sender, nick, message2)
-    assert mock_db.get_data(tell.TellMessage.__table__) == [
+    assert mock_db.get_data(tell.TellMessage) == [
         (
             1,
             "testconn",
@@ -292,7 +298,7 @@ def test_read_tell_spam(
 
 
 @with_frozen_time()
-def test_tellinput_multiple(mock_db, mock_bot) -> None:
+def test_tellinput_multiple(mock_db: MockDB, mock_bot: MockBot) -> None:
     init_tables(mock_db)
     db = mock_db.session()
     conn = MockClient(bot=mock_bot)
@@ -312,7 +318,7 @@ def test_tellinput_multiple(mock_db, mock_bot) -> None:
             "foo sent you a message 0 minutes ago: bar (+2 more, .showtells to view)"
         )
     ]
-    assert mock_db.get_data(tell.TellMessage.__table__) == [
+    assert mock_db.get_data(tell.TellMessage) == [
         (
             1,
             "testconn",
@@ -348,7 +354,9 @@ def test_tellinput_multiple(mock_db, mock_bot) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_can_send_to_user(mock_db, mock_bot_factory) -> None:
+async def test_can_send_to_user(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     init_tables(mock_db)
     db = mock_db.session()
@@ -361,7 +369,9 @@ async def test_can_send_to_user(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_can_send_to_user_disabled(mock_db, mock_bot_factory) -> None:
+async def test_can_send_to_user_disabled(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     init_tables(mock_db)
     db = mock_db.session()
@@ -376,7 +386,9 @@ async def test_can_send_to_user_disabled(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_can_send_to_user_ignored(mock_db, mock_bot_factory) -> None:
+async def test_can_send_to_user_ignored(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     init_tables(mock_db)
     db = mock_db.session()
@@ -390,7 +402,7 @@ async def test_can_send_to_user_ignored(mock_db, mock_bot_factory) -> None:
 
 
 @with_frozen_time()
-def test_load_disabled(mock_db) -> None:
+def test_load_disabled(mock_db: MockDB) -> None:
     init_tables(mock_db)
     session = mock_db.session()
 
@@ -409,7 +421,9 @@ def test_load_disabled(mock_db) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_add_disabled(mock_db, mock_bot_factory) -> None:
+async def test_add_disabled(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     db_engine = mock_db.engine
     tell.disable_table.create(db_engine)
@@ -426,7 +440,9 @@ async def test_add_disabled(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_del_disabled(mock_db, mock_bot_factory) -> None:
+async def test_del_disabled(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     db_engine = mock_db.engine
     tell.disable_table.create(db_engine)
@@ -449,7 +465,7 @@ async def test_del_disabled(mock_db, mock_bot_factory) -> None:
 
 
 @with_frozen_time()
-def test_load_ignored(mock_db) -> None:
+def test_load_ignored(mock_db: MockDB) -> None:
     db_engine = mock_db.engine
     tell.ignore_table.create(db_engine)
     session = mock_db.session()
@@ -469,7 +485,9 @@ def test_load_ignored(mock_db) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_disable(mock_db, mock_bot_factory) -> None:
+async def test_tell_disable(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -489,7 +507,9 @@ async def test_tell_disable(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_disable_self(mock_db, mock_bot_factory) -> None:
+async def test_tell_disable_self(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -509,7 +529,9 @@ async def test_tell_disable_self(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_disable_no_perms(mock_db, mock_bot_factory) -> None:
+async def test_tell_disable_no_perms(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -531,7 +553,9 @@ async def test_tell_disable_no_perms(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_disable_other(mock_db, mock_bot_factory) -> None:
+async def test_tell_disable_other(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -551,7 +575,9 @@ async def test_tell_disable_other(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_disable_already_disabled(mock_db, mock_bot_factory) -> None:
+async def test_tell_disable_already_disabled(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -580,7 +606,7 @@ async def test_tell_disable_already_disabled(mock_db, mock_bot_factory) -> None:
 @pytest.mark.asyncio
 @with_frozen_time()
 async def test_tell_disable_already_disabled_other(
-    mock_db, mock_bot_factory
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
@@ -609,7 +635,9 @@ async def test_tell_disable_already_disabled_other(
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_enable(mock_db, mock_bot_factory) -> None:
+async def test_tell_enable(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -635,7 +663,9 @@ async def test_tell_enable(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_enable_self(mock_db, mock_bot_factory) -> None:
+async def test_tell_enable_self(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -661,7 +691,9 @@ async def test_tell_enable_self(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_enable_no_perms(mock_db, mock_bot_factory) -> None:
+async def test_tell_enable_no_perms(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -683,7 +715,9 @@ async def test_tell_enable_no_perms(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_enable_other(mock_db, mock_bot_factory) -> None:
+async def test_tell_enable_other(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -709,7 +743,9 @@ async def test_tell_enable_other(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_enable_already_enabled(mock_db, mock_bot_factory) -> None:
+async def test_tell_enable_already_enabled(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.disable_cache.clear()
@@ -728,7 +764,7 @@ async def test_tell_enable_already_enabled(mock_db, mock_bot_factory) -> None:
 @pytest.mark.asyncio
 @with_frozen_time()
 async def test_tell_enable_already_enabled_other(
-    mock_db, mock_bot_factory
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
@@ -748,7 +784,7 @@ async def test_tell_enable_already_enabled_other(
 @pytest.mark.asyncio
 @with_frozen_time()
 async def test_tell_list_disabled(
-    mock_db, mock_bot_factory, patch_paste
+    mock_db: MockDB, mock_bot_factory: MockBotFactory, patch_paste
 ) -> None:
     bot = mock_bot_factory(db=mock_db)
     patch_paste.return_value = "Pasted."
@@ -784,7 +820,9 @@ async def test_tell_list_disabled(
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_ignore(mock_db, mock_bot_factory) -> None:
+async def test_tell_ignore(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()
@@ -807,7 +845,9 @@ async def test_tell_ignore(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_ignore_existing(mock_db, mock_bot_factory) -> None:
+async def test_tell_ignore_existing(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()
@@ -830,7 +870,9 @@ async def test_tell_ignore_existing(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_unignore_not_Set(mock_db, mock_bot_factory) -> None:
+async def test_tell_unignore_not_Set(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()
@@ -851,7 +893,9 @@ async def test_tell_unignore_not_Set(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_unignore(mock_db, mock_bot_factory) -> None:
+async def test_tell_unignore(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()
@@ -877,7 +921,9 @@ async def test_tell_unignore(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_list_ignores(mock_db, mock_bot_factory) -> None:
+async def test_tell_list_ignores(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()
@@ -901,7 +947,9 @@ async def test_tell_list_ignores(mock_db, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @with_frozen_time()
-async def test_tell_list_ignores_empty(mock_db, mock_bot_factory) -> None:
+async def test_tell_list_ignores_empty(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     event = MagicMock()
     tell.ignore_cache.clear()

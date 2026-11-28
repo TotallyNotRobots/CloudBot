@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,6 +9,9 @@ from requests import RequestException
 from cloudbot.event import CommandEvent
 from plugins import wikipedia
 from tests.util import HookResult, wrap_hook_response
+
+if TYPE_CHECKING:
+    from responses import RequestsMock
 
 
 def do_search(
@@ -34,7 +40,7 @@ def make_search_url(query) -> str:
     return f"http://en.wikipedia.org/w/api.php?action=query&format=json&list=search&redirect=1&srsearch={query}"
 
 
-def test_search(mock_requests) -> None:
+def test_search(mock_requests: RequestsMock) -> None:
     err_results: list[HookResult] = []
     with pytest.raises(RequestException):
         do_search("some failed query", err_results)

@@ -9,6 +9,18 @@ repos:
     args:
     - --annotate-named-param
     - conn:cloudbot.client.Client
+    - mock_db:tests.util.mock_db.MockDB
+    - mock_bot_factory:tests.util.mock_bot.MockBotFactory
+    - mock_bot:tests.util.mock_bot.MockBot
+    - mock_api_keys:tests.util.mock_bot.MockApiKeys
+    - mock_requests:responses.RequestsMock
+    - freeze_time:freezegun.api.FrozenDateTimeFactory
+    - tmp_path:pathlib.Path
+    - caplog_bot:tests.util.mock_bot.CloudBotLogCaptureFixture
+    - caplog:pytest.LogCaptureFixture
+    - mock_manager:cloudbot.plugin.PluginManager
+    - patch_import_module:tests.util.PatchImportModule
+    - patch_import_reload:tests.util.PatchImportReload
     - --safe
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c   # frozen: v6.0.0

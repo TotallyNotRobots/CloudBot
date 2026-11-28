@@ -11,10 +11,11 @@ import pytest
 from plugins import duckhunt
 from tests.util import with_frozen_time
 from tests.util.mock_conn import MockClient
-from tests.util.mock_db import with_mock_db
+from tests.util.mock_db import MockDB, with_mock_db
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
@@ -35,7 +36,9 @@ def test_top_list(prefix, items, result) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_score(mock_db, mock_bot_factory) -> None:
+async def test_update_score(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
     mock_db.add_row(
@@ -56,7 +59,9 @@ async def test_update_score(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_display_scores(mock_db, mock_bot_factory) -> None:
+async def test_display_scores(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
 
@@ -184,7 +189,9 @@ def test_ignore_integration() -> None:
 
 
 @pytest.mark.asyncio
-async def test_no_duck_kick_opt_out(mock_db, mock_bot_factory) -> None:
+async def test_no_duck_kick_opt_out(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.status_table.create(mock_db.engine)
     with patch.object(duckhunt, "is_opt_out") as mocked:
@@ -200,7 +207,9 @@ async def test_no_duck_kick_opt_out(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_stop_hunt_opt_out(mock_db, mock_bot_factory) -> None:
+async def test_stop_hunt_opt_out(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.status_table.create(mock_db.engine)
     with patch.object(duckhunt, "is_opt_out") as mocked:
@@ -214,7 +223,9 @@ async def test_stop_hunt_opt_out(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_hunt_opt_out(mock_db, mock_bot_factory) -> None:
+async def test_start_hunt_opt_out(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.status_table.create(mock_db.engine)
     with patch.object(duckhunt, "is_opt_out") as mocked:
@@ -230,7 +241,9 @@ async def test_start_hunt_opt_out(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_hunt(mock_db, mock_bot_factory) -> None:
+async def test_start_hunt(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.status_table.create(mock_db.engine)
     db = mock_db.session()
@@ -251,7 +264,9 @@ async def test_start_hunt(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_duck_migrate_no_data(mock_db, mock_bot_factory) -> None:
+async def test_duck_migrate_no_data(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
     conn = MockClient(bot=bot)
@@ -266,7 +281,9 @@ async def test_duck_migrate_no_data(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_duck_migrate(mock_db, mock_bot_factory) -> None:
+async def test_duck_migrate(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
     conn = MockClient(bot=bot)
@@ -317,7 +334,9 @@ async def test_duck_migrate(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_duck_stats_user_single_chan(mock_db, mock_bot_factory) -> None:
+async def test_duck_stats_user_single_chan(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
     chan = "#foo"
@@ -345,7 +364,9 @@ async def test_duck_stats_user_single_chan(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_duck_stats_no_data(mock_db, mock_bot_factory) -> None:
+async def test_duck_stats_no_data(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     duckhunt.table.create(mock_db.engine)
     conn = MockClient(bot=bot)
@@ -361,7 +382,7 @@ async def test_duck_stats_no_data(mock_db, mock_bot_factory) -> None:
 
 
 class TestOptOut:
-    def test_opt_out(self, mock_db) -> None:
+    def test_opt_out(self, mock_db: MockDB) -> None:
         duckhunt.optout.create(mock_db.engine)
         mock_db.add_row(duckhunt.optout, network="net", chan="#chan")
         duckhunt.load_optout(mock_db.session())
@@ -369,7 +390,9 @@ class TestOptOut:
         assert not duckhunt.is_opt_out("net2", "#chan")
 
     @pytest.mark.asyncio
-    async def test_set_opt_out_on(self, mock_db, mock_bot_factory) -> None:
+    async def test_set_opt_out_on(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -386,7 +409,9 @@ class TestOptOut:
         assert mock_db.get_data(duckhunt.optout) == [("net", "#chan")]
 
     @pytest.mark.asyncio
-    async def test_set_opt_out_off(self, mock_db, mock_bot_factory) -> None:
+    async def test_set_opt_out_off(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -406,7 +431,7 @@ class TestOptOut:
 
 
 class TestStatus:
-    def test_load(self, mock_db) -> None:
+    def test_load(self, mock_db: MockDB) -> None:
         duckhunt.game_status.clear()
         duckhunt.status_table.create(mock_db.engine)
         mock_db.add_row(
@@ -422,7 +447,9 @@ class TestStatus:
         assert state.no_duck_kick
 
     @pytest.mark.asyncio
-    async def test_save_and_load(self, mock_db, mock_bot_factory) -> None:
+    async def test_save_and_load(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.game_status.clear()
         duckhunt.status_table.create(mock_db.engine)
@@ -433,7 +460,7 @@ class TestStatus:
         assert state.game_on
         assert not state.no_duck_kick
 
-    def test_save_all(self, mock_db) -> None:
+    def test_save_all(self, mock_db: MockDB) -> None:
         duckhunt.game_status.clear()
         duckhunt.status_table.create(mock_db.engine)
         duckhunt.load_status(mock_db.session())
@@ -445,7 +472,7 @@ class TestStatus:
             ("net", "#chan", False, True)
         ]
 
-    def test_save_on_exit(self, mock_db) -> None:
+    def test_save_on_exit(self, mock_db: MockDB) -> None:
         duckhunt.game_status.clear()
         duckhunt.status_table.create(mock_db.engine)
         duckhunt.load_status(mock_db.session())
@@ -460,7 +487,9 @@ class TestStatus:
 
 class TestStartHunt:
     @pytest.mark.asyncio
-    async def test_start_hunt(self, mock_db, mock_bot_factory) -> None:
+    async def test_start_hunt(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.optout.create(mock_db.engine)
         duckhunt.load_optout(mock_db.session())
@@ -484,7 +513,9 @@ class TestStartHunt:
 
 class TestStopHunt:
     @pytest.mark.asyncio
-    async def test_stop_hunt(self, mock_db, mock_bot_factory) -> None:
+    async def test_stop_hunt(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.optout.create(mock_db.engine)
         duckhunt.load_optout(mock_db.session())
@@ -508,7 +539,9 @@ class TestStopHunt:
 
 class TestDuckKick:
     @pytest.mark.asyncio
-    async def test_enable_duck_kick(self, mock_db, mock_bot_factory) -> None:
+    async def test_enable_duck_kick(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.optout.create(mock_db.engine)
         duckhunt.load_optout(mock_db.session())
@@ -537,7 +570,9 @@ class TestDuckKick:
         assert notice_doc.mock_calls == []
 
     @pytest.mark.asyncio
-    async def test_disable_duck_kick(self, mock_db, mock_bot_factory) -> None:
+    async def test_disable_duck_kick(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.optout.create(mock_db.engine)
         duckhunt.load_optout(mock_db.session())
@@ -566,7 +601,9 @@ class TestDuckKick:
 class TestAttack:
     @pytest.mark.asyncio
     @with_frozen_time()
-    async def test_shoot(self, mock_db, mock_bot_factory) -> None:
+    async def test_shoot(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -606,7 +643,9 @@ class TestAttack:
 
     @pytest.mark.asyncio
     @with_frozen_time()
-    async def test_befriend(self, mock_db, mock_bot_factory) -> None:
+    async def test_befriend(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         duckhunt.table.create(mock_db.engine)
         duckhunt.optout.create(mock_db.engine)
@@ -643,7 +682,9 @@ class TestAttack:
 
     @pytest.mark.asyncio
     @with_frozen_time()
-    async def test_miss(self, mock_db: MockDB, mock_bot_factory) -> None:
+    async def test_miss(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         random.seed(0)
         duckhunt.table.create(mock_db.engine)
@@ -680,7 +721,7 @@ class TestAttack:
     @pytest.mark.asyncio
     @with_frozen_time()
     async def test_miss_scripter(
-        self, mock_db: MockDB, mock_bot_factory
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
     ) -> None:
         bot = mock_bot_factory(db=mock_db)
         random.seed(0)

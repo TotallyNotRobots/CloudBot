@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from requests import HTTPError
+from responses import RequestsMock
 
 from cloudbot.event import CommandEvent, Event
 from plugins import reddit_info
@@ -91,7 +92,7 @@ def test_get_user(text, output) -> None:
     assert reddit_info.get_user(text) == output
 
 
-def test_reddit_no_posts(mock_requests) -> None:
+def test_reddit_no_posts(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/r/foobar/.json",
@@ -106,7 +107,7 @@ def test_reddit_no_posts(mock_requests) -> None:
 
 
 @with_frozen_time()
-def test_reddit_random_post(mock_requests) -> None:
+def test_reddit_random_post(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/r/foobar/.json",
@@ -278,7 +279,7 @@ def test_reddit_random_post_sub_not_found(mock_requests: RequestsMock) -> None:
 
 
 @with_frozen_time()
-def test_karma(mock_requests) -> None:
+def test_karma(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",
@@ -375,7 +376,7 @@ def test_karma(mock_requests) -> None:
 
 
 @with_frozen_time()
-def test_cake_day(mock_requests) -> None:
+def test_cake_day(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://reddit.com/user/foo/about.json",
