@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -6,6 +9,10 @@ from irclib.parser import Message
 from cloudbot import hook
 from cloudbot.event import CommandEvent, Event, IrcOutEvent
 from tests.util.mock_module import MockModule
+
+if TYPE_CHECKING:
+    from tests.util import PatchImportModule
+    from tests.util.mock_bot import MockBot
 
 
 def test_event_copy() -> None:
@@ -68,7 +75,7 @@ def test_event_ctcp_no_rarget() -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
-async def test_check_permission(mock_bot) -> None:
+async def test_check_permission(mock_bot: MockBot) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = True
@@ -81,7 +88,7 @@ async def test_check_permission(mock_bot) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
-async def test_check_permission_no_hooks(mock_bot) -> None:
+async def test_check_permission_no_hooks(mock_bot: MockBot) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
     conn.permissions.has_perm_mask.return_value = False
@@ -94,7 +101,9 @@ async def test_check_permission_no_hooks(mock_bot) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
-async def test_check_permission_hooks(mock_bot, patch_import_module) -> None:
+async def test_check_permission_hooks(
+    mock_bot: MockBot, patch_import_module: PatchImportModule
+) -> None:
     conn = MagicMock(config={})
     event = Event(conn=conn, mask="n!u@h", bot=mock_bot)
 
@@ -156,11 +165,18 @@ def test_event_notice_no_rarget() -> None:
             "bar",
             "bar",
             "baz",
-            [call.message("baz", "(bar) test")],
+            [("message", ("baz", "(bar) test"))],
         ),
     ],
 )
-def test_reply(reply_ping, messages, chan, nick, target, calls) -> None:
+def test_reply(
+    reply_ping: bool,
+    messages: list[str],
+    chan: str,
+    nick: str,
+    target: str | None,
+    calls: tuple[str, tuple[str, ...]],
+) -> None:
     conn = MagicMock(config={"reply_ping": reply_ping})
     event = Event(channel=chan, conn=conn, nick=nick)
     event.reply(*messages, target=target)

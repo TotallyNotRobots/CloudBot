@@ -58,6 +58,7 @@ from cloudbot.hook import (
     ConnectFuncHook,
     EventFuncHook,
     FuncHook,
+    HookKwargs,
     Hooks,
     HookType,
     IrcOutFuncHook,
@@ -127,7 +128,12 @@ def patch_hook(wrapped: Callable[P, T]) -> Callable[P, T]:
     def _func(*args: P.args, **kwargs: P.kwargs) -> T:
         _original_init = Hook.__init__
 
-        def patch_hook_init(self, plugin: Plugin, func_hook, kwargs) -> None:
+        def patch_hook_init(
+            self: Hook[Any],
+            plugin: Plugin,
+            func_hook: FuncHook[Any],
+            kwargs: HookKwargs,
+        ) -> None:
             _original_init(self, plugin, func_hook, kwargs)
             self.func_hook = func_hook
 
@@ -143,8 +149,8 @@ def gather_plugins() -> Generator[Path]:
 
 
 @patch_hook
-def load_plugin(plugin_path) -> Plugin:
-    path = Path(plugin_path)
+def load_plugin(plugin_path: Path) -> Plugin:
+    path = plugin_path
     file_path = path.resolve()
     file_name = file_path.name
     # Resolve the path relative to the current directory
@@ -170,13 +176,8 @@ def get_plugins() -> list[Plugin]:
     return PLUGINS
 
 
-def pytest_generate_tests(metafunc) -> None:
-    if "plugin" in metafunc.fixturenames:  # pragma: no cover
-        plugins = get_plugins()
-        metafunc.parametrize(
-            "plugin", plugins, ids=[plugin.title for plugin in plugins]
-        )
-    elif "hook" in metafunc.fixturenames:
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    if "hook" in metafunc.fixturenames:
         plugins = get_plugins()
         hooks = [hook for plugin in plugins for hook in plugin.hooks.get_all()]
         metafunc.parametrize(
@@ -202,7 +203,7 @@ HOOK_ATTR_TYPES: dict[str, type | tuple[type, ...]] = {
 @pytest.mark.parametrize(
     "text", ["- Foo", "<text> - Uses <text>", "[text] - Thing with [text]"]
 )
-def test_doc_re_matches(text) -> None:
+def test_doc_re_matches(text: str) -> None:
     assert DOC_RE.match(text)
 
 
@@ -210,11 +211,11 @@ def test_doc_re_matches(text) -> None:
     "text",
     ["-- Foo", "<text> -- Uses <text>", "<text - Uses text>", "Foobar", "-Baz"],
 )
-def test_doc_re_no_match(text) -> None:
+def test_doc_re_no_match(text: str) -> None:
     assert not DOC_RE.match(text)
 
 
-def test_hook_kwargs(hook) -> None:
+def test_hook_kwargs(hook: Hook[Any]) -> None:
     assert not hook.func_hook.kwargs, (
         f"Unknown arguments '{hook.func_hook.kwargs}' "
         f"passed during registration of hook '{hook.function_name}'"
@@ -232,15 +233,16 @@ def test_hook_kwargs(hook) -> None:
             )
 
 
-def test_hook_doc(hook) -> None:
-    if hook.type != HookType.COMMAND:
+def test_hook_doc(hook: Hook[Any]) -> None:
+    if not isinstance(hook, CommandHook):
         return
 
     assert hook.doc
-
     assert DOC_RE.match(hook.doc)
     found_blank = False
-    for line in hook.function.__doc__.strip().splitlines():
+    doc = inspect.getdoc(hook.function)
+    assert doc is not None
+    for line in doc.strip().splitlines():
         stripped = line.strip()
         if stripped.startswith(":"):
             assert found_blank
@@ -248,7 +250,7 @@ def test_hook_doc(hook) -> None:
             found_blank = True
 
 
-def test_hook_args(hook, mock_bot) -> None:
+def test_hook_args(hook: Hook[Any], mock_bot: MockBot) -> None:
     re_match = re.match(".", "a")
     assert re_match is not None
     bot = mock_bot
@@ -263,6 +265,7 @@ def test_hook_args(hook, mock_bot) -> None:
     ):
         event = Event(bot=bot)
     elif hook.type == HookType.COMMAND:
+        assert isinstance(hook, CommandHook)
         event = CommandEvent(
             bot=bot, hook=hook, text="", triggered_command="", cmd_prefix="."
         )
@@ -494,7 +497,7 @@ def test_hook_annotations(hook: Hook[Any]) -> None:
         )
 
 
-def test_coroutine_hooks(hook) -> None:
+def test_coroutine_hooks(hook: Hook[Any]) -> None:
     if inspect.isgeneratorfunction(hook.function):  # pragma: no cover
         assert inspect.iscoroutinefunction(hook.function), (
             "Non-coroutine generator function used for a hook. This is most likely due to incorrect ordering of the "

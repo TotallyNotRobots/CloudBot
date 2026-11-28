@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import codecs
+from typing import TYPE_CHECKING, Literal
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,6 +9,11 @@ import requests
 from bs4 import BeautifulSoup
 
 from plugins import link_announcer
+
+if TYPE_CHECKING:
+    import re
+
+    from responses import RequestsMock
 
 MATCHES = (
     "http://foo.com/blah_blah",
@@ -122,7 +130,7 @@ def test_encoding_parse(text: bytes, enc) -> None:
 
 
 STD_HTML = "<head><title>{}</title></head>"
-TESTS = {
+TESTS: dict[str, tuple[str, str | Literal[False]]] = {
     "http://www.montypython.fun": (
         "<!DOCTYPE html><head><title>{}</title></head><body>test</body>",
         "This Site is dead.",
@@ -151,7 +159,13 @@ TESTS = {
     ],
     ids=lambda case: str(getattr(case, "string", case))[:100],
 )
-def test_link_announce(match, test_str, res, mock_requests) -> None:
+def test_link_announce(
+    match: re.Match[str] | None,
+    test_str: str,
+    res: str | Literal[False],
+    mock_requests: RequestsMock,
+) -> None:
+    assert match
     mock_requests.add("GET", match.string, body=test_str)
     mck = MagicMock()
     logger = MagicMock()
@@ -166,7 +180,7 @@ def test_link_announce(match, test_str, res, mock_requests) -> None:
         mck.assert_not_called()
 
 
-def test_link_announce_404(mock_requests) -> None:
+def test_link_announce_404(mock_requests: RequestsMock) -> None:
     url = "http://example.com"
     mock_requests.add("GET", url, status=404)
 
@@ -183,11 +197,11 @@ def test_link_announce_404(mock_requests) -> None:
     mck.assert_not_called()
 
 
-def test_read_timeout(mock_requests) -> None:
+def test_read_timeout(mock_requests: RequestsMock) -> None:
     url = "http://example.com"
 
-    def callback(resp):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
-        raise requests.ReadTimeout()
+    def callback(request: requests.PreparedRequest) -> Exception:
+        return requests.ReadTimeout(request=request)
 
     mock_requests.add_callback("GET", url, callback)
 

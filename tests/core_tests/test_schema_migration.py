@@ -9,6 +9,7 @@ import pytest
 
 from cloudbot.db import db_init, get_db_version, get_schema_version
 from cloudbot.util import database
+from tests.util.mock_bot import MockBotFactory
 
 if TYPE_CHECKING:
     from tests.util.mock_bot import MockBotFactory
@@ -16,7 +17,9 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.asyncio
-async def test_empty_init(mock_db: MockDB, mock_bot_factory) -> None:
+async def test_empty_init(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(
         db=mock_db,
         base_dir=Path.cwd(),
@@ -79,7 +82,9 @@ async def test_init_no_upgrade(
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
-async def test_get_db_version(mock_db: MockDB, mock_bot_factory) -> None:
+async def test_get_db_version(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     mock_bot = mock_bot_factory(
         db=mock_db,
         base_dir=Path.cwd(),
@@ -106,7 +111,9 @@ async def test_get_db_version(mock_db: MockDB, mock_bot_factory) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("caplog_bot")
-async def test_get_schema_version(mock_db: MockDB, mock_bot_factory) -> None:
+async def test_get_schema_version(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     original_cwd = Path.cwd().resolve()
     mock_bot = mock_bot_factory(
         db=mock_db,

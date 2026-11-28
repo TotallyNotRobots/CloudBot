@@ -14,6 +14,8 @@ from tests.util.mock_irc_client import MockIrcClient
 if TYPE_CHECKING:
     from cloudbot.client import Client
     from cloudbot.util.irc import StatusMode
+    from tests.util.mock_bot import MockBotFactory
+    from tests.util.mock_db import MockDB
 
 
 def get_statuses(conn: Client, chars: str) -> list[StatusMode]:
@@ -21,7 +23,9 @@ def get_statuses(conn: Client, chars: str) -> list[StatusMode]:
 
 
 @pytest.mark.asyncio
-async def test_replace_user_data(mock_db, mock_bot_factory) -> None:
+async def test_replace_user_data(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
     conn.memory.update(
@@ -60,7 +64,9 @@ async def test_replace_user_data(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_missing_on_nick(mock_db, mock_bot_factory) -> None:
+async def test_missing_on_nick(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
     chans = chan_track.get_chans(conn)
@@ -71,7 +77,9 @@ async def test_missing_on_nick(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_channel_members(mock_db, mock_bot_factory) -> None:
+async def test_channel_members(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
     conn.memory.update(
@@ -148,7 +156,9 @@ NAMES_MOCK_TRAFFIC = [
 
 
 @pytest.mark.asyncio
-async def test_names_handling(mock_db, mock_bot_factory) -> None:
+async def test_names_handling(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     handlers = {
         "JOIN": chan_track.on_join,
         "PART": chan_track.on_part,
@@ -184,7 +194,9 @@ async def test_names_handling(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_account_tag(mock_db, mock_bot_factory) -> None:
+async def test_account_tag(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockClient(bot=bot)
     data = {

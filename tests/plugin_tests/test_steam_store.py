@@ -1,6 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from plugins import steam_store
+
+if TYPE_CHECKING:
+    from pydantic import JsonValue
+    from responses import RequestsMock
 
 
 @pytest.mark.parametrize(
@@ -12,10 +20,14 @@ from plugins import steam_store
     ],
 )
 def test_format_game(
-    mock_requests, is_free, price_now, price_original, price_str
+    mock_requests: RequestsMock,
+    is_free: bool,
+    price_now: int | None,
+    price_original: int | None,
+    price_str: str,
 ) -> None:
     appid = "appid"
-    data = {
+    data: dict[str, JsonValue] = {
         "name": "foo",
         "about_the_game": "<h1>foo</h1>bar",
         "genres": [{"description": "foobar"}, {"description": "foobar1"}],

@@ -8,20 +8,19 @@ from irclib.parser import ParamList
 
 from cloudbot.config import ChannelConfig
 from plugins.core import core_misc
+from tests.util.mock_bot import MockBotFactory
 from tests.util.mock_conn import MockClient
-from tests.util.mock_db import with_mock_db
+from tests.util.mock_db import MockDB, with_mock_db
 from tests.util.mock_irc_client import MockIrcClient
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
 @pytest.mark.asyncio
 async def test_do_joins(
-    mock_bot_factory: Callable[..., MockBot], mock_db: MockDB
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
 ) -> None:
     client = MockClient(
         bot=mock_bot_factory(db=mock_db),
@@ -51,7 +50,9 @@ async def test_do_joins(
 
 
 @pytest.mark.asyncio
-async def test_invite_join(mock_bot_factory, mock_db) -> None:
+async def test_invite_join(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockIrcClient(
         bot=bot,
@@ -65,7 +66,9 @@ async def test_invite_join(mock_bot_factory, mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_invite_join_disabled(mock_bot_factory, mock_db) -> None:
+async def test_invite_join_disabled(
+    mock_bot_factory: MockBotFactory, mock_db: MockDB
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     conn = MockIrcClient(
         bot=bot,

@@ -34,6 +34,16 @@ if TYPE_CHECKING:
     from cloudbot.plugin_hooks import Hook
 
 
+_P = ParamSpec("_P")
+_T = TypeVar("_T")
+
+
+class _Decorator(Protocol):
+    def __call__(
+        self, func: Callable[_P, _T], /, **kwargs: Unpack[HookKwargs]
+    ) -> Callable[_P, _T]: ...
+
+
 @pytest.mark.parametrize(
     ("func", "cls"),
     [
@@ -45,7 +55,7 @@ if TYPE_CHECKING:
         (hook.irc_out, IrcOutFuncHook),
     ],
 )
-def test_deprecated_hooks(func, cls: type[FuncHook[Any]]) -> None:
+def test_deprecated_hooks(func: _Decorator, cls: type[FuncHook[Any]]) -> None:
     with pytest.deprecated_call():
 
         @func
@@ -53,16 +63,6 @@ def test_deprecated_hooks(func, cls: type[FuncHook[Any]]) -> None:
             raise NotImplementedError
 
         assert cls.get_hook(f, raise_on_missing=True).function is f
-
-
-_P = ParamSpec("_P")
-_T = TypeVar("_T")
-
-
-class _Decorator(Protocol):
-    def __call__(
-        self, func: Callable[_P, _T], /, **kwargs: Unpack[HookKwargs]
-    ) -> Callable[_P, _T]: ...
 
 
 @pytest.mark.parametrize(
@@ -167,7 +167,7 @@ def test_hook_decorate() -> None:
         hook.irc_raw(f)  # pyright: ignore[reportArgumentType]
 
     @hook.sieve()
-    def sieve_func(_bot, _event, _hook):
+    def sieve_func(_bot: CloudBot, _event: Event, _hook: Hook[Any]) -> None:
         raise NotImplementedError
 
     hooks = Hooks.get_from_func(sieve_func)
@@ -175,7 +175,7 @@ def test_hook_decorate() -> None:
     assert HookType.SIEVE in hooks.get_types()
 
     @hook.sieve()
-    def sieve_func2(_bot, _event, _hook):
+    def sieve_func2(_bot: CloudBot, _event: Event, _hook: Hook[Any]):
         raise NotImplementedError
 
     hooks = Hooks.get_from_func(sieve_func2)
@@ -187,7 +187,7 @@ def test_hook_decorate() -> None:
     @hook.post_hook()
     @hook.on_start()
     @hook.on_stop()
-    def plain_dec(_bot, _event, _hook):
+    def plain_dec(_bot: CloudBot, _event: Event, _hook: Hook[Any]) -> None:
         raise NotImplementedError
 
     hooks = Hooks.get_from_func(plain_dec)
@@ -234,7 +234,7 @@ def test_command_validate() -> None:
 
 def test_command_hook_doc() -> None:
     @hook.command()
-    def test(bot) -> None:
+    def test() -> None:
         """<arg> - foo
         bar
         baz
@@ -245,7 +245,7 @@ def test_command_hook_doc() -> None:
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
-    def test1(bot) -> None:
+    def test1() -> None:
         """<arg> - foo bar baz
 
         foo"""
@@ -254,14 +254,14 @@ def test_command_hook_doc() -> None:
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
-    def test2(bot) -> None:
+    def test2() -> None:
         """<arg> - foo bar baz"""
 
     cmd_hook = CommandFuncHook.get_hook(test2, raise_on_missing=True)
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
-    def test3(bot) -> None:
+    def test3() -> None:
         """
         <arg> - foo bar baz
         """
@@ -270,7 +270,7 @@ def test_command_hook_doc() -> None:
     assert cmd_hook.doc == "<arg> - foo bar baz"
 
     @hook.command()
-    def test4(bot) -> None:
+    def test4() -> None:
         """<arg> - foo bar baz"""
 
     cmd_hook = CommandFuncHook.get_hook(test4, raise_on_missing=True)

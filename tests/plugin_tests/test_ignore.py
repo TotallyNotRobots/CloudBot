@@ -10,7 +10,9 @@ from cloudbot.hook import CommandFuncHook, RawFuncHook, command, irc_raw
 from cloudbot.plugin import Plugin
 from cloudbot.plugin_hooks import CommandHook, RawHook
 from plugins.core import ignore
+from tests.util.mock_bot import MockBotFactory
 from tests.util.mock_conn import MockClient
+from tests.util.mock_db import MockDB
 from tests.util.mock_module import MockModule
 
 if TYPE_CHECKING:
@@ -27,7 +29,9 @@ def setup_db(mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_ignore(mock_db, patch_paste, mock_bot_factory) -> None:
+async def test_ignore(
+    mock_db: MockDB, patch_paste, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     setup_db(mock_db)
 
@@ -68,7 +72,7 @@ async def test_ignore(mock_db, patch_paste, mock_bot_factory) -> None:
     patch_paste.assert_called_with("*!*@evil.host\n")
 
 
-def test_remove_ignore(mock_db) -> None:
+def test_remove_ignore(mock_db: MockDB) -> None:
     setup_db(mock_db)
 
     sess = mock_db.session()
@@ -84,7 +88,7 @@ def test_remove_ignore(mock_db) -> None:
     assert not ignore.is_ignored("testconn", "#chan", "nick!user@host")
 
 
-def test_ignore_case(mock_db) -> None:
+def test_ignore_case(mock_db: MockDB) -> None:
     setup_db(mock_db)
 
     sess = mock_db.session()
@@ -277,7 +281,7 @@ def test_get_user() -> None:
     assert ignore.get_user(conn, "nick") == "*!*@host"
 
 
-def test_ignore_command(mock_db) -> None:
+def test_ignore_command(mock_db: MockDB) -> None:
     setup_db(mock_db)
 
     sess = mock_db.session()
@@ -328,7 +332,7 @@ def test_ignore_command(mock_db) -> None:
     event.notice.assert_called_with("*!*@host is already globally ignored.")
 
 
-def test_unignore_command(mock_db) -> None:
+def test_unignore_command(mock_db: MockDB) -> None:
     setup_db(mock_db)
 
     sess = mock_db.session()

@@ -1,7 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from plugins import giphy
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
 
-def test_giphy(mock_requests, mock_bot) -> None:
+    from tests.util.mock_bot import MockBot
+
+
+def test_giphy(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     mock_requests.add(
         "GET",
         "http://api.giphy.com/v1/gifs/search?q=foo&limit=10&fmt=json",
@@ -11,7 +20,7 @@ def test_giphy(mock_requests, mock_bot) -> None:
     assert res == "foo.bar - (Powered by GIPHY)"
 
 
-def test_giphy_rating(mock_requests, mock_bot) -> None:
+def test_giphy_rating(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     mock_requests.add(
         "GET",
         "http://api.giphy.com/v1/gifs/search?q=foo&limit=10&fmt=json",
@@ -21,7 +30,9 @@ def test_giphy_rating(mock_requests, mock_bot) -> None:
     assert res == "foo.bar content rating: \x02PG\x02. (Powered by GIPHY)"
 
 
-def test_giphy_no_results(mock_requests, mock_bot) -> None:
+def test_giphy_no_results(
+    mock_requests: RequestsMock, mock_bot: MockBot
+) -> None:
     mock_requests.add(
         "GET",
         "http://api.giphy.com/v1/gifs/search?q=foo&limit=10&fmt=json",

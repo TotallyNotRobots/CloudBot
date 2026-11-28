@@ -1,12 +1,19 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
 import responses
+from responses import RequestsMock
 from responses.matchers import query_param_matcher
 
 from cloudbot.event import CommandEvent
 from plugins import locate
 from tests.util import wrap_hook_response
+
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
 
 
 @pytest.mark.parametrize(
@@ -28,7 +35,7 @@ def test_check_status(status, out) -> None:
     assert locate.check_status(status) == out
 
 
-def test_locate_no_bias(mock_requests, mock_bot) -> None:
+def test_locate_no_bias(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     mock_bot.config.update({"api_keys": {"google_dev_key": "FOOBAR"}})
 
     conn = MagicMock(bot=mock_bot)
@@ -101,7 +108,9 @@ def test_locate_no_bias(mock_requests, mock_bot) -> None:
     ]
 
 
-def test_locate_with_bias(mock_requests, mock_bot) -> None:
+def test_locate_with_bias(
+    mock_requests: RequestsMock, mock_bot: MockBot
+) -> None:
     mock_bot.config.update(
         {"api_keys": {"google_dev_key": "FOOBAR"}, "location_bias_cc": "us"}
     )

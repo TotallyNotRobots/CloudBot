@@ -10,9 +10,10 @@ from cloudbot.util import web
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
+    from responses import RequestsMock
 
 
-def test_paste(mock_requests) -> None:
+def test_paste(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "POST", "https://hastebin.com/documents", json={"key": "foobar"}
     )
@@ -24,7 +25,7 @@ def test_paste(mock_requests) -> None:
     assert web.paste("test data", service="none") == "Unable to paste data"
 
 
-def test_paste_try(mock_requests) -> None:
+def test_paste_try(mock_requests: RequestsMock) -> None:
     web.pastebins.set_working()
     mock_requests.add(
         "POST", "https://hastebin.com/documents", json={"key": "foobar"}
@@ -34,7 +35,7 @@ def test_paste_try(mock_requests) -> None:
     assert web.paste("test data") == expected
 
 
-def test_paste_error(mock_requests) -> None:
+def test_paste_error(mock_requests: RequestsMock) -> None:
     assert web.paste("test data") == "Unable to paste data"
 
     mock_requests.add("POST", "https://hastebin.com/documents", status=502)
@@ -73,7 +74,7 @@ def test_registry_item_working(freeze_time: FrozenDateTimeFactory) -> None:
     assert item.should_use
 
 
-def test_shorten(mock_requests) -> None:
+def test_shorten(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://is.gd/create.php",
@@ -149,7 +150,7 @@ def test_shorten(mock_requests) -> None:
         web.shorten("https://example.com", service="git.io", custom="test")
 
 
-def test_isgd_errors(mock_requests) -> None:
+def test_isgd_errors(mock_requests: RequestsMock) -> None:
     mock_requests.add("GET", "https://is.gd/create.php", status=429)
 
     with pytest.raises(web.ServiceHTTPError):
@@ -160,7 +161,7 @@ def test_isgd_errors(mock_requests) -> None:
         web.shorten("https://example.com", service="is.gd")
 
 
-def test_try_shorten(mock_requests) -> None:
+def test_try_shorten(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://is.gd/create.php",
@@ -183,7 +184,7 @@ def test_try_shorten(mock_requests) -> None:
     )
 
 
-def test_expand(mock_requests) -> None:
+def test_expand(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://is.gd/forward.php?shorturl=https%3A%2F%2Fis.gd%2Ffoobar&format=json",

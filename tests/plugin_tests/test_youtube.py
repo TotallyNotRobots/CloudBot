@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,6 +9,11 @@ from responses.matchers import query_param_matcher
 
 from plugins import youtube
 from tests.util import with_mock_api_keys
+
+if TYPE_CHECKING:
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockApiKeys
 
 video_data: dict[str, Any] = {
     "kind": "youtube#videoListResponse",
@@ -65,14 +72,14 @@ class TestGetVideoDescription:
             "key": key,
         }
 
-    def test_no_key(self, mock_api_keys) -> None:
+    def test_no_key(self, mock_api_keys: MockApiKeys) -> None:
         mock_api_keys.config.get_api_key.return_value = None
 
         with pytest.raises(youtube.NoApiKeyError):
             youtube.get_video_description("foobar")
 
     @with_mock_api_keys()
-    def test_http_error(self, mock_requests) -> None:
+    def test_http_error(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.api_url,
@@ -92,7 +99,7 @@ class TestGetVideoDescription:
             youtube.get_video_description("foobar")
 
     @with_mock_api_keys()
-    def test_success(self, mock_requests) -> None:
+    def test_success(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.api_url,
@@ -113,7 +120,7 @@ class TestGetVideoDescription:
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
     @with_mock_api_keys()
-    def test_success_no_duration(self, mock_requests) -> None:
+    def test_success_no_duration(self, mock_requests: RequestsMock) -> None:
         data = deepcopy(video_data)
         del data["items"][0]["contentDetails"]["duration"]
 
@@ -133,7 +140,7 @@ class TestGetVideoDescription:
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
     @with_mock_api_keys()
-    def test_success_no_likes(self, mock_requests) -> None:
+    def test_success_no_likes(self, mock_requests: RequestsMock) -> None:
         data = deepcopy(video_data)
         del data["items"][0]["statistics"]["likeCount"]
 
@@ -156,7 +163,7 @@ class TestGetVideoDescription:
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
     @with_mock_api_keys()
-    def test_success_no_dislikes(self, mock_requests) -> None:
+    def test_success_no_dislikes(self, mock_requests: RequestsMock) -> None:
         data = deepcopy(video_data)
         del data["items"][0]["statistics"]["dislikeCount"]
 
@@ -180,7 +187,7 @@ class TestGetVideoDescription:
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
     @with_mock_api_keys()
-    def test_success_nsfw(self, mock_requests) -> None:
+    def test_success_nsfw(self, mock_requests: RequestsMock) -> None:
         data = deepcopy(video_data)
         data["items"][0]["contentDetails"]["contentRating"] = {
             "ytRating": "ytAgeRestricted"
@@ -207,7 +214,7 @@ class TestGetVideoDescription:
         assert youtube.get_video_description("phL7P6gtZRM") == result
 
     @with_mock_api_keys()
-    def test_no_results(self, mock_requests) -> None:
+    def test_no_results(self, mock_requests: RequestsMock) -> None:
         data = deepcopy(video_data)
         del data["items"][0]
 
@@ -226,7 +233,7 @@ class TestGetVideoDescription:
             youtube.get_video_description("phL7P6gtZRM")
 
     @with_mock_api_keys()
-    def test_command_error_reply(self, mock_requests) -> None:
+    def test_command_error_reply(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://www.googleapis.com/youtube/v3/search",

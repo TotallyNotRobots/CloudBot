@@ -5,15 +5,16 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
+from responses import RequestsMock
 
 from plugins import spotify
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Callable
+    from collections.abc import AsyncGenerator
 
     from responses import RequestsMock
 
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBotFactory
 
 
 @pytest.mark.parametrize(
@@ -70,7 +71,7 @@ def test_format_response(data, item_type, output) -> None:
 
 @pytest_asyncio.fixture()
 async def setup_api(
-    mock_bot_factory: Callable[..., MockBot], mock_requests: RequestsMock
+    mock_bot_factory: MockBotFactory, mock_requests: RequestsMock
 ) -> AsyncGenerator[None]:
     bot = mock_bot_factory(
         config={
@@ -106,7 +107,7 @@ def test_api_inactive() -> None:
 
 
 @pytest.mark.usefixtures("setup_api")
-def test_search_no_results(mock_requests) -> None:
+def test_search_no_results(mock_requests: RequestsMock) -> None:
     mock_requests.add(
         "GET",
         "https://api.spotify.com/v1/search",
@@ -151,7 +152,7 @@ def test_search_no_results(mock_requests) -> None:
     ],
 )
 @pytest.mark.usefixtures("setup_api")
-def test_format_search_track(data, output, mock_requests) -> None:
+def test_format_search_track(data, output, mock_requests: RequestsMock) -> None:
     mock_requests.add("GET", "https://api.spotify.com/v1/search", json=data)
 
     reply = MagicMock()

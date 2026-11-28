@@ -6,7 +6,9 @@ from cloudbot.util import func_utils
 def test_call_with_args() -> None:
     args = []
 
-    def func(arg1, arg2=None, _arg3=None) -> None:
+    def func(
+        arg1: int, arg2: int | None = None, _arg3: int | None = None
+    ) -> None:
         nonlocal args
         args = [arg1, arg2, _arg3]
 

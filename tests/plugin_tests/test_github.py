@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -5,9 +8,14 @@ from requests import HTTPError
 
 from plugins import github
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockBot
+
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_invalid_repo(mock_bot) -> None:
+def test_github_invalid_repo(mock_bot: MockBot) -> None:
     github.load_shortcuts(mock_bot)
     event = MagicMock()
     res = github.issue_cmd("myinvalid-repo", event)
@@ -16,7 +24,7 @@ def test_github_invalid_repo(mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github(mock_requests, mock_bot) -> None:
+def test_github(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -42,7 +50,7 @@ def test_github(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_error(mock_requests, mock_bot) -> None:
+def test_github_error(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -66,7 +74,7 @@ def test_github_error(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_closed(mock_requests, mock_bot) -> None:
+def test_github_closed(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -94,7 +102,9 @@ def test_github_closed(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_shortcut(mock_requests, mock_bot) -> None:
+def test_github_shortcut(
+    mock_requests: RequestsMock, mock_bot: MockBot
+) -> None:
     owner = "foo"
     repo = "bar"
     num = 123
@@ -121,7 +131,9 @@ def test_github_shortcut(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_no_num_no_issues(mock_requests, mock_bot) -> None:
+def test_github_no_num_no_issues(
+    mock_requests: RequestsMock, mock_bot: MockBot
+) -> None:
     owner = "foo"
     repo = "bar"
     mock_requests.add(
@@ -137,7 +149,7 @@ def test_github_no_num_no_issues(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_no_num(mock_requests, mock_bot) -> None:
+def test_github_no_num(mock_requests: RequestsMock, mock_bot: MockBot) -> None:
     owner = "foo"
     repo = "bar"
     mock_requests.add(
@@ -153,7 +165,9 @@ def test_github_no_num(mock_requests, mock_bot) -> None:
 
 
 @pytest.mark.usefixtures("patch_try_shorten")
-def test_github_no_exist(mock_requests, mock_bot) -> None:
+def test_github_no_exist(
+    mock_requests: RequestsMock, mock_bot: MockBot
+) -> None:
     owner = "foo"
     repo = "bar"
     num = 123

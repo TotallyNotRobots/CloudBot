@@ -1,14 +1,24 @@
+from __future__ import annotations
+
 from collections import deque
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
 
 from plugins import grab
 from tests.util.mock_conn import MockClient
-from tests.util.mock_db import with_mock_db
+from tests.util.mock_db import MockDB, with_mock_db
+
+if TYPE_CHECKING:
+    from tests.util.mock_bot import (
+        CloudBotLogCaptureFixture,
+        MockBot,
+        MockBotFactory,
+    )
 
 
-def test_grab_add(mock_db) -> None:
+def test_grab_add(mock_db: MockDB) -> None:
     db = mock_db.session()
     grab.table.create(bind=mock_db.engine)
     grab.grab_add("foo", 123, "foobar", "#foo", db)
@@ -16,7 +26,9 @@ def test_grab_add(mock_db) -> None:
 
 
 @pytest.mark.asyncio
-async def test_grab_self(mock_db, mock_bot_factory) -> None:
+async def test_grab_self(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     grab.table.create(bind=mock_db.engine)
     conn = MockClient(bot=bot)
@@ -27,7 +39,9 @@ async def test_grab_self(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_grab_no_data(mock_db, mock_bot_factory) -> None:
+async def test_grab_no_data(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     grab.table.create(bind=mock_db.engine)
     conn = MockClient(bot=bot)
@@ -37,7 +51,9 @@ async def test_grab_no_data(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_grab_duplicate(mock_db, mock_bot_factory) -> None:
+async def test_grab_duplicate(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     grab.table.create(bind=mock_db.engine)
     nick = "foo"
@@ -58,7 +74,11 @@ async def test_grab_duplicate(mock_db, mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_grab_error(mock_db, caplog_bot, mock_bot_factory) -> None:
+async def test_grab_error(
+    mock_db: MockDB,
+    caplog_bot: CloudBotLogCaptureFixture,
+    mock_bot_factory: MockBotFactory,
+) -> None:
     bot = mock_bot_factory(db=mock_db)
     nick = "foo"
     quote = "foo bar baz"
@@ -121,7 +141,7 @@ def test_grabrandom_no_text() -> None:
     assert event.mock_calls == [call.message("<f\u200boo> bar baz")]
 
 
-def test_grabsearch(mock_bot) -> None:
+def test_grabsearch(mock_bot: MockBot) -> None:
     chan = "#foo"
     grab.grab_cache.clear()
     grab.grab_cache[chan] = {"foo": ["bar baz"]}
@@ -168,7 +188,7 @@ def test_last_grab() -> None:
     assert event.mock_calls == [call.message("<b\u200bar> bar baz", "#foo")]
 
 
-def test_grabsearch_nick(mock_bot) -> None:
+def test_grabsearch_nick(mock_bot: MockBot) -> None:
     chan = "#foo"
     grab.grab_cache.clear()
     target_nick = "foo"

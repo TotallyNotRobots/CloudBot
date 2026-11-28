@@ -9,6 +9,7 @@ from cloudbot.config import Config
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from pathlib import Path
 
 
 @pytest.fixture
@@ -18,7 +19,9 @@ def mock_sleep() -> Generator[None]:
 
 
 @pytest.mark.usefixtures("mock_sleep")
-def test_missing_config(tmp_path, capsys) -> None:
+def test_missing_config(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     config_file = tmp_path / "config.json"
     with pytest.raises(SystemExit):
         Config(filename=str(config_file))
@@ -37,7 +40,7 @@ def test_missing_config(tmp_path, capsys) -> None:
 
 
 @pytest.mark.usefixtures("mock_sleep")
-def test_loads(tmp_path) -> None:
+def test_loads(tmp_path: Path) -> None:
     config_file = tmp_path / "config.json"
     config_file.write_text('{"a":1}')
     conf = Config(filename=str(config_file))

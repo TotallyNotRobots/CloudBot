@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import call, patch
 
 import pytest
@@ -6,10 +9,15 @@ import pytest
 from cloudbot.reloader import ConfigReloader, PluginReloader
 from tests.util.async_mock import AsyncMock
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBotFactory
+
 
 class TestConfigReload:
     @pytest.mark.asyncio
-    async def test_reload(self, mock_bot_factory, tmp_path) -> None:
+    async def test_reload(
+        self, mock_bot_factory: MockBotFactory, tmp_path: Path
+    ) -> None:
         config_file = tmp_path / "config.json"
         config_file.touch()
         bot = mock_bot_factory()
@@ -25,7 +33,9 @@ class TestConfigReload:
             assert mocked.mock_calls == [call()]
 
     @pytest.mark.asyncio
-    async def test_reload_not_running(self, mock_bot_factory, tmp_path) -> None:
+    async def test_reload_not_running(
+        self, mock_bot_factory: MockBotFactory, tmp_path: Path
+    ) -> None:
         config_file = tmp_path / "config.json"
         config_file.touch()
         bot = mock_bot_factory()
@@ -43,7 +53,9 @@ class TestConfigReload:
 
 class TestPluginReload:
     @pytest.mark.asyncio
-    async def test_reload(self, mock_bot_factory, tmp_path) -> None:
+    async def test_reload(
+        self, mock_bot_factory: MockBotFactory, tmp_path: Path
+    ) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()
         plugin_file = plugin_dir / "plugin.py"
@@ -60,7 +72,9 @@ class TestPluginReload:
             assert mocked.mock_calls == [call(Path(str(plugin_file)))]
 
     @pytest.mark.asyncio
-    async def test_reload_no_path(self, mock_bot_factory, tmp_path) -> None:
+    async def test_reload_no_path(
+        self, mock_bot_factory: MockBotFactory, tmp_path: Path
+    ) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()
         plugin_file = plugin_dir / "plugin.py"
@@ -76,7 +90,9 @@ class TestPluginReload:
             assert mocked.mock_calls == []
 
     @pytest.mark.asyncio
-    async def test_unload(self, mock_bot_factory, tmp_path) -> None:
+    async def test_unload(
+        self, mock_bot_factory: MockBotFactory, tmp_path: Path
+    ) -> None:
         plugin_dir = tmp_path / "plugins"
         plugin_dir.mkdir()
         plugin_file = plugin_dir / "plugin.py"

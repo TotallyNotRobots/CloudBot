@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,8 +9,11 @@ import requests
 from cloudbot.util import web
 from plugins import shorten
 
+if TYPE_CHECKING:
+    from responses import RequestsMock
 
-def test_shorten(mock_requests) -> None:
+
+def test_shorten(mock_requests: RequestsMock) -> None:
     reply = MagicMock()
     with pytest.raises(web.ServiceError):
         shorten.shorten("https://example.com", reply)
@@ -24,7 +30,7 @@ def test_shorten(mock_requests) -> None:
     )
 
 
-def test_expand(mock_requests) -> None:
+def test_expand(mock_requests: RequestsMock) -> None:
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -40,7 +46,7 @@ def test_expand(mock_requests) -> None:
     )
 
 
-def test_isgd(mock_requests) -> None:
+def test_isgd(mock_requests: RequestsMock) -> None:
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -64,7 +70,7 @@ def test_isgd(mock_requests) -> None:
     assert shorten.isgd("https://example.com", reply) == "https://is.gd/foobar"
 
 
-def test_googl(mock_requests) -> None:
+def test_googl(mock_requests: RequestsMock) -> None:
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):
@@ -92,7 +98,7 @@ def test_googl(mock_requests) -> None:
     )
 
 
-def test_gitio(mock_requests) -> None:
+def test_gitio(mock_requests: RequestsMock) -> None:
     reply = MagicMock()
 
     with pytest.raises(web.ServiceError):

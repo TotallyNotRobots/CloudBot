@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import importlib
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +12,9 @@ from plugins import profile
 from tests.util import wrap_hook_response
 from tests.util.mock_conn import MockClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
+
 
 @pytest.mark.parametrize(
     ("plugin_name", "hook_name", "pages_name", "page_type"),
@@ -18,7 +24,7 @@ from tests.util.mock_conn import MockClient
     ],
 )
 def test_page_commands(
-    plugin_name, hook_name, pages_name, page_type, mock_bot
+    plugin_name, hook_name, pages_name, page_type, mock_bot: MockBot
 ) -> None:
     plugin = importlib.import_module(f"plugins.{plugin_name}")
 

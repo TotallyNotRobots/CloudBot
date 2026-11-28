@@ -8,14 +8,15 @@ from unittest.mock import MagicMock, call
 import pytest
 
 from plugins import jokes
+from tests.util.mock_bot import MockBot
 from tests.util.mock_conn import MockClient
 
 if TYPE_CHECKING:
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBot, MockBotFactory
 
 
 @pytest.mark.asyncio
-async def test_load_jokes(mock_bot_factory) -> None:
+async def test_load_jokes(mock_bot_factory: MockBotFactory) -> None:
     mock_bot = mock_bot_factory(
         base_dir=Path(__file__).parent.parent.parent.resolve()
     )
@@ -58,7 +59,7 @@ def test_confucious() -> None:
     assert event.mock_calls == [call.message("Confucious say foobar")]
 
 
-def test_yo_mamma(mock_bot) -> None:
+def test_yo_mamma(mock_bot: MockBot) -> None:
     jokes.joke_lines.clear()
     jokes.joke_lines["yo_momma"] = ["foobar"]
     event = MagicMock()

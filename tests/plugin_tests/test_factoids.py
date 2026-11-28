@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import itertools
 import string
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -8,9 +11,13 @@ from cloudbot.event import CommandEvent
 from plugins import factoids
 from tests.util import wrap_hook_response_async
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
+    from tests.util.mock_db import MockDB
+
 
 @pytest.mark.asyncio
-async def test_add_fact(mock_db, mock_bot) -> None:
+async def test_add_fact(mock_db: MockDB, mock_bot: MockBot) -> None:
     factoids.table.create(mock_db.engine)
     factoids.load_cache(mock_db.session())
     hook = MagicMock()
@@ -47,7 +54,7 @@ async def test_add_fact(mock_db, mock_bot) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_fact(mock_db, mock_bot) -> None:
+async def test_update_fact(mock_db: MockDB, mock_bot: MockBot) -> None:
     factoids.table.create(mock_db.engine)
     mock_db.load_data(
         factoids.table,
@@ -88,7 +95,7 @@ async def test_update_fact(mock_db, mock_bot) -> None:
     ]
 
 
-def test_forget(mock_db, patch_paste) -> None:
+def test_forget(mock_db: MockDB, patch_paste) -> None:
     patch_paste.return_value = "PASTEURL"
     factoids.table.create(mock_db.engine)
     chan = "#example"
@@ -111,7 +118,7 @@ def test_forget(mock_db, patch_paste) -> None:
     assert mock_db.get_data(factoids.table) == []
 
 
-def test_remove_fact_no_paste(mock_db) -> None:
+def test_remove_fact_no_paste(mock_db: MockDB) -> None:
     factoids.table.create(mock_db.engine)
     factoids.load_cache(mock_db.session())
     event = MagicMock()
@@ -136,7 +143,7 @@ def test_remove_fact_no_paste(mock_db) -> None:
     ]
 
 
-def test_remove_fact(patch_paste, mock_db) -> None:
+def test_remove_fact(patch_paste, mock_db: MockDB) -> None:
     factoids.table.create(mock_db.engine)
     factoids.load_cache(mock_db.session())
     event = MagicMock()
@@ -168,7 +175,7 @@ def test_remove_fact(patch_paste, mock_db) -> None:
     assert mock_db.get_data(factoids.table) == []
 
 
-def test_clear_facts(mock_db) -> None:
+def test_clear_facts(mock_db: MockDB) -> None:
     factoids.table.create(mock_db.engine)
     mock_db.add_row(
         factoids.table, word="foo", data="bar", nick="user", chan="#example"
@@ -192,7 +199,7 @@ def test_clear_facts(mock_db) -> None:
     assert mock_db.get_data(factoids.table) == []
 
 
-def test_list_facts(mock_db) -> None:
+def test_list_facts(mock_db: MockDB) -> None:
     factoids.table.create(mock_db.engine)
     event = MagicMock()
 

@@ -4,22 +4,23 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
+from responses import RequestsMock
 from responses.matchers import query_param_matcher
 
 from cloudbot.event import CommandEvent
 from plugins import librefm
 from tests.util import with_frozen_time, wrap_hook_response
+from tests.util.mock_bot import MockBot
+from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from responses import RequestsMock
 
-    from tests.util.mock_bot import MockBot
+    from tests.util.mock_bot import MockBot, MockBotFactory
     from tests.util.mock_db import MockDB
 
 
-def test_get_account(mock_db) -> None:
+def test_get_account(mock_db: MockDB) -> None:
     librefm.table.create(mock_db.engine)
     mock_db.add_row(librefm.table, nick="foo", acc="bar")
     librefm.load_cache(mock_db.session())
@@ -30,7 +31,7 @@ def test_get_account(mock_db) -> None:
     assert librefm.get_account("foo1") is None
 
 
-def test_getartisttags(mock_requests) -> None:
+def test_getartisttags(mock_requests: RequestsMock) -> None:
     url = "https://libre.fm/2.0/"
     mock_requests.add(
         "GET",
@@ -63,7 +64,7 @@ class TestGetArtistTags:
     def get_tags(self) -> str:
         return librefm.getartisttags("foobar")
 
-    def test_missing_tags(self, mock_requests) -> None:
+    def test_missing_tags(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -73,7 +74,7 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_no_tags(self, mock_requests) -> None:
+    def test_no_tags(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -83,7 +84,7 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_non_existent_artist(self, mock_requests) -> None:
+    def test_non_existent_artist(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -93,7 +94,7 @@ class TestGetArtistTags:
         res = self.get_tags()
         assert res == "no tags"
 
-    def test_tags(self, mock_requests) -> None:
+    def test_tags(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             self.url,
@@ -120,7 +121,9 @@ class TestGetArtistTags:
 
 
 class TestTopArtists:
-    def test_topweek_self(self, mock_requests, mock_db) -> None:
+    def test_topweek_self(
+        self, mock_requests: RequestsMock, mock_db: MockDB
+    ) -> None:
         librefm.table.create(mock_db.engine)
         mock_db.add_row(librefm.table, nick="foo", acc="bar")
         librefm.load_cache(mock_db.session())
@@ -153,7 +156,7 @@ class TestTopArtists:
 
         assert out == "bar's favorite artists: foo [5] bar [2] "
 
-    def test_self(self, mock_requests, mock_db) -> None:
+    def test_self(self, mock_requests: RequestsMock, mock_db: MockDB) -> None:
         librefm.table.create(mock_db.engine)
         mock_db.add_row(librefm.table, nick="foo", acc="bar")
         librefm.load_cache(mock_db.session())
@@ -194,7 +197,7 @@ class TestTopArtists:
 
         assert out == expected
 
-    def test_error(self, mock_requests, mock_db) -> None:
+    def test_error(self, mock_requests: RequestsMock, mock_db: MockDB) -> None:
         librefm.table.create(mock_db.engine)
         mock_db.add_row(librefm.table, nick="foo", acc="bar")
         librefm.load_cache(mock_db.session())
@@ -223,7 +226,9 @@ class TestTopArtists:
 
 
 class TestTopTrack:
-    def test_toptrack_self(self, mock_requests, mock_db) -> None:
+    def test_toptrack_self(
+        self, mock_requests: RequestsMock, mock_db: MockDB
+    ) -> None:
         librefm.table.create(mock_db.engine)
         mock_db.add_row(librefm.table, nick="foo", acc="bar")
         librefm.load_cache(mock_db.session())
@@ -260,7 +265,9 @@ class TestTopTrack:
 
         assert out == expected
 
-    def test_toptrack_error(self, mock_requests, mock_db) -> None:
+    def test_toptrack_error(
+        self, mock_requests: RequestsMock, mock_db: MockDB
+    ) -> None:
         librefm.table.create(mock_db.engine)
         mock_db.add_row(librefm.table, nick="foo", acc="bar")
         librefm.load_cache(mock_db.session())
@@ -290,7 +297,7 @@ class TestTopTrack:
 
 @with_frozen_time()
 def test_now_playing_no_plays(
-    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
+    mock_db: MockDB, mock_bot: MockBot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     librefm.load_cache(mock_db.session())
@@ -332,7 +339,7 @@ def test_now_playing_no_plays(
 
 @with_frozen_time()
 def test_save_account(
-    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
+    mock_db: MockDB, mock_bot: MockBot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     librefm.load_cache(mock_db.session())
@@ -404,7 +411,7 @@ def test_save_account(
 
 @with_frozen_time()
 def test_update_account(
-    mock_db: MockDB, mock_bot, mock_requests: RequestsMock
+    mock_db: MockDB, mock_bot: MockBot, mock_requests: RequestsMock
 ) -> None:
     librefm.table.create(mock_db.engine)
     mock_db.add_row(librefm.table, nick="foo", acc="oldaccount")
@@ -482,7 +489,7 @@ def test_update_account(
 async def test_displaybandinfo_no_tags(
     mock_db: MockDB,
     mock_requests: RequestsMock,
-    mock_bot_factory: Callable[..., MockBot],
+    mock_bot_factory: MockBotFactory,
 ) -> None:
     mock_bot = mock_bot_factory(db=mock_db)
 

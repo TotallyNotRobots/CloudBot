@@ -1,7 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from cloudbot.util import web
 from plugins.pastebins import sprunge
+
+if TYPE_CHECKING:
+    from requests import PreparedRequest
+    from responses import RequestsMock
 
 
 def test_register() -> None:
@@ -14,7 +22,7 @@ def test_register() -> None:
     assert web.pastebins.get("sprunge") is None
 
 
-def test_paste(mock_requests) -> None:
+def test_paste(mock_requests: RequestsMock) -> None:
     sprunge.register()
 
     paster = web.pastebins["sprunge"]
@@ -26,12 +34,12 @@ def test_paste(mock_requests) -> None:
     sprunge.unregister()
 
 
-def test_data_params(mock_requests) -> None:
+def test_data_params(mock_requests: RequestsMock) -> None:
     sprunge.register()
 
     body = None
 
-    def req_cb(req):
+    def req_cb(req: PreparedRequest) -> tuple[int, dict[str, str], str]:
         nonlocal body
         body = req.body
         return 200, {}, "http://sprunge.us/foobar\n"
@@ -43,7 +51,7 @@ def test_data_params(mock_requests) -> None:
     sprunge.unregister()
 
 
-def test_paste_bytes(mock_requests) -> None:
+def test_paste_bytes(mock_requests: RequestsMock) -> None:
     sprunge.register()
 
     paster = web.pastebins["sprunge"]
@@ -55,7 +63,7 @@ def test_paste_bytes(mock_requests) -> None:
     sprunge.unregister()
 
 
-def test_paste_error(mock_requests) -> None:
+def test_paste_error(mock_requests: RequestsMock) -> None:
     sprunge.register()
 
     paster = web.pastebins["sprunge"]

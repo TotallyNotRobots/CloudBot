@@ -18,6 +18,11 @@ from tests.util.mock_conn import MockClient
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
+    from tests.util.mock_bot import (
+        CloudBotLogCaptureFixture,
+        MockBot,
+        MockBotFactory,
+    )
     from tests.util.mock_db import MockDB
 
 
@@ -83,7 +88,7 @@ def test_delete_status(mock_db: MockDB) -> None:
         assert regex_chans.status_cache == {}
 
 
-def test_listregex(mock_db: MockDB, mock_bot) -> None:
+def test_listregex(mock_db: MockDB, mock_bot: MockBot) -> None:
     regex_chans.table.create(mock_db.engine)
     with mock_db.session() as session:
         mock_db.load_data(
@@ -119,7 +124,7 @@ def test_listregex(mock_db: MockDB, mock_bot) -> None:
 
 
 class TestRegexStatus:
-    def test_current_chan(self, mock_db: MockDB, mock_bot) -> None:
+    def test_current_chan(self, mock_db: MockDB, mock_bot: MockBot) -> None:
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -161,7 +166,7 @@ class TestRegexStatus:
                 == "Regex status for #chan: DISABLED"
             )
 
-    def test_other_chan(self, mock_db: MockDB, mock_bot) -> None:
+    def test_other_chan(self, mock_db: MockDB, mock_bot: MockBot) -> None:
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -203,7 +208,9 @@ class TestRegexStatus:
                 == "Regex status for #chan1: ENABLED"
             )
 
-    def test_other_chan_no_prefix(self, mock_db: MockDB, mock_bot) -> None:
+    def test_other_chan_no_prefix(
+        self, mock_db: MockDB, mock_bot: MockBot
+    ) -> None:
         regex_chans.table.create(mock_db.engine)
         with mock_db.session() as session:
             mock_db.load_data(
@@ -249,7 +256,10 @@ class TestRegexStatus:
 class TestRegexSieve:
     @pytest.mark.asyncio
     async def test_block_regex_hook(
-        self, mock_bot_factory, mock_db: MockDB, caplog_bot
+        self,
+        mock_bot_factory: MockBotFactory,
+        mock_db: MockDB,
+        caplog_bot: CloudBotLogCaptureFixture,
     ) -> None:
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
@@ -324,7 +334,10 @@ class TestRegexSieve:
 
     @pytest.mark.asyncio
     async def test_allow_regex_hook(
-        self, mock_bot_factory, mock_db: MockDB, caplog_bot
+        self,
+        mock_bot_factory: MockBotFactory,
+        mock_db: MockDB,
+        caplog_bot: CloudBotLogCaptureFixture,
     ) -> None:
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
@@ -399,7 +412,10 @@ class TestRegexSieve:
 
     @pytest.mark.asyncio
     async def test_no_block_other_hook(
-        self, mock_bot_factory, mock_db: MockDB, caplog_bot
+        self,
+        mock_bot_factory: MockBotFactory,
+        mock_db: MockDB,
+        caplog_bot: CloudBotLogCaptureFixture,
     ) -> None:
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
@@ -464,7 +480,10 @@ class TestRegexSieve:
 
     @pytest.mark.asyncio
     async def test_allow_other_hook(
-        self, mock_bot_factory, mock_db: MockDB, caplog_bot
+        self,
+        mock_bot_factory: MockBotFactory,
+        mock_db: MockDB,
+        caplog_bot: CloudBotLogCaptureFixture,
     ) -> None:
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
@@ -545,7 +564,9 @@ class SetStatusBase:
         return []
 
     @pytest.mark.asyncio
-    async def test_set(self, mock_db: MockDB, mock_bot_factory) -> None:
+    async def test_set(
+        self, mock_db: MockDB, mock_bot_factory: MockBotFactory
+    ) -> None:
         mock_bot = mock_bot_factory(db=mock_db)
         regex_chans.table.create(mock_db.engine)
         mock_db.load_data(regex_chans.table, self.get_initial_db_data())
@@ -735,7 +756,9 @@ class TestResetRegex(SetStatusBase):
         return [{"connection": "net", "channel": "#chan", "status": "DISABLED"}]
 
 
-def test_bad_value(mock_db: MockDB, caplog_bot) -> None:
+def test_bad_value(
+    mock_db: MockDB, caplog_bot: CloudBotLogCaptureFixture
+) -> None:
     regex_chans.table.create(mock_db.engine)
     mock_db.load_data(
         regex_chans.table,

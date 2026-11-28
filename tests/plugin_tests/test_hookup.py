@@ -14,11 +14,12 @@ from plugins import hookup, seen
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
+    from tests.util.mock_bot import MockBotFactory
     from tests.util.mock_db import MockDB
 
 
 @pytest.mark.asyncio
-async def test_load_data(mock_bot_factory) -> None:
+async def test_load_data(mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory(
         base_dir=Path(__file__).parent.parent.parent.resolve()
     )

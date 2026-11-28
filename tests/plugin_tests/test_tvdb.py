@@ -15,6 +15,10 @@ from tests.util import HookResult, with_frozen_time, wrap_hook_response
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
 
+    from responses import RequestsMock
+
+    from tests.util.mock_bot import MockApiKeys
+
 
 @pytest.fixture(autouse=True)
 def reset_api() -> Generator[None]:
@@ -44,7 +48,7 @@ def test_holder_of_optional() -> None:
     assert holder.exists()
 
 
-def test_token(mock_requests, mock_api_keys) -> None:
+def test_token(mock_requests: RequestsMock, mock_api_keys: MockApiKeys) -> None:
     mock_requests.add(
         "POST", "https://api.thetvdb.com/login", json={"token": "foobar3"}
     )
@@ -53,7 +57,9 @@ def test_token(mock_requests, mock_api_keys) -> None:
 
 
 @pytest.mark.usefixtures("enable_api")
-def test_refresh(mock_requests, mock_api_keys) -> None:
+def test_refresh(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     mock_requests.add(
         "GET",
         "https://api.thetvdb.com/refresh_token",
@@ -64,7 +70,9 @@ def test_refresh(mock_requests, mock_api_keys) -> None:
 
 
 @pytest.mark.usefixtures("enable_api")
-def test_refresh_expired(mock_requests, mock_api_keys) -> None:
+def test_refresh_expired(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     mock_requests.add(
         "GET", "https://api.thetvdb.com/refresh_token", status=401
     )
@@ -76,7 +84,9 @@ def test_refresh_expired(mock_requests, mock_api_keys) -> None:
 
 
 @pytest.mark.usefixtures("enable_api")
-def test_refresh_other_error(mock_requests, mock_api_keys) -> None:
+def test_refresh_other_error(
+    mock_requests: RequestsMock, mock_api_keys: MockApiKeys
+) -> None:
     mock_requests.add(
         "GET", "https://api.thetvdb.com/refresh_token", status=502
     )
@@ -84,7 +94,9 @@ def test_refresh_other_error(mock_requests, mock_api_keys) -> None:
         tvdb.api.refresh_token(mock_api_keys)
 
 
-def generate_pages(mock_requests, url, count=5, per_page=5) -> None:
+def generate_pages(
+    mock_requests: RequestsMock, url: str, count: int = 5, per_page: int = 5
+) -> None:
     for i in range(1, count + 1):
         links = {"previous": i - 1, "next": i + 1, "last": count, "first": 1}
 
@@ -106,7 +118,7 @@ def generate_pages(mock_requests, url, count=5, per_page=5) -> None:
 
 
 @pytest.mark.usefixtures("enable_api")
-def test_paging(mock_requests) -> None:
+def test_paging(mock_requests: RequestsMock) -> None:
     generate_pages(mock_requests, "https://api.thetvdb.com/series/42/episodes")
     eps = list(tvdb.api.get_episodes("42"))
     assert eps == [
@@ -139,7 +151,7 @@ def test_paging(mock_requests) -> None:
 
 
 @pytest.mark.usefixtures("enable_api")
-def test_paging_reverse(mock_requests) -> None:
+def test_paging_reverse(mock_requests: RequestsMock) -> None:
     generate_pages(mock_requests, "https://api.thetvdb.com/series/42/episodes")
     eps = list(tvdb.api.get_episodes("42", reverse=False))
     assert eps == [
@@ -197,7 +209,7 @@ class _Base(ABC):
         assert res == [("return", "TVDB API not enabled.")]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_404(self, mock_requests) -> None:
+    def test_404(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -209,7 +221,7 @@ class _Base(ABC):
         assert res == [("return", "Unable to find series")]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_other_errors(self, mock_requests) -> None:
+    def test_other_errors(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -238,7 +250,7 @@ class _Base(ABC):
         raise NotImplementedError
 
     @pytest.mark.usefixtures("enable_api")
-    def test_no_episodes(self, mock_requests) -> None:
+    def test_no_episodes(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -266,7 +278,7 @@ class _Base(ABC):
         assert res == self.get_no_ep_msg()
 
     @pytest.mark.usefixtures("enable_api")
-    def test_no_episodes_404(self, mock_requests) -> None:
+    def test_no_episodes_404(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -296,7 +308,7 @@ class _Base(ABC):
         assert results == self.get_no_ep_msg()
 
     @pytest.mark.usefixtures("enable_api")
-    def test_ep_other_error(self, mock_requests) -> None:
+    def test_ep_other_error(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -330,7 +342,7 @@ class _Base(ABC):
         ]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_only_old_eps(self, mock_requests) -> None:
+    def test_only_old_eps(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -376,7 +388,7 @@ class _Base(ABC):
             ]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_only_new_eps(self, mock_requests) -> None:
+    def test_only_new_eps(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -425,7 +437,7 @@ class _Base(ABC):
             ]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_only_new_eps_tba(self, mock_requests) -> None:
+    def test_only_new_eps_tba(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -492,7 +504,7 @@ class _Base(ABC):
             ]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_series_ended(self, mock_requests) -> None:
+    def test_series_ended(self, mock_requests: RequestsMock) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",
@@ -537,7 +549,9 @@ class _Base(ABC):
             ]
 
     @pytest.mark.usefixtures("enable_api")
-    def test_only_new_eps_tba_no_name(self, mock_requests) -> None:
+    def test_only_new_eps_tba_no_name(
+        self, mock_requests: RequestsMock
+    ) -> None:
         mock_requests.add(
             "GET",
             "https://api.thetvdb.com/search/series",

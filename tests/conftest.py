@@ -5,6 +5,7 @@ import datetime as dt
 import importlib
 import logging
 from collections.abc import Generator
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -24,12 +25,19 @@ import cloudbot
 from cloudbot.bot import bot_instance
 from cloudbot.util import database
 from cloudbot.util.database import Session
-from tests.util.mock_bot import MockBot
+from tests.util.mock_bot import (
+    CloudBotLogCaptureFixture,
+    MockApiKeys,
+    MockBot,
+    MockBotFactory,
+)
 from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
     from pathlib import Path
+
+    from tests.util import PatchImportModule, PatchImportReload
 
 
 @pytest.fixture
@@ -44,12 +52,12 @@ def temp_metadata() -> Generator[None]:
 
 
 @pytest.fixture
-def tmp_logs(tmp_path) -> None:
+def tmp_logs(tmp_path: Path) -> None:
     cloudbot._setup(tmp_path)
 
 
 @pytest.fixture
-def caplog_bot(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
+def caplog_bot(caplog: pytest.LogCaptureFixture) -> CloudBotLogCaptureFixture:
     caplog.set_level(logging.WARNING, "asyncio")
     caplog.set_level(logging.WARNING, "alembic")
     caplog.set_level(0, "cloudbot")
@@ -60,19 +68,19 @@ def caplog_bot(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
 
 
 @pytest.fixture
-def patch_import_module() -> Generator[MagicMock]:
+def patch_import_module() -> Generator[PatchImportModule]:
     with patch.object(importlib, "import_module") as mocked:
         yield mocked
 
 
 @pytest.fixture
-def patch_import_reload() -> Generator[MagicMock]:
+def patch_import_reload() -> Generator[PatchImportReload]:
     with patch.object(importlib, "reload") as mocked:
         yield mocked
 
 
 @pytest.fixture
-def mock_db(tmp_path) -> Generator[MockDB]:
+def mock_db(tmp_path: Path) -> Generator[MockDB]:
     db = MockDB(f"sqlite:///{tmp_path / 'database.db'!s}")
     database.configure(db.engine)
     try:
@@ -111,9 +119,7 @@ def mock_bot_factory(
 
 
 @pytest_asyncio.fixture()
-async def mock_bot(
-    mock_bot_factory: Callable[..., MockBot],
-) -> AsyncGenerator[MockBot]:
+async def mock_bot(mock_bot_factory: MockBotFactory) -> AsyncGenerator[MockBot]:
     yield mock_bot_factory()
 
 
@@ -135,7 +141,7 @@ def freeze_time() -> Generator[FrozenDateTimeFactory]:
 
 
 @pytest.fixture
-def mock_api_keys() -> Generator[MagicMock]:
+def mock_api_keys() -> Generator[MockApiKeys]:
     mock_bot = MagicMock()
     try:
         bot_instance.set(mock_bot)

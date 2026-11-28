@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,9 +14,12 @@ from cloudbot.plugin import PluginManager
 from plugins.core import cap
 from tests.util.mock_module import MockModule
 
+if TYPE_CHECKING:
+    from tests.util import PatchImportModule
+
 
 @pytest.mark.asyncio
-async def test_cap_req(patch_import_module) -> None:
+async def test_cap_req(patch_import_module: PatchImportModule) -> None:
     caps = [
         "some-cap",
         "another-cap",

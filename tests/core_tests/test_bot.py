@@ -4,6 +4,7 @@ import asyncio
 from collections.abc import Callable
 from contextlib import contextmanager
 from itertools import product
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, call, patch
 
@@ -37,13 +38,15 @@ from cloudbot.plugin_hooks import (
 )
 from cloudbot.util import database
 from tests.util.async_mock import AsyncMock
-from tests.util.mock_bot import MockBot
+from tests.util.mock_bot import MockBot, MockBotFactory
 from tests.util.mock_conn import MockClient
 from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
     from pathlib import Path
+
+    from cloudbot.config import Config
 
 
 @pytest.mark.asyncio
@@ -59,16 +62,14 @@ def test_loop_not_set_out_of_loop(tmp_path: Path, mock_db: MockDB) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_connection_configs(
-    mock_bot_factory: Callable[..., MockBot],
-) -> None:
+async def test_get_connection_configs(mock_bot_factory: MockBotFactory) -> None:
     mock_bot = mock_bot_factory(config={"connections": [{"name": "foo"}]})
     assert mock_bot.get_connection_configs() == {"foo": {"name": "foo"}}
 
 
 @pytest.mark.asyncio
 async def test_get_connection_configs_with_dupes(
-    mock_bot_factory: Callable[..., MockBot],
+    mock_bot_factory: MockBotFactory,
 ) -> None:
     mock_bot = mock_bot_factory(
         config={"connections": [{"name": "foo"}, {"name": "FOO"}]}
@@ -92,7 +93,9 @@ def test_deprecated_bot_var() -> None:
 
 
 @pytest.mark.asyncio
-async def test_migrate_db(mock_db, mock_bot_factory, tmp_path) -> None:
+async def test_migrate_db(
+    mock_db: MockDB, mock_bot_factory: MockBotFactory, tmp_path: Path
+) -> None:
     old_db_url = f"sqlite:///{tmp_path / 'database1.db'!s}"
     with MockDB(old_db_url, True) as old_db:
         table = Table(
@@ -146,7 +149,7 @@ async def test_migrate_db(mock_db, mock_bot_factory, tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_connect_clients(mock_bot_factory) -> None:
+async def test_connect_clients(mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory()
     conn = MockClient(bot=bot)
     bot.connections = {"foo": conn}
@@ -160,7 +163,7 @@ async def test_connect_clients(mock_bot_factory) -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_plugin_reload(tmp_path) -> None:
+async def test_start_plugin_reload(tmp_path: Path) -> None:
     bot = MagicMock(old_db=None, do_migrate_db=False)
 
     bot.plugin_manager.load_all = AsyncMock()
@@ -180,7 +183,9 @@ async def test_start_plugin_reload(tmp_path) -> None:
 
 class TestProcessing:
     @pytest.mark.asyncio
-    async def test_irc_catch_all(self, mock_bot_factory) -> None:
+    async def test_irc_catch_all(
+        self, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -209,7 +214,9 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_irc_catch_all_block(self, mock_bot_factory) -> None:
+    async def test_irc_catch_all_block(
+        self, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -246,7 +253,7 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_command(self, mock_bot_factory) -> None:
+    async def test_command(self, mock_bot_factory: MockBotFactory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -277,7 +284,9 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_command_partial(self, mock_bot_factory) -> None:
+    async def test_command_partial(
+        self, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -312,7 +321,7 @@ class TestProcessing:
         ]
 
     @pytest.mark.asyncio
-    async def test_event(self, mock_bot_factory) -> None:
+    async def test_event(self, mock_bot_factory: MockBotFactory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -344,7 +353,9 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_event_block(self, mock_bot_factory, mock_db) -> None:
+    async def test_event_block(
+        self, mock_bot_factory: MockBotFactory, mock_db: MockDB
+    ) -> None:
         bot = mock_bot_factory(db=mock_db)
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -390,7 +401,7 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_event_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_irc_raw(self, mock_bot_factory) -> None:
+    async def test_irc_raw(self, mock_bot_factory: MockBotFactory) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -418,7 +429,9 @@ class TestProcessing:
         assert sorted(run_hooks, key=id) == sorted([full_hook], key=id)
 
     @pytest.mark.asyncio
-    async def test_irc_raw_block(self, mock_bot_factory) -> None:
+    async def test_irc_raw_block(
+        self, mock_bot_factory: MockBotFactory
+    ) -> None:
         bot = mock_bot_factory()
         conn = MockClient(bot=bot, nick="bot")
         event = Event(
@@ -456,7 +469,7 @@ class TestProcessing:
 
 
 @pytest.mark.asyncio
-async def test_reload_config(mock_bot_factory) -> None:
+async def test_reload_config(mock_bot_factory: MockBotFactory) -> None:
     bot = mock_bot_factory()
     conn = MockClient(bot=bot)
     bot.connections = {"foo": conn}
@@ -490,11 +503,11 @@ async def test_reload_config(mock_bot_factory) -> None:
         ("c+onn ection", "conn_ection"),
     ],
 )
-def test_clean_name(text, result) -> None:
+def test_clean_name(text: str, result: str) -> None:
     assert clean_name(text) == result
 
 
-def test_get_cmd_regex(mock_bot) -> None:
+def test_get_cmd_regex(mock_bot: MockBot) -> None:
     event = Event(
         channel="TestUser",
         nick="TestUser",
@@ -525,8 +538,8 @@ def patch_config(config: dict[str, Any]) -> Generator[Callable[..., None]]:
         yield mocked
 
 
-def config_mock(config) -> Callable[..., None]:
-    def _load_config(self) -> None:
+def config_mock(config: dict[str, Any]) -> Callable[..., None]:
+    def _load_config(self: Config) -> None:
         self.update(config)
 
     return _load_config
@@ -537,7 +550,9 @@ def config_mock(config) -> Callable[..., None]:
     ("config_enabled", "plugin_enabled"),
     list(product([True, False], [True, False])),
 )
-async def test_reloaders(tmp_path, config_enabled, plugin_enabled) -> None:
+async def test_reloaders(
+    tmp_path: Path, config_enabled: bool, plugin_enabled: bool
+) -> None:
     with patch_config(
         {
             "connections": [],
@@ -554,7 +569,7 @@ async def test_reloaders(tmp_path, config_enabled, plugin_enabled) -> None:
 
 
 @pytest.mark.asyncio
-async def test_set_error(tmp_path) -> None:
+async def test_set_error(tmp_path: Path) -> None:
     with patch_config({"connections": []}):
         bot = CloudBot(loop=asyncio.get_running_loop(), base_dir=tmp_path)
         with pytest.raises(GlobalBotAlreadySet):
@@ -564,7 +579,7 @@ async def test_set_error(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_load_clients(tmp_path, mock_db) -> None:
+async def test_load_clients(tmp_path: Path, mock_db: MockDB) -> None:
     with (
         patch_config(
             {

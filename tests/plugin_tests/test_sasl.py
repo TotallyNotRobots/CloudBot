@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import asyncio
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -7,27 +10,30 @@ from cloudbot.event import CapEvent
 from plugins.core import sasl
 from tests.util.mock_conn import MockClient
 
+if TYPE_CHECKING:
+    from tests.util.mock_bot import MockBot
 
-def test_sasl_available_enabled(mock_bot) -> None:
+
+def test_sasl_available_enabled(mock_bot: MockBot) -> None:
     event = CapEvent(cap="sasl", cap_param=None, conn=MockClient(bot=mock_bot))
     event.conn.config = {"sasl": {"enabled": True}}
     assert sasl.sasl_available(event.conn) is True
 
 
-def test_sasl_available_disabled(mock_bot) -> None:
+def test_sasl_available_disabled(mock_bot: MockBot) -> None:
     event = CapEvent(cap="sasl", cap_param=None, conn=MockClient(bot=mock_bot))
     event.conn.config = {"sasl": {"enabled": False}}
     assert sasl.sasl_available(event.conn) is False
 
 
-def test_sasl_available_no_config(mock_bot) -> None:
+def test_sasl_available_no_config(mock_bot: MockBot) -> None:
     event = CapEvent(cap="sasl", cap_param=None, conn=MockClient(bot=mock_bot))
     event.conn.config = {}
     assert sasl.sasl_available(event.conn) is False
 
 
 @pytest.mark.asyncio
-async def test_sasl_ack_plain(mock_bot) -> None:
+async def test_sasl_ack_plain(mock_bot: MockBot) -> None:
     event = CapEvent(cap="sasl", cap_param=None, conn=MockClient(bot=mock_bot))
     event.conn.memory = {}
     event.conn.config = {

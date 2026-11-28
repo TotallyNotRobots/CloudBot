@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,13 +9,23 @@ from cloudbot import hook
 from cloudbot.event import CommandEvent, Event
 from cloudbot.plugin import PluginManager
 from plugins.core import help as help_plugin
-from tests.util import wrap_hook_response, wrap_hook_response_async
+from tests.util import (
+    PatchImportModule,
+    PatchImportReload,
+    wrap_hook_response,
+    wrap_hook_response_async,
+)
 from tests.util.mock_module import MockModule
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.asyncio
 async def test_help_command(
-    patch_import_module, patch_import_reload, tmp_path
+    patch_import_module: PatchImportModule,
+    patch_import_reload: PatchImportReload,
+    tmp_path: Path,
 ) -> None:
     conn = MagicMock(config={})
     conn.bot.plugin_manager = manager = PluginManager(conn.bot)
@@ -61,7 +74,9 @@ async def test_help_command(
 
 @pytest.mark.asyncio
 async def test_help_command_single(
-    patch_import_module, patch_import_reload, tmp_path
+    patch_import_module: PatchImportModule,
+    patch_import_reload: PatchImportReload,
+    tmp_path: Path,
 ) -> None:
     conn = MagicMock(config={})
     conn.bot.plugin_manager = manager = PluginManager(conn.bot)
@@ -100,7 +115,9 @@ async def test_help_command_single(
 
 @pytest.mark.asyncio
 async def test_help_command_single_no_doc(
-    patch_import_module, patch_import_reload, tmp_path
+    patch_import_module: PatchImportModule,
+    patch_import_reload: PatchImportReload,
+    tmp_path: Path,
 ) -> None:
     conn = MagicMock(config={})
     conn.bot.plugin_manager = manager = PluginManager(conn.bot)
@@ -139,7 +156,9 @@ async def test_help_command_single_no_doc(
 
 @pytest.mark.asyncio
 async def test_cmdinfo(
-    patch_import_module, patch_import_reload, tmp_path
+    patch_import_module: PatchImportModule,
+    patch_import_reload: PatchImportReload,
+    tmp_path: Path,
 ) -> None:
     conn = MagicMock(config={})
     conn.bot.plugin_manager = manager = PluginManager(conn.bot)
@@ -184,7 +203,9 @@ async def test_cmdinfo(
 
 @pytest.mark.asyncio
 async def test_cmdinfo_perms(
-    patch_import_module, patch_import_reload, tmp_path
+    patch_import_module: PatchImportModule,
+    patch_import_reload: PatchImportReload,
+    tmp_path: Path,
 ) -> None:
     conn = MagicMock(config={})
     conn.bot.plugin_manager = manager = PluginManager(conn.bot)
