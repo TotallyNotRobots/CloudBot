@@ -37,13 +37,25 @@ from cloudbot.plugin_hooks import (
 )
 from cloudbot.util import database
 from tests.util.async_mock import AsyncMock
+from tests.util.mock_bot import MockBot
 from tests.util.mock_conn import MockClient
 from tests.util.mock_db import MockDB
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
+    from pathlib import Path
 
-    from tests.util.mock_bot import MockBot
+
+@pytest.mark.asyncio
+async def test_loop_not_set_in_loop(tmp_path: Path, mock_db: MockDB) -> None:
+    bot = MockBot(base_dir=tmp_path, db=mock_db)
+    assert bot.loop is not None
+
+
+def test_loop_not_set_out_of_loop(tmp_path: Path, mock_db: MockDB) -> None:
+    bot = MockBot(base_dir=tmp_path, db=mock_db)
+    with pytest.raises(RuntimeError, match="no current event loop"):
+        assert bot.loop is not None
 
 
 @pytest.mark.asyncio

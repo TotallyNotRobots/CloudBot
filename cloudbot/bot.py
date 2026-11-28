@@ -43,7 +43,14 @@ class AbstractBot:
         self, *, config: Config, loop: AbstractEventLoop | None = None
     ) -> None:
         self.config: Config = config
-        self.loop: AbstractEventLoop | None = loop
+        self._loop: AbstractEventLoop | None = loop
+
+    @property
+    def loop(self) -> AbstractEventLoop:
+        if self._loop is None:
+            self._loop = asyncio.get_event_loop()
+
+        return self._loop
 
     def get_connection_configs(self) -> KeyFoldDict[ConnConfig]:
         out = KeyFoldDict[ConnConfig]()
@@ -161,7 +168,7 @@ class CloudBot(AbstractBot):
     def __init__(
         self,
         *,
-        loop: asyncio.AbstractEventLoop | None = None,
+        loop: AbstractEventLoop | None = None,
         base_dir: Path | None = None,
         create_connections: bool = True,
     ) -> None:
@@ -270,9 +277,6 @@ class CloudBot(AbstractBot):
         This will load plugins, connect to IRC, and process input.
         :return: True if CloudBot should be restarted, False otherwise
         """
-        if self.loop is None:
-            self.loop = asyncio.get_running_loop()
-
         self.stopped_future = asyncio.Future[bool]()
         self.loop.set_default_executor(self.executor)
         # Initializes the bot, plugins and connections

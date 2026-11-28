@@ -8,7 +8,6 @@ from pathlib import Path
 
 from cloudbot.bot import CloudBot
 from cloudbot.db import db_init
-from cloudbot.errors import ShouldBeUnreachable
 
 
 async def async_main() -> int:
@@ -35,15 +34,12 @@ async def async_main() -> int:
     # define closure for signal handling
     # The handler is called with two arguments: the signal number and the current stack frame
     # These parameters should NOT be removed
-    def exit_gracefully(signum, frame):  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
+    def exit_gracefully(signum, frame) -> None:  # pyright: ignore[reportUnusedParameter]  # noqa: ARG001
         nonlocal stopped_while_restarting
         if not _bot:
             # we are currently in the process of restarting
             stopped_while_restarting = True
         else:
-            if _bot.loop is None:
-                raise ShouldBeUnreachable
-
             asyncio.run_coroutine_threadsafe(
                 _bot.stop(f"Killed (Received SIGINT {signum})"), _bot.loop
             )

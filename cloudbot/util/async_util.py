@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from asyncio import AbstractEventLoop
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from typing_extensions import ParamSpec
@@ -29,7 +30,7 @@ def iscoroutinefunction(
 
 
 async def run_func_with_args(
-    loop: asyncio.AbstractEventLoop,
+    loop: AbstractEventLoop,
     func: Callable[..., Coroutine[Any, Any, _T]] | Callable[..., _T],
     arg_data: Mapping[str, Any],
     executor: Executor | None = None,

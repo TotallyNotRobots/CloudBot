@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from asyncio import AbstractEventLoop
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
@@ -78,7 +79,7 @@ def get_test_data() -> Any:  # pyright: ignore[reportAny]
 def setup_api(
     mock_requests: RequestsMock,
     mock_db: MockDB,
-    loop: asyncio.AbstractEventLoop,
+    loop: AbstractEventLoop,
     mock_bot_factory: Callable[..., MockBot],
 ) -> MockBot:
     bot = mock_bot_factory(
