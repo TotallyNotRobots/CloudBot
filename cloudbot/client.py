@@ -56,9 +56,6 @@ class Client:
         config: dict[str, Any] | None = None,
     ) -> None:
         self.bot = bot
-        if bot.loop is None:
-            raise ValueError("Missing event loop on bot")
-
         self.loop = bot.loop
         self.name = name
         self.nick = nick
